@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c0e12" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=0.1.53" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=0.1.53" />
+    <link rel="shortcut icon" href="/favicon.ico?v=0.1.53" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=0.1.53" />
+    <link rel="manifest" href="/site.webmanifest?v=0.1.53" />
+    <meta name="description" content="NiceChunk protocol documentation for seeded world generation, player actions, mining, forging, NCK utility, Watchers, and Solana integration." />
+    <title data-docs-i18n="meta.title">NiceChunk Protocol Docs</title>
+  </head>
+  <body>
+    <div class="docs-shader" aria-hidden="true">
+      <canvas id="docsShader"></canvas>
+      <div class="docs-vignette"></div>
+    </div>
+
+    <header class="docs-header site-header">
+      <a class="brand-mark" href="/" aria-label="NiceChunk">
+        <img src="/media/nck.png" alt="" />
+        <span>NICECHUNK</span>
+      </a>
+      <nav class="top-nav site-nav" aria-label="Primary navigation" data-docs-i18n-aria-label="nav.aria">
+        <div class="nav-links">
+          <a href="/" data-docs-i18n="nav.home">Home</a>
+          <a href="/roadmap/" data-docs-i18n="nav.roadbook">Roadbook</a>
+          <a href="/world_rule/" data-docs-i18n="nav.worldRules">World Rules</a>
+          <a href="/resource_rule/" data-docs-i18n="nav.resources">Resources</a>
+          <a href="/elements/" data-docs-i18n="nav.elements">Elements</a>
+          <a href="/fairness/" data-docs-i18n="nav.fairness">Fairness</a>
+          <a href="/proof-of-frontier/" data-docs-i18n="nav.proofOfFrontier">Proof</a>
+          <a href="/guardian/" data-docs-i18n="nav.guardians">Guardians</a>
+          <a class="active" href="/docs/" data-docs-i18n="nav.docs">Docs</a>
+        </div>
+        <div class="nav-actions">
+          <a class="header-action" href="/play/" data-docs-i18n="nav.enterWorld">Enter World</a>
+          <div class="docs-language language-picker" aria-label="Language" data-docs-i18n-aria-label="language.aria">
+            <button class="docs-language-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="docs-language-current">English (English)</span>
+              <span class="docs-language-caret" aria-hidden="true"></span>
+            </button>
+            <div class="docs-language-menu" role="listbox"></div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation" data-docs-i18n-aria-label="sidebar.aria">
+        <div class="sidebar-title" data-docs-i18n="sidebar.title">Protocol Docs</div>
+        <nav id="docsNav" class="sidebar-nav"></nav>
+      </aside>
+
+      <main class="docs-content">
+        <section class="docs-hero" id="overview" data-doc-section>
+          <div class="hero-copy">
+            <p class="eyebrow" data-docs-i18n="hero.eyebrow">Public Protocol Manual</p>
+            <h1 data-docs-i18n="hero.title">A fair voxel world must publish its rules before it asks for trust.</h1>
+            <p class="hero-subtitle" data-docs-i18n="hero.subtitle">
+              NiceChunk documents the code path from seed to chunk, from player action to state change, and from client behavior to future on-chain verification.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-action" href="#status-model" data-docs-scroll="status-model" data-docs-i18n="hero.startReading">Read Architecture</a>
+              <a class="secondary-action" href="#fairness" data-docs-scroll="fairness" data-docs-i18n="hero.fairnessModel">Verify Rules</a>
+              <a class="secondary-action" href="/play/" data-docs-i18n="hero.enterWorld">Enter World</a>
+            </div>
+            <ul class="status-badges" aria-label="Documentation status" data-docs-i18n-aria-label="hero.statusAria">
+              <li data-docs-i18n="hero.badges.alpha">Alpha Documentation</li>
+              <li data-docs-i18n="hero.badges.seeded">Seeded Chunk Engine</li>
+              <li data-docs-i18n="hero.badges.publicRules">Public Rulebook</li>
+              <li data-docs-i18n="hero.badges.chainBoundaries">Chain Boundaries</li>
+              <li data-docs-i18n="hero.badges.versioned">Versioned Specs</li>
+            </ul>
+          </div>
+          <div class="hero-visual glass-panel">
+            <div class="seed-demo-stage">
+              <canvas id="heroSeedCanvas" aria-hidden="true"></canvas>
+              <div class="seed-readout">
+                <span data-docs-i18n="hero.seedLabel">Seed</span>
+                <strong id="heroSeedValue">NCK-DOCS-0000</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="docs-section" id="protocol-map" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="protocolMap.eyebrow">Protocol Map</p>
+            <h2 data-docs-i18n="protocolMap.title">The docs follow the same layers as the product.</h2>
+            <p data-docs-i18n="protocolMap.body">
+              NiceChunk is not documented as a marketing site. It is documented as a public rules surface for players, builders, node operators, auditors, and future governance.
+            </p>
+          </div>
+          <div class="protocol-grid">
+            <article class="protocol-card glass-panel">
+              <span>01</span>
+              <strong data-docs-i18n="protocolMap.cards.world.title">World Protocol</strong>
+              <p data-docs-i18n="protocolMap.cards.world.body">Seeded terrain, large biome masks, slope-limited mountains, oceans, forests, snow bands, and block resource rules.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>02</span>
+              <strong data-docs-i18n="protocolMap.cards.actions.title">Action Rules</strong>
+              <p data-docs-i18n="protocolMap.cards.actions.body">Hotbar-selected behavior, mining range, block placement, inventory movement, forging inputs, and validation boundaries.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>03</span>
+              <strong data-docs-i18n="protocolMap.cards.verification.title">State & PDA Model</strong>
+              <p data-docs-i18n="protocolMap.cards.verification.body">GlobalConfig, chunk override accounts, Guardian registry PDAs, version hashes, and what should not be stored on-chain.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>04</span>
+              <strong data-docs-i18n="protocolMap.cards.network.title">Guardian Network</strong>
+              <p data-docs-i18n="protocolMap.cards.network.body">Regional access nodes, realtime messages, non-custodial boundaries, NCK stake, and future availability proofs.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="docs-section" id="status-model" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="statusModel.eyebrow">Status Model</p>
+            <h2 data-docs-i18n="statusModel.title">Every rule must say whether it is live, planned, client-only, or intended for chain verification.</h2>
+            <p data-docs-i18n="statusModel.body">
+              This is the core documentation rule for NiceChunk. A feature can be playable before it is fully decentralized, but the page must say which part is already live and which part is still a protocol target.
+            </p>
+          </div>
+          <div class="status-model-grid">
+            <article class="status-model-card live">
+              <span data-docs-i18n="statusModel.cards.live.label">Live Alpha</span>
+              <strong data-docs-i18n="statusModel.cards.live.title">Playable client behavior</strong>
+              <p data-docs-i18n="statusModel.cards.live.body">Browser world, seeded terrain, movement, mining interaction, placement preview, hotbar, backpack UI, forging UI, minimap, and wallet login.</p>
+            </article>
+            <article class="status-model-card chain">
+              <span data-docs-i18n="statusModel.cards.chain.label">Devnet / Chain</span>
+              <strong data-docs-i18n="statusModel.cards.chain.title">Explicit Solana state</strong>
+              <p data-docs-i18n="statusModel.cards.chain.body">GlobalConfig, player/session bridges, Guardian registry and region accounts, NCK mint binding, and PDA derivation rules.</p>
+            </article>
+            <article class="status-model-card planned">
+              <span data-docs-i18n="statusModel.cards.planned.label">Planned Protocol</span>
+              <strong data-docs-i18n="statusModel.cards.planned.title">Future verification layers</strong>
+              <p data-docs-i18n="statusModel.cards.planned.body">Chunk override compression, resource settlement, asset ownership, marketplace settlement, Watcher proofs, and governance controls.</p>
+            </article>
+            <article class="status-model-card boundary">
+              <span data-docs-i18n="statusModel.cards.boundary.label">Trust Boundary</span>
+              <strong data-docs-i18n="statusModel.cards.boundary.title">No hidden claims</strong>
+              <p data-docs-i18n="statusModel.cards.boundary.body">The docs must not imply that client-only rendering, local cache, or unreleased systems are already fully decentralized.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="docs-section" id="quick-start" data-doc-section>
+          <div class="section-heading compact">
+            <p class="eyebrow blue" data-docs-i18n="quickStart.eyebrow">Quick Start</p>
+            <h2 data-docs-i18n="quickStart.title">Enter, inspect, and verify the alpha world.</h2>
+          </div>
+          <div class="rule-grid">
+            <article class="rule-card">
+              <strong data-docs-i18n="quickStart.steps.enter.title">Enter the world</strong>
+              <p data-docs-i18n="quickStart.steps.enter.body">Open the browser client, connect a Solana wallet, and create a player profile before moving into the voxel world.</p>
+            </article>
+            <article class="rule-card">
+              <strong data-docs-i18n="quickStart.steps.explore.title">Explore chunks</strong>
+              <p data-docs-i18n="quickStart.steps.explore.body">Walk through seeded terrain while the client loads nearby chunks, caches explored map data, and unloads GPU resources when regions are far away.</p>
+            </article>
+            <article class="rule-card">
+              <strong data-docs-i18n="quickStart.steps.act.title">Use the selected item</strong>
+              <p data-docs-i18n="quickStart.steps.act.body">The hotbar controls the action: empty hand swings, pickaxe mines, and block items place blocks within range.</p>
+            </article>
+          </div>
+          <pre class="code-block"><code>{
+  "client": "browser",
+  "currentNetwork": "solana-devnet",
+  "world": {
+    "seed": "nicechunk-mainnet-001",
+    "chunkSize": 16,
+    "renderDistance": 6,
+    "preloadDistance": 9,
+    "generator": "voxel-seeded-terrain-v2"
+  },
+  "rule": "Generated terrain costs no chain storage until players change it."
+}</code></pre>
+        </section>
+
+        <section class="docs-section" id="world-generation" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="worldGeneration.eyebrow">World Generation</p>
+            <h2 data-docs-i18n="worldGeneration.title">The same seed and rule version must rebuild the same world.</h2>
+            <p data-docs-i18n="worldGeneration.body">
+              Terrain is generated from deterministic inputs. Large climate regions are sampled first, then oceans, dunes, foothills, mountains, snow bands, trees, and resource hints are layered on top.
+            </p>
+          </div>
+          <div class="split-layout">
+            <div class="glass-panel demo-panel">
+              <div class="panel-head">
+                <div>
+                  <span data-docs-i18n="worldGeneration.demo.eyebrow">Interactive Demo</span>
+                  <strong data-docs-i18n="worldGeneration.demo.title">Seeded Chunk Preview</strong>
+                </div>
+                <button class="small-action" id="randomSeedButton" type="button" data-docs-i18n="worldGeneration.demo.random">Random Seed</button>
+              </div>
+              <label class="field-label" for="seedInput" data-docs-i18n="worldGeneration.demo.seedLabel">Seed</label>
+              <input id="seedInput" class="text-input" type="text" value="nicechunk-mainnet-001" autocomplete="off" />
+              <div class="docs-canvas-wrap">
+                <canvas id="seedChunkCanvas" aria-hidden="true"></canvas>
+              </div>
+              <div class="metric-grid">
+                <div><span data-docs-i18n="worldGeneration.demo.biome">Dominant Biome</span><strong id="biomeMetric">Grassland</strong></div>
+                <div><span data-docs-i18n="worldGeneration.demo.height">Height Hash</span><strong id="heightHashMetric">0x0000</strong></div>
+                <div><span data-docs-i18n="worldGeneration.demo.resources">Resource Hints</span><strong id="resourceMetric">0</strong></div>
+              </div>
+            </div>
+            <div class="rule-stack">
+              <article class="rule-card">
+                <span class="rule-status">Deterministic</span>
+                <strong data-docs-i18n="worldGeneration.rules.seed.title">Seed contract</strong>
+                <p data-docs-i18n="worldGeneration.rules.seed.body">A public seed is normalized into numeric streams. Terrain, climate, tree palettes, and resource hints must use seed-derived streams.</p>
+                <pre class="code-block mini"><code>worldSeed = hash(seed)
+height = terrain(worldSeed, chunkX, chunkZ, x, z)</code></pre>
+              </article>
+              <article class="rule-card">
+                <span class="rule-status">Implemented</span>
+                <strong data-docs-i18n="worldGeneration.rules.slope.title">Slope-limited mountains</strong>
+                <p data-docs-i18n="worldGeneration.rules.slope.body">Mountain growth is broad and probabilistic. Final terrain limits neighboring columns to natural one-block steps where gameplay requires traversal.</p>
+                <pre class="code-block mini"><code>nextHeight = rawHeight(x, z)
+height = min(nextHeight, neighborHeight + 1)</code></pre>
+              </article>
+              <article class="rule-card">
+                <span class="rule-status">Inspectable</span>
+                <strong data-docs-i18n="worldGeneration.rules.biomes.title">Large biome regions</strong>
+                <p data-docs-i18n="worldGeneration.rules.biomes.body">Low-frequency climate masks allow large plains, deserts, ocean bodies, forests, foothills, and snow regions without hard size caps.</p>
+                <pre class="code-block mini"><code>temperature = fbm(x * 0.0032, z * 0.0032)
+moisture = fbm(x * 0.0038, z * 0.0038)</code></pre>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section class="docs-section" id="chunk-system" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="chunkSystem.eyebrow">Chunk System</p>
+            <h2 data-docs-i18n="chunkSystem.title">World coordinates become chunk coordinates, local block coordinates, and cache keys.</h2>
+            <p data-docs-i18n="chunkSystem.body">A chunk is a 16 x 16 X/Z area. The client currently renders a 13 x 13 visible chunk square and preloads a wider 19 x 19 square to reduce stalls. Rendering resources can unload while discovered minimap data stays cached.</p>
+          </div>
+          <div class="split-layout">
+            <div class="glass-panel demo-panel">
+              <div class="panel-head">
+                <div>
+                  <span data-docs-i18n="chunkSystem.demo.eyebrow">Coordinate Demo</span>
+                  <strong data-docs-i18n="chunkSystem.demo.title">World To Chunk</strong>
+                </div>
+              </div>
+              <div class="coord-grid">
+                <label><span data-docs-i18n="chunkSystem.demo.worldX">World X</span><input id="coordX" class="text-input" type="number" value="37" /></label>
+                <label><span data-docs-i18n="chunkSystem.demo.worldZ">World Z</span><input id="coordZ" class="text-input" type="number" value="-18" /></label>
+              </div>
+              <pre class="code-block result"><code id="coordResult"></code></pre>
+            </div>
+            <pre class="code-block"><code>const CHUNK_SIZE = 16;
+
+function worldToChunk(worldX, worldZ) {
+  return {
+    chunkX: Math.floor(worldX / CHUNK_SIZE),
+    chunkZ: Math.floor(worldZ / CHUNK_SIZE),
+    localX: mod(worldX, CHUNK_SIZE),
+    localZ: mod(worldZ, CHUNK_SIZE)
+  };
+}
+
+function chunkKey(worldX, worldZ) {
+  const chunkX = Math.floor(worldX / CHUNK_SIZE);
+  const chunkZ = Math.floor(worldZ / CHUNK_SIZE);
+  return `${chunkX},${chunkZ}`;
+}
+
+function chunkCommitment(seed, chunkX, chunkZ, ruleVersion, overrideRoot) {
+  return sha256(`${seed}:${chunkX}:${chunkZ}:${ruleVersion}:${overrideRoot}`);
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="on-chain-state" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="chainState.eyebrow">On-chain State</p>
+            <h2 data-docs-i18n="chainState.title">The chain stores commitments and player-owned state, not every generated block.</h2>
+            <p data-docs-i18n="chainState.body">NiceChunk’s storage model is designed around one rule: deterministic generated terrain should be free to reconstruct, while changed or economically meaningful state becomes explicit and verifiable.</p>
+          </div>
+          <div class="split-layout">
+            <table class="status-table">
+              <thead>
+                <tr>
+                  <th data-docs-i18n="chainState.table.account">Account</th>
+                  <th data-docs-i18n="chainState.table.seed">PDA Seed</th>
+                  <th data-docs-i18n="chainState.table.role">Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>GlobalConfig</td>
+                  <td><code>["global-config"]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.global">Immutable world-law layer: NCK mint, world seed hash, chunk size, rule hashes, fees, and Guardian parameters.</td>
+                </tr>
+                <tr>
+                  <td>GuardianRegistry</td>
+                  <td><code>["guardian-registry", global_config]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.registry">Registry for active Guardian regions, NCK stake amount, treasury token account, and registration counters.</td>
+                </tr>
+                <tr>
+                  <td>GuardianRegion</td>
+                  <td><code>["guardian-region", global_config, region_x, region_y]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.region">A registered region endpoint with owner, operator, host, TLS flag, stake, proof counters, and update slot.</td>
+                </tr>
+                <tr>
+                  <td>Chunk Override</td>
+                  <td><code>["chunk", global_config, chunk_x, chunk_z]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.chunk">Future production account for current block overrides only. Unchanged generated terrain should not be stored.</td>
+                </tr>
+              </tbody>
+            </table>
+            <pre class="code-block"><code>// Current public constants surfaced by the SDK
+CONFIG_MAGIC = "NCKCFG01"
+GLOBAL_CONFIG_LEN = 293
+CHUNK_SIZE = 16
+GUARDIAN_REGION_SIZE = 100
+GUARDIAN_STAKE_AMOUNT = 100_000 NCK
+
+// Storage principle
+generated_block = derive(seed, chunk, local_position)
+changed_block = read_override(chunk_pda, local_position)</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="player-actions" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="playerActions.eyebrow">Player Actions</p>
+            <h2 data-docs-i18n="playerActions.title">The selected hotbar slot is the action contract.</h2>
+            <p data-docs-i18n="playerActions.body">NiceChunk actions should be predictable before they are submitted. The client resolves input based on the held item, then range and target rules decide whether an action is valid.</p>
+          </div>
+          <div class="rule-grid">
+            <article class="rule-card"><strong data-docs-i18n="playerActions.cards.empty.title">Empty hand</strong><p data-docs-i18n="playerActions.cards.empty.body">Clicking with no held item produces a swing only. It does not mine or place.</p></article>
+            <article class="rule-card"><strong data-docs-i18n="playerActions.cards.pickaxe.title">Pickaxe</strong><p data-docs-i18n="playerActions.cards.pickaxe.body">A mining tool resolves clicks into mining attempts and consumes durability when successful.</p></article>
+            <article class="rule-card"><strong data-docs-i18n="playerActions.cards.block.title">Block item</strong><p data-docs-i18n="playerActions.cards.block.body">A block stack resolves clicks into placement attempts within range and consumes one item per successful placement.</p></article>
+          </div>
+          <pre class="code-block"><code>type HeldItem =
+  | { type: "empty" }
+  | { type: "tool"; toolId: "iron_pickaxe"; durability: number }
+  | { type: "block"; blockId: string; amount: number };
+
+function resolvePrimaryAction(item: HeldItem) {
+  if (item.type === "tool" && item.toolId === "iron_pickaxe") return "mine";
+  if (item.type === "block" && item.amount > 0) return "place";
+  return "swing";
+}</code></pre>
+        </section>
+
+        <section class="docs-section" id="mining-resources" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="mining.eyebrow">Mining & Resources</p>
+            <h2 data-docs-i18n="mining.title">Resource outcomes should be reproducible from public inputs.</h2>
+            <p data-docs-i18n="mining.body">Basic terrain can be deterministic, but valuable resources must not be fully predictable from public world seed alone. Discovery should combine public commitments with action-specific inputs so players can verify outcomes without pre-scanning every valuable coordinate.</p>
+          </div>
+          <div class="split-layout">
+            <div class="glass-panel demo-panel">
+              <div class="panel-head">
+                <div>
+                  <span data-docs-i18n="mining.demo.eyebrow">Proof Demo</span>
+                  <strong data-docs-i18n="mining.demo.title">Mining Roll</strong>
+                </div>
+              </div>
+              <div class="coord-grid">
+                <label><span data-docs-i18n="mining.demo.seed">Seed</span><input id="mineSeed" class="text-input" type="text" value="nicechunk-mainnet-001" /></label>
+                <label><span data-docs-i18n="mining.demo.block">Block</span><input id="mineBlock" class="text-input" type="text" value="0,8,0" /></label>
+                <label><span data-docs-i18n="mining.demo.nonce">Nonce</span><input id="mineNonce" class="text-input" type="number" value="42" /></label>
+              </div>
+              <pre class="code-block result"><code id="miningResult"></code></pre>
+            </div>
+            <pre class="code-block"><code>function resourceRoll(input) {
+  const payload = [
+    input.worldSeedHash,
+    input.resourceRuleHash,
+    input.chunkX,
+    input.chunkZ,
+    input.blockX,
+    input.blockY,
+    input.blockZ,
+    input.chunkStateHash,
+    input.playerNonce,
+    input.recentSlotEntropy
+  ].join(":");
+
+  return hashToUnit(payload);
+}</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="forging-assets" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="forging.eyebrow">Forging, Assets & Inventory</p>
+            <h2 data-docs-i18n="forging.title">Items need readable state before they become tradable assets.</h2>
+            <p data-docs-i18n="forging.body">Hotbar slots, durability, stack limits, recipes, material inputs, and future asset metadata are documented as state models rather than hidden UI behavior.</p>
+          </div>
+          <div class="rule-grid">
+            <article class="rule-card"><strong data-docs-i18n="forging.cards.hotbar.title">Hotbar</strong><p data-docs-i18n="forging.cards.hotbar.body">The active bar has 9 slots. Stackable items can hold up to 99 per slot.</p></article>
+            <article class="rule-card"><strong data-docs-i18n="forging.cards.durability.title">Durability</strong><p data-docs-i18n="forging.cards.durability.body">Tools use durability instead of stack amount. The current default tool durability is 999.</p></article>
+            <article class="rule-card"><strong data-docs-i18n="forging.cards.recipes.title">Recipes</strong><p data-docs-i18n="forging.cards.recipes.body">Forged outputs should declare their input materials, output item, quality fields, and future verification path.</p></article>
+          </div>
+          <pre class="code-block"><code>{
+  "recipeId": "iron_pickaxe_basic",
+  "inputs": [
+    { "itemId": "iron_ingot", "amount": 3 },
+    { "itemId": "wood_handle", "amount": 2 }
+  ],
+  "output": {
+    "itemId": "iron_pickaxe",
+    "durability": 999
+  }
+}</code></pre>
+        </section>
+
+        <section class="docs-section" id="nck-economy" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="economy.eyebrow">NCK Economy</p>
+            <h2 data-docs-i18n="economy.title">NCK utility must be documented by status, not by hype.</h2>
+            <p data-docs-i18n="economy.body">NCK is designed as the core utility token for access, in-world actions, forging systems, marketplace settlement, Watcher incentives, and future governance mechanics.</p>
+          </div>
+          <table class="status-table">
+            <thead><tr><th data-docs-i18n="economy.table.utility">Utility</th><th data-docs-i18n="economy.table.status">Status</th><th data-docs-i18n="economy.table.notes">Notes</th></tr></thead>
+            <tbody>
+              <tr><td data-docs-i18n="economy.table.rows.genesis.utility">Genesis access</td><td data-docs-i18n="economy.status.planned">Planned</td><td data-docs-i18n="economy.table.rows.genesis.notes">Access can be connected to NCK and Genesis Pass logic.</td></tr>
+              <tr><td data-docs-i18n="economy.table.rows.forging.utility">Forging systems</td><td data-docs-i18n="economy.status.planned">Planned</td><td data-docs-i18n="economy.table.rows.forging.notes">Economic settlement should expose recipe and material state.</td></tr>
+              <tr><td data-docs-i18n="economy.table.rows.market.utility">Marketplace settlement</td><td data-docs-i18n="economy.status.planned">Planned</td><td data-docs-i18n="economy.table.rows.market.notes">Player-owned assets require explicit asset metadata and settlement rules.</td></tr>
+              <tr><td data-docs-i18n="economy.table.rows.guardian.utility">Guardian stake</td><td data-docs-i18n="economy.status.devnet">Devnet</td><td data-docs-i18n="economy.table.rows.guardian.notes">Guardian registration currently sends 100,000 NCK to the treasury token account on devnet.</td></tr>
+              <tr><td data-docs-i18n="economy.table.rows.governance.utility">Governance</td><td data-docs-i18n="economy.status.longTerm">Long-term</td><td data-docs-i18n="economy.table.rows.governance.notes">Protocol parameter changes should be versioned and reviewable.</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="docs-section" id="watcher-network" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="watchers.eyebrow">Watcher Network</p>
+            <h2 data-docs-i18n="watchers.title">Guardians and Watchers are access infrastructure, not asset custodians.</h2>
+            <p data-docs-i18n="watchers.body">The current Guardian program registers region endpoints and NCK stake on devnet. The broader Watcher network concept is the realtime access layer that keeps regions reachable without owning player assets or signing player transactions.</p>
+          </div>
+          <div class="split-layout">
+            <div class="glass-panel watcher-demo">
+              <canvas id="watcherCanvas" aria-hidden="true"></canvas>
+              <div class="watcher-label">
+                <strong data-docs-i18n="watchers.demo.title">Watcher Region</strong>
+                <span data-docs-i18n="watchers.demo.body">Live access concept</span>
+              </div>
+            </div>
+            <div class="rule-stack">
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noCustody.title">No custody</strong><p data-docs-i18n="watchers.rules.noCustody.body">Watchers do not hold player assets and do not replace wallet authorization.</p></article>
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noTransactions.title">No transaction signing</strong><p data-docs-i18n="watchers.rules.noTransactions.body">Players interact with Solana wallets directly. Watchers should not process transactions as hidden owners.</p></article>
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.devnet">Devnet</span><strong data-docs-i18n="watchers.rules.registry.title">Guardian registry</strong><p data-docs-i18n="watchers.rules.registry.body">GuardianRegion accounts store region coordinates, endpoint, owner, operator, stake, proof counters, and update slot.</p></article>
+            </div>
+          </div>
+        </section>
+
+        <section class="docs-section" id="solana-integration" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="solana.eyebrow">Solana Integration</p>
+            <h2 data-docs-i18n="solana.title">Wallet identity and protocol state should stay explicit.</h2>
+            <p data-docs-i18n="solana.body">The docs separate live wallet flows, devnet programs, local client cache, and future mainnet commitments. This prevents alpha client behavior from being confused with finalized protocol guarantees.</p>
+          </div>
+          <pre class="code-block"><code>#[account]
+pub struct GlobalConfig {
+    magic: "NCKCFG01",
+    nck_mint: Pubkey,
+    world_id: u16,
+    world_seed: [u8; 32],
+    terrain_config_hash: [u8; 32],
+    resource_rule_hash: [u8; 32],
+    client_world_config_hash: [u8; 32],
+    chunk_size: u16,
+    guardian_region_size_chunks: u16
+}
+
+// Future direction:
+// chunk_hash = hash(seed, chunk_x, chunk_z, rule_version, override_root)</code></pre>
+        </section>
+
+        <section class="docs-section" id="fairness" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="fairness.eyebrow">Fairness, Security & Governance</p>
+            <h2 data-docs-i18n="fairness.title">Rules are only fair when players can inspect the rulebook.</h2>
+            <p data-docs-i18n="fairness.body">NiceChunk should keep deterministic rules public, version major rule changes, publish test vectors, disclose trust limits, and distinguish live features from planned protocol mechanics.</p>
+          </div>
+          <div class="audit-grid">
+            <article class="audit-card"><span>01</span><strong data-docs-i18n="fairness.cards.deterministic.title">Deterministic generation</strong><p data-docs-i18n="fairness.cards.deterministic.body">The same seed, chunk coordinate, and generation version should produce the same result.</p></article>
+            <article class="audit-card"><span>02</span><strong data-docs-i18n="fairness.cards.versioned.title">Versioned rule changes</strong><p data-docs-i18n="fairness.cards.versioned.body">UI changes, world-rule changes, economy changes, and chain-state changes should be tracked separately.</p></article>
+            <article class="audit-card"><span>03</span><strong data-docs-i18n="fairness.cards.limits.title">Trust limits</strong><p data-docs-i18n="fairness.cards.limits.body">The docs must state what is client-only, what is Watcher-assisted, and what is intended for on-chain verification.</p></article>
+          </div>
+          <pre class="code-block"><code>{
+  "generationVersion": "0.1.50",
+  "seed": "NCK-TEST-001",
+  "chunk": [0, 0],
+  "expected": {
+    "heightHash": "0x...",
+    "resourceHash": "0x..."
+  }
+}</code></pre>
+        </section>
+
+        <section class="docs-section" id="changelog" data-doc-section>
+          <div class="section-heading compact">
+            <p class="eyebrow blue" data-docs-i18n="changelog.eyebrow">Changelog</p>
+            <h2 data-docs-i18n="changelog.title">Protocol documentation must record what changed and what did not.</h2>
+          </div>
+          <div class="changelog-list">
+            <article class="changelog-item">
+              <span>0.1.50</span>
+              <strong data-docs-i18n="changelog.items.v0150.title">Docs alpha introduced</strong>
+              <p data-docs-i18n="changelog.items.v0150.body">Adds protocol docs page, public architecture, demos, independent docs language resources, and mainnet docs locale indexing.</p>
+            </article>
+            <article class="changelog-item">
+              <span>0.1.48</span>
+              <strong data-docs-i18n="changelog.items.v0148.title">Homepage hero logo size update</strong>
+              <p data-docs-i18n="changelog.items.v0148.body">UI-only change. No gameplay, world generation, economy, or chain-state rule changes.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+    </div>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>
