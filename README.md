@@ -20,6 +20,14 @@ The docs repository sits between implementation and specification. Some files ar
 
 The browser docs page explains the project through live demos and cached locale dictionaries. The Markdown documents preserve deeper protocol reasoning: chunk behavior, global configuration, player state, Guardian design, MagicBlock notes, i18n rules, and storage optimization. A good documentation change should make one of those boundaries clearer.
 
+## Document Maturity
+
+![Document maturity ladder](docs/diagrams/document-maturity-ladder.svg)
+
+The docs should not pretend every note has the same authority. Some files are working notes, some are design notes, some are references to current behavior, and only a smaller set should become stable specifications or release documentation.
+
+Calling that out makes the repository more credible. It lets contributors publish useful reasoning early without accidentally overclaiming that a draft idea is a committed protocol promise.
+
 ## System Principles
 
 - Documentation should explain why a system exists, not only what files contain.

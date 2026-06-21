@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Document maturity ladder</title>
+  <desc id="desc">A diagram showing how NiceChunk documents move from working notes to design notes, reference docs, specifications, and release documentation.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#071018"/><stop offset="1" stop-color="#11140e"/></linearGradient>
+    <style>.label{font:800 12px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.16em;fill:#90ff1a}.title{font:850 42px Inter,ui-sans-serif,system-ui,sans-serif;fill:#f3f8ff}.copy{font:500 17px Inter,ui-sans-serif,system-ui,sans-serif;fill:#b8c7d4}.step{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.16);stroke-width:1.2;rx:16}.head{font:800 18px Inter,ui-sans-serif,system-ui,sans-serif;fill:#f3f8ff}.small{font:600 13px Inter,ui-sans-serif,system-ui,sans-serif;fill:#bdd0df}.mono{font:750 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#f7d98f}</style>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/><circle cx="220" cy="120" r="260" fill="#00c2ff" opacity=".08"/><circle cx="1040" cy="610" r="280" fill="#83ff00" opacity=".08"/>
+  <text x="70" y="78" class="label">DOCUMENT MATURITY</text>
+  <text x="70" y="132" class="title">Drafts and specs need clear labels.</text>
+  <text x="70" y="168" class="copy">The docs repository is strongest when it labels whether a file is exploration, reference, or a stable contract.</text>
+  <g transform="translate(110 276)"><rect class="step" width="190" height="150"/><text x="24" y="46" class="head">Working note</text><text x="24" y="82" class="small">rough assumptions</text><text x="24" y="112" class="mono">*_RAG.md</text></g>
+  <g transform="translate(328 326)"><rect class="step" width="190" height="150"/><text x="24" y="46" class="head">Design note</text><text x="24" y="82" class="small">tradeoffs and intent</text><text x="24" y="112" class="mono">optimization-notes</text></g>
+  <g transform="translate(546 276)"><rect class="step" width="190" height="150"/><text x="24" y="46" class="head">Reference</text><text x="24" y="82" class="small">current behavior</text><text x="24" y="112" class="mono">docs/*.md</text></g>
+  <g transform="translate(764 326)"><rect class="step" width="190" height="150"/><text x="24" y="46" class="head">Spec</text><text x="24" y="82" class="small">stable contract</text><text x="24" y="112" class="mono">versioned docs</text></g>
+  <g transform="translate(982 276)"><rect class="step" width="190" height="150"/><text x="24" y="46" class="head">Release doc</text><text x="24" y="82" class="small">external promise</text><text x="24" y="112" class="mono">tagged output</text></g>
+  <path d="M300 356 H328 M518 398 H546 M736 356 H764 M954 398 H982" stroke="#8fdcff" stroke-width="3"/>
+  <text x="330" y="618" class="copy">Clear maturity labels make the project look intentional and reduce accidental overclaiming.</text>
+</svg>
