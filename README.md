@@ -12,6 +12,14 @@ The docs repository is intentionally separate from code-heavy repositories so lo
 
 It acts as the place where design intent, protocol assumptions, and implementation boundaries are made explicit.
 
+## Knowledge Topology
+
+![Knowledge base topology](docs/diagrams/knowledge-base-topology.svg)
+
+The docs repository sits between implementation and specification. Some files are stable public documentation; others are working notes that capture design reasoning before it is ready to become a formal contract. That split is intentional.
+
+The browser docs page explains the project through live demos and cached locale dictionaries. The Markdown documents preserve deeper protocol reasoning: chunk behavior, global configuration, player state, Guardian design, MagicBlock notes, i18n rules, and storage optimization. A good documentation change should make one of those boundaries clearer.
+
 ## System Principles
 
 - Documentation should explain why a system exists, not only what files contain.

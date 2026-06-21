@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Knowledge base topology</title>
+  <desc id="desc">A diagram showing how NiceChunk documentation connects live browser docs, protocol notes, RAG files, i18n rules, and optimization notes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071018"/>
+      <stop offset="1" stop-color="#11140e"/>
+    </linearGradient>
+    <style>
+      .label{font:800 12px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.16em;fill:#90ff1a}
+      .title{font:850 42px Inter,ui-sans-serif,system-ui,sans-serif;fill:#f3f8ff}
+      .copy{font:500 17px Inter,ui-sans-serif,system-ui,sans-serif;fill:#b8c7d4}
+      .node{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.16);stroke-width:1.2;rx:18}
+      .center{fill:#0d1a22;stroke:#8fdcff;stroke-width:2;rx:22}
+      .head{font:800 18px Inter,ui-sans-serif,system-ui,sans-serif;fill:#f3f8ff}
+      .small{font:600 13px Inter,ui-sans-serif,system-ui,sans-serif;fill:#bdd0df}
+      .mono{font:750 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#f7d98f}
+      .wire{stroke:#8fdcff;stroke-width:2.4;fill:none}
+    </style>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <circle cx="226" cy="130" r="250" fill="#00c2ff" opacity=".07"/>
+  <circle cx="1040" cy="602" r="270" fill="#83ff00" opacity=".07"/>
+  <text x="70" y="78" class="label">PROJECT KNOWLEDGE BASE</text>
+  <text x="70" y="132" class="title">Docs connect intent, protocol, and code.</text>
+  <text x="70" y="168" class="copy">This repository is where unstable design thinking can mature into specs without hiding the current implementation state.</text>
+
+  <rect x="502" y="292" width="276" height="136" class="center"/>
+  <text x="554" y="346" class="head">NiceChunk Docs</text>
+  <text x="542" y="378" class="small">public reasoning layer</text>
+
+  <rect x="90" y="248" width="268" height="132" class="node"/>
+  <text x="120" y="294" class="head">Live docs page</text>
+  <text x="120" y="328" class="small">navigation, demos, locale cache</text>
+  <text x="120" y="354" class="mono">docs/docs.js</text>
+
+  <rect x="92" y="470" width="266" height="120" class="node"/>
+  <text x="122" y="516" class="head">RAG notes</text>
+  <text x="122" y="550" class="mono">CHUNK_RAG.md</text>
+  <text x="122" y="574" class="mono">GLOBAL_CONFIG_RAG.md</text>
+
+  <rect x="922" y="248" width="268" height="132" class="node"/>
+  <text x="952" y="294" class="head">Protocol docs</text>
+  <text x="952" y="328" class="small">core, guardian, MagicBlock, player</text>
+  <text x="952" y="354" class="mono">docs/*.md</text>
+
+  <rect x="922" y="470" width="268" height="120" class="node"/>
+  <text x="952" y="516" class="head">Operating rules</text>
+  <text x="952" y="550" class="mono">docs/I18N.md</text>
+  <text x="952" y="574" class="mono">optimization-notes/</text>
+
+  <path class="wire" d="M358 314 C430 320 454 330 502 344"/>
+  <path class="wire" d="M358 530 C438 500 472 450 526 410"/>
+  <path class="wire" d="M922 314 C850 320 824 330 778 344"/>
+  <path class="wire" d="M922 530 C842 500 812 450 754 410"/>
+</svg>
