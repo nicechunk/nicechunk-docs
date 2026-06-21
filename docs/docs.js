@@ -185,7 +185,7 @@ function fallbackNavigation() {
       title: "Protocol",
       items: [
         { id: "nck-economy", label: "NCK Economy" },
-        { id: "watcher-network", label: "Watcher Network" },
+        { id: "guardian-network", label: "Guardian Network" },
         { id: "magicblock-er", label: "MagicBlock ER" },
         { id: "solana-integration", label: "Solana Integration" },
         { id: "transaction-debugging", label: "Transaction Debugging" },

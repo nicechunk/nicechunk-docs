@@ -10,7 +10,7 @@
     <link rel="shortcut icon" href="/favicon.ico?v=0.1.53" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=0.1.53" />
     <link rel="manifest" href="/site.webmanifest?v=0.1.53" />
-    <meta name="description" content="NiceChunk protocol documentation for seeded world generation, player actions, mining, forging, NCK utility, Watchers, and Solana integration." />
+    <meta name="description" content="NiceChunk protocol documentation for seeded world generation, player actions, mining, forging, NCK utility, Guardians, and Solana integration." />
     <title data-docs-i18n="meta.title">NiceChunk Protocol Docs</title>
   </head>
   <body>
@@ -141,7 +141,7 @@
             <article class="status-model-card planned">
               <span data-docs-i18n="statusModel.cards.planned.label">Planned Protocol</span>
               <strong data-docs-i18n="statusModel.cards.planned.title">Future verification layers</strong>
-              <p data-docs-i18n="statusModel.cards.planned.body">Chunk override compression, resource settlement, asset ownership, marketplace settlement, Watcher proofs, and governance controls.</p>
+              <p data-docs-i18n="statusModel.cards.planned.body">Chunk override compression, resource settlement, asset ownership, marketplace settlement, Guardian proofs, and governance controls.</p>
             </article>
             <article class="status-model-card boundary">
               <span data-docs-i18n="statusModel.cards.boundary.label">Trust Boundary</span>
@@ -633,7 +633,7 @@ ListingAccount {
           <div class="section-heading">
             <p class="eyebrow blue" data-docs-i18n="economy.eyebrow">NCK Economy</p>
             <h2 data-docs-i18n="economy.title">NCK utility must be documented by status, not by hype.</h2>
-            <p data-docs-i18n="economy.body">NCK is designed as the core utility token for access, in-world actions, forging systems, marketplace settlement, Watcher incentives, and future governance mechanics.</p>
+            <p data-docs-i18n="economy.body">NCK is designed as the core utility token for access, in-world actions, forging systems, marketplace settlement, Guardian incentives, and future governance mechanics.</p>
           </div>
           <table class="status-table">
             <thead><tr><th data-docs-i18n="economy.table.utility">Utility</th><th data-docs-i18n="economy.table.status">Status</th><th data-docs-i18n="economy.table.notes">Notes</th></tr></thead>
@@ -647,23 +647,23 @@ ListingAccount {
           </table>
         </section>
 
-        <section class="docs-section" id="watcher-network" data-doc-section>
+        <section class="docs-section" id="guardian-network" data-doc-section>
           <div class="section-heading">
-            <p class="eyebrow blue" data-docs-i18n="watchers.eyebrow">Watcher Network</p>
-            <h2 data-docs-i18n="watchers.title">Guardians and Watchers are access infrastructure, not asset custodians.</h2>
-            <p data-docs-i18n="watchers.body">The current Guardian program registers region endpoints and NCK stake on devnet. The broader Watcher network concept is the realtime access layer that keeps regions reachable without owning player assets or signing player transactions.</p>
+            <p class="eyebrow blue" data-docs-i18n="watchers.eyebrow">Guardian Network</p>
+            <h2 data-docs-i18n="watchers.title">Guardians are access infrastructure, not asset custodians.</h2>
+            <p data-docs-i18n="watchers.body">The current Guardian program registers region endpoints and NCK stake on devnet. The broader Guardian network concept is the realtime access layer that keeps regions reachable without owning player assets or signing player transactions.</p>
           </div>
           <div class="split-layout">
             <div class="glass-panel watcher-demo">
               <canvas id="watcherCanvas" aria-hidden="true"></canvas>
               <div class="watcher-label">
-                <strong data-docs-i18n="watchers.demo.title">Watcher Region</strong>
+                <strong data-docs-i18n="watchers.demo.title">Guardian Region</strong>
                 <span data-docs-i18n="watchers.demo.body">Live access concept</span>
               </div>
             </div>
             <div class="rule-stack">
-              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noCustody.title">No custody</strong><p data-docs-i18n="watchers.rules.noCustody.body">Watchers do not hold player assets and do not replace wallet authorization.</p></article>
-              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noTransactions.title">No transaction signing</strong><p data-docs-i18n="watchers.rules.noTransactions.body">Players interact with Solana wallets directly. Watchers should not process transactions as hidden owners.</p></article>
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noCustody.title">No custody</strong><p data-docs-i18n="watchers.rules.noCustody.body">Guardians do not hold player assets and do not replace wallet authorization.</p></article>
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noTransactions.title">No transaction signing</strong><p data-docs-i18n="watchers.rules.noTransactions.body">Players interact with Solana wallets directly. Guardians should not process transactions as hidden owners.</p></article>
               <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.devnet">Devnet</span><strong data-docs-i18n="watchers.rules.registry.title">Guardian registry</strong><p data-docs-i18n="watchers.rules.registry.body">GuardianRegion accounts store region coordinates, endpoint, owner, operator, stake, proof counters, and update slot.</p></article>
             </div>
           </div>
@@ -770,7 +770,7 @@ assert(profile.equippedBackpack !== DEFAULT_PUBKEY);</code></pre>
           <div class="audit-grid">
             <article class="audit-card"><span>01</span><strong data-docs-i18n="fairness.cards.deterministic.title">Deterministic generation</strong><p data-docs-i18n="fairness.cards.deterministic.body">The same seed, chunk coordinate, and generation version should produce the same result.</p></article>
             <article class="audit-card"><span>02</span><strong data-docs-i18n="fairness.cards.versioned.title">Versioned rule changes</strong><p data-docs-i18n="fairness.cards.versioned.body">UI changes, world-rule changes, economy changes, and chain-state changes should be tracked separately.</p></article>
-            <article class="audit-card"><span>03</span><strong data-docs-i18n="fairness.cards.limits.title">Trust limits</strong><p data-docs-i18n="fairness.cards.limits.body">The docs must state what is client-only, what is Watcher-assisted, and what is intended for on-chain verification.</p></article>
+            <article class="audit-card"><span>03</span><strong data-docs-i18n="fairness.cards.limits.title">Trust limits</strong><p data-docs-i18n="fairness.cards.limits.body">The docs must state what is client-only, what is Guardian-assisted, and what is intended for on-chain verification.</p></article>
           </div>
           <pre class="code-block"><code>{
   "generationVersion": "0.1.50",
