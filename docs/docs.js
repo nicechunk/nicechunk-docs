@@ -5,7 +5,7 @@ import { finishSiteLoading, setSiteLoadingProgress } from "../src/site-ui.js";
 const languageStorageKey = "nicechunk.language";
 const localeVersionPrefix = "nicechunk.docs.locale.version.";
 const localeDataPrefix = "nicechunk.docs.locale.data.";
-const supportedLanguages = new Set(["en", "zh-Hans"]);
+const supportedLanguages = new Set(["en", "es", "fr", "de", "ja", "ru", "ko", "zh-Hant", "zh-Hans"]);
 const buildVersion = typeof __BUILD_VERSION__ === "string" ? __BUILD_VERSION__ : String(Date.now());
 const chunkSize = 16;
 
@@ -34,6 +34,13 @@ const languageMenu = document.querySelector(".docs-language-menu");
 const sections = [...document.querySelectorAll("[data-doc-section]")];
 const plannedLanguages = [
   { code: "en", englishName: "English", nativeName: "English", enabled: true },
+  { code: "es", englishName: "Spanish", nativeName: "Español", enabled: true },
+  { code: "fr", englishName: "French", nativeName: "Français", enabled: true },
+  { code: "de", englishName: "German", nativeName: "Deutsch", enabled: true },
+  { code: "ja", englishName: "Japanese", nativeName: "Japanese", enabled: true },
+  { code: "ru", englishName: "Russian", nativeName: "Русский", enabled: true },
+  { code: "ko", englishName: "Korean", nativeName: "한국어", enabled: true },
+  { code: "zh-Hant", englishName: "Traditional Chinese", nativeName: "Traditional Chinese", enabled: true },
   { code: "zh-Hans", englishName: "Simplified Chinese", nativeName: "Simplified Chinese", enabled: true },
 ];
 
@@ -155,6 +162,7 @@ function fallbackNavigation() {
         { id: "overview", label: "Overview" },
         { id: "protocol-map", label: "Protocol Map" },
         { id: "status-model", label: "Status Model" },
+        { id: "implementation-snapshot", label: "Implementation Snapshot" },
         { id: "quick-start", label: "Quick Start" },
       ],
     },
@@ -162,11 +170,15 @@ function fallbackNavigation() {
       title: "Rules",
       items: [
         { id: "world-generation", label: "World Generation" },
+        { id: "water-system", label: "Water System" },
         { id: "chunk-system", label: "Chunk System" },
         { id: "on-chain-state", label: "On-chain State" },
+        { id: "player-backpack-contracts", label: "Player & Backpack" },
+        { id: "performance-storage", label: "Performance & Storage" },
         { id: "player-actions", label: "Player Actions" },
         { id: "mining-resources", label: "Mining & Resources" },
         { id: "forging-assets", label: "Forging & Assets" },
+        { id: "assets-market", label: "Assets & Market" },
       ],
     },
     {
@@ -174,7 +186,9 @@ function fallbackNavigation() {
       items: [
         { id: "nck-economy", label: "NCK Economy" },
         { id: "watcher-network", label: "Watcher Network" },
+        { id: "magicblock-er", label: "MagicBlock ER" },
         { id: "solana-integration", label: "Solana Integration" },
+        { id: "transaction-debugging", label: "Transaction Debugging" },
         { id: "fairness", label: "Fairness" },
         { id: "changelog", label: "Changelog" },
       ],
@@ -747,6 +761,7 @@ function normalizeLanguage(language) {
   if (supportedLanguages.has(value)) return value;
   const lower = value.toLowerCase();
   if (lower === "zh" || lower === "zh-cn" || lower === "zh-hans") return "zh-Hans";
+  if (lower === "zh-tw" || lower === "zh-hk" || lower === "zh-hant") return "zh-Hant";
   return "";
 }
 
