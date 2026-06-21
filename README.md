@@ -1,51 +1,59 @@
-# NiceChunk
+# NiceChunk Docs
 
-NiceChunk contains the browser client and Solana programs for the NiceChunk voxel world.
+![NiceChunk Docs overview](docs/screenshots/overview.png)
 
-## NiceChunk Genesis Core v0
+Design documents, protocol notes, and developer documentation.
 
-`programs/nicechunk_core` is a native Solana program, not Anchor.
+## Project Overview
 
-This program is the immutable genesis config layer. Future gameplay systems such as crafting, inventory, chunk state, world knowledge and reputation will be added in separate programs or future modules after PDA specs are finalized.
+This repository contains NiceChunk documentation and design notes. It covers architecture decisions, i18n expectations, Solana program documentation, Guardian notes, chunk rules, and optimization notes.
 
-Current scope:
+The docs repository is intentionally separate from code-heavy repositories so long-form explanations can evolve without adding noise to implementation reviews.
 
-- initialize the `GlobalConfig` PDA
-- validate the current-cluster NCK mint
-- write fixed genesis world parameters
-- expose a fixed binary layout for frontend and scripts
+It acts as the place where design intent, protocol assumptions, and implementation boundaries are made explicit.
 
-Out of scope for this version:
+## System Principles
 
-- element minting
-- item minting
-- inventory
-- chunk state
-- book voting
-- reputation
-- admin config updates
-- pause or withdraw instructions
+- Documentation should explain why a system exists, not only what files contain.
+- Developer-facing documents should stay close to implementation reality and be updated when code changes.
+- Long-form design notes should be allowed to evolve before they become strict specs.
+- Public docs should avoid private deployment details and local machine configuration.
 
-For devnet deployment and SDK usage, see [docs/nicechunk_core_genesis.md](docs/nicechunk_core_genesis.md).
-For the player login and chunk block-change bridge, see [docs/nicechunk_player_chunk.md](docs/nicechunk_player_chunk.md).
+## How It Works
 
-## Devnet Core Commands
+- Use the docs page for navigable browser documentation.
+- Keep Markdown documents focused on architecture, protocol, and operational reasoning.
+- Cross-link docs to the relevant split repositories when a topic becomes its own project.
+- Update screenshots and examples when public pages or program interfaces change.
 
-Use devnet for current deployment testing:
+## Why This Project Matters
 
-```bash
-solana config set --url devnet
-cargo build-sbf --no-default-features --features devnet
-```
+NiceChunk is now a multi-repository project. Without a strong documentation layer, contributors cannot understand how world rules, programs, assets, services, and UI relate.
 
-Current devnet NCK mint:
+A dedicated docs repository gives the project a durable knowledge base.
 
-```text
-HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo
-```
+## Repository Layout
 
-It mirrors mainnet NCK core mint parameters: Tokenkeg SPL Token, 6 decimals, 1,000,000,000 NCK genesis supply, no mint authority, and no freeze authority.
+- `docs/`
+- `optimization-notes/`
+- `CHUNK_RAG.md`
+- `GLOBAL_CONFIG_RAG.md`
+- `PLAYER_SET_RAG.md`
 
-Do not use the mainnet NCK mint on devnet/testnet.
+## Development Workflow
 
-Do not close upgrade authority during devnet/testnet work.
+1. Clone the repository and inspect the focused source tree before changing shared contracts or generated artifacts.
+2. Keep changes scoped to the domain of this repository. Cross-domain changes should be coordinated through the matching split repositories.
+3. Run the smallest meaningful validation for the touched surface: build checks for programs, browser checks for pages, or fixture checks for deterministic libraries.
+4. Update screenshots and documentation when behavior, visible UI, public constants, or developer-facing workflows change.
+
+## Future Development Direction
+
+- Create versioned docs for public releases.
+- Add architecture diagrams that show repository boundaries and runtime dependencies.
+- Promote stable design notes into formal specifications.
+- Add contribution guides for protocol, frontend, assets, and Guardian development.
+
+## Maintenance Notes
+
+This repository is a focused split from the main NiceChunk working tree. Keep the public surface explicit: avoid committing private keys, wallet files, deployment-only scripts, machine-specific configuration, or generated build artifacts. Runtime user-facing copy should stay behind the i18n layer where the project has an i18n surface.
