@@ -358,6 +358,7 @@ canvas {
 
 .docs-content {
   min-width: 0;
+  max-width: 100%;
 }
 
 .docs-hero,
@@ -782,6 +783,9 @@ h2 {
 }
 
 .code-block {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   margin: 1rem 0 0;
   overflow-x: auto;
@@ -796,6 +800,9 @@ h2 {
 }
 
 .code-block code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
   font-family: inherit;
 }
 
@@ -809,9 +816,11 @@ h2 {
 }
 
 .status-table {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
-  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
   background: rgba(8, 10, 14, 0.68);
@@ -960,6 +969,16 @@ h2 {
 }
 
 @media (max-width: 860px) {
+  .docs-header:not(.mobile-menu-open) .site-nav {
+    width: 0 !important;
+    min-width: 0 !important;
+    padding-right: 0 !important;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
   .docs-header {
     align-items: flex-start;
     flex-direction: column;
