@@ -10,7 +10,7 @@ The project should be evaluated on four public qualities:
 
 | Quality | Evidence | Expected Result |
 | --- | --- | --- |
-| Professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Reviewers can identify scope, ownership, contribution flow, support boundaries, and review requirements. |
+| Professionalism | `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Reviewers can identify scope, ownership, contribution flow, support boundaries, change history, and review requirements. |
 | Security | `SECURITY.md`, `docs/threat-model.md`, `docs/supply-chain-security.md`, `npm run validate:repo` | Public repositories exclude credentials, `.env` files, deployment-only files, private keys, keypair arrays, webhook URLs, server addresses, local debug material, and unreviewed dependency risk. |
 | Completeness | `docs/architecture-and-audit.md`, `docs/validation-matrix.md`, `docs/release-readiness.md`, `docs/manual-release-gates.md`, split READMEs | Each project surface has a stated purpose, validation path, release gate, and known manual boundary. |
 | Auditability | `npm run audit:maturity`, `npm run release:evidence`, `npm run validate:release:full` | Claims can be reproduced as command output instead of accepted as informal narrative. |

@@ -49,6 +49,7 @@ sed -n '1,220p' docs/guardian-load-audit.md
 sed -n '1,220p' docs/ci-workflow-spec.md
 sed -n '1,220p' docs/license-status.md
 sed -n '1,220p' docs/threat-model.md
+sed -n '1,220p' CHANGELOG.md
 ```
 
 Use the public review guide and threat model to identify the trust boundary, protected asset, and extra evidence required for high-risk changes.
@@ -101,6 +102,7 @@ The current validation covers these risk classes:
 - Browser route compilation and generated locale assets.
 - Public review flow for external evaluators and automated agents.
 - One-page evaluator verdict for short-form accept/hold decision wording.
+- Changelog and release-note rules for public change history.
 - Release gates, provenance checklist, split sync procedure, and rollback guidance.
 - Threat model review for assets, trust boundaries, high-risk change classes, and known gaps.
 
