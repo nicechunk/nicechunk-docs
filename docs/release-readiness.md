@@ -20,6 +20,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | License audit | Root Apache-2.0 metadata, dependency license identifiers, and tracked lockfile license exceptions are reviewed | `npm run audit:licenses`, `docs/license-status.md`, `docs/supply-chain-security.md` |
 | Core protocol, SDK, and worldgen behavior | PDA derivation, account layout, instruction builders, decoders, representative and wide-range deterministic worldgen golden fixtures, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
+| Public copy readiness | Public UI copy, locale bundles, and reviewer-facing docs avoid draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording | `npm run audit:public-copy` |
 | Browser smoke audit | Key built browser routes serve from `dist/` on desktop and mobile viewports, contain visible DOM content, avoid failed local assets, and produce nontrivial screenshots | `npm run audit:browser-smoke`, `docs/browser-smoke-audit.md` |
 | Wallet flow audit | Login no-wallet state, mock injected Phantom connect flow, and Guardian no-wallet guard pass in the built browser output | `npm run audit:wallet-flows`, `docs/wallet-flow-audit.md` |
 | Fourier Pickaxe documentation | GPU requirement, architecture, function payload, security boundary, and known limits are documented for review without requiring GPU execution | `npm run audit:fourier-pickaxe-docs`, `docs/fourier-pickaxe-showcase.md` |
