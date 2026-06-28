@@ -36,6 +36,7 @@ npm run audit:evaluator-dossier
 npm run audit:split-remotes
 npm run audit:maturity
 npm run release:evidence
+npm run audit:licenses
 npm run review:package
 npm run audit:review-package
 npm run test:core
@@ -59,6 +60,7 @@ npm run validate:guardian
 | Review ownership | `.github/CODEOWNERS`, `docs/review-ownership.md` | High-risk surfaces have explicit review ownership and evidence expectations. |
 | Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
 | Supply-chain security | `docs/supply-chain-security.md`, `package-lock.json`, `npm run audit:deps` | Dependency risks are gated, lockfile changes are reviewable, and upstream exceptions are explicit. |
+| License metadata | `docs/license-status.md`, `docs/supply-chain-security.md`, `npm run audit:licenses` | Root Apache-2.0 metadata, dependency license identifiers, and tracked lockfile license exceptions are reviewable. |
 | Asset provenance | `docs/asset-manifest.md`, `public/asset-manifest.json`, `nicechunk-assets` | Public media and sample assets have hashes, dimensions, source status, product surface, and canonical flags. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |

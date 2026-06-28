@@ -17,6 +17,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Repository hygiene | No missing public health files, forbidden paths, broken Markdown links, token-shaped strings, PEM private-key blocks, or non-reserved public IPv4 findings | `npm run validate:repo` |
 | Review ownership | CODEOWNERS exists and high-risk changes have an explicit owner and evidence path | `.github/CODEOWNERS`, `docs/review-ownership.md` |
 | Dependency audit | Unexpected npm audit findings are absent and tracked upstream advisories are documented | `npm run audit:deps`, `docs/supply-chain-security.md` |
+| License audit | Root Apache-2.0 metadata, dependency license identifiers, and tracked lockfile license exceptions are reviewed | `npm run audit:licenses`, `docs/license-status.md`, `docs/supply-chain-security.md` |
 | Core protocol, SDK, and worldgen behavior | PDA derivation, account layout, instruction builders, decoders, representative and wide-range deterministic worldgen golden fixtures, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
 | Browser smoke audit | Key built browser routes serve from `dist/` on desktop and mobile viewports, contain visible DOM content, avoid failed local assets, and produce nontrivial screenshots | `npm run audit:browser-smoke`, `docs/browser-smoke-audit.md` |
