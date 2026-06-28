@@ -30,6 +30,8 @@ sed -n '1,260p' fourier-pickaxe/main.js
 
 The documentation audit checks that the public repository contains the minimum review material for the Fourier Pickaxe surface and that the declared GPU/runtime limitations are explicit.
 
+For a shorter handoff packet that is designed specifically for CPU-only reviewers, use `docs/fourier-pickaxe-static-display.md`.
+
 ## Documentation-Only Showcase
 
 Use this section when the environment cannot run the GPU workload. It is intentionally written as a presentation card that can be copied into an external review, README summary, or repository handoff without overstating runtime proof.
@@ -49,7 +51,7 @@ Recommended short showcase copy:
 
 ## Static Evidence Card
 
-Use the following card as the safe non-GPU presentation for GitHub, external agent review, or investor-facing technical screening. It intentionally avoids screenshots, performance numbers, or visual-fidelity claims because those require GPU hardware.
+Use the following card as the safe non-GPU presentation for GitHub, external agent review, or investor-facing technical screening. The same reviewer-facing packet is maintained in `docs/fourier-pickaxe-static-display.md`. It intentionally avoids screenshots, performance numbers, or visual-fidelity claims because those require GPU hardware.
 
 | Field | Display value |
 | --- | --- |
