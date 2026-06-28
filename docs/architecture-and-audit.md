@@ -82,7 +82,7 @@ Some checks still require human or targeted automated review:
 
 - Solana program account-layout compatibility.
 - Deterministic worldgen fixture drift.
-- Browser route smoke coverage is automated; screenshot baseline comparison, wallet-extension flows, and responsive UI behavior still need targeted review.
+- Browser route smoke coverage includes desktop and mobile viewports; screenshot baseline comparison, wallet-extension flows, and deeper responsive UI behavior still need targeted review.
 - Guardian protocol compatibility, networked soak behavior, slow-client backpressure, and production host capacity.
 - Third-party asset and dependency license preservation.
 - GitHub Actions workflow publication. The intended workflow is documented in `docs/ci-workflow-spec.md`, but the current push credential cannot create workflow files without `workflow` scope.

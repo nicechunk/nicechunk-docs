@@ -42,7 +42,7 @@ These items are expected to remain explicit until they are actually completed:
 
 - GitHub Actions workflow publication after credentials with `workflow` scope are available.
 - Full Solana BPF and local-validator integration evidence.
-- Browser route smoke checks are automated; full screenshot baseline comparison, wallet-extension flows, and mobile visual coverage are still separate review items.
+- Browser route smoke checks cover desktop and mobile viewports; full screenshot baseline comparison and wallet-extension flows are still separate review items.
 - Deterministic Guardian core load checks are automated; networked Guardian soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
 
 ## Review Interpretation
