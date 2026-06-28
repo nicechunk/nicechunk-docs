@@ -44,7 +44,7 @@ NiceChunk reviewers should treat these boundaries as separate:
 | Threat | Current Controls | Review Evidence |
 | --- | --- | --- |
 | Secret or server detail reaches GitHub | Split path denylist, `.gitignore`, repository audit content scans, forbidden path checks | `npm run validate:repo`, `.split-repos/split-audit.json` |
-| Private keys, GitHub tokens, or public server IPs appear in public text files | Repository audit scans token-shaped strings, PEM private-key blocks, and non-reserved public IPv4 addresses | `npm run repo:audit` |
+| Private keys, tokens, credential assignments, keypair files, or public server IPs appear in public text files | Repository audit scans GitHub, AWS, Google, Slack, Stripe, Discord webhook, PEM private-key, literal credential assignment, Solana keypair-array, and non-reserved public IPv4 patterns | `npm run repo:audit` |
 | Deployment scripts or local debug material are published | Split generator excludes deploy, sync, build, debug, and machine-specific paths | `node scripts/split-github-repos.mjs` |
 | GitHub author attribution maps to an unrelated account | Project sync commits use `nicechunk <293527782+nicechunk@users.noreply.github.com>` | `git log --format='%an <%ae>'` |
 | SDK and program account layouts drift apart | Core tests cover PDA derivation, account layout, instruction builders, and decoders | `npm run test:core` |
@@ -69,6 +69,7 @@ Changes in these areas require extra review evidence:
 - split repository rules, ignore rules, audit scripts, or sync scripts
 - dependency versions, lockfiles, npm overrides, or supply-chain audit exceptions
 - public documentation that includes concrete addresses, credentials, hosts, or operational examples
+- repository audit or split generation changes that weaken `.env`, keypair, token, webhook, password, or server-address detection
 
 ## Required Review Questions
 

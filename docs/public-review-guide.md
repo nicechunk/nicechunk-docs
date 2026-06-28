@@ -59,7 +59,7 @@ npm run validate:guardian
 | --- | --- | --- |
 | Repository professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, PR template | A reviewer can understand scope, contribution flow, support boundaries, and validation expectations without private context. |
 | Review ownership | `.github/CODEOWNERS`, `docs/review-ownership.md` | High-risk surfaces have explicit review ownership and evidence expectations. |
-| Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
+| Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, `.env` files, deployment-only scripts, private keys, keypair arrays, webhook URLs, literal credential assignments, server addresses, or local debug material. |
 | Supply-chain security | `docs/supply-chain-security.md`, `package-lock.json`, `npm run audit:deps` | Dependency risks are gated, lockfile changes are reviewable, and upstream exceptions are explicit. |
 | License metadata | `docs/license-status.md`, `docs/supply-chain-security.md`, `npm run audit:licenses` | Root Apache-2.0 metadata, dependency license identifiers, and tracked lockfile license exceptions are reviewable. |
 | Asset provenance | `docs/asset-manifest.md`, `public/asset-manifest.json`, `nicechunk-assets` | Public media and sample assets have hashes, dimensions, source status, product surface, and canonical flags. |
@@ -132,7 +132,7 @@ NiceChunk uses the main working tree as the source of truth. Public GitHub repos
 When reviewing a split repository:
 
 1. Confirm it has the standard health files: `README.md`, `.gitignore`, `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `.github/CODEOWNERS`, and GitHub issue/PR templates.
-2. Confirm it does not contain forbidden paths such as `.auth/`, `.deploy/`, `.gh-config/`, `.ssh/`, `debug/`, `deploy/`, `dist/`, `build/`, `target/`, or `Guardian/build/`.
+2. Confirm it does not contain forbidden paths such as `.auth/`, `.deploy/`, `.env`, `.env.*`, `.gh-config/`, `.ssh/`, `debug/`, `deploy/`, `dist/`, `build/`, `target/`, or `Guardian/build/`.
 3. Confirm its latest sync commit uses `nicechunk <293527782+nicechunk@users.noreply.github.com>`.
 4. Compare the split surface against the relevant main-tree docs before accepting protocol, SDK, worldgen, or Guardian changes.
 
@@ -143,7 +143,7 @@ For high-risk changes, answer these before accepting the change:
 1. Which trust boundary changed?
 2. Which protected asset is affected?
 3. Which command proves the expected behavior?
-4. Could the diff expose a private operational file, credential, server address, deployment script, or local debug artifact?
+4. Could the diff expose a private operational file, credential assignment, keypair file, webhook, server address, deployment script, or local debug artifact?
 5. Does documentation use placeholder domains, safe local paths, or documentation-reserved IP ranges instead of real infrastructure?
 6. Does the public commit attribution use the `nicechunk` noreply identity?
 

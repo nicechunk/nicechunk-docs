@@ -11,7 +11,7 @@ The project should be evaluated on four public qualities:
 | Quality | Evidence | Expected Result |
 | --- | --- | --- |
 | Professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Reviewers can identify scope, ownership, contribution flow, support boundaries, and review requirements. |
-| Security | `SECURITY.md`, `docs/threat-model.md`, `docs/supply-chain-security.md`, `npm run validate:repo` | Public repositories exclude credentials, deployment-only files, private keys, server addresses, local debug material, and unreviewed dependency risk. |
+| Security | `SECURITY.md`, `docs/threat-model.md`, `docs/supply-chain-security.md`, `npm run validate:repo` | Public repositories exclude credentials, `.env` files, deployment-only files, private keys, keypair arrays, webhook URLs, server addresses, local debug material, and unreviewed dependency risk. |
 | Completeness | `docs/architecture-and-audit.md`, `docs/validation-matrix.md`, `docs/release-readiness.md`, split READMEs | Each project surface has a stated purpose, validation path, release gate, and known manual boundary. |
 | Auditability | `npm run audit:maturity`, `npm run release:evidence`, `npm run validate:release:full` | Claims can be reproduced as command output instead of accepted as informal narrative. |
 
@@ -72,7 +72,7 @@ The public sync policy is intentionally restrictive. These paths and content cla
 
 - `.auth/`, `.deploy/`, `.gh-config/`, `.ssh/`, `debug/`, `deploy/`
 - `dist/`, `build/`, `target/`, `Guardian/build/`
-- private key blocks, token-shaped strings, real public server IP addresses, local host config, and deployment scripts
+- private key blocks, token-shaped strings, cloud/API tokens, webhook URLs, literal credential assignments, keypair arrays, real public server IP addresses, local host config, and deployment scripts
 
 The evidence chain is:
 

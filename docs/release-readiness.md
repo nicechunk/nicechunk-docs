@@ -14,7 +14,7 @@ This document defines the evidence required before a public NiceChunk release, t
 
 | Gate | Required Evidence | Command Or File |
 | --- | --- | --- |
-| Repository hygiene | No missing public health files, forbidden paths, broken Markdown links, token-shaped strings, PEM private-key blocks, or non-reserved public IPv4 findings | `npm run validate:repo` |
+| Repository hygiene | No missing public health files, forbidden paths, broken Markdown links, token-shaped strings, cloud/API tokens, webhook URLs, literal credential assignments, keypair arrays, PEM private-key blocks, or non-reserved public IPv4 findings | `npm run validate:repo` |
 | Review ownership | CODEOWNERS exists and high-risk changes have an explicit owner and evidence path | `.github/CODEOWNERS`, `docs/review-ownership.md` |
 | Dependency audit | Unexpected npm audit findings are absent and tracked upstream advisories are documented | `npm run audit:deps`, `docs/supply-chain-security.md` |
 | License audit | Root Apache-2.0 metadata, dependency license identifiers, and tracked lockfile license exceptions are reviewed | `npm run audit:licenses`, `docs/license-status.md`, `docs/supply-chain-security.md` |
