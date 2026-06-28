@@ -36,6 +36,7 @@ npm run audit:evaluator-dossier
 npm run audit:split-remotes
 npm run audit:split-publication-docs
 npm run audit:maturity
+npm run audit:deps
 npm run release:evidence
 npm run audit:licenses
 npm run audit:manual-gates
