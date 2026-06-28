@@ -8,6 +8,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | --- | --- | --- | --- |
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
 | `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
+| `npm run audit:evaluator-dossier` | Main review documentation | Evaluator evidence files, README links, dossier phrases, and release-evidence coverage are present | Use when review entrypoints, release evidence, or governance docs change. |
 | `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, remote URL, upstream, and dirty status | Default mode is local-only; use `node scripts/audit-split-remotes.mjs --check-remote --strict` before claiming every split is published. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
@@ -69,6 +70,7 @@ The current validation covers these risk classes:
 - Split repository boundary drift.
 - Split repository package-script, relative-import, dependency-audit, and build self-containment.
 - Split repository publication status through `npm run audit:split-remotes`.
+- Evaluator handoff coverage through `npm run audit:evaluator-dossier`.
 - Machine-readable release provenance through `npm run release:evidence`.
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.

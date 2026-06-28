@@ -27,6 +27,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
 | Split publication status | Generated split repositories have explicit local commit, remote, upstream, and dirty-state evidence | `npm run audit:split-remotes`, `docs/split-publication-status.md` |
+| Evaluator dossier | Third-party review entrypoint, compact decision template, and release-evidence coverage are present | `npm run audit:evaluator-dossier`, `docs/evaluator-dossier.md` |
 | Repository maturity | Public repository governance score has no blockers and remains above the documented pass threshold | `npm run audit:maturity`, `docs/repository-maturity-scorecard.md` |
 | Release evidence | Main and split repository commits, dirty status, upstream refs, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
