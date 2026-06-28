@@ -36,7 +36,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Release evidence audit | Release evidence JSON has required package, repository health, security scan coverage, main commit, split policy, README completeness, required review file, and manual gate fields | `npm run audit:release-evidence` |
 | Review package | Compact evaluator JSON captures maturity score, repository health summary, security scan coverage, release evidence summary, split status, recommended commands, and known manual gates | `npm run review:package` |
 | Review package audit | Compact evaluator JSON has required decision fields, repository health summary, security scan coverage, split summary, review entrypoints, recommended commands, manual gaps, and interpretation | `npm run audit:review-package` |
-| Manual gate consistency | Core review documents, maturity output, and release evidence describe the same manual release boundaries | `npm run audit:manual-gates` |
+| Manual gate consistency | Core review documents, maturity output, release evidence, and the manual gate register describe the same manual release boundaries | `npm run audit:manual-gates`, `docs/manual-release-gates.md` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
@@ -141,4 +141,5 @@ These items should not be presented as completed release guarantees yet:
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
 - Browser route smoke checks across desktop/mobile viewports, mock wallet UI flows, Fourier Pickaxe documentation checks, and deterministic Guardian core load checks are automated, but screenshot baseline comparison, real wallet-extension approval, mobile deep links, transaction signing, Fourier Pickaxe GPU proof-search benchmarking, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated.
+- `docs/manual-release-gates.md` defines the minimum evidence, pass criteria, owner, and deferred wording for these manual release gates.
 - Deterministic worldgen golden fixtures cover representative and wide-range terrain, water, depth, protocol block ID, and tree outputs; protocol-final worldgen changes still require explicit owner review.

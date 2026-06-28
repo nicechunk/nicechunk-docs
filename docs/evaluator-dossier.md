@@ -12,7 +12,7 @@ The project should be evaluated on four public qualities:
 | --- | --- | --- |
 | Professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, `.github/CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md` | Reviewers can identify scope, ownership, contribution flow, support boundaries, and review requirements. |
 | Security | `SECURITY.md`, `docs/threat-model.md`, `docs/supply-chain-security.md`, `npm run validate:repo` | Public repositories exclude credentials, `.env` files, deployment-only files, private keys, keypair arrays, webhook URLs, server addresses, local debug material, and unreviewed dependency risk. |
-| Completeness | `docs/architecture-and-audit.md`, `docs/validation-matrix.md`, `docs/release-readiness.md`, split READMEs | Each project surface has a stated purpose, validation path, release gate, and known manual boundary. |
+| Completeness | `docs/architecture-and-audit.md`, `docs/validation-matrix.md`, `docs/release-readiness.md`, `docs/manual-release-gates.md`, split READMEs | Each project surface has a stated purpose, validation path, release gate, and known manual boundary. |
 | Auditability | `npm run audit:maturity`, `npm run release:evidence`, `npm run validate:release:full` | Claims can be reproduced as command output instead of accepted as informal narrative. |
 
 ## Fast Evidence Path
@@ -118,6 +118,8 @@ These items are intentionally not claimed as complete until explicit evidence ex
 - real wallet extension approval, mobile wallet deep links, network switching, and transaction signing
 - Fourier Pickaxe proof-search benchmarking on target GPU hardware
 - networked Guardian soak tests, slow-client backpressure, and production host capacity review
+
+`docs/manual-release-gates.md` turns this list into a gate register with triggers, minimum evidence, pass criteria, owners, and a reusable evidence template.
 
 Documenting these gaps is part of the review posture: a high repository maturity score means the project is organized and auditable, not that every production launch gate has been closed.
 

@@ -12,7 +12,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, expected remote URL, remote match, upstream, dirty status, and publication warnings | Default mode is local-only; `--policy-strict` gates wrong remote URLs, non-main branches, and wrong latest author; full strict mode also gates dirty state and unpublished splits. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:licenses` | npm lockfile license metadata | Root Apache-2.0 metadata, dependency license identifiers, and tracked license exceptions are structurally reviewed | Uses `scripts/audit-licenses.mjs`; run after dependency metadata changes. |
-| `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
+| `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, the manual gate register, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
 | `npm run audit:public-copy` | Public UI copy, locale bundles, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
 | `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes` and includes the required publication commands | Prevents stale publication-status docs. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
@@ -36,6 +36,7 @@ Security review context:
 sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
+sed -n '1,220p' docs/manual-release-gates.md
 sed -n '1,220p' docs/repository-maturity-scorecard.md
 sed -n '1,220p' docs/split-publication-status.md
 sed -n '1,220p' docs/supply-chain-security.md
@@ -76,6 +77,7 @@ The current validation covers these risk classes:
 - Dependency audit gating with documented upstream exceptions.
 - Lockfile license audit with documented dependency license exceptions.
 - Known manual gate consistency across docs and evidence JSON.
+- Manual release gate triggers, minimum evidence, pass criteria, owners, and deferred wording through `docs/manual-release-gates.md`.
 - Split repository boundary drift.
 - Split repository package-script, relative-import, dependency-audit, and build self-containment.
 - Split repository publication status through `npm run audit:split-remotes`.
