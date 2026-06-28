@@ -50,6 +50,7 @@ Before syncing public repositories, maintainers should be able to show:
 - `npm run validate:splits` reports no split package-script, import-resolution, dependency-audit, or build self-containment failures.
 - `npm run audit:deps` reports no unexpected dependency vulnerabilities.
 - `npm run release:evidence` captures the current main and split repository provenance in machine-readable JSON.
+- `npm run audit:review-package` validates the compact evaluator handoff before another agent depends on it.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
 - Repository maturity from `docs/repository-maturity-scorecard.md` was checked when preparing public syncs.
 - Review ownership from `.github/CODEOWNERS` and `docs/review-ownership.md` was checked for high-risk changes.

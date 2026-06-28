@@ -26,6 +26,7 @@ npm run audit:split-remotes
 npm run release:evidence
 npm run audit:release-evidence
 npm run review:package
+npm run audit:review-package
 ```
 
 `validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
@@ -88,6 +89,8 @@ npm run validate:splits
 `npm run audit:release-evidence` validates the generated evidence JSON so reviewers can distinguish a well-formed provenance package from an informal command dump.
 
 `npm run review:package` emits a compact machine-readable evaluator index that combines maturity score, release evidence, split status, recommended commands, and known manual gates.
+
+`npm run audit:review-package` validates that compact evaluator index so another agent can reject malformed, incomplete, or policy-drifted handoff data before relying on it.
 
 Evidence reviewers should expect:
 
