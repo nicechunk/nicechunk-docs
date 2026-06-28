@@ -13,7 +13,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:licenses` | npm lockfile license metadata | Root Apache-2.0 metadata, dependency license identifiers, and tracked license exceptions are structurally reviewed | Uses `scripts/audit-licenses.mjs`; run after dependency metadata changes. |
 | `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, the manual gate register, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
-| `npm run audit:public-copy` | Public UI copy, locale bundles, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
+| `npm run audit:public-copy` | Public UI copy, locale bundles, root community files, changelog, README, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
 | `npm run audit:changelog` | Public changelog | Changelog structure, release-note safety rules, deferred evidence wording, and required validation commands are present | Prevents public release notes from drifting into informal or unsafe claims. |
 | `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes` and includes the required publication commands | Prevents stale publication-status docs. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
@@ -103,6 +103,7 @@ The current validation covers these risk classes:
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
 - Public review flow for external evaluators and automated agents.
+- Root README, changelog, security, contribution, support, and conduct files are included in public-copy checks.
 - One-page evaluator verdict for short-form accept/hold decision wording.
 - Changelog and release-note rules for public change history.
 - Release gates, provenance checklist, split sync procedure, and rollback guidance.
