@@ -70,6 +70,39 @@ Static presentation narrative:
 3. The repository makes its limitation explicit: documentation can prove scope and boundaries, while GPU hardware must prove live visual behavior.
 4. The surface is separated into its own split repository so reviewers can audit the concept without scanning private deployment material or unrelated game runtime code.
 
+## GPU-Free Demo Script
+
+Use this script when presenting Fourier Pickaxe from a CPU-only environment. It is deliberately phrased as a static demonstration, not a runtime result.
+
+1. Open with the product boundary: "Fourier Pickaxe is a GPU-oriented NiceChunk research surface for compact voxel function payloads."
+2. Explain the workflow: "A reviewer supplies a local `.vox` model, the browser parses it locally, maps colors into G0, merges voxels into box basis functions, and emits a deterministic `0:<base64url-bytes>` payload."
+3. Show the reviewable files: `fourier-pickaxe/index.html`, `fourier-pickaxe/main.js`, `src/vox/ncm.js`, and this showcase document.
+4. Call out the trust boundary: "There is no upload endpoint, wallet signing step, deployment script, server address, GitHub token, or private key in this surface."
+5. Close with the deferred evidence: "WebGL visual fidelity, frame stability, proof-search responsiveness, screenshots, and benchmark numbers must be captured later on GPU hardware."
+
+Do not replace step 5 with estimates. If GPU evidence has not been collected, mark it as deferred.
+
+## Third-Party Display Copy
+
+The following copy is safe to reuse in GitHub descriptions, review packets, or non-GPU project overviews:
+
+> Fourier Pickaxe is a NiceChunk GPU-oriented voxel research surface. It demonstrates the planned path from local MagicaVoxel assets to compact deterministic function payloads, with a browser-local trust boundary and an explicit documentation-first review mode for environments that cannot run the GPU workload.
+
+Short form:
+
+> GPU-gated voxel function lab for reviewing local `.vox` parsing, G0 palette mapping, compact payload encoding, and deferred WebGL/proof-search validation.
+
+## GPU Validation Plan
+
+When suitable hardware is available, collect runtime evidence separately from the static showcase:
+
+| Evidence | How to collect | Acceptance note |
+| --- | --- | --- |
+| WebGL rendering | Open `/fourier-pickaxe/` in a GPU-enabled browser and load reviewer-supplied `.vox` fixtures. | Source, function redraw, and proof candidate panes must render without blank canvases. |
+| Visual fidelity | Compare the source pane against the function redraw for small and medium models. | Record mismatches as codec research findings, not as hidden failures. |
+| Proof-search responsiveness | Run the local proof-search preview for a bounded time window. | Report browser/GPU model, duration, and observed responsiveness instead of a universal benchmark claim. |
+| Screenshot evidence | Capture full-page screenshots only after a real GPU run. | Label screenshots with hardware and browser context. |
+
 ## Non-GPU Evidence Checklist
 
 The following checks are valid in this environment:
