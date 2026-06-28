@@ -46,6 +46,7 @@ Before syncing public repositories, maintainers should be able to show:
 
 - `node scripts/split-github-repos.mjs` completed without split audit failures.
 - `npm run repo:audit` reports no missing files, forbidden paths, content findings, or broken Markdown links.
+- Validation commands from `docs/validation-matrix.md` were run for the touched surface.
 - Relevant build, test, or manual validation was run for the changed surface.
 - Commit author identity is `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
 - Any protocol, account-layout, deterministic worldgen, or user-visible behavior change is documented.
@@ -85,4 +86,3 @@ A third-party reviewer should start with:
 5. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
 6. For Guardian work, confirm relay-only authority and no private deployment material.
 7. For UI work, validate generated locale files and visible states.
-
