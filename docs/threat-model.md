@@ -83,6 +83,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
 - Browser visual regression and wallet-flow screenshot tests are not automated yet.
 - Guardian load testing under realistic movement traffic is not automated yet.
+- Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
 - Public license selection requires an owner decision before a license file is added.
 
 ## Reporting

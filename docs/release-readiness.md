@@ -16,7 +16,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | --- | --- | --- |
 | Repository hygiene | No missing public health files, forbidden paths, broken Markdown links, token-shaped strings, PEM private-key blocks, or non-reserved public IPv4 findings | `npm run validate:repo` |
 | Review ownership | CODEOWNERS exists and high-risk changes have an explicit owner and evidence path | `.github/CODEOWNERS`, `docs/review-ownership.md` |
-| Core protocol and SDK behavior | PDA derivation, account layout, instruction builders, decoders, and helper behavior still pass | `npm run test:core` |
+| Core protocol, SDK, and worldgen behavior | PDA derivation, account layout, instruction builders, decoders, deterministic worldgen golden fixtures, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
@@ -112,4 +112,4 @@ These items should not be presented as completed release guarantees yet:
 - GitHub Actions automation is pending credentials with `workflow` scope.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
 - Browser visual regression screenshots and Guardian load tests are not automated.
-- Deterministic worldgen golden fixtures need expansion before worldgen is treated as finalized protocol behavior.
+- Deterministic worldgen golden fixtures cover representative terrain, water, and tree outputs, but need broader seed and coordinate coverage before worldgen is treated as finalized protocol behavior.
