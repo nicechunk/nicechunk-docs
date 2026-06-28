@@ -1,6 +1,6 @@
 # NiceChunk Release Readiness
 
-This document defines the evidence required before a public NiceChunk release, tag, or repository sync is treated as release-ready. It does not choose a license or replace owner approval for production deployment.
+This document defines the evidence required before a public NiceChunk release, tag, or repository sync is treated as release-ready. NiceChunk uses Apache-2.0, but this document does not replace owner approval for production deployment.
 
 ## Release Principles
 
@@ -22,8 +22,9 @@ This document defines the evidence required before a public NiceChunk release, t
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
+| Repository maturity | Public repository governance score has no blockers and remains above the documented pass threshold | `npm run audit:maturity`, `docs/repository-maturity-scorecard.md` |
 | Release evidence | Main and split repository commits, dirty status, upstream refs, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
-| Licensing status | Current public rights are explicit and owner license decision is not implied by source availability | `docs/license-status.md` |
+| Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
 ## Standard Release Validation
@@ -32,6 +33,7 @@ For public web, docs, SDK, and repository-health releases:
 
 ```bash
 npm run validate:release
+npm run audit:maturity
 npm run release:evidence
 ```
 
@@ -39,6 +41,7 @@ For full release review including Guardian service tests:
 
 ```bash
 npm run validate:release:full
+npm run audit:maturity
 npm run release:evidence
 ```
 
@@ -59,9 +62,10 @@ Before pushing public split repositories:
 3. Review `.split-repos/split-audit.json`.
 4. Run `npm run validate:repo`.
 5. Run `npm run validate:splits`.
-6. Commit only repositories with intentional changes.
-7. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
-8. Push each split repository separately.
+6. Run `npm run audit:maturity`.
+7. Commit only repositories with intentional changes.
+8. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
+9. Push each split repository separately.
 
 ## Tagging Guidance
 
@@ -117,7 +121,7 @@ Rollback should preserve auditability:
 
 These items should not be presented as completed release guarantees yet:
 
-- Public license selection is pending owner decision; see `docs/license-status.md`.
+- NiceChunk uses Apache-2.0; third-party assets and dependencies keep their upstream terms. See `LICENSE`, `NOTICE`, and `docs/license-status.md`.
 - GitHub Actions workflow publication is pending credentials with `workflow` scope; see `docs/ci-workflow-spec.md`.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.

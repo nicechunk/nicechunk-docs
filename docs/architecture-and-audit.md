@@ -50,6 +50,7 @@ Before syncing public repositories, maintainers should be able to show:
 - `npm run audit:deps` reports no unexpected dependency vulnerabilities.
 - `npm run release:evidence` captures the current main and split repository provenance in machine-readable JSON.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
+- Repository maturity from `docs/repository-maturity-scorecard.md` was checked when preparing public syncs.
 - Review ownership from `.github/CODEOWNERS` and `docs/review-ownership.md` was checked for high-risk changes.
 - Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
 - Relevant build, test, or manual validation was run for the changed surface.
@@ -91,6 +92,7 @@ A third-party reviewer should start with:
 1. Read `docs/public-review-guide.md` for the evidence-first review path.
 2. Read `docs/review-ownership.md` for ownership and high-risk review triggers.
 3. Read `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+4. Run `npm run audit:maturity` for the current governance score and known manual gaps.
 4. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
 5. Run `npm run repo:audit`.
 6. Read `docs/threat-model.md` and identify the changed trust boundary.

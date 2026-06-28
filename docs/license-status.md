@@ -1,32 +1,26 @@
 # NiceChunk License Status
 
-NiceChunk does not currently publish a public open-source license file.
+NiceChunk is licensed under the Apache License, Version 2.0.
 
-This is an intentional release-status marker, not an implicit grant of rights. Until the project owner chooses and commits a license, external reviewers should treat the public GitHub repositories as source-available for inspection only.
+The project owner has selected Apache-2.0 as the default license for the NiceChunk repository set, including generated public split repositories.
 
-## What This Means
+## Repository License
 
-- Do not assume permission to copy, redistribute, relicense, package, or deploy NiceChunk code outside explicit written permission from the project owner.
-- Do not add a license file in a drive-by contribution or automated cleanup.
-- Do not mark a release as open source until a license file is committed by the project owner.
-- Keep dependency licenses reviewable through `package-lock.json` and upstream package metadata.
+- Root license file: `LICENSE`
+- Notice file: `NOTICE`
+- SPDX identifier: `Apache-2.0`
+- npm package metadata: `license: "Apache-2.0"`
+- Split repository generator: emits `LICENSE`, `NOTICE`, package metadata, and this status document for each generated repository.
 
-## Owner Decision Required
+## Scope
 
-Before a public open-source release, the owner should choose:
+Apache-2.0 applies to original NiceChunk source code, documentation, project configuration, and original project assets committed to this repository set.
 
-- license family, such as permissive, copyleft, source-available, or proprietary
-- whether all split repositories use the same license
-- whether assets, documentation, programs, SDKs, and generated media need different license terms
-- whether contributor agreement or inbound licensing rules are required
+Third-party dependencies and third-party sample assets keep their own upstream license terms. Review package metadata, lockfiles, attribution text, and `public/asset-manifest.json` before redistributing bundled assets outside the project.
 
-## Review Guidance
+## Review Requirements
 
-External reviewers and automated agents should record this as a known release gap, not as a hidden repository hygiene failure. The correct evidence is:
-
-- this document
-- `docs/release-readiness.md`
-- `docs/public-review-guide.md`
-- absence of a committed `LICENSE` file
-
-If a license is later added, update this document or replace it with the final licensing policy.
+- Do not remove `LICENSE` or `NOTICE` from public repository syncs.
+- Keep package `license` fields set to `Apache-2.0`.
+- Preserve third-party attribution and upstream license notices.
+- Update this document if any repository, asset group, or distribution package intentionally uses different terms.

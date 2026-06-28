@@ -87,7 +87,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - Guardian load testing under realistic movement traffic is not automated yet.
 - Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
 - npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
-- Public license selection requires an owner decision before a license file is added.
+- NiceChunk uses Apache-2.0; third-party asset and dependency licenses must remain preserved during redistribution.
 
 ## Reporting
 
