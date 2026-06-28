@@ -15,9 +15,10 @@ Start with these files in order:
 5. `docs/review-ownership.md` for code ownership and high-risk review triggers.
 6. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
 7. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
-8. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
-9. `docs/license-status.md` for current licensing limits.
-10. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+8. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
+9. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
+10. `docs/license-status.md` for current licensing limits.
+11. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -43,6 +44,7 @@ npm run validate:guardian
 | Review ownership | `.github/CODEOWNERS`, `docs/review-ownership.md` | High-risk surfaces have explicit review ownership and evidence expectations. |
 | Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
 | Supply-chain security | `docs/supply-chain-security.md`, `package-lock.json`, `npm run audit:deps` | Dependency risks are gated, lockfile changes are reviewable, and upstream exceptions are explicit. |
+| Asset provenance | `docs/asset-manifest.md`, `public/asset-manifest.json`, `nicechunk-assets` | Public media and sample assets have hashes, dimensions, source status, product surface, and canonical flags. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
