@@ -81,7 +81,7 @@ Before merging or syncing a high-risk change, answer:
 
 These areas remain explicit review gaps rather than hidden assumptions:
 
-- There is no public GitHub Actions workflow until credentials with `workflow` scope are available.
+- The intended GitHub Actions workflow is documented in `docs/ci-workflow-spec.md`, but workflow publication still requires credentials with `workflow` scope.
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
 - Browser visual regression and wallet-flow screenshot tests are not automated yet.
 - Guardian load testing under realistic movement traffic is not automated yet.

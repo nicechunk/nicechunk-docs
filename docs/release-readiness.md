@@ -22,6 +22,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
+| Release evidence | Main and split repository commits, dirty status, upstream refs, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
 | Licensing status | Current public rights are explicit and owner license decision is not implied by source availability | `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
@@ -31,12 +32,14 @@ For public web, docs, SDK, and repository-health releases:
 
 ```bash
 npm run validate:release
+npm run release:evidence
 ```
 
 For full release review including Guardian service tests:
 
 ```bash
 npm run validate:release:full
+npm run release:evidence
 ```
 
 If Guardian build output is missing or stale, rebuild it first:
@@ -87,6 +90,7 @@ Before publishing release notes or asking for external review, record:
 Main repository commit:
 Split repositories synced:
 Validation commands:
+Release evidence JSON:
 Dependency audit impact:
 Threat model impact:
 Review ownership impact:
@@ -114,7 +118,7 @@ Rollback should preserve auditability:
 These items should not be presented as completed release guarantees yet:
 
 - Public license selection is pending owner decision; see `docs/license-status.md`.
-- GitHub Actions automation is pending credentials with `workflow` scope.
+- GitHub Actions workflow publication is pending credentials with `workflow` scope; see `docs/ci-workflow-spec.md`.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
 - Browser visual regression screenshots and Guardian load tests are not automated.

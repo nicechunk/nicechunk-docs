@@ -48,6 +48,7 @@ Before syncing public repositories, maintainers should be able to show:
 - `npm run repo:audit` reports no missing files, forbidden paths, content findings, or broken Markdown links.
 - `npm run validate:splits` reports no split package-script, import-resolution, dependency-audit, or build self-containment failures.
 - `npm run audit:deps` reports no unexpected dependency vulnerabilities.
+- `npm run release:evidence` captures the current main and split repository provenance in machine-readable JSON.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
 - Review ownership from `.github/CODEOWNERS` and `docs/review-ownership.md` was checked for high-risk changes.
 - Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
@@ -81,7 +82,7 @@ Some checks still require human or targeted automated review:
 - Browser rendering, wallet flow, and responsive UI behavior.
 - Guardian protocol compatibility and load behavior.
 - License selection.
-- GitHub Actions workflows, because the current push credential cannot create workflow files without `workflow` scope.
+- GitHub Actions workflow publication. The intended workflow is documented in `docs/ci-workflow-spec.md`, but the current push credential cannot create workflow files without `workflow` scope.
 
 ## External Reviewer Checklist
 

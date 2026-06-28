@@ -9,6 +9,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
 | `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
+| `npm run release:evidence` | Main and split repository provenance | Current commit, author, branch, dirty status, upstream, required review files, and expected validation commands are emitted as JSON | Use after validation to capture release evidence. |
 | `npm run test:core` | TypeScript SDK, protocol-facing tests, and deterministic worldgen fixtures | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior, fixed worldgen golden outputs | Uses Mocha with `ts-node/esm`. |
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
@@ -22,6 +23,7 @@ sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/supply-chain-security.md
+sed -n '1,220p' docs/ci-workflow-spec.md
 sed -n '1,220p' docs/license-status.md
 sed -n '1,220p' docs/threat-model.md
 ```
@@ -53,6 +55,7 @@ The current validation covers these risk classes:
 - Dependency audit gating with documented upstream exceptions.
 - Split repository boundary drift.
 - Split repository package-script, relative-import, dependency-audit, and build self-containment.
+- Machine-readable release provenance through `npm run release:evidence`.
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.
 - Core player, chunk, backpack, smelting, and generated-block helper behavior.
@@ -72,7 +75,7 @@ These areas still require targeted manual review or future fixtures:
 - Expanded deterministic worldgen golden fixtures across more seeds and coordinate ranges.
 - Browser visual regression screenshots for major pages.
 - Load testing for Guardian under realistic player movement patterns.
-- GitHub Actions automation, pending credentials with `workflow` scope.
+- GitHub Actions publication, pending credentials with `workflow` scope. The intended workflow is documented in `docs/ci-workflow-spec.md`.
 - Public license selection, pending owner decision documented in `docs/license-status.md`.
 
 ## Required Evidence Before Sync
