@@ -83,7 +83,7 @@ npm run validate:guardian
 | Fourier Pickaxe showcase | `docs/fourier-pickaxe-showcase.md`, `fourier-pickaxe/README.md`, `npm run audit:fourier-pickaxe-docs` | GPU-oriented voxel function work is documented, scoped, and reviewable without pretending that headless validation proves GPU runtime behavior. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
 | Guardian core load | `docs/guardian-load-audit.md`, `Guardian/tests/load_test.cpp`, `npm run validate:guardian` | Deterministic movement, AOI fanout, range checks, MOVE_BATCH encoding, and rate-limit behavior pass under repeatable local load. |
-| Split repository integrity | `.split-repos/nicechunk-*`, generated health files | Each public split is self-contained enough to review its own surface. |
+| Split repository integrity | `.split-repos/nicechunk-*`, generated health files, split `CHANGELOG.md` files | Each public split is self-contained enough to review its own surface, has source anchors for main-tree and split commits, and keeps release-note safety rules visible. |
 
 ## Review Commands
 

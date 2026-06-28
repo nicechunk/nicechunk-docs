@@ -87,7 +87,7 @@ npm run validate:repo
 npm run validate:splits
 ```
 
-`validate:repo` audits public files in the main tree and split repositories. `validate:splits` checks generated split content and forbidden-path exclusions.
+`validate:repo` audits public files in the main tree and split repositories. `validate:splits` checks generated split content, package script portability, relative imports, split changelog coverage, release evidence anchors, and forbidden-path exclusions.
 
 ## Release Evidence
 
@@ -107,7 +107,7 @@ Evidence reviewers should expect:
 - validation commands available in `package.json`
 - dependency vulnerability and lockfile license audit commands
 - manual release boundary consistency checks
-- public changelog structure and release-note safety checks
+- public and split changelog structure, source anchors, release evidence commands, and release-note safety checks
 - split repository count, expected remotes, policy matches, README completeness, and generated audit report
 - split publication documentation consistency with the local split remote audit
 - security, architecture, validation, maturity, CI, license, asset, wallet, Fourier Pickaxe, and Guardian documentation paths

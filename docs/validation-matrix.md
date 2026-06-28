@@ -7,7 +7,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | Command | Scope | Proves | Notes |
 | --- | --- | --- | --- |
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/credential-assignment/keypair/public-IP findings are absent, audit scripts parse, controlled dependency audit passes, and split remote/branch/author policy passes | Fastest required check before GitHub sync. |
-| `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency and license audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
+| `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, split changelogs include source anchors, release evidence commands, and safety rules, dependency and license audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
 | `npm run audit:evaluator-dossier` | Main review documentation | Evaluator evidence files, README links, dossier phrases, and release-evidence coverage are present | Use when review entrypoints, release evidence, or governance docs change. |
 | `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, expected remote URL, remote match, upstream, dirty status, and publication warnings | Default mode is local-only; `--policy-strict` gates wrong remote URLs, non-main branches, and wrong latest author; full strict mode also gates dirty state and unpublished splits. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
@@ -83,7 +83,7 @@ The current validation covers these risk classes:
 - Manual release gate triggers, minimum evidence, pass criteria, owners, and deferred wording through `docs/manual-release-gates.md`.
 - Public changelog structure and release-note safety rules through `npm run audit:changelog`.
 - Split repository boundary drift.
-- Split repository package-script, relative-import, dependency-audit, and build self-containment.
+- Split repository package-script, relative-import, changelog-coverage, dependency-audit, and build self-containment.
 - Split repository publication status through `npm run audit:split-remotes`.
 - Evaluator handoff coverage through `npm run audit:evaluator-dossier`.
 - Machine-readable release provenance through `npm run release:evidence`.
