@@ -28,6 +28,7 @@ npm run release:evidence
 npm run audit:release-evidence
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:public-copy
 npm run review:package
 npm run audit:review-package
 ```

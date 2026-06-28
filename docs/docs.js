@@ -228,7 +228,7 @@ function renderLanguageMenu() {
       `;
       option.querySelector(".docs-language-option-name").textContent = language.englishName;
       option.querySelector(".docs-language-option-native").textContent = `(${language.nativeName})`;
-      option.querySelector(".docs-language-option-status").textContent = language.enabled ? "" : "Coming Soon";
+      option.querySelector(".docs-language-option-status").textContent = language.enabled ? "" : "Planned";
       option.addEventListener("click", async () => {
         const nextLanguage = normalizeLanguage(option.dataset.docsLanguage);
         if (!nextLanguage || nextLanguage === activeLanguage) {
