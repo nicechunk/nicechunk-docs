@@ -28,7 +28,7 @@ The audit passes when there are no blocker findings and the score is at least 85
 | Repository health | 15 | `npm run repo:audit` covers required files, forbidden paths, broken Markdown links, token-shaped strings, private-key blocks, and public IP findings. |
 | Security controls | 15 | `.gitignore`, `SECURITY.md`, `docs/threat-model.md`, and `docs/supply-chain-security.md`. |
 | Validation entrypoints | 10 | Package scripts for repo, split, dependency, browser smoke, wallet flow, Fourier Pickaxe documentation, maturity, evidence, test, build, and release validation. |
-| Split repository model | 10 | `.split-repos/nicechunk-*`, split generator, split validator, and split audit output. |
+| Split repository model | 10 | `.split-repos/nicechunk-*`, split generator, split validator, split remote audit, and split audit output. |
 | Release evidence | 10 | `scripts/collect-release-evidence.mjs`, `npm run release:evidence`, and release readiness docs. |
 | Review documentation | 10 | README, contribution/support/community files, CODEOWNERS, PR template, public review guide, ownership, architecture, validation, browser/wallet/Fourier/Guardian evidence docs, and this scorecard. |
 | Asset provenance | 8 | `docs/asset-manifest.md` and `public/asset-manifest.json`. |

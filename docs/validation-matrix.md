@@ -8,6 +8,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | --- | --- | --- | --- |
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
 | `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
+| `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, remote URL, upstream, and dirty status | Default mode is local-only; use `node scripts/audit-split-remotes.mjs --check-remote --strict` before claiming every split is published. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
 | `npm run audit:wallet-flows` | Built wallet routes | Login no-wallet state, mock injected Phantom happy path, and Guardian no-wallet guard behave as expected | Requires `npm run build` first; uses a mock provider, not a real wallet extension. |
@@ -28,6 +29,7 @@ sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/repository-maturity-scorecard.md
+sed -n '1,220p' docs/split-publication-status.md
 sed -n '1,220p' docs/supply-chain-security.md
 sed -n '1,220p' docs/asset-manifest.md
 sed -n '1,220p' docs/browser-smoke-audit.md
@@ -66,6 +68,7 @@ The current validation covers these risk classes:
 - Dependency audit gating with documented upstream exceptions.
 - Split repository boundary drift.
 - Split repository package-script, relative-import, dependency-audit, and build self-containment.
+- Split repository publication status through `npm run audit:split-remotes`.
 - Machine-readable release provenance through `npm run release:evidence`.
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.
@@ -103,6 +106,7 @@ Before pushing public split repositories, record at least:
 ```bash
 npm run validate:repo
 npm run validate:splits
+npm run audit:split-remotes
 npm run audit:maturity
 npm run test:core
 npm run build

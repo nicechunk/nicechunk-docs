@@ -26,6 +26,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Guardian core load | Deterministic movement, AOI fanout, range, batching, and rate-limit workload passes inside the Guardian CTest suite | `npm run validate:guardian`, `docs/guardian-load-audit.md` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
+| Split publication status | Generated split repositories have explicit local commit, remote, upstream, and dirty-state evidence | `npm run audit:split-remotes`, `docs/split-publication-status.md` |
 | Repository maturity | Public repository governance score has no blockers and remains above the documented pass threshold | `npm run audit:maturity`, `docs/repository-maturity-scorecard.md` |
 | Release evidence | Main and split repository commits, dirty status, upstream refs, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
@@ -66,10 +67,11 @@ Before pushing public split repositories:
 3. Review `.split-repos/split-audit.json`.
 4. Run `npm run validate:repo`.
 5. Run `npm run validate:splits`.
-6. Run `npm run audit:maturity`.
-7. Commit only repositories with intentional changes.
-8. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
-9. Push each split repository separately.
+6. Run `npm run audit:split-remotes`.
+7. Run `npm run audit:maturity`.
+8. Commit only repositories with intentional changes.
+9. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
+10. Push each split repository separately.
 
 ## Tagging Guidance
 

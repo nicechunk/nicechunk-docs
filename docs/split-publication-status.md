@@ -1,0 +1,53 @@
+# Split Publication Status
+
+NiceChunk uses one main working tree and multiple focused GitHub split repositories. A split is considered publicly synced only when it has:
+
+- a local Git repository under `.split-repos/nicechunk-*`
+- an `origin` remote that points at `git@github.com:nicechunk/<repo>.git`
+- a configured upstream branch
+- clean local status after the generated split commit is pushed
+
+## Audit Command
+
+Use the local, non-networked audit during ordinary review:
+
+```bash
+npm run audit:split-remotes
+```
+
+Use the remote reachability check before claiming a newly created split is published:
+
+```bash
+node scripts/audit-split-remotes.mjs --check-remote
+```
+
+Use strict mode only when all split repositories are expected to be publicly reachable and clean:
+
+```bash
+node scripts/audit-split-remotes.mjs --check-remote --strict
+```
+
+## Current Fourier Pickaxe Status
+
+`nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree. It is intentionally listed as unpublished until the GitHub repository exists and the local split can push `main` with an upstream.
+
+Expected first publication command after the empty GitHub repository is created:
+
+```bash
+git -C .split-repos/nicechunk-fourier-pickaxe push -u origin main
+```
+
+After publication, rerun:
+
+```bash
+npm run audit:split-remotes
+npm run audit:maturity
+```
+
+The maturity score should no longer report the missing upstream warning once the push succeeds.
+
+## Review Notes
+
+- Missing upstream is not the same as a dirty generated split. It means the split exists locally but has not been proven published.
+- Remote reachability depends on GitHub repository existence and SSH credentials, so it is separate from default release validation.
+- Do not mark a split as publicly synced in release notes until `audit:split-remotes` shows a configured upstream and clean status.
