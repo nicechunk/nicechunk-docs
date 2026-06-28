@@ -47,6 +47,7 @@ Before syncing public repositories, maintainers should be able to show:
 - `node scripts/split-github-repos.mjs` completed without split audit failures.
 - `npm run repo:audit` reports no missing files, forbidden paths, content findings, or broken Markdown links.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
+- Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
 - Relevant build, test, or manual validation was run for the changed surface.
 - Commit author identity is `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
 - Any protocol, account-layout, deterministic worldgen, or user-visible behavior change is documented.
@@ -81,8 +82,9 @@ A third-party reviewer should start with:
 
 1. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
 2. Run `npm run repo:audit`.
-3. Inspect the split repository matching the review target.
-4. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
-5. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
-6. For Guardian work, confirm relay-only authority and no private deployment material.
-7. For UI work, validate generated locale files and visible states.
+3. Read `docs/threat-model.md` and identify the changed trust boundary.
+4. Inspect the split repository matching the review target.
+5. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
+6. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
+7. For Guardian work, confirm relay-only authority and no private deployment material.
+8. For UI work, validate generated locale files and visible states.

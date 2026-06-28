@@ -12,6 +12,14 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
 | `npm run validate:release` | Public release readiness | Repository audit, core tests, and production browser build | Does not include Guardian CMake build because the C++ toolchain is environment-specific. |
 
+Security review context:
+
+```bash
+sed -n '1,220p' docs/threat-model.md
+```
+
+Use the threat model to identify the trust boundary, protected asset, and extra evidence required for high-risk changes.
+
 ## Manual Build Commands
 
 Guardian service build:
@@ -39,6 +47,7 @@ The current validation covers these risk classes:
 - Core player, chunk, backpack, smelting, and generated-block helper behavior.
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
+- Threat model review for assets, trust boundaries, high-risk change classes, and known gaps.
 
 ## Known Gaps
 
@@ -62,4 +71,3 @@ npm run build
 ```
 
 Run `npm run validate:guardian` when Guardian code, config, or protocol files changed.
-
