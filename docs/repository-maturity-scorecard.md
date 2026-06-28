@@ -45,6 +45,8 @@ These items are expected to remain explicit until they are actually completed:
 - Browser route smoke checks cover desktop and mobile viewports; full screenshot baseline comparison and wallet-extension flows are still separate review items.
 - Deterministic Guardian core load checks are automated; networked Guardian soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
 
+Worldgen has representative and wide-range deterministic golden fixtures in `tests/worldgen_golden.ts`; protocol-final worldgen changes still require explicit owner review.
+
 ## Review Interpretation
 
 Use this scorecard as a first-pass repository governance signal. For release approval, pair it with:

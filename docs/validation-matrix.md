@@ -13,7 +13,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:maturity` | Main tree and generated split repositories | Repository governance score, blocker/warning findings, manual release gaps, clean sync state, and review-readiness evidence are emitted as JSON | Uses `scripts/audit-repository-maturity.mjs`; passes at 85/100 with no blockers. |
 | `npm run assets:manifest` | Public media, generated references, wallet icons, and NCM sample assets | `public/asset-manifest.json` lists asset paths, media types, byte sizes, hashes, dimensions, surfaces, source status, and canonical flags | Runs automatically through `prebuild`. |
 | `npm run release:evidence` | Main and split repository provenance | Current commit, author, branch, dirty status, upstream, required review files, and expected validation commands are emitted as JSON | Use after validation to capture release evidence. |
-| `npm run test:core` | TypeScript SDK, protocol-facing tests, and deterministic worldgen fixtures | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior, fixed worldgen golden outputs | Uses Mocha with `ts-node/esm`. |
+| `npm run test:core` | TypeScript SDK, protocol-facing tests, and deterministic worldgen fixtures | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior, and representative plus wide-range worldgen golden outputs | Uses Mocha with `ts-node/esm`. |
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
 | `npm run validate:release` | Public release readiness | Repository audit, core tests, and production browser build | Does not include Guardian CMake build because the C++ toolchain is environment-specific. |
@@ -70,7 +70,7 @@ The current validation covers these risk classes:
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.
 - Core player, chunk, backpack, smelting, and generated-block helper behavior.
-- Deterministic worldgen golden fixtures for representative terrain, water, and above-surface tree outputs.
+- Deterministic worldgen golden fixtures for representative and wide-range terrain, water, depth, protocol block ID, and above-surface tree outputs.
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
 - Public review flow for external evaluators and automated agents.
@@ -83,7 +83,6 @@ These areas still require targeted manual review or future fixtures:
 
 - Full Solana BPF build across every program and cluster feature.
 - On-chain integration tests against a local validator or devnet.
-- Expanded deterministic worldgen golden fixtures across more seeds and coordinate ranges.
 - Browser route smoke checks cover desktop and mobile viewports; screenshot baseline comparison and wallet-extension flows remain manual.
 - Networked Guardian soak testing, slow-client backpressure, and production host capacity review.
 - GitHub Actions publication, pending credentials with `workflow` scope. The intended workflow is documented in `docs/ci-workflow-spec.md`.

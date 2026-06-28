@@ -9,7 +9,7 @@ This document defines the workflow that should be committed once a properly scop
 | Job | Purpose | Commands |
 | --- | --- | --- |
 | repository-health | Public hygiene, split generation, split self-containment, and dependency audit | `npm ci`, `node scripts/split-github-repos.mjs`, `npm run validate:repo`, `npm run validate:splits`, `npm run audit:deps` |
-| core-tests | SDK, protocol helper, and deterministic worldgen fixtures | `npm ci`, `npm run test:core` |
+| core-tests | SDK, protocol helper, and representative plus wide-range deterministic worldgen fixtures | `npm ci`, `npm run test:core` |
 | web-build | Browser route, asset compilation, and Chromium smoke audit | `npm ci`, `npx playwright install --with-deps chromium`, `npm run build`, `npm run audit:browser-smoke` |
 | guardian-tests | Guardian C++ protocol and AOI checks | `cmake -S Guardian -B Guardian/build -DCMAKE_BUILD_TYPE=Release`, `cmake --build Guardian/build -j`, `npm run validate:guardian` |
 | release-evidence | Machine-readable provenance snapshot | `npm run release:evidence` |

@@ -56,7 +56,7 @@ npm run validate:guardian
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | CI readiness | `docs/ci-workflow-spec.md`, `npm run validate:release:full` | The intended GitHub Actions checks are documented and reproducible locally before workflow publication is possible. |
 | Licensing clarity | `LICENSE`, `NOTICE`, `docs/license-status.md` | Reviewers know the project uses Apache-2.0 while third-party asset and dependency notices remain preserved. |
-| Protocol compatibility | `programs/`, `tests/`, SDK helpers, protocol docs | PDA seeds, account layouts, instruction builders, decoders, and deterministic worldgen fixtures are reviewed together. |
+| Protocol compatibility | `programs/`, `tests/`, SDK helpers, protocol docs | PDA seeds, account layouts, instruction builders, decoders, and representative plus wide-range deterministic worldgen fixtures are reviewed together. |
 | Runtime completeness | `src/`, `public/`, generated locale files, `npm run build` | Browser routes compile, locale assets generate, and public pages have inspectable outputs. |
 | Browser smoke coverage | `docs/browser-smoke-audit.md`, `npm run audit:browser-smoke` | Built routes are served through Chromium on desktop and mobile viewports and checked for DOM content, local asset failures, runtime page errors, and nontrivial screenshots. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
@@ -135,7 +135,7 @@ These gaps are documented so reviewers can distinguish known future work from hi
 - npm audit has tracked Solana upstream exceptions; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.
 - Browser route smoke checks across desktop/mobile viewports and deterministic Guardian core load checks are automated, but screenshot baseline comparison, wallet-extension flows, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated yet.
-- Deterministic worldgen golden fixtures exist for representative terrain, water, and tree outputs, but should be expanded before treating worldgen as finalized protocol behavior.
+- Deterministic worldgen golden fixtures now cover representative and wide-range terrain, water, depth, protocol block ID, and tree outputs; protocol-final worldgen changes still require explicit owner review.
 
 ## Review Outcome Template
 

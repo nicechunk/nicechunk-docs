@@ -47,6 +47,7 @@ NiceChunk reviewers should treat these boundaries as separate:
 | Deployment scripts or local debug material are published | Split generator excludes deploy, sync, build, debug, and machine-specific paths | `node scripts/split-github-repos.mjs` |
 | GitHub author attribution maps to an unrelated account | Project sync commits use `nicechunk <293527782+nicechunk@users.noreply.github.com>` | `git log --format='%an <%ae>'` |
 | SDK and program account layouts drift apart | Core tests cover PDA derivation, account layout, instruction builders, and decoders | `npm run test:core` |
+| Deterministic world generation drifts unexpectedly | Core tests cover representative and wide-range terrain profiles, generated depth samples, canonical protocol block IDs, water levels, and above-surface tree summaries | `npm run test:core` |
 | Guardian protocol compatibility regresses | CTest suite covers range checks, AOI behavior, protocol encoding/decoding, deterministic core load, and rate limiting | `npm run validate:guardian`, `docs/guardian-load-audit.md` |
 | Browser routes or generated locale assets break | Production Vite build runs locale generation and route bundling; browser smoke checks exercise key routes across desktop and mobile viewports | `npm run build`, `npm run audit:browser-smoke` |
 | Documentation links become stale | Repository audit checks local Markdown links across main and split repositories | `npm run validate:repo` |
@@ -85,7 +86,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
 - Browser route smoke checks cover desktop and mobile viewports, but screenshot baseline comparison and wallet-extension flows are not automated yet.
 - Deterministic Guardian core load testing is automated; networked soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
-- Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
+- Deterministic worldgen golden fixtures cover representative and wide-range outputs; protocol-final worldgen changes still require explicit owner review.
 - npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - NiceChunk uses Apache-2.0; third-party asset and dependency licenses must remain preserved during redistribution.
 

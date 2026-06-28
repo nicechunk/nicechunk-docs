@@ -81,7 +81,7 @@ The audit intentionally treats unclear public IPs as failures. Use domains or do
 Some checks still require human or targeted automated review:
 
 - Solana program account-layout compatibility.
-- Deterministic worldgen fixture drift.
+- Deterministic worldgen fixture drift; `tests/worldgen_golden.ts` covers representative and wide-range signatures, but protocol-final worldgen changes still need explicit owner review.
 - Browser route smoke coverage includes desktop and mobile viewports; screenshot baseline comparison, wallet-extension flows, and deeper responsive UI behavior still need targeted review.
 - Guardian protocol compatibility, networked soak behavior, slow-client backpressure, and production host capacity.
 - Third-party asset and dependency license preservation.
