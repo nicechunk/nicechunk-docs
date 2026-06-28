@@ -73,7 +73,7 @@ Some checks still require human or targeted automated review:
 - Deterministic worldgen fixture drift.
 - Browser rendering, wallet flow, and responsive UI behavior.
 - Guardian protocol compatibility and load behavior.
-- License selection and release policy.
+- License selection.
 - GitHub Actions workflows, because the current push credential cannot create workflow files without `workflow` scope.
 
 ## External Reviewer Checklist
@@ -81,11 +81,12 @@ Some checks still require human or targeted automated review:
 A third-party reviewer should start with:
 
 1. Read `docs/public-review-guide.md` for the evidence-first review path.
-2. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
-3. Run `npm run repo:audit`.
-4. Read `docs/threat-model.md` and identify the changed trust boundary.
-5. Inspect the split repository matching the review target.
-6. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
-7. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
-8. For Guardian work, confirm relay-only authority and no private deployment material.
-9. For UI work, validate generated locale files and visible states.
+2. Read `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+3. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
+4. Run `npm run repo:audit`.
+5. Read `docs/threat-model.md` and identify the changed trust boundary.
+6. Inspect the split repository matching the review target.
+7. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
+8. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
+9. For Guardian work, confirm relay-only authority and no private deployment material.
+10. For UI work, validate generated locale files and visible states.

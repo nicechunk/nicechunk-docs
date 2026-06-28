@@ -12,7 +12,8 @@ Start with these files in order:
 2. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
 3. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
 4. `docs/validation-matrix.md` for command-to-risk coverage.
-5. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+5. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+6. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -36,6 +37,7 @@ npm run validate:guardian
 | Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
+| Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | Protocol compatibility | `programs/`, `tests/`, SDK helpers, protocol docs | PDA seeds, account layouts, instruction builders, and decoders are reviewed together. |
 | Runtime completeness | `src/`, `public/`, generated locale files, `npm run build` | Browser routes compile, locale assets generate, and public pages have inspectable outputs. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
@@ -60,6 +62,13 @@ Browser build and generated public assets:
 
 ```bash
 npm run build
+```
+
+Release gates:
+
+```bash
+npm run validate:release
+npm run validate:release:full
 ```
 
 Guardian C++ tests:
@@ -96,7 +105,7 @@ For high-risk changes, answer these before accepting the change:
 
 These gaps are documented so reviewers can distinguish known future work from hidden omissions:
 
-- License and release policy need an owner decision before a public license file is added.
+- Public license selection needs an owner decision before a public license file is added.
 - GitHub Actions automation needs credentials with `workflow` scope before workflow files can be pushed.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.
 - Browser visual regression screenshots and Guardian load tests are not automated yet.

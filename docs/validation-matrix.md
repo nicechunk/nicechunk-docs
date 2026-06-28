@@ -11,11 +11,13 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
 | `npm run validate:release` | Public release readiness | Repository audit, core tests, and production browser build | Does not include Guardian CMake build because the C++ toolchain is environment-specific. |
+| `npm run validate:release:full` | Full release review including Guardian | Repository audit, core tests, production browser build, and Guardian C++ tests | Requires an existing `Guardian/build` directory. |
 
 Security review context:
 
 ```bash
 sed -n '1,220p' docs/public-review-guide.md
+sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/threat-model.md
 ```
 
@@ -49,6 +51,7 @@ The current validation covers these risk classes:
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
 - Public review flow for external evaluators and automated agents.
+- Release gates, provenance checklist, split sync procedure, and rollback guidance.
 - Threat model review for assets, trust boundaries, high-risk change classes, and known gaps.
 
 ## Known Gaps
@@ -73,3 +76,4 @@ npm run build
 ```
 
 Run `npm run validate:guardian` when Guardian code, config, or protocol files changed.
+Run `npm run validate:release:full` for release reviews that include Guardian service behavior.
