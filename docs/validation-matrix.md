@@ -7,11 +7,12 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | Command | Scope | Proves | Notes |
 | --- | --- | --- | --- |
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse, and split remote/branch/author policy passes | Fastest required check before GitHub sync. |
-| `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
+| `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency and license audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
 | `npm run audit:evaluator-dossier` | Main review documentation | Evaluator evidence files, README links, dossier phrases, and release-evidence coverage are present | Use when review entrypoints, release evidence, or governance docs change. |
 | `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, expected remote URL, remote match, upstream, dirty status, and publication warnings | Default mode is local-only; `--policy-strict` gates wrong remote URLs, non-main branches, and wrong latest author; full strict mode also gates dirty state and unpublished splits. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:licenses` | npm lockfile license metadata | Root Apache-2.0 metadata, dependency license identifiers, and tracked license exceptions are structurally reviewed | Uses `scripts/audit-licenses.mjs`; run after dependency metadata changes. |
+| `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
 | `npm run audit:wallet-flows` | Built wallet routes | Login no-wallet state, mock injected Phantom happy path, and Guardian no-wallet guard behave as expected | Requires `npm run build` first; uses a mock provider, not a real wallet extension. |
 | `npm run audit:fourier-pickaxe-docs` | Fourier Pickaxe documentation surface | GPU requirement, architecture, function payload, security boundary, known limits, and required source files are documented | Documentation-first check only; it does not run the GPU workload. |
@@ -72,6 +73,7 @@ The current validation covers these risk classes:
 - Review ownership coverage for public repository surfaces.
 - Dependency audit gating with documented upstream exceptions.
 - Lockfile license audit with documented dependency license exceptions.
+- Known manual gate consistency across docs and evidence JSON.
 - Split repository boundary drift.
 - Split repository package-script, relative-import, dependency-audit, and build self-containment.
 - Split repository publication status through `npm run audit:split-remotes`.
@@ -119,6 +121,7 @@ npm run validate:splits
 npm run audit:split-remotes
 npm run audit:maturity
 npm run audit:licenses
+npm run audit:manual-gates
 npm run test:core
 npm run build
 npm run audit:browser-smoke

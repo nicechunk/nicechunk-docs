@@ -37,6 +37,7 @@ npm run audit:split-remotes
 npm run audit:maturity
 npm run release:evidence
 npm run audit:licenses
+npm run audit:manual-gates
 npm run review:package
 npm run audit:review-package
 npm run test:core
@@ -68,6 +69,7 @@ npm run validate:guardian
 | Machine-readable review package | `npm run review:package`, `npm run audit:review-package` | External agents get a compact JSON index of maturity score, release evidence, split status, recommended commands, and known manual gates, plus a schema audit before relying on it. |
 | Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
+| Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | CI readiness | `docs/ci-workflow-spec.md`, `npm run validate:release:full` | The intended GitHub Actions checks are documented and reproducible locally before workflow publication is possible. |
 | Licensing clarity | `LICENSE`, `NOTICE`, `docs/license-status.md` | Reviewers know the project uses Apache-2.0 while third-party asset and dependency notices remain preserved. |

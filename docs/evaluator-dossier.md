@@ -26,6 +26,7 @@ npm run audit:split-remotes
 npm run release:evidence
 npm run audit:release-evidence
 npm run audit:licenses
+npm run audit:manual-gates
 npm run review:package
 npm run audit:review-package
 ```
@@ -99,6 +100,7 @@ Evidence reviewers should expect:
 - git branch and commit identity
 - validation commands available in `package.json`
 - dependency vulnerability and lockfile license audit commands
+- manual release boundary consistency checks
 - split repository count, expected remotes, policy matches, README completeness, and generated audit report
 - security, architecture, validation, maturity, CI, license, asset, wallet, Fourier Pickaxe, and Guardian documentation paths
 

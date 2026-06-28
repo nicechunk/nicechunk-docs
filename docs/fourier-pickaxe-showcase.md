@@ -39,6 +39,7 @@ Use this section when the environment cannot run the GPU workload. It is intenti
 | Product idea | Fourier Pickaxe explores whether voxel assets can be converted into compact deterministic function payloads for future on-chain or proof-oriented workflows. | `fourier-pickaxe/README.md`, this document |
 | Input boundary | `.vox` files are selected locally in the browser and parsed without upload endpoints, wallet signing, deployment scripts, or server credentials. | `fourier-pickaxe/index.html`, `fourier-pickaxe/main.js`, `src/vox/ncm.js` |
 | Visual workflow | The UI is designed around source model, function redraw, and proof candidate panes so a GPU reviewer can compare original and generated output side by side. | `sourceScene`, `functionScene`, and `powScene` in `fourier-pickaxe/index.html` |
+| Static display | The page includes a documentation-only review panel so CPU-only reviewers can inspect the workflow, trust boundary, and deferred evidence directly in the UI. | `Documentation-only review` in `fourier-pickaxe/index.html` |
 | Compression path | The current research codec maps colors to G0, merges same-color voxels into box basis functions, and emits `0:<base64url-bytes>`. | `createFunctionPayload`, `mergeSameColorVoxels`, and `docs/fourier-pickaxe-showcase.md` |
 | GPU limitation | Headless or CPU-only review can verify documentation and source boundaries, but cannot prove WebGL rendering quality, frame stability, or proof-search performance. | `npm run audit:fourier-pickaxe-docs` |
 
@@ -76,6 +77,7 @@ The following checks are valid in this environment:
 - The project is documented as a research surface, not a production miner or final codec.
 - The public files describe GPU requirements and avoid pretending that static checks prove rendering behavior.
 - The static evidence card gives third-party reviewers a concise display summary without inventing runtime output.
+- The browser page includes a static documentation-only panel for review environments that cannot run the GPU workload.
 - The page has a concrete browser workflow with file input, compute controls, proof controls, metrics, and three canvas panes.
 - The runtime source shows local parsing, deterministic palette mapping, basis generation, payload creation, model hashing, and proof-search preview logic.
 - The repository audit path contains a dedicated Fourier Pickaxe documentation gate.

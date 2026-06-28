@@ -34,6 +34,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Release evidence audit | Release evidence JSON has required package, main commit, split policy, README completeness, required review file, and manual gate fields | `npm run audit:release-evidence` |
 | Review package | Compact evaluator JSON captures maturity score, release evidence summary, split status, recommended commands, and known manual gates | `npm run review:package` |
 | Review package audit | Compact evaluator JSON has required decision fields, split summary, review entrypoints, recommended commands, manual gaps, and interpretation | `npm run audit:review-package` |
+| Manual gate consistency | Core review documents, maturity output, and release evidence describe the same manual release boundaries | `npm run audit:manual-gates` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
