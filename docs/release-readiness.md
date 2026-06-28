@@ -40,7 +40,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Manual gate consistency | Core review documents, maturity output, release evidence, and the manual gate register describe the same manual release boundaries | `npm run audit:manual-gates`, `docs/manual-release-gates.md` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
-| Changelog | Public release notes document notable changes, affected split repositories, validation evidence, and deferred manual gates without exposing private infrastructure | `CHANGELOG.md` |
+| Changelog | Public release notes document notable changes, affected split repositories, validation evidence, and deferred manual gates without exposing private infrastructure | `npm run audit:changelog`, `CHANGELOG.md` |
 
 ## Standard Release Validation
 
