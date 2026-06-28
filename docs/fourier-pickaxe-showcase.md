@@ -30,6 +30,40 @@ sed -n '1,260p' fourier-pickaxe/main.js
 
 The documentation audit checks that the public repository contains the minimum review material for the Fourier Pickaxe surface and that the declared GPU/runtime limitations are explicit.
 
+## Documentation-Only Showcase
+
+Use this section when the environment cannot run the GPU workload. It is intentionally written as a presentation card that can be copied into an external review, README summary, or repository handoff without overstating runtime proof.
+
+| Topic | Reviewer-facing statement | Static evidence |
+| --- | --- | --- |
+| Product idea | Fourier Pickaxe explores whether voxel assets can be converted into compact deterministic function payloads for future on-chain or proof-oriented workflows. | `fourier-pickaxe/README.md`, this document |
+| Input boundary | `.vox` files are selected locally in the browser and parsed without upload endpoints, wallet signing, deployment scripts, or server credentials. | `fourier-pickaxe/index.html`, `fourier-pickaxe/main.js`, `src/vox/ncm.js` |
+| Visual workflow | The UI is designed around source model, function redraw, and proof candidate panes so a GPU reviewer can compare original and generated output side by side. | `sourceScene`, `functionScene`, and `powScene` in `fourier-pickaxe/index.html` |
+| Compression path | The current research codec maps colors to G0, merges same-color voxels into box basis functions, and emits `0:<base64url-bytes>`. | `createFunctionPayload`, `mergeSameColorVoxels`, and `docs/fourier-pickaxe-showcase.md` |
+| GPU limitation | Headless or CPU-only review can verify documentation and source boundaries, but cannot prove WebGL rendering quality, frame stability, or proof-search performance. | `npm run audit:fourier-pickaxe-docs` |
+
+Recommended short showcase copy:
+
+> Fourier Pickaxe is a GPU-gated NiceChunk research surface for voxel asset functions. In this repository review we validate the architecture, codec documentation, browser-local input boundary, and security scope. Runtime visual quality and proof-search behavior must be confirmed later on GPU hardware with reviewer-supplied `.vox` fixtures.
+
+## Non-GPU Evidence Checklist
+
+The following checks are valid in this environment:
+
+- The project is documented as a research surface, not a production miner or final codec.
+- The public files describe GPU requirements and avoid pretending that static checks prove rendering behavior.
+- The page has a concrete browser workflow with file input, compute controls, proof controls, metrics, and three canvas panes.
+- The runtime source shows local parsing, deterministic palette mapping, basis generation, payload creation, model hashing, and proof-search preview logic.
+- The repository audit path contains a dedicated Fourier Pickaxe documentation gate.
+
+The following checks are intentionally deferred to GPU hardware:
+
+- visual fidelity between the uploaded VOX asset and the function redraw
+- sustained proof-search responsiveness
+- browser frame stability under large voxel assets
+- measured GPU, thermal, and power behavior
+- reviewer screenshots or videos of the live surface
+
 ## Architecture
 
 | Layer | Files | Responsibility |
@@ -89,6 +123,7 @@ Before accepting a Fourier Pickaxe change, verify:
 
 - `fourier-pickaxe/README.md` describes scope and GPU requirements.
 - `docs/fourier-pickaxe-showcase.md` describes architecture, payload format, and limitations.
+- `docs/fourier-pickaxe-showcase.md` includes the documentation-only showcase and non-GPU evidence checklist.
 - `npm run audit:fourier-pickaxe-docs` passes.
 - `npm run build` still includes the `/fourier-pickaxe/` route.
 - Split repository generation keeps this surface self-contained.
