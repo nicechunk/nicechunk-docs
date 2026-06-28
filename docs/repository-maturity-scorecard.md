@@ -64,4 +64,5 @@ For the compact third-party review package, start with `docs/evaluator-dossier.m
 
 ```bash
 npm run audit:evaluator-dossier
+npm run review:package
 ```

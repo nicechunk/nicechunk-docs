@@ -46,12 +46,36 @@ Recommended short showcase copy:
 
 > Fourier Pickaxe is a GPU-gated NiceChunk research surface for voxel asset functions. In this repository review we validate the architecture, codec documentation, browser-local input boundary, and security scope. Runtime visual quality and proof-search behavior must be confirmed later on GPU hardware with reviewer-supplied `.vox` fixtures.
 
+## Static Evidence Card
+
+Use the following card as the safe non-GPU presentation for GitHub, external agent review, or investor-facing technical screening. It intentionally avoids screenshots, performance numbers, or visual-fidelity claims because those require GPU hardware.
+
+| Field | Display value |
+| --- | --- |
+| Name | Fourier Pickaxe |
+| Category | GPU-oriented voxel function research surface |
+| Review mode in this environment | Documentation-only, static source review |
+| Core input | Local MagicaVoxel `.vox` files |
+| Core output | Compact deterministic function payloads using the `0:<base64url-bytes>` research codec |
+| Main viewer concept | Three synchronized panes for source model, function redraw, and best proof candidate |
+| Trust boundary | Browser-local file parsing, no upload endpoint, no wallet signature, no server credential |
+| Valid static evidence | README, showcase document, HTML structure, JavaScript codec path, parser boundaries, audit script |
+| Deferred GPU evidence | WebGL rendering quality, frame stability, proof-search responsiveness, visual screenshots, benchmark numbers |
+
+Static presentation narrative:
+
+1. Fourier Pickaxe turns the abstract asset-function idea into a concrete browser tool.
+2. The current implementation shows a deterministic path from `.vox` input to G0 palette boxes and compact function bytes.
+3. The repository makes its limitation explicit: documentation can prove scope and boundaries, while GPU hardware must prove live visual behavior.
+4. The surface is separated into its own split repository so reviewers can audit the concept without scanning private deployment material or unrelated game runtime code.
+
 ## Non-GPU Evidence Checklist
 
 The following checks are valid in this environment:
 
 - The project is documented as a research surface, not a production miner or final codec.
 - The public files describe GPU requirements and avoid pretending that static checks prove rendering behavior.
+- The static evidence card gives third-party reviewers a concise display summary without inventing runtime output.
 - The page has a concrete browser workflow with file input, compute controls, proof controls, metrics, and three canvas panes.
 - The runtime source shows local parsing, deterministic palette mapping, basis generation, payload creation, model hashing, and proof-search preview logic.
 - The repository audit path contains a dedicated Fourier Pickaxe documentation gate.

@@ -18,6 +18,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:release-evidence` | Release evidence JSON | Package metadata, main commit metadata, split policy arrays, split README completeness, required review files, and known manual gates are structurally valid | Runs `npm run release:evidence` internally and validates the generated JSON. |
 | `npm run assets:manifest` | Public media, generated references, wallet icons, and NCM sample assets | `public/asset-manifest.json` lists asset paths, media types, byte sizes, hashes, dimensions, surfaces, source status, and canonical flags | Runs automatically through `prebuild`. |
 | `npm run release:evidence` | Main and split repository provenance | Package metadata, current commit, author, branch, dirty status, upstream, split remote/branch/author policy matches, split README completeness, required review files, and expected validation commands are emitted as JSON | Use after validation to capture release evidence. |
+| `npm run review:package` | Compact evaluator handoff | Maturity score, release evidence summary, split publication summary, review entrypoints, recommended commands, and manual gates are emitted as one JSON object | Use when another agent or reviewer needs a single starting point. |
 | `npm run test:core` | TypeScript SDK, protocol-facing tests, and deterministic worldgen fixtures | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior, and representative plus wide-range worldgen golden outputs | Uses Mocha with `ts-node/esm`. |
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
@@ -74,6 +75,7 @@ The current validation covers these risk classes:
 - Evaluator handoff coverage through `npm run audit:evaluator-dossier`.
 - Machine-readable release provenance through `npm run release:evidence`.
 - Release evidence schema and key field validation through `npm run audit:release-evidence`.
+- Compact evaluator handoff through `npm run review:package`.
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.
 - Built browser route smoke coverage across desktop and mobile viewports through `npm run audit:browser-smoke`.
