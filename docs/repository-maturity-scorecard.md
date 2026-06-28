@@ -59,3 +59,9 @@ npm run release:evidence
 ```
 
 Reviewers should treat any score reduction as a prioritized fix list. Informational findings are not failures; they document intentionally deferred owner or infrastructure decisions.
+
+For the compact third-party review package, start with `docs/evaluator-dossier.md` and verify it with:
+
+```bash
+npm run audit:evaluator-dossier
+```

@@ -9,28 +9,30 @@ Use it as an evidence-first review path. Do not rely on project claims when a co
 Start with these files in order:
 
 1. `README.md` for the project map and current protocol scope.
-2. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
-3. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
-4. `docs/validation-matrix.md` for command-to-risk coverage.
-5. `docs/repository-maturity-scorecard.md` for the evidence-based repository maturity grade.
-6. `docs/split-publication-status.md` for split repository publication state and upstream expectations.
-7. `docs/review-ownership.md` for code ownership and high-risk review triggers.
-8. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
-9. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
-10. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
-11. `docs/browser-smoke-audit.md` for built browser route smoke coverage across desktop and mobile viewports.
-12. `docs/wallet-flow-audit.md` for mock wallet UI flow coverage.
-13. `docs/fourier-pickaxe-showcase.md` for the GPU-oriented voxel function showcase and documentation-first review path.
-14. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
-15. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
-16. `docs/license-status.md` for Apache-2.0 licensing status.
-17. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+2. `docs/evaluator-dossier.md` for the compact evidence package and third-party decision template.
+3. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
+4. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
+5. `docs/validation-matrix.md` for command-to-risk coverage.
+6. `docs/repository-maturity-scorecard.md` for the evidence-based repository maturity grade.
+7. `docs/split-publication-status.md` for split repository publication state and upstream expectations.
+8. `docs/review-ownership.md` for code ownership and high-risk review triggers.
+9. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+10. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
+11. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
+12. `docs/browser-smoke-audit.md` for built browser route smoke coverage across desktop and mobile viewports.
+13. `docs/wallet-flow-audit.md` for mock wallet UI flow coverage.
+14. `docs/fourier-pickaxe-showcase.md` for the GPU-oriented voxel function showcase and documentation-first review path.
+15. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
+16. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
+17. `docs/license-status.md` for Apache-2.0 licensing status.
+18. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
 ```bash
 npm run validate:repo
 npm run validate:splits
+npm run audit:evaluator-dossier
 npm run audit:split-remotes
 npm run audit:maturity
 npm run release:evidence
@@ -58,6 +60,7 @@ npm run validate:guardian
 | Asset provenance | `docs/asset-manifest.md`, `public/asset-manifest.json`, `nicechunk-assets` | Public media and sample assets have hashes, dimensions, source status, product surface, and canonical flags. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
+| Evaluator handoff | `docs/evaluator-dossier.md`, `npm run audit:evaluator-dossier` | Third-party reviewers get a compact evidence map, decision template, and automated dossier presence check. |
 | Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
