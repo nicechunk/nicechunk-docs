@@ -26,6 +26,8 @@ npm run audit:split-remotes
 npm run release:evidence
 ```
 
+`validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
+
 For a release-level local review, run:
 
 ```bash

@@ -23,13 +23,19 @@ Use the remote reachability check before claiming a newly created split is publi
 node scripts/audit-split-remotes.mjs --check-remote
 ```
 
+Use policy-strict mode in local validation when remote URL, branch, and latest commit author must be enforced without requiring every split repository to be published:
+
+```bash
+node scripts/audit-split-remotes.mjs --policy-strict
+```
+
 Use strict mode only when all split repositories are expected to be publicly reachable and clean:
 
 ```bash
 node scripts/audit-split-remotes.mjs --check-remote --strict
 ```
 
-Strict mode fails on unpublished splits, dirty splits, unexpected remote URLs, non-`main` branches, or latest commit authors that do not match the project sync identity. The default local audit reports those fields without failing, so reviewers can inspect pending publication work without blocking ordinary development.
+Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or latest commit authors that do not match the project sync identity. Strict mode includes those policy checks and also fails on unpublished or dirty splits. The default local audit reports all fields without failing, so reviewers can inspect pending publication work without blocking ordinary development.
 
 ## Current Fourier Pickaxe Status
 
