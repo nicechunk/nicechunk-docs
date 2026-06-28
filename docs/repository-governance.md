@@ -15,7 +15,8 @@ NiceChunk uses one working tree and multiple focused GitHub repositories. The sp
 2. Run validation for the touched surface.
 3. Run `node scripts/split-github-repos.mjs`.
 4. Review `.split-repos/split-audit.json`.
-5. Commit and push only repositories with intentional changes.
+5. Run `npm run repo:audit`.
+6. Commit and push only repositories with intentional changes.
 
 ## Required Public Files
 
