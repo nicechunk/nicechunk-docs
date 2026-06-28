@@ -83,7 +83,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 
 - The intended GitHub Actions workflow is documented in `docs/ci-workflow-spec.md`, but workflow publication still requires credentials with `workflow` scope.
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
-- Browser visual regression and wallet-flow screenshot tests are not automated yet.
+- Browser route smoke checks are automated, but screenshot baseline comparison, wallet-extension flows, and mobile visual coverage are not automated yet.
 - Guardian load testing under realistic movement traffic is not automated yet.
 - Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
 - npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.

@@ -19,6 +19,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Dependency audit | Unexpected npm audit findings are absent and tracked upstream advisories are documented | `npm run audit:deps`, `docs/supply-chain-security.md` |
 | Core protocol, SDK, and worldgen behavior | PDA derivation, account layout, instruction builders, decoders, deterministic worldgen golden fixtures, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
+| Browser smoke audit | Key built browser routes serve from `dist/`, contain visible DOM content, avoid failed local assets, and produce nontrivial screenshots | `npm run audit:browser-smoke`, `docs/browser-smoke-audit.md` |
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
@@ -125,5 +126,5 @@ These items should not be presented as completed release guarantees yet:
 - GitHub Actions workflow publication is pending credentials with `workflow` scope; see `docs/ci-workflow-spec.md`.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
-- Browser visual regression screenshots and Guardian load tests are not automated.
+- Browser route smoke checks are automated, but screenshot baseline comparison, wallet-extension flows, mobile visual coverage, and Guardian load tests are not automated.
 - Deterministic worldgen golden fixtures cover representative terrain, water, and tree outputs, but need broader seed and coordinate coverage before worldgen is treated as finalized protocol behavior.

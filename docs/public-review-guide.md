@@ -17,9 +17,10 @@ Start with these files in order:
 7. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
 8. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
 9. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
-10. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
-11. `docs/license-status.md` for Apache-2.0 licensing status.
-12. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+10. `docs/browser-smoke-audit.md` for built browser route smoke coverage.
+11. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
+12. `docs/license-status.md` for Apache-2.0 licensing status.
+13. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -30,6 +31,7 @@ npm run audit:maturity
 npm run release:evidence
 npm run test:core
 npm run build
+npm run audit:browser-smoke
 ```
 
 Run Guardian validation when reviewing Guardian code, protocol behavior, or service configuration:
@@ -55,6 +57,7 @@ npm run validate:guardian
 | Licensing clarity | `LICENSE`, `NOTICE`, `docs/license-status.md` | Reviewers know the project uses Apache-2.0 while third-party asset and dependency notices remain preserved. |
 | Protocol compatibility | `programs/`, `tests/`, SDK helpers, protocol docs | PDA seeds, account layouts, instruction builders, decoders, and deterministic worldgen fixtures are reviewed together. |
 | Runtime completeness | `src/`, `public/`, generated locale files, `npm run build` | Browser routes compile, locale assets generate, and public pages have inspectable outputs. |
+| Browser smoke coverage | `docs/browser-smoke-audit.md`, `npm run audit:browser-smoke` | Built routes are served through Chromium and checked for DOM content, local asset failures, runtime page errors, and nontrivial screenshots. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
 | Split repository integrity | `.split-repos/nicechunk-*`, generated health files | Each public split is self-contained enough to review its own surface. |
 
@@ -75,6 +78,7 @@ Core protocol and SDK tests:
 ```bash
 npm run audit:deps
 npm run test:core
+npm run audit:browser-smoke
 ```
 
 Browser build and generated public assets:
@@ -128,7 +132,7 @@ These gaps are documented so reviewers can distinguish known future work from hi
 - GitHub Actions workflow publication needs credentials with `workflow` scope before workflow files can be pushed; see `docs/ci-workflow-spec.md` for the intended workflow.
 - npm audit has tracked Solana upstream exceptions; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.
-- Browser visual regression screenshots and Guardian load tests are not automated yet.
+- Browser route smoke checks are automated, but screenshot baseline comparison, wallet-extension flows, mobile visual coverage, and Guardian load tests are not automated yet.
 - Deterministic worldgen golden fixtures exist for representative terrain, water, and tree outputs, but should be expanded before treating worldgen as finalized protocol behavior.
 
 ## Review Outcome Template

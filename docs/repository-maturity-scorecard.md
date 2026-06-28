@@ -27,7 +27,7 @@ The audit passes when there are no blocker findings and the score is at least 85
 | --- | ---: | --- |
 | Repository health | 15 | `npm run repo:audit` covers required files, forbidden paths, broken Markdown links, token-shaped strings, private-key blocks, and public IP findings. |
 | Security controls | 15 | `.gitignore`, `SECURITY.md`, `docs/threat-model.md`, and `docs/supply-chain-security.md`. |
-| Validation entrypoints | 10 | Package scripts for repo, split, dependency, maturity, evidence, test, build, and release validation. |
+| Validation entrypoints | 10 | Package scripts for repo, split, dependency, browser smoke, maturity, evidence, test, build, and release validation. |
 | Split repository model | 10 | `.split-repos/nicechunk-*`, split generator, split validator, and split audit output. |
 | Release evidence | 10 | `scripts/collect-release-evidence.mjs`, `npm run release:evidence`, and release readiness docs. |
 | Review documentation | 10 | README, contribution/support/community files, CODEOWNERS, PR template, public review guide, ownership, architecture, validation, and this scorecard. |
@@ -42,7 +42,7 @@ These items are expected to remain explicit until they are actually completed:
 
 - GitHub Actions workflow publication after credentials with `workflow` scope are available.
 - Full Solana BPF and local-validator integration evidence.
-- Browser visual regression screenshots for major pages.
+- Browser route smoke checks are automated; full screenshot baseline comparison, wallet-extension flows, and mobile visual coverage are still separate review items.
 - Guardian load testing under realistic movement patterns.
 
 ## Review Interpretation
