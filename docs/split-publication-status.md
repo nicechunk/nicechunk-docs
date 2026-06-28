@@ -4,7 +4,9 @@ NiceChunk uses one main working tree and multiple focused GitHub split repositor
 
 - a local Git repository under `.split-repos/nicechunk-*`
 - an `origin` remote that points at `git@github.com:nicechunk/<repo>.git`
+- a `main` branch
 - a configured upstream branch
+- a latest commit authored by `nicechunk <293527782+nicechunk@users.noreply.github.com>`
 - clean local status after the generated split commit is pushed
 
 ## Audit Command
@@ -26,6 +28,8 @@ Use strict mode only when all split repositories are expected to be publicly rea
 ```bash
 node scripts/audit-split-remotes.mjs --check-remote --strict
 ```
+
+Strict mode fails on unpublished splits, dirty splits, unexpected remote URLs, non-`main` branches, or latest commit authors that do not match the project sync identity. The default local audit reports those fields without failing, so reviewers can inspect pending publication work without blocking ordinary development.
 
 ## Current Fourier Pickaxe Status
 
