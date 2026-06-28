@@ -47,6 +47,12 @@ Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or late
 
 `nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree. It is intentionally listed as unpublished until the GitHub repository exists and the local split can push `main` with an upstream.
 
+### External Publication Blocker
+
+Current local policy evidence shows `publicationState: "unpublished"` with the `missing-upstream` blocker. Networked remote checks may additionally report `remote-unreachable` until GitHub returns a readable repository for `git@github.com:nicechunk/nicechunk-fourier-pickaxe.git`.
+
+This is an external publication blocker, not a source completeness blocker: the split has clean generated content, the expected origin URL, the expected `main` branch, and the expected `nicechunk <293527782+nicechunk@users.noreply.github.com>` commit identity. Public sync is incomplete only because the GitHub repository/upstream proof is missing.
+
 Expected first publication command after the empty GitHub repository is created:
 
 ```bash
