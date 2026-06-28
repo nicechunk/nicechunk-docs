@@ -88,7 +88,7 @@ Evidence reviewers should expect:
 - current package name, version, and license
 - git branch and commit identity
 - validation commands available in `package.json`
-- split repository count, expected remotes, policy matches, and generated audit report
+- split repository count, expected remotes, policy matches, README completeness, and generated audit report
 - security, architecture, validation, maturity, CI, license, asset, wallet, Fourier Pickaxe, and Guardian documentation paths
 
 ## Known Manual Gates

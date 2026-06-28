@@ -29,7 +29,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Split publication status | Generated split repositories have explicit local commit, remote, upstream, and dirty-state evidence | `npm run audit:split-remotes`, `docs/split-publication-status.md` |
 | Evaluator dossier | Third-party review entrypoint, compact decision template, and release-evidence coverage are present | `npm run audit:evaluator-dossier`, `docs/evaluator-dossier.md` |
 | Repository maturity | Public repository governance score has no blockers and remains above the documented pass threshold | `npm run audit:maturity`, `docs/repository-maturity-scorecard.md` |
-| Release evidence | Main and split repository commits, dirty status, upstream refs, split remote/branch/author policy matches, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
+| Release evidence | Package metadata, main and split repository commits, dirty status, upstream refs, split remote/branch/author policy matches, split README completeness, expected validation commands, and known manual gates are captured | `npm run release:evidence` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
