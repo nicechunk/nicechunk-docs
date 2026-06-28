@@ -28,6 +28,7 @@ Each public repository should expose:
 - `SUPPORT.md`
 - `CODE_OF_CONDUCT.md`
 - `CONTRIBUTING.md`
+- `.github/CODEOWNERS`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.github/ISSUE_TEMPLATE/bug_report.yml`
 - `.github/ISSUE_TEMPLATE/feature_request.yml`
@@ -58,3 +59,15 @@ nicechunk <293527782+nicechunk@users.noreply.github.com>
 ```
 
 This keeps public attribution consistent and prevents GitHub from displaying unrelated accounts due to email ownership.
+
+## Review Ownership
+
+Public review ownership is defined in `.github/CODEOWNERS` and explained in `docs/review-ownership.md`.
+
+The default public owner is:
+
+```text
+@nicechunk
+```
+
+Changes to protocol, SDK, Guardian, split generation, release guidance, security policy, or repository audit controls should include explicit validation evidence in the pull request.

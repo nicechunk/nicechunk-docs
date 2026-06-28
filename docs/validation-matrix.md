@@ -6,7 +6,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 
 | Command | Scope | Proves | Notes |
 | --- | --- | --- | --- |
-| `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
+| `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
 | `npm run test:core` | TypeScript SDK and protocol-facing tests | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior | Uses Mocha with `ts-node/esm`. |
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
@@ -17,6 +17,7 @@ Security review context:
 
 ```bash
 sed -n '1,220p' docs/public-review-guide.md
+sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/threat-model.md
 ```
@@ -44,6 +45,7 @@ cargo build-sbf --no-default-features --features devnet
 The current validation covers these risk classes:
 
 - Public repository hygiene and accidental secret exposure.
+- Review ownership coverage for public repository surfaces.
 - Split repository boundary drift.
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.

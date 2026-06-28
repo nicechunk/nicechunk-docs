@@ -15,6 +15,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Gate | Required Evidence | Command Or File |
 | --- | --- | --- |
 | Repository hygiene | No missing public health files, forbidden paths, broken Markdown links, token-shaped strings, PEM private-key blocks, or non-reserved public IPv4 findings | `npm run validate:repo` |
+| Review ownership | CODEOWNERS exists and high-risk changes have an explicit owner and evidence path | `.github/CODEOWNERS`, `docs/review-ownership.md` |
 | Core protocol and SDK behavior | PDA derivation, account layout, instruction builders, decoders, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
@@ -83,6 +84,7 @@ Main repository commit:
 Split repositories synced:
 Validation commands:
 Threat model impact:
+Review ownership impact:
 Protocol/account-layout impact:
 Worldgen determinism impact:
 Guardian protocol impact:

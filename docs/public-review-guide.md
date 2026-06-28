@@ -12,8 +12,9 @@ Start with these files in order:
 2. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
 3. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
 4. `docs/validation-matrix.md` for command-to-risk coverage.
-5. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
-6. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+5. `docs/review-ownership.md` for code ownership and high-risk review triggers.
+6. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+7. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -34,6 +35,7 @@ npm run validate:guardian
 | Review Area | Evidence To Inspect | Expected Standard |
 | --- | --- | --- |
 | Repository professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, PR template | A reviewer can understand scope, contribution flow, support boundaries, and validation expectations without private context. |
+| Review ownership | `.github/CODEOWNERS`, `docs/review-ownership.md` | High-risk surfaces have explicit review ownership and evidence expectations. |
 | Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
@@ -85,7 +87,7 @@ NiceChunk uses the main working tree as the source of truth. Public GitHub repos
 
 When reviewing a split repository:
 
-1. Confirm it has the standard health files: `README.md`, `.gitignore`, `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and GitHub issue/PR templates.
+1. Confirm it has the standard health files: `README.md`, `.gitignore`, `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `.github/CODEOWNERS`, and GitHub issue/PR templates.
 2. Confirm it does not contain forbidden paths such as `.auth/`, `.deploy/`, `.gh-config/`, `.ssh/`, `debug/`, `deploy/`, `dist/`, `build/`, `target/`, or `Guardian/build/`.
 3. Confirm its latest sync commit uses `nicechunk <293527782+nicechunk@users.noreply.github.com>`.
 4. Compare the split surface against the relevant main-tree docs before accepting protocol, SDK, worldgen, or Guardian changes.
