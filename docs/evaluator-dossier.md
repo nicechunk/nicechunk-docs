@@ -1,6 +1,6 @@
 # NiceChunk Evaluator Dossier
 
-This dossier is the compact review package for external agents, maintainers, security reviewers, and project evaluators. It ties repository claims to files and commands that can be inspected without private infrastructure.
+This dossier is the compact review package for external agents, maintainers, security reviewers, and project evaluators. It ties repository claims to files and commands that can be inspected without private infrastructure. For the one-page conclusion, start with `docs/evaluator-verdict.md`.
 
 ## Review Positioning
 
@@ -32,6 +32,8 @@ npm run audit:public-copy
 npm run review:package
 npm run audit:review-package
 ```
+
+Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed.
 
 `validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
 

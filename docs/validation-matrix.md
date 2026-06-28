@@ -34,6 +34,7 @@ Security review context:
 
 ```bash
 sed -n '1,220p' docs/public-review-guide.md
+sed -n '1,220p' docs/evaluator-verdict.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/manual-release-gates.md
@@ -99,6 +100,7 @@ The current validation covers these risk classes:
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
 - Public review flow for external evaluators and automated agents.
+- One-page evaluator verdict for short-form accept/hold decision wording.
 - Release gates, provenance checklist, split sync procedure, and rollback guidance.
 - Threat model review for assets, trust boundaries, high-risk change classes, and known gaps.
 
