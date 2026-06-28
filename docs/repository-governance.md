@@ -24,6 +24,8 @@ Each public repository should expose:
 - `README.md`
 - `.gitignore`
 - `SECURITY.md`
+- `SUPPORT.md`
+- `CODE_OF_CONDUCT.md`
 - `CONTRIBUTING.md`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.github/ISSUE_TEMPLATE/bug_report.yml`

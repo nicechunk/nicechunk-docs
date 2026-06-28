@@ -462,7 +462,7 @@ Expected final deploy command:
 ```bash
 solana program deploy target/deploy/nicechunk_core.so \
   --program-id target/deploy/nicechunk_core-keypair.json \
-  --keypair .deploy/phantom-keypair.json \
+  --keypair /path/to/mainnet-deployer.json \
   --url https://api.mainnet-beta.solana.com \
   --final
 ```
