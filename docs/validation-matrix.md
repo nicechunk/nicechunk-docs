@@ -29,6 +29,7 @@ sed -n '1,220p' docs/repository-maturity-scorecard.md
 sed -n '1,220p' docs/supply-chain-security.md
 sed -n '1,220p' docs/asset-manifest.md
 sed -n '1,220p' docs/browser-smoke-audit.md
+sed -n '1,220p' docs/guardian-load-audit.md
 sed -n '1,220p' docs/ci-workflow-spec.md
 sed -n '1,220p' docs/license-status.md
 sed -n '1,220p' docs/threat-model.md
@@ -65,6 +66,7 @@ The current validation covers these risk classes:
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.
 - Built browser route smoke coverage through `npm run audit:browser-smoke`.
+- Deterministic Guardian core load coverage through `Guardian/tests/load_test.cpp`.
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.
 - Core player, chunk, backpack, smelting, and generated-block helper behavior.
@@ -83,7 +85,7 @@ These areas still require targeted manual review or future fixtures:
 - On-chain integration tests against a local validator or devnet.
 - Expanded deterministic worldgen golden fixtures across more seeds and coordinate ranges.
 - Browser route smoke checks are automated; screenshot baseline comparison, wallet-extension flows, and mobile visual coverage remain manual.
-- Load testing for Guardian under realistic player movement patterns.
+- Networked Guardian soak testing, slow-client backpressure, and production host capacity review.
 - GitHub Actions publication, pending credentials with `workflow` scope. The intended workflow is documented in `docs/ci-workflow-spec.md`.
 - Apache-2.0 licensing is documented in `LICENSE`, `NOTICE`, and `docs/license-status.md`; third-party assets and dependencies keep upstream terms.
 

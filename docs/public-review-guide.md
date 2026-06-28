@@ -18,9 +18,10 @@ Start with these files in order:
 8. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
 9. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
 10. `docs/browser-smoke-audit.md` for built browser route smoke coverage.
-11. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
-12. `docs/license-status.md` for Apache-2.0 licensing status.
-13. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+11. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
+12. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
+13. `docs/license-status.md` for Apache-2.0 licensing status.
+14. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -59,6 +60,7 @@ npm run validate:guardian
 | Runtime completeness | `src/`, `public/`, generated locale files, `npm run build` | Browser routes compile, locale assets generate, and public pages have inspectable outputs. |
 | Browser smoke coverage | `docs/browser-smoke-audit.md`, `npm run audit:browser-smoke` | Built routes are served through Chromium and checked for DOM content, local asset failures, runtime page errors, and nontrivial screenshots. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
+| Guardian core load | `docs/guardian-load-audit.md`, `Guardian/tests/load_test.cpp`, `npm run validate:guardian` | Deterministic movement, AOI fanout, range checks, MOVE_BATCH encoding, and rate-limit behavior pass under repeatable local load. |
 | Split repository integrity | `.split-repos/nicechunk-*`, generated health files | Each public split is self-contained enough to review its own surface. |
 
 ## Review Commands
@@ -132,7 +134,7 @@ These gaps are documented so reviewers can distinguish known future work from hi
 - GitHub Actions workflow publication needs credentials with `workflow` scope before workflow files can be pushed; see `docs/ci-workflow-spec.md` for the intended workflow.
 - npm audit has tracked Solana upstream exceptions; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.
-- Browser route smoke checks are automated, but screenshot baseline comparison, wallet-extension flows, mobile visual coverage, and Guardian load tests are not automated yet.
+- Browser route smoke checks and deterministic Guardian core load checks are automated, but screenshot baseline comparison, wallet-extension flows, mobile visual coverage, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated yet.
 - Deterministic worldgen golden fixtures exist for representative terrain, water, and tree outputs, but should be expanded before treating worldgen as finalized protocol behavior.
 
 ## Review Outcome Template

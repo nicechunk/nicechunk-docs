@@ -47,7 +47,7 @@ NiceChunk reviewers should treat these boundaries as separate:
 | Deployment scripts or local debug material are published | Split generator excludes deploy, sync, build, debug, and machine-specific paths | `node scripts/split-github-repos.mjs` |
 | GitHub author attribution maps to an unrelated account | Project sync commits use `nicechunk <293527782+nicechunk@users.noreply.github.com>` | `git log --format='%an <%ae>'` |
 | SDK and program account layouts drift apart | Core tests cover PDA derivation, account layout, instruction builders, and decoders | `npm run test:core` |
-| Guardian protocol compatibility regresses | CTest suite covers range checks, AOI behavior, and protocol encoding/decoding | `npm run validate:guardian` |
+| Guardian protocol compatibility regresses | CTest suite covers range checks, AOI behavior, protocol encoding/decoding, deterministic core load, and rate limiting | `npm run validate:guardian`, `docs/guardian-load-audit.md` |
 | Browser routes or generated locale assets break | Production Vite build runs locale generation and route bundling | `npm run build` |
 | Documentation links become stale | Repository audit checks local Markdown links across main and split repositories | `npm run validate:repo` |
 | Dependency advisory reaches release unnoticed | Controlled npm audit script fails on unexpected vulnerabilities and reports tracked upstream exceptions | `npm run audit:deps`, `docs/supply-chain-security.md` |
@@ -84,7 +84,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - The intended GitHub Actions workflow is documented in `docs/ci-workflow-spec.md`, but workflow publication still requires credentials with `workflow` scope.
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
 - Browser route smoke checks are automated, but screenshot baseline comparison, wallet-extension flows, and mobile visual coverage are not automated yet.
-- Guardian load testing under realistic movement traffic is not automated yet.
+- Deterministic Guardian core load testing is automated; networked soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
 - Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
 - npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - NiceChunk uses Apache-2.0; third-party asset and dependency licenses must remain preserved during redistribution.

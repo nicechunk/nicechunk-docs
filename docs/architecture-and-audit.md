@@ -55,6 +55,7 @@ Before syncing public repositories, maintainers should be able to show:
 - Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
 - Relevant build, test, or manual validation was run for the changed surface.
 - Browser route smoke coverage from `docs/browser-smoke-audit.md` was run when browser-facing routes changed.
+- Guardian core load coverage from `docs/guardian-load-audit.md` was run when Guardian protocol or service logic changed.
 - Commit author identity is `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
 - Any protocol, account-layout, deterministic worldgen, or user-visible behavior change is documented.
 
@@ -82,7 +83,7 @@ Some checks still require human or targeted automated review:
 - Solana program account-layout compatibility.
 - Deterministic worldgen fixture drift.
 - Browser route smoke coverage is automated; screenshot baseline comparison, wallet-extension flows, and responsive UI behavior still need targeted review.
-- Guardian protocol compatibility and load behavior.
+- Guardian protocol compatibility, networked soak behavior, slow-client backpressure, and production host capacity.
 - Third-party asset and dependency license preservation.
 - GitHub Actions workflow publication. The intended workflow is documented in `docs/ci-workflow-spec.md`, but the current push credential cannot create workflow files without `workflow` scope.
 
