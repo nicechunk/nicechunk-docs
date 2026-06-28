@@ -47,6 +47,44 @@ Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or late
 
 `nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree. It is intentionally listed as unpublished until the GitHub repository exists and the local split can push `main` with an upstream.
 
+## Publication Blocker Register
+
+Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation.
+
+### Allowed Publication Blockers
+
+| Blocker | Meaning | Allowed only when | Resolution evidence |
+| --- | --- | --- | --- |
+| `missing-upstream` | The local split has no configured upstream branch. | The split is generated, clean, on `main`, has the expected origin URL, and the latest commit uses the `nicechunk <293527782+nicechunk@users.noreply.github.com>` identity. | `git -C .split-repos/<repo> push -u origin main` succeeds and `npm run audit:split-remotes` reports a non-empty upstream. |
+| `remote-unreachable` | A networked remote check cannot read the GitHub repository. | The repository is newly created, credentials are not available in the review environment, or GitHub access has not been granted yet. | `node scripts/audit-split-remotes.mjs --check-remote` succeeds after repository access is available. |
+
+### Blocking Publication Findings
+
+The following findings are not acceptable publication blockers. They must be fixed before any split is described as ready for public sync:
+
+- wrong origin URL
+- branch other than `main`
+- latest commit author that is not `nicechunk <293527782+nicechunk@users.noreply.github.com>`
+- dirty generated split worktree
+- forbidden path, private credential, server address, token, keypair, or deployment-only file
+- missing README, license metadata, governance file, changelog anchor, or validation command
+
+### Reviewer Decision Rule
+
+A split can be described as source-complete but unpublished only when `node scripts/audit-split-remotes.mjs --policy-strict` passes and the only remaining blocker is an allowed external publication blocker. A split must not be described as publicly synced until local audit evidence shows a configured upstream, clean status, expected remote, expected branch, and expected author.
+
+### Resolution Checklist
+
+Before clearing an unpublished split from this document:
+
+1. Create the empty GitHub repository under `nicechunk/<repo>`.
+2. Run `git -C .split-repos/<repo> remote -v` and confirm it points to the expected `git@github.com:nicechunk/<repo>.git` URL.
+3. Run `git -C .split-repos/<repo> push -u origin main`.
+4. Run `npm run audit:split-remotes`.
+5. Run `npm run audit:split-publication-docs`.
+6. Run `npm run audit:maturity`.
+7. Update the `Current Unpublished Splits` section only after the audit output proves the split is published.
+
 ### External Publication Blocker
 
 Current local policy evidence shows `publicationState: "unpublished"` with the `missing-upstream` blocker. Networked remote checks may additionally report `remote-unreachable` until GitHub returns a readable repository for `git@github.com:nicechunk/nicechunk-fourier-pickaxe.git`.

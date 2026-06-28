@@ -15,7 +15,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, the manual gate register, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
 | `npm run audit:public-copy` | Public UI copy, locale bundles, root community files, changelog, README, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
 | `npm run audit:changelog` | Public changelog | Changelog structure, release-note safety rules, deferred evidence wording, and required validation commands are present | Prevents public release notes from drifting into informal or unsafe claims. |
-| `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes` and includes the required publication commands | Prevents stale publication-status docs. |
+| `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes`, documents allowed external publication blockers, and includes the required resolution commands | Prevents stale or ambiguous publication-status docs. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
 | `npm run audit:wallet-flows` | Built wallet routes | Login no-wallet state, mock injected Phantom happy path, and Guardian no-wallet guard behave as expected | Requires `npm run build` first; uses a mock provider, not a real wallet extension. |
 | `npm run audit:fourier-pickaxe-docs` | Fourier Pickaxe documentation surface | GPU requirement, architecture, function payload, security boundary, known limits, and required source files are documented | Documentation-first check only; it does not run the GPU workload. |
@@ -85,6 +85,7 @@ The current validation covers these risk classes:
 - Split repository boundary drift.
 - Split repository package-script, relative-import, changelog-coverage, dependency-audit, and build self-containment.
 - Split repository publication status through `npm run audit:split-remotes`.
+- Split publication blocker rules and resolution evidence through `npm run audit:split-publication-docs`.
 - Evaluator handoff coverage through `npm run audit:evaluator-dossier`.
 - Machine-readable release provenance through `npm run release:evidence`.
 - Release evidence schema, clean git status, allowed publication blockers, and key field validation through `npm run audit:release-evidence`.
