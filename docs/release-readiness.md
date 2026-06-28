@@ -21,6 +21,8 @@ This document defines the evidence required before a public NiceChunk release, t
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
+| Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
+| Licensing status | Current public rights are explicit and owner license decision is not implied by source availability | `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 
 ## Standard Release Validation
@@ -53,9 +55,10 @@ Before pushing public split repositories:
 2. Run `node scripts/split-github-repos.mjs`.
 3. Review `.split-repos/split-audit.json`.
 4. Run `npm run validate:repo`.
-5. Commit only repositories with intentional changes.
-6. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
-7. Push each split repository separately.
+5. Run `npm run validate:splits`.
+6. Commit only repositories with intentional changes.
+7. Use `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
+8. Push each split repository separately.
 
 ## Tagging Guidance
 
@@ -110,7 +113,7 @@ Rollback should preserve auditability:
 
 These items should not be presented as completed release guarantees yet:
 
-- Public license selection is pending owner decision.
+- Public license selection is pending owner decision; see `docs/license-status.md`.
 - GitHub Actions automation is pending credentials with `workflow` scope.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.

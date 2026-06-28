@@ -15,12 +15,14 @@ Start with these files in order:
 5. `docs/review-ownership.md` for code ownership and high-risk review triggers.
 6. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
 7. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
-8. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+8. `docs/license-status.md` for current licensing limits.
+9. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
 ```bash
 npm run validate:repo
+npm run validate:splits
 npm run test:core
 npm run build
 ```
@@ -42,6 +44,7 @@ npm run validate:guardian
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
+| Licensing clarity | `docs/license-status.md`, absence or presence of `LICENSE` | Reviewers know whether code is source-available for inspection only or released under explicit terms. |
 | Protocol compatibility | `programs/`, `tests/`, SDK helpers, protocol docs | PDA seeds, account layouts, instruction builders, decoders, and deterministic worldgen fixtures are reviewed together. |
 | Runtime completeness | `src/`, `public/`, generated locale files, `npm run build` | Browser routes compile, locale assets generate, and public pages have inspectable outputs. |
 | Service boundary | `Guardian/`, `docs/nicechunk_guardian.md`, `npm run validate:guardian` | Guardian remains a relay/service layer and does not become settlement authority. |
@@ -54,6 +57,7 @@ Repository hygiene and split audit:
 ```bash
 node scripts/split-github-repos.mjs
 npm run validate:repo
+npm run validate:splits
 ```
 
 Core protocol and SDK tests:
@@ -110,7 +114,7 @@ For high-risk changes, answer these before accepting the change:
 
 These gaps are documented so reviewers can distinguish known future work from hidden omissions:
 
-- Public license selection needs an owner decision before a public license file is added.
+- Public license selection needs an owner decision before a public license file is added; see `docs/license-status.md`.
 - GitHub Actions automation needs credentials with `workflow` scope before workflow files can be pushed.
 - npm audit has tracked Solana upstream exceptions; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.

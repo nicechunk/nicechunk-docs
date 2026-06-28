@@ -46,6 +46,7 @@ Before syncing public repositories, maintainers should be able to show:
 
 - `node scripts/split-github-repos.mjs` completed without split audit failures.
 - `npm run repo:audit` reports no missing files, forbidden paths, content findings, or broken Markdown links.
+- `npm run validate:splits` reports no split package-script, import-resolution, dependency-audit, or build self-containment failures.
 - `npm run audit:deps` reports no unexpected dependency vulnerabilities.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
 - Review ownership from `.github/CODEOWNERS` and `docs/review-ownership.md` was checked for high-risk changes.
@@ -68,6 +69,8 @@ Before syncing public repositories, maintainers should be able to show:
 The audit intentionally treats unclear public IPs as failures. Use domains or documentation-reserved IP ranges in examples.
 
 `npm run audit:deps` checks the npm dependency graph and only allows documented upstream exceptions from `docs/supply-chain-security.md`.
+
+`npm run validate:splits` checks generated split repositories that have package or source surfaces. It verifies that package scripts reference existing files, relative imports resolve inside the split, dependency audit scripts pass, and split repositories with a `build` script compile.
 
 ## Known Manual Review Areas
 
