@@ -14,7 +14,8 @@ Start with these files in order:
 4. `docs/validation-matrix.md` for command-to-risk coverage.
 5. `docs/review-ownership.md` for code ownership and high-risk review triggers.
 6. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
-7. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+7. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
+8. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -37,6 +38,7 @@ npm run validate:guardian
 | Repository professionalism | `README.md`, `CONTRIBUTING.md`, `SUPPORT.md`, issue templates, PR template | A reviewer can understand scope, contribution flow, support boundaries, and validation expectations without private context. |
 | Review ownership | `.github/CODEOWNERS`, `docs/review-ownership.md` | High-risk surfaces have explicit review ownership and evidence expectations. |
 | Security hygiene | `SECURITY.md`, `docs/threat-model.md`, `npm run validate:repo` | Public repositories contain no secrets, deployment-only scripts, private keys, server addresses, or local debug material. |
+| Supply-chain security | `docs/supply-chain-security.md`, `package-lock.json`, `npm run audit:deps` | Dependency risks are gated, lockfile changes are reviewable, and upstream exceptions are explicit. |
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
@@ -57,6 +59,7 @@ npm run validate:repo
 Core protocol and SDK tests:
 
 ```bash
+npm run audit:deps
 npm run test:core
 ```
 
@@ -109,6 +112,7 @@ These gaps are documented so reviewers can distinguish known future work from hi
 
 - Public license selection needs an owner decision before a public license file is added.
 - GitHub Actions automation needs credentials with `workflow` scope before workflow files can be pushed.
+- npm audit has tracked Solana upstream exceptions; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default validation yet.
 - Browser visual regression screenshots and Guardian load tests are not automated yet.
 - Deterministic worldgen golden fixtures exist for representative terrain, water, and tree outputs, but should be expanded before treating worldgen as finalized protocol behavior.

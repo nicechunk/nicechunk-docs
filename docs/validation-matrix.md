@@ -7,6 +7,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | Command | Scope | Proves | Notes |
 | --- | --- | --- | --- |
 | `npm run validate:repo` | Main tree and generated split repositories | Repository hygiene files and CODEOWNERS exist, forbidden paths are absent, Markdown links resolve, token/private-key/public-IP findings are absent, audit scripts parse | Fastest required check before GitHub sync. |
+| `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run test:core` | TypeScript SDK, protocol-facing tests, and deterministic worldgen fixtures | PDA derivation, core config layout, player/chunk instruction builders, backpack decoding, smelting instruction helpers, generated block ID behavior, fixed worldgen golden outputs | Uses Mocha with `ts-node/esm`. |
 | `npm run validate:guardian` | Guardian C++ service tests | AOI range behavior, binary protocol encoding/decoding, service range checks | Requires `Guardian/build` to exist. Build with CMake first when needed. |
 | `npm run build` | Browser product and public pages | Locale generation, Vite compilation, route/page bundling, static asset references | Runs `npm run locales` through `prebuild`. |
@@ -19,6 +20,7 @@ Security review context:
 sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
+sed -n '1,220p' docs/supply-chain-security.md
 sed -n '1,220p' docs/threat-model.md
 ```
 
@@ -46,6 +48,7 @@ The current validation covers these risk classes:
 
 - Public repository hygiene and accidental secret exposure.
 - Review ownership coverage for public repository surfaces.
+- Dependency audit gating with documented upstream exceptions.
 - Split repository boundary drift.
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.

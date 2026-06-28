@@ -46,6 +46,7 @@ Before syncing public repositories, maintainers should be able to show:
 
 - `node scripts/split-github-repos.mjs` completed without split audit failures.
 - `npm run repo:audit` reports no missing files, forbidden paths, content findings, or broken Markdown links.
+- `npm run audit:deps` reports no unexpected dependency vulnerabilities.
 - Validation commands from `docs/validation-matrix.md` were run for the touched surface.
 - Review ownership from `.github/CODEOWNERS` and `docs/review-ownership.md` was checked for high-risk changes.
 - Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
@@ -65,6 +66,8 @@ Before syncing public repositories, maintainers should be able to show:
 - non-reserved public IPv4 addresses in text files
 
 The audit intentionally treats unclear public IPs as failures. Use domains or documentation-reserved IP ranges in examples.
+
+`npm run audit:deps` checks the npm dependency graph and only allows documented upstream exceptions from `docs/supply-chain-security.md`.
 
 ## Known Manual Review Areas
 

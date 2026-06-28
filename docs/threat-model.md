@@ -50,6 +50,7 @@ NiceChunk reviewers should treat these boundaries as separate:
 | Guardian protocol compatibility regresses | CTest suite covers range checks, AOI behavior, and protocol encoding/decoding | `npm run validate:guardian` |
 | Browser routes or generated locale assets break | Production Vite build runs locale generation and route bundling | `npm run build` |
 | Documentation links become stale | Repository audit checks local Markdown links across main and split repositories | `npm run validate:repo` |
+| Dependency advisory reaches release unnoticed | Controlled npm audit script fails on unexpected vulnerabilities and reports tracked upstream exceptions | `npm run audit:deps`, `docs/supply-chain-security.md` |
 
 ## High-Risk Change Classes
 
@@ -62,6 +63,7 @@ Changes in these areas require extra review evidence:
 - Guardian binary protocol, region ownership, movement validation, or relay permissions
 - resource economy, smelting, forging, or NCM format changes
 - split repository rules, ignore rules, audit scripts, or sync scripts
+- dependency versions, lockfiles, npm overrides, or supply-chain audit exceptions
 - public documentation that includes concrete addresses, credentials, hosts, or operational examples
 
 ## Required Review Questions
@@ -84,6 +86,7 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - Browser visual regression and wallet-flow screenshot tests are not automated yet.
 - Guardian load testing under realistic movement traffic is not automated yet.
 - Deterministic worldgen golden fixtures cover representative outputs but need broader seed and coordinate coverage.
+- npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Public license selection requires an owner decision before a license file is added.
 
 ## Reporting
