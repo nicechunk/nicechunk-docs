@@ -80,11 +80,12 @@ Some checks still require human or targeted automated review:
 
 A third-party reviewer should start with:
 
-1. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
-2. Run `npm run repo:audit`.
-3. Read `docs/threat-model.md` and identify the changed trust boundary.
-4. Inspect the split repository matching the review target.
-5. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
-6. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
-7. For Guardian work, confirm relay-only authority and no private deployment material.
-8. For UI work, validate generated locale files and visible states.
+1. Read `docs/public-review-guide.md` for the evidence-first review path.
+2. Read `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, and this document.
+3. Run `npm run repo:audit`.
+4. Read `docs/threat-model.md` and identify the changed trust boundary.
+5. Inspect the split repository matching the review target.
+6. For protocol work, compare Rust account layouts, SDK decoders, scripts, and docs in the same pass.
+7. For worldgen work, compare deterministic inputs, cache invalidation, and generated block outputs.
+8. For Guardian work, confirm relay-only authority and no private deployment material.
+9. For UI work, validate generated locale files and visible states.

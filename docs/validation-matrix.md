@@ -15,10 +15,11 @@ This matrix maps validation commands to the project risks they cover. It is inte
 Security review context:
 
 ```bash
+sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/threat-model.md
 ```
 
-Use the threat model to identify the trust boundary, protected asset, and extra evidence required for high-risk changes.
+Use the public review guide and threat model to identify the trust boundary, protected asset, and extra evidence required for high-risk changes.
 
 ## Manual Build Commands
 
@@ -47,6 +48,7 @@ The current validation covers these risk classes:
 - Core player, chunk, backpack, smelting, and generated-block helper behavior.
 - Guardian protocol, area-of-interest, and service range logic.
 - Browser route compilation and generated locale assets.
+- Public review flow for external evaluators and automated agents.
 - Threat model review for assets, trust boundaries, high-risk change classes, and known gaps.
 
 ## Known Gaps
