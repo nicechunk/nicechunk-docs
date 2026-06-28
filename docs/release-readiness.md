@@ -20,6 +20,8 @@ This document defines the evidence required before a public NiceChunk release, t
 | Core protocol, SDK, and worldgen behavior | PDA derivation, account layout, instruction builders, decoders, representative and wide-range deterministic worldgen golden fixtures, and helper behavior still pass | `npm run test:core` |
 | Browser build | Locale generation, route bundling, and static assets compile | `npm run build` |
 | Browser smoke audit | Key built browser routes serve from `dist/` on desktop and mobile viewports, contain visible DOM content, avoid failed local assets, and produce nontrivial screenshots | `npm run audit:browser-smoke`, `docs/browser-smoke-audit.md` |
+| Wallet flow audit | Login no-wallet state, mock injected Phantom connect flow, and Guardian no-wallet guard pass in the built browser output | `npm run audit:wallet-flows`, `docs/wallet-flow-audit.md` |
+| Fourier Pickaxe documentation | GPU requirement, architecture, function payload, security boundary, and known limits are documented for review without requiring GPU execution | `npm run audit:fourier-pickaxe-docs`, `docs/fourier-pickaxe-showcase.md` |
 | Guardian behavior | AOI, range, and binary protocol tests pass when Guardian code or protocol is in scope | `npm run validate:guardian` |
 | Guardian core load | Deterministic movement, AOI fanout, range, batching, and rate-limit workload passes inside the Guardian CTest suite | `npm run validate:guardian`, `docs/guardian-load-audit.md` |
 | Split repository provenance | Split repositories are regenerated from the main tree and audit output has zero secret or forbidden path findings | `node scripts/split-github-repos.mjs` |
@@ -127,5 +129,5 @@ These items should not be presented as completed release guarantees yet:
 - GitHub Actions workflow publication is pending credentials with `workflow` scope; see `docs/ci-workflow-spec.md`.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
-- Browser route smoke checks across desktop/mobile viewports and deterministic Guardian core load checks are automated, but screenshot baseline comparison, wallet-extension flows, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated.
+- Browser route smoke checks across desktop/mobile viewports, mock wallet UI flows, Fourier Pickaxe documentation checks, and deterministic Guardian core load checks are automated, but screenshot baseline comparison, real wallet-extension approval, mobile deep links, transaction signing, Fourier Pickaxe GPU proof-search benchmarking, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated.
 - Deterministic worldgen golden fixtures cover representative and wide-range terrain, water, depth, protocol block ID, and tree outputs; protocol-final worldgen changes still require explicit owner review.

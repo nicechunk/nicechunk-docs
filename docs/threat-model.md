@@ -7,6 +7,7 @@ This document describes the security boundaries that public reviewers, maintaine
 The public review surface includes:
 
 - browser client code, routes, wallet flows, rendering, and locale dictionaries
+- GPU-oriented voxel function research surfaces such as Fourier Pickaxe
 - Solana programs, account layouts, instruction handlers, and operation scripts
 - TypeScript SDK helpers for PDA derivation, instruction construction, and account decoding
 - deterministic world generation and public resource-rule data
@@ -50,6 +51,8 @@ NiceChunk reviewers should treat these boundaries as separate:
 | Deterministic world generation drifts unexpectedly | Core tests cover representative and wide-range terrain profiles, generated depth samples, canonical protocol block IDs, water levels, and above-surface tree summaries | `npm run test:core` |
 | Guardian protocol compatibility regresses | CTest suite covers range checks, AOI behavior, protocol encoding/decoding, deterministic core load, and rate limiting | `npm run validate:guardian`, `docs/guardian-load-audit.md` |
 | Browser routes or generated locale assets break | Production Vite build runs locale generation and route bundling; browser smoke checks exercise key routes across desktop and mobile viewports | `npm run build`, `npm run audit:browser-smoke` |
+| Wallet UI flow regresses before real wallet testing | Mock injected-provider audit covers login connection state and no-wallet guards without using private keys or real extensions | `npm run audit:wallet-flows`, `docs/wallet-flow-audit.md` |
+| GPU-oriented Fourier Pickaxe claims exceed evidence | Documentation-first audit requires GPU/runtime limitations, payload format, security boundary, and review path to be explicit | `npm run audit:fourier-pickaxe-docs`, `docs/fourier-pickaxe-showcase.md` |
 | Documentation links become stale | Repository audit checks local Markdown links across main and split repositories | `npm run validate:repo` |
 | Dependency advisory reaches release unnoticed | Controlled npm audit script fails on unexpected vulnerabilities and reports tracked upstream exceptions | `npm run audit:deps`, `docs/supply-chain-security.md` |
 
@@ -85,6 +88,8 @@ These areas remain explicit review gaps rather than hidden assumptions:
 - The intended GitHub Actions workflow is documented in `docs/ci-workflow-spec.md`, but workflow publication still requires credentials with `workflow` scope.
 - Full Solana BPF builds and local-validator integration tests are not part of the default release validation command.
 - Browser route smoke checks cover desktop and mobile viewports, but screenshot baseline comparison and wallet-extension flows are not automated yet.
+- Wallet UI no-wallet and mock injected-provider flows are automated; real extension approval, mobile deep links, network switching, and transaction signing still need targeted release evidence.
+- Fourier Pickaxe documentation checks are automated; GPU runtime behavior and proof-search performance still require a GPU workstation.
 - Deterministic Guardian core load testing is automated; networked soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
 - Deterministic worldgen golden fixtures cover representative and wide-range outputs; protocol-final worldgen changes still require explicit owner review.
 - npm audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.

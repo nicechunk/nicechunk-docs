@@ -10,6 +10,8 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run validate:splits` | Generated split repositories with package or source surfaces | Split package scripts reference existing files, relative imports resolve, dependency audit scripts pass, and buildable split repos compile | Run after `node scripts/split-github-repos.mjs`. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:browser-smoke` | Built browser routes | Key production routes serve from `dist/` on desktop and mobile viewports, have DOM content, visible elements, nontrivial screenshots, and no failed local assets or page errors | Requires `npm run build` first and Playwright Chromium installed. |
+| `npm run audit:wallet-flows` | Built wallet routes | Login no-wallet state, mock injected Phantom happy path, and Guardian no-wallet guard behave as expected | Requires `npm run build` first; uses a mock provider, not a real wallet extension. |
+| `npm run audit:fourier-pickaxe-docs` | Fourier Pickaxe documentation surface | GPU requirement, architecture, function payload, security boundary, known limits, and required source files are documented | Documentation-first check only; it does not run the GPU workload. |
 | `npm run audit:maturity` | Main tree and generated split repositories | Repository governance score, blocker/warning findings, manual release gaps, clean sync state, and review-readiness evidence are emitted as JSON | Uses `scripts/audit-repository-maturity.mjs`; passes at 85/100 with no blockers. |
 | `npm run assets:manifest` | Public media, generated references, wallet icons, and NCM sample assets | `public/asset-manifest.json` lists asset paths, media types, byte sizes, hashes, dimensions, surfaces, source status, and canonical flags | Runs automatically through `prebuild`. |
 | `npm run release:evidence` | Main and split repository provenance | Current commit, author, branch, dirty status, upstream, required review files, and expected validation commands are emitted as JSON | Use after validation to capture release evidence. |
@@ -29,6 +31,8 @@ sed -n '1,220p' docs/repository-maturity-scorecard.md
 sed -n '1,220p' docs/supply-chain-security.md
 sed -n '1,220p' docs/asset-manifest.md
 sed -n '1,220p' docs/browser-smoke-audit.md
+sed -n '1,220p' docs/wallet-flow-audit.md
+sed -n '1,220p' docs/fourier-pickaxe-showcase.md
 sed -n '1,220p' docs/guardian-load-audit.md
 sed -n '1,220p' docs/ci-workflow-spec.md
 sed -n '1,220p' docs/license-status.md
@@ -66,6 +70,8 @@ The current validation covers these risk classes:
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.
 - Built browser route smoke coverage across desktop and mobile viewports through `npm run audit:browser-smoke`.
+- Mock wallet UI flow coverage through `npm run audit:wallet-flows`.
+- Fourier Pickaxe documentation-first review coverage through `npm run audit:fourier-pickaxe-docs`.
 - Deterministic Guardian core load coverage through `Guardian/tests/load_test.cpp`.
 - Broken public documentation links.
 - SDK account layout and instruction encoding regressions.
@@ -83,7 +89,9 @@ These areas still require targeted manual review or future fixtures:
 
 - Full Solana BPF build across every program and cluster feature.
 - On-chain integration tests against a local validator or devnet.
-- Browser route smoke checks cover desktop and mobile viewports; screenshot baseline comparison and wallet-extension flows remain manual.
+- Browser route smoke checks cover desktop and mobile viewports; screenshot baseline comparison remains manual.
+- Wallet UI no-wallet and mock injected-provider flows are automated; real wallet extension approval, mobile deep links, network switching, and transaction signing remain manual.
+- Fourier Pickaxe is documented for public review; GPU runtime behavior and proof-search performance require a GPU workstation.
 - Networked Guardian soak testing, slow-client backpressure, and production host capacity review.
 - GitHub Actions publication, pending credentials with `workflow` scope. The intended workflow is documented in `docs/ci-workflow-spec.md`.
 - Apache-2.0 licensing is documented in `LICENSE`, `NOTICE`, and `docs/license-status.md`; third-party assets and dependencies keep upstream terms.
@@ -99,6 +107,8 @@ npm run audit:maturity
 npm run test:core
 npm run build
 npm run audit:browser-smoke
+npm run audit:wallet-flows
+npm run audit:fourier-pickaxe-docs
 ```
 
 Run `npm run validate:guardian` when Guardian code, config, or protocol files changed.

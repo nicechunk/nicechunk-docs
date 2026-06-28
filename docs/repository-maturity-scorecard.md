@@ -27,10 +27,10 @@ The audit passes when there are no blocker findings and the score is at least 85
 | --- | ---: | --- |
 | Repository health | 15 | `npm run repo:audit` covers required files, forbidden paths, broken Markdown links, token-shaped strings, private-key blocks, and public IP findings. |
 | Security controls | 15 | `.gitignore`, `SECURITY.md`, `docs/threat-model.md`, and `docs/supply-chain-security.md`. |
-| Validation entrypoints | 10 | Package scripts for repo, split, dependency, browser smoke, maturity, evidence, test, build, and release validation. |
+| Validation entrypoints | 10 | Package scripts for repo, split, dependency, browser smoke, wallet flow, Fourier Pickaxe documentation, maturity, evidence, test, build, and release validation. |
 | Split repository model | 10 | `.split-repos/nicechunk-*`, split generator, split validator, and split audit output. |
 | Release evidence | 10 | `scripts/collect-release-evidence.mjs`, `npm run release:evidence`, and release readiness docs. |
-| Review documentation | 10 | README, contribution/support/community files, CODEOWNERS, PR template, public review guide, ownership, architecture, validation, and this scorecard. |
+| Review documentation | 10 | README, contribution/support/community files, CODEOWNERS, PR template, public review guide, ownership, architecture, validation, browser/wallet/Fourier/Guardian evidence docs, and this scorecard. |
 | Asset provenance | 8 | `docs/asset-manifest.md` and `public/asset-manifest.json`. |
 | CI and license transparency | 6 | `LICENSE`, `NOTICE`, `docs/ci-workflow-spec.md`, and `docs/license-status.md`. |
 | Clean sync state | 10 | Main and generated split repositories have clean git status and configured upstreams. |
@@ -42,7 +42,9 @@ These items are expected to remain explicit until they are actually completed:
 
 - GitHub Actions workflow publication after credentials with `workflow` scope are available.
 - Full Solana BPF and local-validator integration evidence.
-- Browser route smoke checks cover desktop and mobile viewports; full screenshot baseline comparison and wallet-extension flows are still separate review items.
+- Browser route smoke checks cover desktop and mobile viewports; full screenshot baseline comparison remains a separate review item.
+- Wallet no-extension and mock injected-provider flows are automated; real wallet extension approval, mobile deep links, network switching, and transaction signing are still separate review items.
+- Fourier Pickaxe has documentation-first review coverage; GPU runtime behavior and proof-search performance still need target hardware evidence.
 - Deterministic Guardian core load checks are automated; networked Guardian soak tests, slow-client backpressure, and production host capacity review still need targeted release evidence.
 
 Worldgen has representative and wide-range deterministic golden fixtures in `tests/worldgen_golden.ts`; protocol-final worldgen changes still require explicit owner review.

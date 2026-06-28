@@ -10,7 +10,8 @@ This document defines the workflow that should be committed once a properly scop
 | --- | --- | --- |
 | repository-health | Public hygiene, split generation, split self-containment, and dependency audit | `npm ci`, `node scripts/split-github-repos.mjs`, `npm run validate:repo`, `npm run validate:splits`, `npm run audit:deps` |
 | core-tests | SDK, protocol helper, and representative plus wide-range deterministic worldgen fixtures | `npm ci`, `npm run test:core` |
-| web-build | Browser route, asset compilation, and Chromium smoke audit | `npm ci`, `npx playwright install --with-deps chromium`, `npm run build`, `npm run audit:browser-smoke` |
+| web-build | Browser route, asset compilation, Chromium smoke audit, and mock wallet UI flow audit | `npm ci`, `npx playwright install --with-deps chromium`, `npm run build`, `npm run audit:browser-smoke`, `npm run audit:wallet-flows` |
+| documentation-surfaces | Documentation-first checks for GPU-oriented research surfaces | `npm ci`, `npm run audit:fourier-pickaxe-docs` |
 | guardian-tests | Guardian C++ protocol and AOI checks | `cmake -S Guardian -B Guardian/build -DCMAKE_BUILD_TYPE=Release`, `cmake --build Guardian/build -j`, `npm run validate:guardian` |
 | release-evidence | Machine-readable provenance snapshot | `npm run release:evidence` |
 
@@ -67,6 +68,18 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - run: npm run audit:browser-smoke
+      - run: npm run audit:wallet-flows
+
+  documentation-surfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run audit:fourier-pickaxe-docs
 
   guardian-tests:
     runs-on: ubuntu-latest

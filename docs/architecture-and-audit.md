@@ -9,6 +9,7 @@ NiceChunk is split into focused repositories from one working tree. The main tre
 The major boundaries are:
 
 - Browser client: wallet flow, pages, rendering, locale dictionaries, and gameplay composition.
+- Fourier Pickaxe: GPU-oriented voxel asset function research and documentation-first showcase.
 - Solana programs: public account ownership, PDA derivation, instruction handlers, and binary account layouts.
 - SDK: TypeScript helpers for PDA derivation, instruction construction, and account decoding.
 - World generation: deterministic seed and coordinate based terrain and block generation.
@@ -55,6 +56,8 @@ Before syncing public repositories, maintainers should be able to show:
 - Trust boundary and asset impact were checked against `docs/threat-model.md` for high-risk changes.
 - Relevant build, test, or manual validation was run for the changed surface.
 - Browser route smoke coverage from `docs/browser-smoke-audit.md` was run when browser-facing routes changed.
+- Wallet UI flow coverage from `docs/wallet-flow-audit.md` was run when wallet-facing routes changed.
+- Fourier Pickaxe documentation coverage from `docs/fourier-pickaxe-showcase.md` was checked when GPU-oriented voxel function work changed.
 - Guardian core load coverage from `docs/guardian-load-audit.md` was run when Guardian protocol or service logic changed.
 - Commit author identity is `nicechunk <293527782+nicechunk@users.noreply.github.com>` for project sync commits.
 - Any protocol, account-layout, deterministic worldgen, or user-visible behavior change is documented.
@@ -82,7 +85,9 @@ Some checks still require human or targeted automated review:
 
 - Solana program account-layout compatibility.
 - Deterministic worldgen fixture drift; `tests/worldgen_golden.ts` covers representative and wide-range signatures, but protocol-final worldgen changes still need explicit owner review.
-- Browser route smoke coverage includes desktop and mobile viewports; screenshot baseline comparison, wallet-extension flows, and deeper responsive UI behavior still need targeted review.
+- Browser route smoke coverage includes desktop and mobile viewports; screenshot baseline comparison and deeper responsive UI behavior still need targeted review.
+- Wallet no-extension and mock injected-provider flows are automated; real extension approval, mobile deep links, network switching, and transaction signing still need targeted review.
+- Fourier Pickaxe has documentation-first review evidence; GPU runtime behavior and proof-search performance need a GPU workstation.
 - Guardian protocol compatibility, networked soak behavior, slow-client backpressure, and production host capacity.
 - Third-party asset and dependency license preservation.
 - GitHub Actions workflow publication. The intended workflow is documented in `docs/ci-workflow-spec.md`, but the current push credential cannot create workflow files without `workflow` scope.
