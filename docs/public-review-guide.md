@@ -34,6 +34,7 @@ npm run validate:repo
 npm run validate:splits
 npm run audit:evaluator-dossier
 npm run audit:split-remotes
+npm run audit:split-publication-docs
 npm run audit:maturity
 npm run release:evidence
 npm run audit:licenses
@@ -67,7 +68,7 @@ npm run validate:guardian
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
 | Evaluator handoff | `docs/evaluator-dossier.md`, `npm run audit:evaluator-dossier` | Third-party reviewers get a compact evidence map, decision template, and automated dossier presence check. |
 | Machine-readable review package | `npm run release:evidence`, `npm run review:package`, `npm run audit:review-package` | External agents get compact JSON containing maturity score, repository health totals, security scan coverage, release evidence, split status, recommended commands, and known manual gates, plus schema audits before relying on it. |
-| Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams. |
+| Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes`, `npm run audit:split-publication-docs` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams, and the documentation is checked against the local split audit. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
 | Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |

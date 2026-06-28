@@ -29,6 +29,12 @@ Use policy-strict mode in local validation when remote URL, branch, and latest c
 node scripts/audit-split-remotes.mjs --policy-strict
 ```
 
+Use the documentation consistency audit when changing split publication status text:
+
+```bash
+npm run audit:split-publication-docs
+```
+
 Use strict mode only when all split repositories are expected to be publicly reachable and clean:
 
 ```bash
@@ -55,6 +61,14 @@ npm run audit:maturity
 ```
 
 The maturity score should no longer report the missing upstream warning once the push succeeds.
+
+## Current Unpublished Splits
+
+The current local audit reports these generated split repositories as unpublished:
+
+- `nicechunk-fourier-pickaxe`
+
+This list must match `npm run audit:split-remotes`. When it changes, update this document and run `npm run audit:split-publication-docs`.
 
 ## Review Notes
 

@@ -23,6 +23,7 @@ Run the following commands from the main working tree:
 npm run validate:repo
 npm run audit:maturity
 npm run audit:split-remotes
+npm run audit:split-publication-docs
 npm run release:evidence
 npm run audit:release-evidence
 npm run audit:licenses
@@ -103,6 +104,7 @@ Evidence reviewers should expect:
 - dependency vulnerability and lockfile license audit commands
 - manual release boundary consistency checks
 - split repository count, expected remotes, policy matches, README completeness, and generated audit report
+- split publication documentation consistency with the local split remote audit
 - security, architecture, validation, maturity, CI, license, asset, wallet, Fourier Pickaxe, and Guardian documentation paths
 
 ## Known Manual Gates
