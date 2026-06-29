@@ -27,7 +27,8 @@ Start with these files in order:
 17. `docs/license-status.md` for Apache-2.0 licensing status.
 18. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
 19. `docs/github-repository-bootstrap.md` for new split repository creation settings and first-push acceptance checks.
-20. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+20. `docs/manual-gate-decision-policy.md` for review-ready versus release-claim decisions.
+21. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -76,6 +77,7 @@ npm run validate:guardian
 | Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes`, `npm run audit:split-publication-docs` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams, and the documentation is checked against the local split audit. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
 | Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
+| Manual gate decisions | `docs/manual-gate-decision-policy.md`, `docs/manual-release-gates.md` | Deferred manual gates are acceptable for repository review readiness but block runtime, hosted CI, wallet, GPU, on-chain, production, or network-scale claims until evidence exists. |
 | Publication blockers | `docs/publication-blockers.md`, `npm run audit:publication-blockers` | External blockers such as workflow scope, unpublished split upstream, and manual runtime evidence are explicit, machine-readable, and not confused with hidden source quality issues. |
 | Split repository bootstrap | `docs/github-repository-bootstrap.md`, `docs/split-publication-status.md` | New split repositories can be created without GitHub-generated files, unrelated initial history, or ambiguous first-push evidence. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |

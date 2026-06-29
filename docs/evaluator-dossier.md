@@ -130,6 +130,8 @@ These items are intentionally not claimed as complete until explicit evidence ex
 
 `docs/manual-release-gates.md` turns this list into a gate register with triggers, minimum evidence, pass criteria, owners, and a reusable evidence template. `docs/publication-blockers.md` adds the current external blocker register and is checked by `npm run audit:publication-blockers`.
 
+`docs/manual-gate-decision-policy.md` explains when deferred gates are acceptable for review readiness and when they must block release or production claims.
+
 Documenting these gaps is part of the review posture: a high repository maturity score means the project is organized and auditable, not that every production launch gate has been closed.
 
 ## Evaluator Decision Template

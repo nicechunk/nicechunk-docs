@@ -4,6 +4,8 @@ This document converts known non-automated release gaps into explicit reviewer w
 
 Use this file when a release note, repository sync, or external review claims production readiness beyond the automated validation suite.
 
+Decision policy: `docs/manual-gate-decision-policy.md` and `docs/manual-gate-decision-policy.json`.
+
 ## Evidence Rules
 
 - Record the exact repository commit, split repository commit when relevant, reviewer, date, environment, commands, and observed result.
@@ -56,3 +58,5 @@ Avoid phrases such as "expected to work", "should be fine", or "validated by ins
 ## Audit Link
 
 `npm run audit:manual-gates` checks that this gate set remains visible in the evaluator dossier, release readiness document, validation matrix, repository maturity scorecard, and machine-readable release evidence.
+
+It also checks the machine-readable decision policy so reviewers can distinguish repository review readiness from production, runtime, hosted CI, wallet, GPU, on-chain, or network-scale claims.

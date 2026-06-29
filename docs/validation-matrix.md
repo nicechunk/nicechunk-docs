@@ -12,7 +12,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:split-remotes` | Generated split repository publication state | Split repos report branch, commit, author, expected remote URL, remote match, upstream, dirty status, and publication warnings | Default mode is local-only; `--policy-strict` gates wrong remote URLs, non-main branches, and wrong latest author; full strict mode also gates dirty state and unpublished splits. |
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:licenses` | npm lockfile license metadata | Root Apache-2.0 metadata, dependency license identifiers, and tracked license exceptions are structurally reviewed | Uses `scripts/audit-licenses.mjs`; run after dependency metadata changes. |
-| `npm run audit:manual-gates` | Known manual gate consistency | Core review documents, the manual gate register, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence. |
+| `npm run audit:manual-gates` | Known manual gate consistency and decision policy | Core review documents, the manual gate register, the manual gate decision policy, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence, and separates review-ready decisions from release-claim blockers. |
 | `npm run audit:public-copy` | Public UI copy, locale bundles, root community files, changelog, README, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
 | `npm run audit:changelog` | Public changelog | Changelog structure, release-note safety rules, deferred evidence wording, and required validation commands are present | Prevents public release notes from drifting into informal or unsafe claims. |
 | `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes`, documents allowed external publication blockers, and includes the required resolution commands | Prevents stale or ambiguous publication-status docs. |
@@ -80,6 +80,7 @@ The current validation covers these risk classes:
 - Dependency audit gating with documented upstream exceptions.
 - Lockfile license audit with documented dependency license exceptions.
 - Known manual gate consistency across docs and evidence JSON.
+- Manual gate decision policy for review-ready versus release-claim outcomes.
 - Manual release gate triggers, minimum evidence, pass criteria, owners, and deferred wording through `docs/manual-release-gates.md`.
 - Public changelog structure and release-note safety rules through `npm run audit:changelog`.
 - Split repository boundary drift.
