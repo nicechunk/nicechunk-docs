@@ -125,7 +125,7 @@ These areas still require targeted manual review or future fixtures:
 - On-chain integration tests against a local validator or devnet.
 - Browser route smoke checks cover desktop and mobile viewports; screenshot baseline comparison remains manual.
 - Wallet UI no-wallet and mock injected-provider flows are automated; real wallet extension approval, mobile deep links, network switching, and transaction signing remain manual.
-- Fourier Pickaxe is documented for public review; GPU runtime behavior and proof-search performance require a GPU workstation.
+- Fourier Voxel is documented for public review; GPU runtime behavior and proof-search performance require a GPU workstation.
 - Networked Guardian soak testing, slow-client backpressure, and production host capacity review.
 - GitHub Actions publication, pending credentials with `workflow` scope. The intended workflow is documented in `docs/ci-workflow-spec.md`.
 - Apache-2.0 licensing is documented in `LICENSE`, `NOTICE`, and `docs/license-status.md`; third-party assets and dependencies keep upstream terms.
