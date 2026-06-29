@@ -47,6 +47,8 @@ Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or late
 
 `nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree. It is intentionally listed as unpublished until the GitHub repository exists and the local split can push `main` with an upstream.
 
+The matching publication blocker id is `fourier-pickaxe-upstream` in `docs/publication-blockers.md`.
+
 ## Publication Blocker Register
 
 Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation.

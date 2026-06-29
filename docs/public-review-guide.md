@@ -25,7 +25,8 @@ Start with these files in order:
 15. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
 16. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
 17. `docs/license-status.md` for Apache-2.0 licensing status.
-18. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+18. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
+19. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -40,6 +41,7 @@ npm run audit:deps
 npm run release:evidence
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:publication-blockers
 npm run audit:public-copy
 npm run review:package
 npm run audit:review-package
@@ -73,6 +75,7 @@ npm run validate:guardian
 | Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes`, `npm run audit:split-publication-docs` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams, and the documentation is checked against the local split audit. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
 | Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
+| Publication blockers | `docs/publication-blockers.md`, `npm run audit:publication-blockers` | External blockers such as workflow scope, unpublished split upstream, and manual runtime evidence are explicit, machine-readable, and not confused with hidden source quality issues. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | CI readiness | `docs/ci-workflow-spec.md`, `npm run validate:release:full` | The intended GitHub Actions checks are documented and reproducible locally before workflow publication is possible. |
 | Licensing clarity | `LICENSE`, `NOTICE`, `docs/license-status.md` | Reviewers know the project uses Apache-2.0 while third-party asset and dependency notices remain preserved. |

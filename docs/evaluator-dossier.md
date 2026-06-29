@@ -28,6 +28,7 @@ npm run release:evidence
 npm run audit:release-evidence
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:publication-blockers
 npm run audit:public-copy
 npm run audit:changelog
 npm run review:package
@@ -35,6 +36,8 @@ npm run audit:review-package
 ```
 
 Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed.
+
+Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope, the unpublished `nicechunk-fourier-pickaxe` upstream, and manual runtime evidence that must not be claimed without artifacts.
 
 `validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
 
@@ -91,7 +94,7 @@ npm run validate:splits
 
 ## Release Evidence
 
-`npm run release:evidence` collects a machine-readable snapshot of important review inputs. It includes package metadata, main commit metadata, repositoryHealth totals, securityScanCoverage labels, split policy status, required review files, split README completeness, validation commands, and known manual gates. It should be attached to release notes or reviewer handoff when the repository set is assessed.
+`npm run release:evidence` collects a machine-readable snapshot of important review inputs. It includes package metadata, main commit metadata, repositoryHealth totals, securityScanCoverage labels, publicationBlockers, split policy status, required review files, split README completeness, validation commands, and known manual gates. It should be attached to release notes or reviewer handoff when the repository set is assessed.
 
 `npm run audit:release-evidence` validates the generated evidence JSON so reviewers can distinguish a clean, well-formed provenance package from an informal command dump. It rejects dirty working trees and unexpected publication blockers.
 
@@ -123,7 +126,7 @@ These items are intentionally not claimed as complete until explicit evidence ex
 - Fourier Pickaxe proof-search benchmarking on target GPU hardware
 - networked Guardian soak tests, slow-client backpressure, and production host capacity review
 
-`docs/manual-release-gates.md` turns this list into a gate register with triggers, minimum evidence, pass criteria, owners, and a reusable evidence template.
+`docs/manual-release-gates.md` turns this list into a gate register with triggers, minimum evidence, pass criteria, owners, and a reusable evidence template. `docs/publication-blockers.md` adds the current external blocker register and is checked by `npm run audit:publication-blockers`.
 
 Documenting these gaps is part of the review posture: a high repository maturity score means the project is organized and auditable, not that every production launch gate has been closed.
 

@@ -41,6 +41,7 @@ The audit passes when there are no blocker findings and the score is at least 85
 These items are expected to remain explicit until they are actually completed:
 
 - GitHub Actions workflow publication after credentials with `workflow` scope are available.
+- External publication blockers are tracked in `docs/publication-blockers.md` and audited with `npm run audit:publication-blockers`.
 - Full Solana BPF and local-validator integration evidence.
 - Browser route smoke checks cover desktop and mobile viewports; full screenshot baseline comparison remains a separate review item.
 - Wallet no-extension and mock injected-provider flows are automated; real wallet extension approval, mobile deep links, network switching, and transaction signing are still separate review items.

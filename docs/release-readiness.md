@@ -38,6 +38,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Review package | Compact evaluator JSON captures maturity score, repository health summary, security scan coverage, release evidence summary, split status, recommended commands, and known manual gates | `npm run review:package` |
 | Review package audit | Compact evaluator JSON has required decision fields, repository health summary, security scan coverage, clean split status, split summary, allowed publication blocker, review entrypoints, recommended commands, manual gaps, and interpretation | `npm run audit:review-package` |
 | Manual gate consistency | Core review documents, maturity output, release evidence, and the manual gate register describe the same manual release boundaries | `npm run audit:manual-gates`, `docs/manual-release-gates.md` |
+| Publication blockers | External publication blockers and manual release-claim boundaries are explicit, machine-readable, and linked from reviewer-facing documents | `npm run audit:publication-blockers`, `docs/publication-blockers.md` |
 | Licensing status | Apache-2.0 license files and package metadata are present, with third-party notices preserved | `LICENSE`, `NOTICE`, `docs/license-status.md` |
 | Review context | Trust boundary, protected asset, and known gaps are checked | `docs/threat-model.md`, `docs/public-review-guide.md` |
 | Changelog | Public release notes document notable changes, affected split repositories, validation evidence, and deferred manual gates without exposing private infrastructure | `npm run audit:changelog`, `CHANGELOG.md` |
@@ -141,6 +142,7 @@ These items should not be presented as completed release guarantees yet:
 
 - NiceChunk uses Apache-2.0; third-party assets and dependencies keep their upstream terms. See `LICENSE`, `NOTICE`, and `docs/license-status.md`.
 - GitHub Actions workflow publication is pending credentials with `workflow` scope; see `docs/ci-workflow-spec.md`.
+- Current external blockers are tracked in `docs/publication-blockers.md` and `docs/publication-blockers.json`.
 - npm dependency audit still reports tracked Solana upstream advisories; see `docs/supply-chain-security.md`.
 - Full Solana BPF builds across every program and local-validator integration tests are not part of default release validation.
 - Browser route smoke checks across desktop/mobile viewports, mock wallet UI flows, Fourier Pickaxe documentation checks, and deterministic Guardian core load checks are automated, but screenshot baseline comparison, real wallet-extension approval, mobile deep links, transaction signing, Fourier Pickaxe GPU proof-search benchmarking, networked Guardian soak testing, slow-client backpressure, and production host capacity review are not automated.
