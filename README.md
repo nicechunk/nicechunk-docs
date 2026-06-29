@@ -4,6 +4,12 @@
 
 Design documents, protocol notes, and developer documentation.
 
+## Official Links
+
+GitHub: [https://github.com/nicechunk/nicechunk-docs](https://github.com/nicechunk/nicechunk-docs)
+
+Website: [https://nicechunk.com/docs/](https://nicechunk.com/docs/)
+
 ## Project Overview
 
 This repository contains NiceChunk documentation and design notes. It covers architecture decisions, i18n expectations, Solana program documentation, Guardian notes, chunk rules, and optimization notes.
