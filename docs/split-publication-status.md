@@ -49,6 +49,8 @@ Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or late
 
 The matching publication blocker id is `fourier-pickaxe-upstream` in `docs/publication-blockers.md`.
 
+Repository creation settings and first-push acceptance checks are documented in `docs/github-repository-bootstrap.md`.
+
 ## Publication Blocker Register
 
 Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation.
@@ -80,12 +82,13 @@ A split can be described as source-complete but unpublished only when `node scri
 Before clearing an unpublished split from this document:
 
 1. Create the empty GitHub repository under `nicechunk/<repo>`.
-2. Run `git -C .split-repos/<repo> remote -v` and confirm it points to the expected `git@github.com:nicechunk/<repo>.git` URL.
-3. Run `git -C .split-repos/<repo> push -u origin main`.
-4. Run `npm run audit:split-remotes`.
-5. Run `npm run audit:split-publication-docs`.
-6. Run `npm run audit:maturity`.
-7. Update the `Current Unpublished Splits` section only after the audit output proves the split is published.
+2. Confirm the GitHub repository was created without an auto-generated README, `.gitignore`, or license.
+3. Run `git -C .split-repos/<repo> remote -v` and confirm it points to the expected `git@github.com:nicechunk/<repo>.git` URL.
+4. Run `git -C .split-repos/<repo> push -u origin main`.
+5. Run `npm run audit:split-remotes`.
+6. Run `npm run audit:split-publication-docs`.
+7. Run `npm run audit:maturity`.
+8. Update the `Current Unpublished Splits` section only after the audit output proves the split is published.
 
 ### External Publication Blocker
 

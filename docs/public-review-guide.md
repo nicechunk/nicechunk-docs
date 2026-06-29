@@ -26,7 +26,8 @@ Start with these files in order:
 16. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
 17. `docs/license-status.md` for Apache-2.0 licensing status.
 18. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
-19. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+19. `docs/github-repository-bootstrap.md` for new split repository creation settings and first-push acceptance checks.
+20. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -76,6 +77,7 @@ npm run validate:guardian
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |
 | Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
 | Publication blockers | `docs/publication-blockers.md`, `npm run audit:publication-blockers` | External blockers such as workflow scope, unpublished split upstream, and manual runtime evidence are explicit, machine-readable, and not confused with hidden source quality issues. |
+| Split repository bootstrap | `docs/github-repository-bootstrap.md`, `docs/split-publication-status.md` | New split repositories can be created without GitHub-generated files, unrelated initial history, or ambiguous first-push evidence. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | CI readiness | `docs/ci-workflow-spec.md`, `npm run validate:release:full` | The intended GitHub Actions checks are documented and reproducible locally before workflow publication is possible. |
 | Licensing clarity | `LICENSE`, `NOTICE`, `docs/license-status.md` | Reviewers know the project uses Apache-2.0 while third-party asset and dependency notices remain preserved. |

@@ -74,6 +74,8 @@ Each split repository must be evaluated independently because each is published 
 
 Use `docs/split-publication-status.md` and `npm run audit:split-remotes` to distinguish local generated splits from repositories that are already pushed with upstream branches. The split remote audit also records the expected GitHub remote URL, `main` branch expectation, and `nicechunk <293527782+nicechunk@users.noreply.github.com>` sync identity so commit attribution and remote ownership can be checked without relying on GitHub UI inference.
 
+Use `docs/github-repository-bootstrap.md` when a new split repository must be created. It records the required GitHub settings, first-push command, acceptance checks, and the current Fourier Pickaxe bootstrap packet.
+
 ## Security Evidence
 
 The public sync policy is intentionally restrictive. These paths and content classes must not be synced to GitHub:

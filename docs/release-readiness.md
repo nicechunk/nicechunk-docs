@@ -30,6 +30,7 @@ This document defines the evidence required before a public NiceChunk release, t
 | Split repository self-containment | Split package scripts, relative imports, dependency audits, and buildable split repos are self-contained | `npm run validate:splits` |
 | Split publication status | Generated split repositories have explicit local commit, remote, upstream, and dirty-state evidence | `npm run audit:split-remotes`, `docs/split-publication-status.md` |
 | Split publication documentation | Publication-status documentation matches the current unpublished split list and publication commands | `npm run audit:split-publication-docs`, `docs/split-publication-status.md` |
+| Split repository bootstrap | New split repositories use empty GitHub repository creation, reviewed local split contents, first-push upstream tracking, and post-push acceptance checks | `docs/github-repository-bootstrap.md`, `docs/split-publication-status.md` |
 | Evaluator verdict | One-page external review conclusion is present and tied to reproducible commands and manual gate limits | `docs/evaluator-verdict.md`, `npm run audit:evaluator-dossier` |
 | Evaluator dossier | Third-party review entrypoint, compact decision template, and release-evidence coverage are present | `npm run audit:evaluator-dossier`, `docs/evaluator-dossier.md` |
 | Repository maturity | Public repository governance score has no blockers and remains above the documented pass threshold | `npm run audit:maturity`, `docs/repository-maturity-scorecard.md` |

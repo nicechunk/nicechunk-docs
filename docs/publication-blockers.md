@@ -38,10 +38,13 @@ Expected result:
 - release evidence and review package include blocker IDs
 - `workflow-scope` remains tied to `docs/ci-workflow-spec.md`
 - `fourier-pickaxe-upstream` remains tied to `docs/split-publication-status.md`
+- repository creation settings remain tied to `docs/github-repository-bootstrap.md`
 - `manual-runtime-evidence` remains tied to `docs/manual-release-gates.md`
 
 ## Resolution Notes
 
 The first two blockers require external GitHub permissions or repository creation. They should not be hidden or scored as source quality failures while the local repository is clean, licensed, validated, and free of sensitive material.
+
+Use `docs/github-repository-bootstrap.md` when creating the missing split repository so GitHub does not add unrelated generated files or initial history.
 
 The manual runtime blocker is a release-claim boundary. It is acceptable for repository review readiness, but it blocks production launch claims until the relevant evidence exists.
