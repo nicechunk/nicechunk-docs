@@ -29,6 +29,7 @@ npm run audit:release-evidence
 npm run audit:licenses
 npm run audit:manual-gates
 npm run audit:external-blockers
+npm run audit:review-readiness
 npm run audit:publication-blockers
 npm run audit:public-copy
 npm run audit:changelog
@@ -36,7 +37,7 @@ npm run review:package
 npm run audit:review-package
 ```
 
-Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed.
+Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed. Use `docs/review-readiness-acceptance.md` and `npm run audit:review-readiness` for the final local accept-or-hold gate.
 
 Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope, the unpublished `nicechunk-fourier-pickaxe` upstream, and manual runtime evidence that must not be claimed without artifacts. Read `docs/external-blocker-evidence.md` for the command-level evidence packet that explains which claims those blockers affect and which local source-review claims remain valid.
 

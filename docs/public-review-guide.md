@@ -10,26 +10,27 @@ Start with these files in order:
 
 1. `README.md` for the project map and current protocol scope.
 2. `docs/evaluator-dossier.md` for the compact evidence package and third-party decision template.
-3. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
-4. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
-5. `docs/validation-matrix.md` for command-to-risk coverage.
-6. `docs/repository-maturity-scorecard.md` for the evidence-based repository maturity grade.
-7. `docs/split-publication-status.md` for split repository publication state and upstream expectations.
-8. `docs/review-ownership.md` for code ownership and high-risk review triggers.
-9. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
-10. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
-11. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
-12. `docs/browser-smoke-audit.md` for built browser route smoke coverage across desktop and mobile viewports.
-13. `docs/wallet-flow-audit.md` for mock wallet UI flow coverage.
-14. `docs/fourier-pickaxe-showcase.md` for the GPU-oriented voxel function showcase and documentation-first review path.
-15. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
-16. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
-17. `docs/license-status.md` for Apache-2.0 licensing status.
-18. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
-19. `docs/github-repository-bootstrap.md` for new split repository creation settings and first-push acceptance checks.
-20. `docs/external-blocker-evidence.md` for command-level proof that external blockers are not hidden source-quality failures.
-21. `docs/manual-gate-decision-policy.md` for review-ready versus release-claim decisions.
-22. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+3. `docs/review-readiness-acceptance.md` for the final local accept-or-hold gate.
+4. `docs/architecture-and-audit.md` for ownership boundaries and audit expectations.
+5. `docs/threat-model.md` for protected assets, trust boundaries, and high-risk change classes.
+6. `docs/validation-matrix.md` for command-to-risk coverage.
+7. `docs/repository-maturity-scorecard.md` for the evidence-based repository maturity grade.
+8. `docs/split-publication-status.md` for split repository publication state and upstream expectations.
+9. `docs/review-ownership.md` for code ownership and high-risk review triggers.
+10. `docs/release-readiness.md` for release gates, provenance, and rollback rules.
+11. `docs/supply-chain-security.md` for dependency audit policy and controlled exceptions.
+12. `docs/asset-manifest.md` and `public/asset-manifest.json` for media asset provenance.
+13. `docs/browser-smoke-audit.md` for built browser route smoke coverage across desktop and mobile viewports.
+14. `docs/wallet-flow-audit.md` for mock wallet UI flow coverage.
+15. `docs/fourier-pickaxe-showcase.md` for the GPU-oriented voxel function showcase and documentation-first review path.
+16. `docs/guardian-load-audit.md` for deterministic Guardian core load coverage.
+17. `docs/ci-workflow-spec.md` for the pending CI workflow and local equivalent commands.
+18. `docs/license-status.md` for Apache-2.0 licensing status.
+19. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
+20. `docs/github-repository-bootstrap.md` for new split repository creation settings and first-push acceptance checks.
+21. `docs/external-blocker-evidence.md` for command-level proof that external blockers are not hidden source-quality failures.
+22. `docs/manual-gate-decision-policy.md` for review-ready versus release-claim decisions.
+23. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -49,6 +50,7 @@ npm run audit:publication-blockers
 npm run audit:public-copy
 npm run review:package
 npm run audit:review-package
+npm run audit:review-readiness
 npm run test:core
 npm run build
 npm run audit:browser-smoke
@@ -75,6 +77,7 @@ npm run validate:guardian
 | Architecture clarity | `docs/architecture-and-audit.md`, split repository READMEs | Browser, Solana programs, SDK, Guardian, worldgen, rules, docs, and assets have clear ownership boundaries. |
 | Auditability | `docs/validation-matrix.md`, `scripts/audit-repository-health.mjs`, `.split-repos/split-audit.json` | Claims are backed by reproducible commands and generated split reports. |
 | Evaluator handoff | `docs/evaluator-dossier.md`, `npm run audit:evaluator-dossier` | Third-party reviewers get a compact evidence map, decision template, and automated dossier presence check. |
+| Review readiness acceptance | `docs/review-readiness-acceptance.md`, `npm run audit:review-readiness` | External reviewers get a single machine-checked accept-or-hold decision after the evidence package is built. |
 | Machine-readable review package | `npm run release:evidence`, `npm run review:package`, `npm run audit:review-package` | External agents get compact JSON containing maturity score, repository health totals, security scan coverage, release evidence, split status, recommended commands, and known manual gates, plus schema audits before relying on it. |
 | Split publication | `docs/split-publication-status.md`, `npm run audit:split-remotes`, `npm run audit:split-publication-docs` | Reviewers can distinguish local generated splits from repositories that have been pushed and have upstreams, and the documentation is checked against the local split audit. |
 | Repository maturity | `docs/repository-maturity-scorecard.md`, `npm run audit:maturity` | Third-party reviewers get a scored JSON report with blockers, warnings, and known manual gaps. |

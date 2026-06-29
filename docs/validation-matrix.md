@@ -23,6 +23,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:maturity` | Main tree and generated split repositories | Repository governance score, blocker/warning findings, manual release gaps, clean sync state, and review-readiness evidence are emitted as JSON | Uses `scripts/audit-repository-maturity.mjs`; passes at 85/100 with no blockers. |
 | `npm run audit:release-evidence` | Release evidence JSON | Package metadata, main commit metadata, clean git status, repository health totals, security scan coverage, split policy arrays, split README completeness, required review files, known manual gates, manual gate decision policy, and allowed publication blockers are structurally valid | Runs `npm run release:evidence` internally and validates the generated JSON. |
 | `npm run audit:review-package` | Compact evaluator handoff JSON | Maturity decision fields, repository health summary, security scan coverage, clean split status, release evidence summary, split summary, review entrypoints, recommended commands, manual gaps, manual gate decision policy, allowed publication blockers, and interpretation are structurally valid | Runs `npm run review:package` internally and validates the generated JSON. |
+| `npm run audit:review-readiness` | Final local review-ready acceptance gate | Maturity grade, release evidence, review package, split policy, clean worktrees, and allowed external blockers are combined into `accept-review-ready` or `hold` | Use before claiming the repository set is professionally organized and review-ready. |
 | `npm run assets:manifest` | Public media, generated references, wallet icons, and NCM sample assets | `public/asset-manifest.json` lists asset paths, media types, byte sizes, hashes, dimensions, surfaces, source status, and canonical flags | Runs automatically through `prebuild`. |
 | `npm run release:evidence` | Main and split repository provenance | Package metadata, repository health totals, security scan coverage, current commit, author, branch, dirty status, upstream, split remote/branch/author policy matches, split README completeness, required review files, and expected validation commands are emitted as JSON | Use after validation to capture release evidence. |
 | `npm run review:package` | Compact evaluator handoff | Maturity score, repository health summary, security scan coverage, release evidence summary, split publication summary, review entrypoints, recommended commands, and manual gates are emitted as one JSON object | Use when another agent or reviewer needs a single starting point. |
@@ -37,6 +38,7 @@ Security review context:
 ```bash
 sed -n '1,220p' docs/public-review-guide.md
 sed -n '1,220p' docs/evaluator-verdict.md
+sed -n '1,220p' docs/review-readiness-acceptance.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/manual-release-gates.md
@@ -95,6 +97,7 @@ The current validation covers these risk classes:
 - Release evidence schema, clean git status, allowed publication blockers, and key field validation through `npm run audit:release-evidence`.
 - Compact evaluator handoff through `npm run review:package`.
 - Compact evaluator handoff schema, clean split status, allowed publication blockers, and schema validation through `npm run audit:review-package`.
+- Final local review-ready acceptance through `npm run audit:review-readiness`.
 - Machine-readable repository maturity scoring through `npm run audit:maturity`.
 - Asset provenance for public media and samples through `public/asset-manifest.json`.
 - Built browser route smoke coverage across desktop and mobile viewports through `npm run audit:browser-smoke`.

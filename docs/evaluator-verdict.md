@@ -16,6 +16,7 @@ This verdict is not a production launch guarantee. It means the repository set i
 | Security | `SECURITY.md`, `docs/threat-model.md`, `docs/supply-chain-security.md`, `npm run validate:repo` | Public sync blocks forbidden paths, credentials, key material, server-specific files, and known secret patterns. |
 | Completeness | `docs/architecture-and-audit.md`, `docs/validation-matrix.md`, `docs/release-readiness.md`, split READMEs | Each public surface has a purpose, validation route, review boundary, and known limitation. |
 | Auditability | `npm run audit:maturity`, `npm run release:evidence`, `npm run review:package` | Review claims are reproducible as command output and schema-checked JSON. |
+| Final acceptance | `docs/review-readiness-acceptance.md`, `npm run audit:review-readiness` | Review-ready is a machine-checked decision, not an informal interpretation of scattered evidence. |
 | Publication status | `docs/split-publication-status.md`, `npm run audit:split-remotes` | Published and unpublished splits are separated from source completeness questions. |
 | External blockers | `docs/external-blocker-evidence.md`, `npm run audit:external-blockers` | GitHub credential scope, missing upstream, and manual runtime evidence are tied to the exact claims they block instead of hidden as vague quality risk. |
 | Manual gates | `docs/manual-release-gates.md`, `npm run audit:manual-gates` | Remaining non-automated checks have triggers, evidence requirements, owners, and deferred wording. |
@@ -39,6 +40,7 @@ npm run validate:repo
 npm run audit:maturity
 npm run audit:release-evidence
 npm run audit:review-package
+npm run audit:review-readiness
 npm run audit:manual-gates
 npm run audit:external-blockers
 node scripts/audit-split-remotes.mjs --policy-strict
