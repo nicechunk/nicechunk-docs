@@ -96,11 +96,11 @@ npm run validate:splits
 
 ## Release Evidence
 
-`npm run release:evidence` collects a machine-readable snapshot of important review inputs. It includes package metadata, main commit metadata, repositoryHealth totals, securityScanCoverage labels, publicationBlockers, split policy status, required review files, split README completeness, validation commands, and known manual gates. It should be attached to release notes or reviewer handoff when the repository set is assessed.
+`npm run release:evidence` collects a machine-readable snapshot of important review inputs. It includes package metadata, main commit metadata, repositoryHealth totals, securityScanCoverage labels, publicationBlockers, manualGateDecisionPolicy, split policy status, required review files, split README completeness, validation commands, and known manual gates. It should be attached to release notes or reviewer handoff when the repository set is assessed.
 
 `npm run audit:release-evidence` validates the generated evidence JSON so reviewers can distinguish a clean, well-formed provenance package from an informal command dump. It rejects dirty working trees and unexpected publication blockers.
 
-`npm run review:package` emits a compact machine-readable evaluator index that combines maturity score, repository health summary, security scan coverage, release evidence, split status, recommended commands, and known manual gates.
+`npm run review:package` emits a compact machine-readable evaluator index that combines maturity score, repository health summary, security scan coverage, release evidence, publication blockers, manual gate decision policy, split status, recommended commands, and known manual gates.
 
 `npm run audit:review-package` validates that compact evaluator index so another agent can reject malformed, incomplete, dirty, or policy-drifted handoff data before relying on it.
 
