@@ -28,7 +28,7 @@ Use the following decision unless current command output contradicts it:
 ```text
 Decision: Accept as professionally organized and review-ready.
 Condition: Do not treat the repository set as production-launch complete until the manual release gates relevant to the claim have recorded evidence.
-Publication status: split repositories are locally clean and synced, including the Fourier Pickaxe split published to nicechunk/Fourier-Voxel.
+Publication status: split repositories are locally clean and synced, including local `nicechunk-fourier-pickaxe` published to GitHub `nicechunk/Fourier-Voxel`.
 ```
 
 ## Commands To Reproduce This Verdict

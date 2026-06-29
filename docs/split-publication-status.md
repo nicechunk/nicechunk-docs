@@ -55,7 +55,7 @@ Command-level evidence for current publication state is available from `npm run 
 
 ## Publication Blocker Register
 
-Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation.
+Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation. See `docs/publication-blockers.md` for the current blocker register and `docs/external-blocker-evidence.md` for command-level external blocker evidence.
 
 ### Allowed Publication Blockers
 

@@ -10,6 +10,7 @@ This handoff covers:
 
 - public repository organization
 - split repository policy
+- local `nicechunk-fourier-pickaxe` to GitHub `Fourier-Voxel` publication mapping
 - security hygiene for synced files
 - Apache-2.0 license posture
 - review documentation completeness

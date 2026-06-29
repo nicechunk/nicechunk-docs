@@ -11,7 +11,7 @@ Create the repository in GitHub with these settings:
 | Setting | Required Value |
 | --- | --- |
 | Owner | `nicechunk` |
-| Repository name | Exact split directory name, for example `nicechunk-fourier-pickaxe` |
+| Repository name | Exact split directory name unless a documented publication target overrides it, for example local `nicechunk-fourier-pickaxe` publishes to GitHub `Fourier-Voxel` |
 | Visibility | Public, unless the owner explicitly records a private-publication exception |
 | Initialize with README | Disabled |
 | Add `.gitignore` | Disabled |
@@ -87,12 +87,12 @@ Then update:
 
 The split is publicly published only after the local audit shows a configured upstream, clean status, expected remote, expected branch, and expected author.
 
-## Current Fourier Pickaxe Bootstrap Packet
+## Fourier Pickaxe Publication Packet
 
 Current target repository:
 
 ```text
-git@github.com:nicechunk/nicechunk-fourier-pickaxe.git
+git@github.com:nicechunk/Fourier-Voxel.git
 ```
 
 Current local split:
@@ -101,10 +101,10 @@ Current local split:
 .split-repos/nicechunk-fourier-pickaxe
 ```
 
-Current blocker:
+Current status:
 
 ```text
-missing-upstream
+published with origin/main upstream
 ```
 
-Resolution requires an empty GitHub repository named `nicechunk-fourier-pickaxe`, then the first push command above.
+The local split remains named `.split-repos/nicechunk-fourier-pickaxe` so generated source paths and documentation stay stable, while the public GitHub repository is `nicechunk/Fourier-Voxel`.
