@@ -11,7 +11,6 @@ Machine-readable source: `docs/publication-blockers.json`.
 | ID | Surface | Status | Review Rule |
 | --- | --- | --- | --- |
 | `workflow-scope` | GitHub Actions | External publication blocker | Do not claim hosted CI coverage until the workflow file is present in GitHub and a run is visible for the reviewed commit. |
-| `fourier-pickaxe-upstream` | `nicechunk-fourier-pickaxe` | External publication blocker | Do not count the Fourier Pickaxe split as publicly published until upstream tracking exists and split remote audit passes without the `missing-upstream` blocker. |
 | `manual-runtime-evidence` | Release evidence | Manual release blocker | Accept repository review readiness separately from production launch readiness; reject any release claim that names a manual gate without evidence. |
 
 ## Evidence Chain
@@ -38,14 +37,13 @@ Expected result:
 - reviewer-facing documents link to this register
 - release evidence and review package include blocker IDs
 - `workflow-scope` remains tied to `docs/ci-workflow-spec.md`
-- `fourier-pickaxe-upstream` remains tied to `docs/split-publication-status.md`
 - repository creation settings remain tied to `docs/github-repository-bootstrap.md`
 - external blocker evidence remains tied to `docs/external-blocker-evidence.md`
 - `manual-runtime-evidence` remains tied to `docs/manual-release-gates.md`
 
 ## Resolution Notes
 
-The first two blockers require external GitHub permissions or repository creation. They should not be hidden or scored as source quality failures while the local repository is clean, licensed, validated, and free of sensitive material.
+The remaining publication blocker requires external GitHub workflow credentials. It should not be hidden or scored as a source quality failure while the local repository is clean, licensed, validated, and free of sensitive material.
 
 Use `docs/github-repository-bootstrap.md` when creating the missing split repository so GitHub does not add unrelated generated files or initial history.
 

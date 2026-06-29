@@ -3,7 +3,7 @@
 NiceChunk uses one main working tree and multiple focused GitHub split repositories. A split is considered publicly synced only when it has:
 
 - a local Git repository under `.split-repos/nicechunk-*`
-- an `origin` remote that points at `git@github.com:nicechunk/<repo>.git`
+- an `origin` remote that points at the documented GitHub target
 - a `main` branch
 - a configured upstream branch
 - a latest commit authored by `nicechunk <293527782+nicechunk@users.noreply.github.com>`
@@ -45,13 +45,13 @@ Policy-strict mode fails on unexpected remote URLs, non-`main` branches, or late
 
 ## Current Fourier Pickaxe Status
 
-`nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree. It is intentionally listed as unpublished until the GitHub repository exists and the local split can push `main` with an upstream.
+`nicechunk-fourier-pickaxe` has been generated and committed locally from the main working tree, then pushed to the GitHub repository `git@github.com:nicechunk/Fourier-Voxel.git`.
 
-The matching publication blocker id is `fourier-pickaxe-upstream` in `docs/publication-blockers.md`.
+The local split tracks `origin/main`, uses the expected `main` branch, and keeps the project sync identity `nicechunk <293527782+nicechunk@users.noreply.github.com>`.
 
 Repository creation settings and first-push acceptance checks are documented in `docs/github-repository-bootstrap.md`.
 
-Command-level evidence for treating the missing upstream as an external blocker, rather than a source-completeness failure, is documented in `docs/external-blocker-evidence.md`.
+Command-level evidence for current publication state is available from `npm run audit:split-remotes` and `node scripts/audit-split-remotes.mjs --policy-strict`.
 
 ## Publication Blocker Register
 
@@ -92,32 +92,32 @@ Before clearing an unpublished split from this document:
 7. Run `npm run audit:maturity`.
 8. Update the `Current Unpublished Splits` section only after the audit output proves the split is published.
 
-### External Publication Blocker
+### Resolved Fourier Publication
 
-Current local policy evidence shows `publicationState: "unpublished"` with the `missing-upstream` blocker. Networked remote checks may additionally report `remote-unreachable` until GitHub returns a readable repository for `git@github.com:nicechunk/nicechunk-fourier-pickaxe.git`.
-
-This is an external publication blocker, not a source completeness blocker: the split has clean generated content, the expected origin URL, the expected `main` branch, and the expected `nicechunk <293527782+nicechunk@users.noreply.github.com>` commit identity. Public sync is incomplete only because the GitHub repository/upstream proof is missing.
-
-Expected first publication command after the empty GitHub repository is created:
+Current local policy evidence shows `publicationState: "published"` for `nicechunk-fourier-pickaxe`. The resolved publication command was:
 
 ```bash
 git -C .split-repos/nicechunk-fourier-pickaxe push -u origin main
 ```
 
-After publication, rerun:
+Current expected remote:
+
+```text
+git@github.com:nicechunk/Fourier-Voxel.git
+```
+
+Publication should remain accepted only while these commands pass:
 
 ```bash
 npm run audit:split-remotes
 npm run audit:maturity
 ```
 
-The maturity score should no longer report the missing upstream warning once the push succeeds.
+The maturity score should not report the old missing upstream warning.
 
 ## Current Unpublished Splits
 
-The current local audit reports these generated split repositories as unpublished:
-
-- `nicechunk-fourier-pickaxe`
+No split repositories are currently unpublished.
 
 This list must match `npm run audit:split-remotes`. When it changes, update this document and run `npm run audit:split-publication-docs`.
 

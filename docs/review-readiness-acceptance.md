@@ -38,7 +38,7 @@ That decision means:
 - split remotes have the expected `nicechunk/*` URLs, `main` branches, and `nicechunk <293527782+nicechunk@users.noreply.github.com>` commit identity
 - no generated split repository is dirty
 - the maturity score is at least `95/100` with grade `A`
-- the only allowed unpublished split is `nicechunk-fourier-pickaxe`
+- no generated split repository is unpublished
 - the only allowed external blockers are documented in `docs/external-blocker-evidence.md`
 
 ## Hold Decision
@@ -66,7 +66,6 @@ The acceptance command intentionally allows these blockers only as documented ex
 | Blocker | Allowed for review readiness | Still blocks |
 | --- | --- | --- |
 | `workflow-scope` | Yes | Hosted GitHub Actions coverage claims |
-| `fourier-pickaxe-upstream` | Yes | Public sync claim for `nicechunk-fourier-pickaxe` |
 | `manual-runtime-evidence` | Yes | Runtime, production, GPU, wallet, on-chain, and network-scale release claims |
 
 These allowances must not be used as substitute evidence. They only prevent external GitHub permission gaps or manual runtime evidence gaps from being misclassified as hidden source-quality failures.

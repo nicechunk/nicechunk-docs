@@ -11,7 +11,6 @@ Do not treat a documented external blocker as a hidden code-quality failure when
 | Blocker | Blocks | Does not block |
 | --- | --- | --- |
 | `workflow-scope` | Hosted GitHub Actions coverage claims | Local validation, source review, license review, split policy review |
-| `fourier-pickaxe-upstream` | Public sync claim for `nicechunk-fourier-pickaxe` | Source completeness of the generated local split |
 | `manual-runtime-evidence` | Runtime, production, GPU, wallet, on-chain, or network-scale release claims | Repository organization and documentation review readiness |
 
 ## Current Evidence Commands
@@ -33,12 +32,12 @@ Expected result:
 
 - publication blocker register parses as schema version 1
 - only documented blocker IDs are present
-- split remote policy shows expected `nicechunk/*` remotes, `main` branches, and the `nicechunk <293527782+nicechunk@users.noreply.github.com>` sync identity
-- `nicechunk-fourier-pickaxe` may remain unpublished only with `missing-upstream`
+- split remote policy shows expected remotes, `main` branches, and the `nicechunk <293527782+nicechunk@users.noreply.github.com>` sync identity
+- `nicechunk-fourier-pickaxe` is published to `git@github.com:nicechunk/Fourier-Voxel.git` with upstream tracking
 - release evidence and review package include publication blocker IDs and this external blocker evidence document
 - maturity audit may report the missing upstream warning without reporting a source health blocker
 
-## Fourier Pickaxe Upstream Evidence
+## Fourier Pickaxe Publication Evidence
 
 Current local split:
 
@@ -46,28 +45,28 @@ Current local split:
 .split-repos/nicechunk-fourier-pickaxe
 ```
 
-Expected remote:
+Published remote:
 
 ```text
-git@github.com:nicechunk/nicechunk-fourier-pickaxe.git
+git@github.com:nicechunk/Fourier-Voxel.git
 ```
 
-Expected first-push command after the empty GitHub repository exists:
+Publication command:
 
 ```bash
 git -C .split-repos/nicechunk-fourier-pickaxe push -u origin main
 ```
 
-If this command returns `Permission denied (publickey)`, the reviewer should verify GitHub repository existence and SSH/GitHub App access before asking for local source changes. Rewriting local source history does not resolve a missing repository or missing SSH permission when policy-strict local checks pass.
+If this command regresses to `Permission denied (publickey)`, the reviewer should verify SSH/GitHub App write access before asking for local source changes. Rewriting local source history does not resolve missing SSH permission when policy-strict local checks pass.
 
-The split can be called source-complete but unpublished only when:
+The split can be called publicly synced only when:
 
 - local status is clean
 - branch is `main`
-- origin matches `git@github.com:nicechunk/nicechunk-fourier-pickaxe.git`
+- origin matches `git@github.com:nicechunk/Fourier-Voxel.git`
 - latest commit author is `nicechunk <293527782+nicechunk@users.noreply.github.com>`
 - `node scripts/audit-split-remotes.mjs --policy-strict` passes
-- the only publication blocker is `missing-upstream`
+- upstream is `origin/main`
 
 ## Workflow Scope Evidence
 
@@ -98,7 +97,7 @@ The decision policy in `docs/manual-gate-decision-policy.md` is the authority fo
 Use this wording when local policy checks pass but external blockers remain:
 
 ```text
-The repository set is review-ready for source organization, security hygiene, documentation completeness, and local auditability. Hosted CI publication, the Fourier Pickaxe upstream push, and runtime/production evidence remain explicitly blocked by external permissions or manual evidence gates and must not be claimed as complete.
+The repository set is review-ready for source organization, security hygiene, documentation completeness, and local auditability. Hosted CI publication and runtime/production evidence remain explicitly blocked by external permissions or manual evidence gates and must not be claimed as complete.
 ```
 
 Use this wording only after the commands in this file pass.

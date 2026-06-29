@@ -27,29 +27,6 @@
       "reviewRule": "Do not claim hosted CI coverage until the workflow file is present in GitHub and a run is visible for the reviewed commit."
     },
     {
-      "id": "fourier-pickaxe-upstream",
-      "status": "external",
-      "severity": "publication",
-      "surface": "nicechunk-fourier-pickaxe",
-      "summary": "The Fourier Pickaxe split is generated and committed locally but does not yet have a configured upstream branch.",
-      "requiredEvidence": [
-        "GitHub repository git@github.com:nicechunk/nicechunk-fourier-pickaxe.git exists and is accessible.",
-        "Local split repository has origin/main configured as upstream.",
-        "npm run audit:split-remotes and npm run audit:maturity no longer report missing-upstream for nicechunk-fourier-pickaxe."
-      ],
-      "currentEvidence": [
-        "docs/split-publication-status.md records the unpublished split state.",
-        "npm run audit:split-publication-docs checks that the blocker remains documented.",
-        "npm run audit:maturity reports a warning instead of a blocker because the local split is clean and policy-matching."
-      ],
-      "resolution": [
-        "Create the GitHub repository under nicechunk.",
-        "Push .split-repos/nicechunk-fourier-pickaxe with upstream tracking.",
-        "Rerun split remote, release evidence, review package, and maturity audits."
-      ],
-      "reviewRule": "Do not count the Fourier Pickaxe split as publicly published until upstream tracking exists and split remote audit passes without the missing-upstream blocker."
-    },
-    {
       "id": "manual-runtime-evidence",
       "status": "manual",
       "severity": "release",

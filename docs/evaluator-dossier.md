@@ -1,6 +1,6 @@
 # NiceChunk Evaluator Dossier
 
-This dossier is the compact review package for external agents, maintainers, security reviewers, and project evaluators. It ties repository claims to files and commands that can be inspected without private infrastructure. For the one-page conclusion, start with `docs/evaluator-verdict.md`.
+This dossier is the compact review package for external agents, maintainers, security reviewers, and project evaluators. It ties repository claims to files and commands that can be inspected without private infrastructure. For the one-page conclusion, start with `docs/evaluator-verdict.md`. For automated reviewer handoff, use `docs/agent-review-handoff.md`.
 
 ## Review Positioning
 
@@ -21,6 +21,7 @@ Run the following commands from the main working tree:
 
 ```bash
 npm run validate:repo
+npm run audit:agent-handoff
 npm run audit:maturity
 npm run audit:split-remotes
 npm run audit:split-publication-docs
@@ -39,7 +40,7 @@ npm run audit:review-package
 
 Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed. Use `docs/review-readiness-acceptance.md` and `npm run audit:review-readiness` for the final local accept-or-hold gate.
 
-Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope, the unpublished `nicechunk-fourier-pickaxe` upstream, and manual runtime evidence that must not be claimed without artifacts. Read `docs/external-blocker-evidence.md` for the command-level evidence packet that explains which claims those blockers affect and which local source-review claims remain valid.
+Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope and manual runtime evidence that must not be claimed without artifacts. Read `docs/external-blocker-evidence.md` for the command-level evidence packet that explains which claims those blockers affect and which local source-review claims remain valid.
 
 `validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
 
