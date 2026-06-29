@@ -13,6 +13,7 @@ This matrix maps validation commands to the project risks they cover. It is inte
 | `npm run audit:deps` | npm dependency graph | Unexpected npm audit findings are absent; tracked upstream Solana advisories are explicitly reported | Uses `scripts/audit-dependencies.mjs`. |
 | `npm run audit:licenses` | npm lockfile license metadata | Root Apache-2.0 metadata, dependency license identifiers, and tracked license exceptions are structurally reviewed | Uses `scripts/audit-licenses.mjs`; run after dependency metadata changes. |
 | `npm run audit:manual-gates` | Known manual gate consistency and decision policy | Core review documents, the manual gate register, the manual gate decision policy, maturity output, and release evidence all document the same manual release boundaries | Prevents hidden drift between reviewer-facing docs and machine-readable evidence, and separates review-ready decisions from release-claim blockers. |
+| `npm run audit:external-blockers` | External publication and runtime blocker evidence | GitHub workflow scope, the Fourier Pickaxe upstream, and manual runtime evidence are mapped to the exact claims they block, with reviewer wording and first-push evidence | Prevents GitHub permission gaps or missing runtime artifacts from being confused with hidden source-quality failures. |
 | `npm run audit:public-copy` | Public UI copy, locale bundles, root community files, changelog, README, and reviewer-facing docs | Draft markers, filler Latin text, roadmap-as-placeholder copy, and unfinished-feature wording are absent from public surfaces | Prevents public repositories from looking like unfinished scaffolding. |
 | `npm run audit:changelog` | Public changelog | Changelog structure, release-note safety rules, deferred evidence wording, and required validation commands are present | Prevents public release notes from drifting into informal or unsafe claims. |
 | `npm run audit:split-publication-docs` | Split publication documentation | `docs/split-publication-status.md` lists the unpublished split repositories reported by `audit:split-remotes`, documents allowed external publication blockers, and includes the required resolution commands | Prevents stale or ambiguous publication-status docs. |
@@ -39,6 +40,7 @@ sed -n '1,220p' docs/evaluator-verdict.md
 sed -n '1,220p' docs/review-ownership.md
 sed -n '1,220p' docs/release-readiness.md
 sed -n '1,220p' docs/manual-release-gates.md
+sed -n '1,220p' docs/external-blocker-evidence.md
 sed -n '1,220p' docs/repository-maturity-scorecard.md
 sed -n '1,220p' docs/split-publication-status.md
 sed -n '1,220p' docs/supply-chain-security.md
@@ -82,6 +84,7 @@ The current validation covers these risk classes:
 - Known manual gate consistency across docs and evidence JSON.
 - Manual gate decision policy for review-ready versus release-claim outcomes.
 - Manual release gate triggers, minimum evidence, pass criteria, owners, and deferred wording through `docs/manual-release-gates.md`.
+- External blocker evidence for GitHub workflow scope, the Fourier Pickaxe upstream, and manual runtime proof through `npm run audit:external-blockers`.
 - Public changelog structure and release-note safety rules through `npm run audit:changelog`.
 - Split repository boundary drift.
 - Split repository package-script, relative-import, changelog-coverage, dependency-audit, and build self-containment.
@@ -135,6 +138,7 @@ npm run audit:split-remotes
 npm run audit:maturity
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:external-blockers
 npm run audit:changelog
 npm run test:core
 npm run build
