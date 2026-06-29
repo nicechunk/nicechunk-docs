@@ -27,8 +27,9 @@ Start with these files in order:
 17. `docs/license-status.md` for Apache-2.0 licensing status.
 18. `docs/publication-blockers.md` for external publication blockers and manual release-claim boundaries.
 19. `docs/github-repository-bootstrap.md` for new split repository creation settings and first-push acceptance checks.
-20. `docs/manual-gate-decision-policy.md` for review-ready versus release-claim decisions.
-21. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
+20. `docs/external-blocker-evidence.md` for command-level proof that external blockers are not hidden source-quality failures.
+21. `docs/manual-gate-decision-policy.md` for review-ready versus release-claim decisions.
+22. `SECURITY.md` and `CONTRIBUTING.md` for repository hygiene and contribution rules.
 
 Then run:
 
@@ -43,6 +44,7 @@ npm run audit:deps
 npm run release:evidence
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:external-blockers
 npm run audit:publication-blockers
 npm run audit:public-copy
 npm run review:package
@@ -79,6 +81,7 @@ npm run validate:guardian
 | Manual gate consistency | `docs/release-readiness.md`, `docs/validation-matrix.md`, `npm run audit:manual-gates` | Reviewer-facing documents and machine-readable evidence agree on what is still manual. |
 | Manual gate decisions | `docs/manual-gate-decision-policy.md`, `docs/manual-release-gates.md` | Deferred manual gates are acceptable for repository review readiness but block runtime, hosted CI, wallet, GPU, on-chain, production, or network-scale claims until evidence exists. |
 | Publication blockers | `docs/publication-blockers.md`, `npm run audit:publication-blockers` | External blockers such as workflow scope, unpublished split upstream, and manual runtime evidence are explicit, machine-readable, and not confused with hidden source quality issues. |
+| External blocker evidence | `docs/external-blocker-evidence.md`, `npm run audit:external-blockers` | Reviewers can reproduce which claims are blocked by GitHub permissions, missing upstreams, or runtime evidence and which local source-quality claims remain valid. |
 | Split repository bootstrap | `docs/github-repository-bootstrap.md`, `docs/split-publication-status.md` | New split repositories can be created without GitHub-generated files, unrelated initial history, or ambiguous first-push evidence. |
 | Release readiness | `docs/release-readiness.md`, `npm run validate:release`, `npm run validate:release:full` | Releases have explicit gates, provenance expectations, and rollback guidance. |
 | CI readiness | `docs/ci-workflow-spec.md`, `npm run validate:release:full` | The intended GitHub Actions checks are documented and reproducible locally before workflow publication is possible. |

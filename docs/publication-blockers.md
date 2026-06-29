@@ -2,7 +2,7 @@
 
 This register separates repository quality issues from external publication or runtime evidence that cannot be completed by local source edits alone.
 
-Use it when reviewing maturity score reductions, split repository publication state, GitHub Actions status, or production-readiness claims.
+Use it when reviewing maturity score reductions, split repository publication state, GitHub Actions status, or production-readiness claims. For command-level proof that these blockers are external to local source completeness, see `docs/external-blocker-evidence.md`.
 
 Machine-readable source: `docs/publication-blockers.json`.
 
@@ -23,6 +23,7 @@ npm run audit:publication-blockers
 npm run audit:split-publication-docs
 npm run audit:split-remotes
 npm run audit:manual-gates
+npm run audit:external-blockers
 npm run audit:maturity
 npm run release:evidence
 npm run audit:release-evidence
@@ -39,6 +40,7 @@ Expected result:
 - `workflow-scope` remains tied to `docs/ci-workflow-spec.md`
 - `fourier-pickaxe-upstream` remains tied to `docs/split-publication-status.md`
 - repository creation settings remain tied to `docs/github-repository-bootstrap.md`
+- external blocker evidence remains tied to `docs/external-blocker-evidence.md`
 - `manual-runtime-evidence` remains tied to `docs/manual-release-gates.md`
 
 ## Resolution Notes

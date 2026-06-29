@@ -28,6 +28,7 @@ npm run release:evidence
 npm run audit:release-evidence
 npm run audit:licenses
 npm run audit:manual-gates
+npm run audit:external-blockers
 npm run audit:publication-blockers
 npm run audit:public-copy
 npm run audit:changelog
@@ -37,7 +38,7 @@ npm run audit:review-package
 
 Read `docs/evaluator-verdict.md` after these commands pass to get the short-form decision wording and the limits that must not be overclaimed.
 
-Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope, the unpublished `nicechunk-fourier-pickaxe` upstream, and manual runtime evidence that must not be claimed without artifacts.
+Read `docs/publication-blockers.md` when a score reduction or unpublished split appears. It separates source quality problems from external blockers such as GitHub `workflow` scope, the unpublished `nicechunk-fourier-pickaxe` upstream, and manual runtime evidence that must not be claimed without artifacts. Read `docs/external-blocker-evidence.md` for the command-level evidence packet that explains which claims those blockers affect and which local source-review claims remain valid.
 
 `validate:repo` includes the split remote policy gate, which enforces the expected `nicechunk/*` remote URL, `main` branch, and project noreply commit identity while still allowing intentionally unpublished local splits to be reported separately.
 
@@ -75,6 +76,8 @@ Each split repository must be evaluated independently because each is published 
 Use `docs/split-publication-status.md` and `npm run audit:split-remotes` to distinguish local generated splits from repositories that are already pushed with upstream branches. The split remote audit also records the expected GitHub remote URL, `main` branch expectation, and `nicechunk <293527782+nicechunk@users.noreply.github.com>` sync identity so commit attribution and remote ownership can be checked without relying on GitHub UI inference.
 
 Use `docs/github-repository-bootstrap.md` when a new split repository must be created. It records the required GitHub settings, first-push command, acceptance checks, and the current Fourier Pickaxe bootstrap packet.
+
+Use `docs/external-blocker-evidence.md` when an evaluator needs to confirm that an external blocker is not hiding a source-quality problem. The document records the review rule, current commands, Fourier Pickaxe first-push evidence, hosted CI scope boundary, and manual runtime evidence boundary.
 
 ## Security Evidence
 
@@ -131,6 +134,8 @@ These items are intentionally not claimed as complete until explicit evidence ex
 `docs/manual-release-gates.md` turns this list into a gate register with triggers, minimum evidence, pass criteria, owners, and a reusable evidence template. `docs/publication-blockers.md` adds the current external blocker register and is checked by `npm run audit:publication-blockers`.
 
 `docs/manual-gate-decision-policy.md` explains when deferred gates are acceptable for review readiness and when they must block release or production claims.
+
+`docs/external-blocker-evidence.md` ties the current publication and manual blockers to exact reviewer wording so automated agents can avoid overclaiming unresolved GitHub permissions, missing upstreams, or runtime evidence.
 
 Documenting these gaps is part of the review posture: a high repository maturity score means the project is organized and auditable, not that every production launch gate has been closed.
 

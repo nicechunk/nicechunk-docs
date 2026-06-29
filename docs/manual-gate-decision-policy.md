@@ -4,6 +4,8 @@ This policy converts manual release gates into explicit reviewer decisions.
 
 Machine-readable source: `docs/manual-gate-decision-policy.json`.
 
+Command-level evidence for separating external blockers from source-quality findings is maintained in `docs/external-blocker-evidence.md`.
+
 ## Decision Rule
 
 Manual gates may remain deferred for repository review readiness when the repository only claims that public source, documentation, validation commands, and audit evidence are organized and inspectable.

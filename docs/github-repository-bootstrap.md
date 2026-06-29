@@ -61,6 +61,8 @@ If GitHub returns `Permission denied (publickey)`, confirm both of these before 
 
 Do not rewrite or regenerate the split just to fix a missing GitHub repository. Missing upstream is an external publication blocker when local policy checks pass.
 
+For the reviewer-facing evidence packet that explains this boundary, see `docs/external-blocker-evidence.md`.
+
 ## Acceptance Checks
 
 After the first push succeeds:

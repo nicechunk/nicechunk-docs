@@ -51,6 +51,8 @@ The matching publication blocker id is `fourier-pickaxe-upstream` in `docs/publi
 
 Repository creation settings and first-push acceptance checks are documented in `docs/github-repository-bootstrap.md`.
 
+Command-level evidence for treating the missing upstream as an external blocker, rather than a source-completeness failure, is documented in `docs/external-blocker-evidence.md`.
+
 ## Publication Blocker Register
 
 Publication blockers are separated from source-quality blockers so reviewers can tell whether a repository is incomplete or simply waiting for an external GitHub operation.
