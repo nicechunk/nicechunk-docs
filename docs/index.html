@@ -30,7 +30,10 @@
           <a href="/roadmap/" data-docs-i18n="nav.roadbook">Roadbook</a>
           <a href="/world_rule/" data-docs-i18n="nav.worldRules">World Rules</a>
           <a href="/resource_rule/" data-docs-i18n="nav.resources">Resources</a>
+          <a href="/ncm/" data-docs-i18n="nav.ncm">NCM</a>
+          <a href="/ncfm/" data-docs-i18n="nav.ncfm">NCFM</a>
           <a href="/elements/" data-docs-i18n="nav.elements">Elements</a>
+          <a href="/civilization/" data-docs-i18n="nav.civilization">Civilization</a>
           <a href="/fairness/" data-docs-i18n="nav.fairness">Fairness</a>
           <a href="/proof-of-frontier/" data-docs-i18n="nav.proofOfFrontier">Proof</a>
           <a href="/guardian/" data-docs-i18n="nav.guardians">Guardians</a>
@@ -87,6 +90,46 @@
           </div>
         </section>
 
+        <section class="docs-section" id="nicechunk-thesis" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="thesis.eyebrow">NiceChunk Thesis</p>
+            <h2 data-docs-i18n="thesis.title">NiceChunk is a public world protocol, not only a voxel client.</h2>
+            <p data-docs-i18n="thesis.body">The project is built around one principle: every important world rule, asset identity, player action, and future governance path should be inspectable, reproducible, and eventually executable through explicit protocol state.</p>
+          </div>
+          <div class="protocol-grid">
+            <article class="protocol-card glass-panel">
+              <span>01</span>
+              <strong data-docs-i18n="thesis.cards.world.title">Deterministic world</strong>
+              <p data-docs-i18n="thesis.cards.world.body">Terrain, resources, water, trees, snow, and chunk boundaries come from public rules so the world can be regenerated and audited instead of trusted as server output.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>02</span>
+              <strong data-docs-i18n="thesis.cards.state.title">State is explicit</strong>
+              <p data-docs-i18n="thesis.cards.state.body">The docs separate generated defaults from player deltas, PDA accounts, local cache, devnet contracts, and future mainnet commitments.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>03</span>
+              <strong data-docs-i18n="thesis.cards.assets.title">Assets belong to the protocol</strong>
+              <p data-docs-i18n="thesis.cards.assets.body">NCM and NCFM push 3D item identity toward chain-readable data and deterministic reconstruction instead of external files that can disappear or change.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>04</span>
+              <strong data-docs-i18n="thesis.cards.upow.title">Computation should be useful</strong>
+              <p data-docs-i18n="thesis.cards.upow.body">NCM-DNA and NCFM/UPOW turn search work toward shorter asset genes or better function payloads that reproduce a verified model hash.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>05</span>
+              <strong data-docs-i18n="thesis.cards.civilization.title">Civilization writes law</strong>
+              <p data-docs-i18n="thesis.cards.civilization.body">The long-term governance model is not hidden admin control. It is readable rule books, participation power, cooldowns, challenges, and bounded config execution.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>06</span>
+              <strong data-docs-i18n="thesis.cards.guardian.title">Access without custody</strong>
+              <p data-docs-i18n="thesis.cards.guardian.body">Guardians should keep regions reachable and realtime, but wallets keep authority and contracts keep settlement boundaries explicit.</p>
+            </article>
+          </div>
+        </section>
+
         <section class="docs-section" id="protocol-map" data-doc-section>
           <div class="section-heading">
             <p class="eyebrow blue" data-docs-i18n="protocolMap.eyebrow">Protocol Map</p>
@@ -109,12 +152,22 @@
             <article class="protocol-card glass-panel">
               <span>03</span>
               <strong data-docs-i18n="protocolMap.cards.verification.title">State & PDA Model</strong>
-              <p data-docs-i18n="protocolMap.cards.verification.body">GlobalConfig, chunk override accounts, Guardian registry PDAs, version hashes, and what should not be stored on-chain.</p>
+              <p data-docs-i18n="protocolMap.cards.verification.body">GlobalConfig, player sessions, chunk-broken records, resource-drop tables, Guardian registry PDAs, version hashes, and what should not be stored on-chain.</p>
             </article>
             <article class="protocol-card glass-panel">
               <span>04</span>
               <strong data-docs-i18n="protocolMap.cards.network.title">Guardian Network</strong>
               <p data-docs-i18n="protocolMap.cards.network.body">Regional access nodes, realtime messages, non-custodial boundaries, NCK stake, and future availability proofs.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>05</span>
+              <strong data-docs-i18n="protocolMap.cards.assets.title">On-chain Asset Research</strong>
+              <p data-docs-i18n="protocolMap.cards.assets.body">NCM stores compact voxel assets as chain text; NCFM explores Fourier/function payloads that can regenerate 3D items from tiny records.</p>
+            </article>
+            <article class="protocol-card glass-panel">
+              <span>06</span>
+              <strong data-docs-i18n="protocolMap.cards.civilization.title">Civilization Layer</strong>
+              <p data-docs-i18n="protocolMap.cards.civilization.body">Natural Law, Civilization Law, participation power, rule books, validator checks, cooldowns, and bounded configuration execution.</p>
             </article>
           </div>
         </section>
@@ -141,7 +194,7 @@
             <article class="status-model-card planned">
               <span data-docs-i18n="statusModel.cards.planned.label">Planned Protocol</span>
               <strong data-docs-i18n="statusModel.cards.planned.title">Future verification layers</strong>
-              <p data-docs-i18n="statusModel.cards.planned.body">Chunk override compression, resource settlement, asset ownership, marketplace settlement, Guardian proofs, and governance controls.</p>
+              <p data-docs-i18n="statusModel.cards.planned.body">Placed-block overrides, richer resource settlement, civilization rule execution, Guardian challenges, and long-term governance controls.</p>
             </article>
             <article class="status-model-card boundary">
               <span data-docs-i18n="statusModel.cards.boundary.label">Trust Boundary</span>
@@ -171,7 +224,7 @@
             <article class="rule-card">
               <span class="rule-status" data-docs-i18n="implementation.status.chain">Devnet / Chain</span>
               <strong data-docs-i18n="implementation.cards.player.title">Player and backpack PDAs</strong>
-              <p data-docs-i18n="implementation.cards.player.body">PlayerProfile stores public player state and the equipped backpack address. Backpack contents live in the Backpack account; mining appends resource records after a valid player session.</p>
+              <p data-docs-i18n="implementation.cards.player.body">PlayerProfile stores public player state and the equipped backpack address. Backpack contents live in a v2 Backpack account; rewarded mining appends block resource records through the Backpack program after a valid player session.</p>
             </article>
             <article class="rule-card">
               <span class="rule-status" data-docs-i18n="implementation.status.realtime">Realtime</span>
@@ -398,6 +451,26 @@ function chunkCommitment(seed, chunkX, chunkZ, ruleVersion, overrideRoot) {
                   <td data-docs-i18n="chainState.table.rows.chunkBroken">Compact mined-block record for broken generated cells. It avoids writing full generated terrain to chain storage.</td>
                 </tr>
                 <tr>
+                  <td>ResourceDropTable</td>
+                  <td><code>["resource-drops", global_config]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.resourceDropTable">Bounded extra-drop rule table used by rewarded mining. Each rule names source block, drop block, chance, altitude, depth, and salt.</td>
+                </tr>
+                <tr>
+                  <td>RecipeTable</td>
+                  <td><code>["smelting-recipes", table_id]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.recipeTable">Smelting recipe table with authority, recipe ids, heat tiers, input slot records, output slot records, and updated slot.</td>
+                </tr>
+                <tr>
+                  <td>AssetAccount</td>
+                  <td><code>["asset", owner, asset_id]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.asset">Compact owned item or model record with category, quantity, item hash, item code, durability, and bounded payload bytes.</td>
+                </tr>
+                <tr>
+                  <td>ListingAccount</td>
+                  <td><code>["listing", seller, listing_id]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.listing">Marketplace listing state for backpack resources or asset PDAs, including seller, price, currency, escrow source, buyer, and sold/canceled state.</td>
+                </tr>
+                <tr>
                   <td>GuardianRegistry</td>
                   <td><code>["guardian-registry", global_config]</code></td>
                   <td data-docs-i18n="chainState.table.rows.registry">Registry for active Guardian regions, NCK stake amount, treasury token account, and registration counters.</td>
@@ -408,9 +481,9 @@ function chunkCommitment(seed, chunkX, chunkZ, ruleVersion, overrideRoot) {
                   <td data-docs-i18n="chainState.table.rows.region">A registered region endpoint with owner, operator, host, TLS flag, stake, proof counters, and update slot.</td>
                 </tr>
                 <tr>
-                  <td>Chunk Override</td>
+                  <td>Placed Block Override</td>
                   <td><code>["chunk", global_config, chunk_x, chunk_z]</code></td>
-                  <td data-docs-i18n="chainState.table.rows.chunk">Future production account for current block overrides only. Unchanged generated terrain should not be stored.</td>
+                  <td data-docs-i18n="chainState.table.rows.chunk">Future production account for placed block deltas and current block overrides only. Unchanged generated terrain should not be stored.</td>
                 </tr>
               </tbody>
             </table>
@@ -420,14 +493,17 @@ PLAYER_MAGIC = "NCKPLY01"
 BACKPACK_MAGIC = "NCKBPK01"
 GLOBAL_CONFIG_LEN = 293
 PLAYER_PROFILE_LEN = 449
-BACKPACK_LEN = 1118
+BACKPACK_LEN = 6464
+CHUNK_BROKEN_INITIAL_CAPACITY = 64
+RESOURCE_DROP_RULE_MAX_COUNT = 64
 CHUNK_SIZE = 16
 GUARDIAN_REGION_SIZE = 100
 GUARDIAN_STAKE_AMOUNT = 100_000 NCK
 
 // Storage principle
 generated_block = derive(seed, chunk, local_position)
-changed_block = read_override(chunk_pda, local_position)</code></pre>
+mined_cell = read_chunk_broken(chunk_broken_pda, local_position)
+future_changed_block = read_override(chunk_pda, local_position)</code></pre>
           </div>
         </section>
 
@@ -449,7 +525,8 @@ changed_block = read_override(chunk_pda, local_position)</code></pre>
                 <li><span>01</span><p data-docs-i18n="playerBackpack.flow.steps.player">Create PlayerProfile if it does not exist.</p></li>
                 <li><span>02</span><p data-docs-i18n="playerBackpack.flow.steps.create">Create Backpack PDA with seed <code>["backpack", owner, backpack_id]</code>.</p></li>
                 <li><span>03</span><p data-docs-i18n="playerBackpack.flow.steps.bind">Call Player program instruction 5 to write the Backpack public key into PlayerProfile.</p></li>
-                <li><span>04</span><p data-docs-i18n="playerBackpack.flow.steps.verify">Reload PlayerProfile, then load the referenced Backpack and verify both accounts share the same owner.</p></li>
+                <li><span>04</span><p data-docs-i18n="playerBackpack.flow.steps.session">Create or refresh a PlayerSession before submitting break/place actions through a session authority.</p></li>
+                <li><span>05</span><p data-docs-i18n="playerBackpack.flow.steps.verify">Reload PlayerProfile, then load the referenced Backpack and verify both accounts share the same owner.</p></li>
               </ol>
             </div>
             <pre class="code-block"><code>function loadEquippedBackpack(owner) {
@@ -531,7 +608,7 @@ function resolvePrimaryAction(item: HeldItem) {
           <div class="section-heading">
             <p class="eyebrow blue" data-docs-i18n="mining.eyebrow">Mining & Resources</p>
             <h2 data-docs-i18n="mining.title">Resource outcomes should be reproducible from public inputs.</h2>
-            <p data-docs-i18n="mining.body">Basic terrain can be deterministic, but valuable resources must not be fully predictable from public world seed alone. Discovery should combine public commitments with action-specific inputs so players can verify outcomes without pre-scanning every valuable coordinate.</p>
+            <p data-docs-i18n="mining.body">Current mining verifies generated block identity from GlobalConfig and chunk coordinates, rejects air, water, bedrock, and already-mined cells, records the broken cell, then can append the mined block and one bounded extra drop into the equipped backpack.</p>
           </div>
           <div class="split-layout">
             <div class="glass-panel demo-panel">
@@ -548,22 +625,13 @@ function resolvePrimaryAction(item: HeldItem) {
               </div>
               <pre class="code-block result"><code id="miningResult"></code></pre>
             </div>
-            <pre class="code-block"><code>function resourceRoll(input) {
-  const payload = [
-    input.worldSeedHash,
-    input.resourceRuleHash,
-    input.chunkX,
-    input.chunkZ,
-    input.blockX,
-    input.blockY,
-    input.blockZ,
-    input.chunkStateHash,
-    input.playerNonce,
-    input.recentSlotEntropy
-  ].join(":");
-
-  return hashToUnit(payload);
-}</code></pre>
+            <pre class="code-block"><code>mine_block_with_rewards:
+  1. validate PlayerSession authority
+  2. derive generated block id from GlobalConfig
+  3. compare expected_block_id
+  4. append packed local coordinate to ChunkBrokenState
+  5. append mined block resource to Backpack
+  6. apply ResourceDropTable rule for one extra drop</code></pre>
           </div>
         </section>
 
@@ -571,24 +639,21 @@ function resolvePrimaryAction(item: HeldItem) {
           <div class="section-heading">
             <p class="eyebrow blue" data-docs-i18n="forging.eyebrow">Forging, Assets & Inventory</p>
             <h2 data-docs-i18n="forging.title">Items need readable state before they become tradable assets.</h2>
-            <p data-docs-i18n="forging.body">Hotbar slots, durability, stack limits, recipes, material inputs, and future asset metadata are documented as state models rather than hidden UI behavior.</p>
+            <p data-docs-i18n="forging.body">Hotbar slots, durability, stack limits, smelting recipe tables, material inputs, output records, and future asset metadata are documented as state models rather than hidden UI behavior.</p>
           </div>
           <div class="rule-grid">
             <article class="rule-card"><strong data-docs-i18n="forging.cards.hotbar.title">Hotbar</strong><p data-docs-i18n="forging.cards.hotbar.body">The active bar has 9 slots. Stackable items can hold up to 99 per slot.</p></article>
             <article class="rule-card"><strong data-docs-i18n="forging.cards.durability.title">Durability</strong><p data-docs-i18n="forging.cards.durability.body">Tools use durability instead of stack amount. The current default tool durability is 999.</p></article>
-            <article class="rule-card"><strong data-docs-i18n="forging.cards.recipes.title">Recipes</strong><p data-docs-i18n="forging.cards.recipes.body">Forged outputs should declare their input materials, output item, quality fields, and future verification path.</p></article>
+            <article class="rule-card"><strong data-docs-i18n="forging.cards.recipes.title">Smelting recipes</strong><p data-docs-i18n="forging.cards.recipes.body">RecipeTable accounts store enabled recipes with min heat tier, up to 8 input slot records, up to 4 output slot records, and an authority that can be transferred.</p></article>
           </div>
           <pre class="code-block"><code>{
-  "recipeId": "iron_pickaxe_basic",
-  "inputs": [
-    { "itemId": "iron_ingot", "amount": 3 },
-    { "itemId": "wood_handle", "amount": 2 }
-  ],
-  "output": {
-    "itemId": "iron_pickaxe",
-    "durability": 999
-  }
-          }</code></pre>
+  "recipeTable": ["smelting-recipes", 1],
+  "recipeId": 1001,
+  "enabled": true,
+  "minHeatTier": 1,
+  "inputs": ["trunk", "trunk", "dryGrass", "dryGrass", "dryGrass"],
+  "outputs": [{ "category": "material", "itemCode": "charcoal", "quantity": 1 }]
+}</code></pre>
         </section>
 
         <section class="docs-section" id="assets-market" data-doc-section>
@@ -606,13 +671,13 @@ function resolvePrimaryAction(item: HeldItem) {
               </article>
               <article class="rule-card">
                 <span class="rule-status" data-docs-i18n="assetsMarket.status.experiment">Experiment</span>
-                <strong data-docs-i18n="assetsMarket.cards.dna.title">NCM DNA search</strong>
-                <p data-docs-i18n="assetsMarket.cards.dna.body">NCM DNA explores CPU-friendly searches for shorter deterministic genes that reproduce the same asset hash and reduce future PDA storage size.</p>
+                <strong data-docs-i18n="assetsMarket.cards.ncfm.title">NCFM / UPOW research</strong>
+                <p data-docs-i18n="assetsMarket.cards.ncfm.body">NCFM explores function-defined assets and a useful-computation path where search work can discover shorter payloads that still reproduce a verified model.</p>
               </article>
               <article class="rule-card">
                 <span class="rule-status" data-docs-i18n="assetsMarket.status.contract">Contract</span>
                 <strong data-docs-i18n="assetsMarket.cards.market.title">Market listings</strong>
-                <p data-docs-i18n="assetsMarket.cards.market.body">The market program creates seller-owned listing PDAs with category, currency, source kind, source index, quantity, price, and item hash. Current scope is listing and canceling.</p>
+                <p data-docs-i18n="assetsMarket.cards.market.body">The market program creates seller-owned listing PDAs, can cancel active listings, and can buy listings with SOL or NCK while routing a 1% market fee.</p>
               </article>
             </div>
             <pre class="code-block"><code>Listing PDA:
@@ -621,12 +686,144 @@ seeds = ["listing", seller, listing_id]
 ListingAccount {
   category: raw | equipment | building | clothing,
   currency: NCK | SOL,
-  source: backpack | hotbar,
+  source: backpack | asset,
   quantity,
   price_base_units,
   item_hash
 }</code></pre>
           </div>
+        </section>
+
+        <section class="docs-section" id="ncm-chain-assets" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="ncmDocs.eyebrow">NCM Chain Assets</p>
+            <h2 data-docs-i18n="ncmDocs.title">NCM makes the 3D asset itself part of readable protocol state.</h2>
+            <p data-docs-i18n="ncmDocs.body">The NCM page documents NiceChunk's compact voxel asset format. A MagicaVoxel .vox file is parsed locally, same-color voxels are merged into cuboids, and the result becomes NCM2 text that can live in account data or a program-owned asset record. A client can fetch it through normal RPC and rebuild the model without IPFS, mutable JSON, or a private asset server.</p>
+          </div>
+          <div class="rule-grid">
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="ncmDocs.status.format">Format</span>
+              <strong data-docs-i18n="ncmDocs.cards.format.title">PDA-friendly text</strong>
+              <p data-docs-i18n="ncmDocs.cards.format.body">NCM2 records encode palette, box count, signed positions, dimensions, and model hash as compact text so explorers and game clients can inspect the asset directly.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="ncmDocs.status.tool">Tooling</span>
+              <strong data-docs-i18n="ncmDocs.cards.converter.title">Browser-local VOX converter</strong>
+              <p data-docs-i18n="ncmDocs.cards.converter.body">The public converter supports MagicaVoxel SIZE, XYZI, and RGBA chunks, previews the model, then exports an NCM payload ready for account storage experiments.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="ncmDocs.status.storage">Storage</span>
+              <strong data-docs-i18n="ncmDocs.cards.compression.title">Hundreds of bytes, not asset hosting</strong>
+              <p data-docs-i18n="ncmDocs.cards.compression.body">The current examples compress 23 KB class-sized VOX characters into roughly 354-452 byte NCM records, which is the difference between on-chain state and external file dependency.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="ncmDocs.status.research">Research</span>
+              <strong data-docs-i18n="ncmDocs.cards.dna.title">NCM-DNA continuation</strong>
+              <p data-docs-i18n="ncmDocs.cards.dna.body">NCM-DNA continues the same idea by searching for deterministic short genes that reproduce the same model hash, turning asset compression into a useful computation problem.</p>
+            </article>
+          </div>
+          <pre class="code-block"><code>NCM2 asset pipeline:
+  .vox source
+  -> parse SIZE / XYZI / RGBA
+  -> merge same-color voxels into boxes
+  -> encode palette + signed box positions + dimensions
+  -> store compact text in account data
+  -> client RPC read -> decode -> render -> verify model_hash</code></pre>
+        </section>
+
+        <section class="docs-section" id="ncfm-upow" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="ncfmDocs.eyebrow">NCFM / UPOW</p>
+            <h2 data-docs-i18n="ncfmDocs.title">NCFM turns a 3D item into a deterministic function payload.</h2>
+            <p data-docs-i18n="ncfmDocs.body">NCFM means NiceChunk Fourier Model. Instead of storing a mesh file or a voxel list, it stores a tiny canonical record: seed, quantized coefficients, palette rules, grid limits, and a verifier hash. The client samples the agreed functions and reconstructs the voxel item. This is the UPOW direction: useful work should improve asset representation, not burn compute on meaningless hashes.</p>
+          </div>
+          <div class="split-layout">
+            <div class="rule-stack">
+              <article class="rule-card">
+                <span class="rule-status" data-docs-i18n="ncfmDocs.status.payload">Payload</span>
+                <strong data-docs-i18n="ncfmDocs.cards.payload.title">Function as asset identity</strong>
+                <p data-docs-i18n="ncfmDocs.cards.payload.body">The public NCFM lab demonstrates a compact payload such as NCFM1.PKX.S37x39x9.FXY:dseg+harm12.FZ:thick7.PAL:g0.6.H:9bd2a6, about 214 bytes for the example item.</p>
+              </article>
+              <article class="rule-card">
+                <span class="rule-status" data-docs-i18n="ncfmDocs.status.sampler">Sampler</span>
+                <strong data-docs-i18n="ncfmDocs.cards.sampler.title">FXY x FZ reconstruction</strong>
+                <p data-docs-i18n="ncfmDocs.cards.sampler.body">The lab shows an XY Fourier outline intersected with a Z thickness function. Coordinates accepted by both functions become material voxels.</p>
+              </article>
+              <article class="rule-card">
+                <span class="rule-status" data-docs-i18n="ncfmDocs.status.verifiable">Verifiable</span>
+                <strong data-docs-i18n="ncfmDocs.cards.hash.title">Same payload, same model hash</strong>
+                <p data-docs-i18n="ncfmDocs.cards.hash.body">Canonical bounds, coefficient quantization, palette, sampling order, and hash rules let any client or explorer verify that the visible object matches the chain payload.</p>
+              </article>
+              <article class="rule-card">
+                <span class="rule-status" data-docs-i18n="ncfmDocs.status.boundary">Boundary</span>
+                <strong data-docs-i18n="ncfmDocs.cards.boundary.title">Research direction, not settlement yet</strong>
+                <p data-docs-i18n="ncfmDocs.cards.boundary.body">NCFM and UPOW are documented as the next asset-computation layer. They are not presented as an already deployed settlement contract in the current mainnet product.</p>
+              </article>
+            </div>
+            <pre class="code-block"><code>NCFM verification pipeline:
+  payload = seed + coefficients + palette + grid + verifier_hash
+  functions = decode(payload)
+  for each coordinate in canonical grid:
+    voxel = FXY(x, y) && FZ(x, y, z)
+  model_hash = hash(canonical voxel buffer)
+  assert model_hash == verifier_hash</code></pre>
+          </div>
+        </section>
+
+        <section class="docs-section" id="civilization-rules" data-doc-section>
+          <div class="section-heading">
+            <p class="eyebrow blue" data-docs-i18n="civilizationDocs.eyebrow">Civilization Rules</p>
+            <h2 data-docs-i18n="civilizationDocs.title">Civilization lets players write the world's laws without giving the project hidden authority.</h2>
+            <p data-docs-i18n="civilizationDocs.body">The Civilization Codex is NiceChunk's governance design surface. It separates world-level Natural Law from evolving Civilization Law, uses participation-based power instead of raw wallet count, and routes approved changes into bounded configuration PDAs rather than secret admin overrides.</p>
+          </div>
+          <div class="rule-grid">
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.natural">90%</span>
+              <strong data-docs-i18n="civilizationDocs.cards.natural.title">Natural Law</strong>
+              <p data-docs-i18n="civilizationDocs.cards.natural.body">Natural Law protects the deepest fairness assumptions of the world. It requires stronger prompts, stricter validators, longer cooling, broader challenge windows, and 90% world-level agreement.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.civilization">50%</span>
+              <strong data-docs-i18n="civilizationDocs.cards.civilization.title">Civilization Law</strong>
+              <p data-docs-i18n="civilizationDocs.cards.civilization.body">Civilization Law lets players evolve production, construction, craft, resource rules, and social configuration with a lower threshold while still staying inside validator-checked patch limits.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.power">Power</span>
+              <strong data-docs-i18n="civilizationDocs.cards.power.title">Participation-weighted citizens</strong>
+              <p data-docs-i18n="civilizationDocs.cards.power.body">Power should come from real participation in the world, constrained by maturity, caps, active windows, decay, and anomaly penalties so governance is not reduced to wallet count or raw NCK balance.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.execution">Execution</span>
+              <strong data-docs-i18n="civilizationDocs.cards.execution.title">Permissionless execution</strong>
+              <p data-docs-i18n="civilizationDocs.cards.execution.body">After threshold, cooling, and challenge conditions are satisfied, any player should be able to call execute_rule. The contract checks on-chain state and writes approved configuration only.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.modules">Modules</span>
+              <strong data-docs-i18n="civilizationDocs.cards.modules.title">Target configuration modules</strong>
+              <p data-docs-i18n="civilizationDocs.cards.modules.body">The public Codex names smelting, forging, block_properties, resource_rules, element_rules, and world_knowledge as future module targets.</p>
+            </article>
+            <article class="rule-card">
+              <span class="rule-status" data-docs-i18n="civilizationDocs.status.boundary">Boundary</span>
+              <strong data-docs-i18n="civilizationDocs.cards.boundary.title">Mock UI today, contract path tomorrow</strong>
+              <p data-docs-i18n="civilizationDocs.cards.boundary.body">The current Civilization page publishes mock rule books and future account structure. No deployed civilization program currently mutates gameplay PDAs.</p>
+            </article>
+          </div>
+          <pre class="code-block"><code>RuleBook lifecycle:
+  draft -> publish -> read -> sign
+  -> threshold reached
+  -> cooling + challenge window
+  -> execute_rule
+  -> active configuration
+
+RuleBook fields:
+  text_hash, patch_hash, author, category, target_module, risk
+  snapshot_epoch, yes_power, no_power, abstain_power
+  threshold, cooldown, challenge_window, execute_status
+
+Execution boundary:
+  write bounded config PDA
+  keep core code explicit
+  protect old assets unless Natural Law reaches 90%</code></pre>
         </section>
 
         <section class="docs-section" id="nck-economy" data-doc-section>
@@ -642,6 +839,7 @@ ListingAccount {
               <tr><td data-docs-i18n="economy.table.rows.forging.utility">Forging systems</td><td data-docs-i18n="economy.status.planned">Planned</td><td data-docs-i18n="economy.table.rows.forging.notes">Economic settlement should expose recipe and material state.</td></tr>
               <tr><td data-docs-i18n="economy.table.rows.market.utility">Marketplace settlement</td><td data-docs-i18n="economy.status.planned">Planned</td><td data-docs-i18n="economy.table.rows.market.notes">Player-owned assets require explicit asset metadata and settlement rules.</td></tr>
               <tr><td data-docs-i18n="economy.table.rows.guardian.utility">Guardian stake</td><td data-docs-i18n="economy.status.devnet">Devnet</td><td data-docs-i18n="economy.table.rows.guardian.notes">Guardian registration currently sends 100,000 NCK to the treasury token account on devnet.</td></tr>
+              <tr><td data-docs-i18n="economy.table.rows.smelting.utility">Smelting configuration</td><td data-docs-i18n="economy.status.devnet">Devnet</td><td data-docs-i18n="economy.table.rows.smelting.notes">Recipe tables are on-chain state; recipe authority remains explicit until a future civilization config path exists.</td></tr>
               <tr><td data-docs-i18n="economy.table.rows.governance.utility">Governance</td><td data-docs-i18n="economy.status.longTerm">Long-term</td><td data-docs-i18n="economy.table.rows.governance.notes">Protocol parameter changes should be versioned and reviewable.</td></tr>
             </tbody>
           </table>
@@ -664,7 +862,7 @@ ListingAccount {
             <div class="rule-stack">
               <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noCustody.title">No custody</strong><p data-docs-i18n="watchers.rules.noCustody.body">Guardians do not hold player assets and do not replace wallet authorization.</p></article>
               <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.boundary">Boundary</span><strong data-docs-i18n="watchers.rules.noTransactions.title">No transaction signing</strong><p data-docs-i18n="watchers.rules.noTransactions.body">Players interact with Solana wallets directly. Guardians should not process transactions as hidden owners.</p></article>
-              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.devnet">Devnet</span><strong data-docs-i18n="watchers.rules.registry.title">Guardian registry</strong><p data-docs-i18n="watchers.rules.registry.body">GuardianRegion accounts store region coordinates, endpoint, owner, operator, stake, proof counters, and update slot.</p></article>
+              <article class="rule-card"><span class="rule-status" data-docs-i18n="watchers.status.devnet">Devnet</span><strong data-docs-i18n="watchers.rules.registry.title">Guardian registry</strong><p data-docs-i18n="watchers.rules.registry.body">GuardianRegion accounts store 100 x 100 chunk regions, endpoint, owner, operator, stake, proof counters, penalties, and update slot.</p></article>
             </div>
           </div>
         </section>
@@ -715,7 +913,8 @@ pub struct GlobalConfig {
     resource_rule_hash: [u8; 32],
     client_world_config_hash: [u8; 32],
     chunk_size: u16,
-    guardian_region_size_chunks: u16
+    guardian_region_size_chunks: u16,
+    mine_cooldown_slots: u16
 }
 
 // Future direction:
@@ -765,12 +964,13 @@ assert(profile.equippedBackpack !== DEFAULT_PUBKEY);</code></pre>
           <div class="section-heading">
             <p class="eyebrow blue" data-docs-i18n="fairness.eyebrow">Fairness, Security & Governance</p>
             <h2 data-docs-i18n="fairness.title">Rules are only fair when players can inspect the rulebook.</h2>
-            <p data-docs-i18n="fairness.body">NiceChunk should keep deterministic rules public, version major rule changes, publish test vectors, disclose trust limits, and distinguish live features from planned protocol mechanics.</p>
+            <p data-docs-i18n="fairness.body">NiceChunk should keep deterministic rules public, version major rule changes, publish test vectors, disclose trust limits, distinguish live features from planned protocol mechanics, and route future civilization changes through explicit config accounts.</p>
           </div>
           <div class="audit-grid">
             <article class="audit-card"><span>01</span><strong data-docs-i18n="fairness.cards.deterministic.title">Deterministic generation</strong><p data-docs-i18n="fairness.cards.deterministic.body">The same seed, chunk coordinate, and generation version should produce the same result.</p></article>
             <article class="audit-card"><span>02</span><strong data-docs-i18n="fairness.cards.versioned.title">Versioned rule changes</strong><p data-docs-i18n="fairness.cards.versioned.body">UI changes, world-rule changes, economy changes, and chain-state changes should be tracked separately.</p></article>
             <article class="audit-card"><span>03</span><strong data-docs-i18n="fairness.cards.limits.title">Trust limits</strong><p data-docs-i18n="fairness.cards.limits.body">The docs must state what is client-only, what is Guardian-assisted, and what is intended for on-chain verification.</p></article>
+            <article class="audit-card"><span>04</span><strong data-docs-i18n="fairness.cards.civilization.title">Civilization boundary</strong><p data-docs-i18n="fairness.cards.civilization.body">Civilization can evolve configuration only after explicit validation and thresholds; it is not a project-side text command that rewrites ownership or core code.</p></article>
           </div>
           <pre class="code-block"><code>{
   "generationVersion": "0.1.50",
@@ -789,6 +989,11 @@ assert(profile.equippedBackpack !== DEFAULT_PUBKEY);</code></pre>
             <h2 data-docs-i18n="changelog.title">Protocol documentation must record what changed and what did not.</h2>
           </div>
           <div class="changelog-list">
+            <article class="changelog-item">
+              <span>0.1.64</span>
+              <strong data-docs-i18n="changelog.items.v0164.title">Docs aligned with current programs</strong>
+              <p data-docs-i18n="changelog.items.v0164.body">Documents resource-drop tables, rewarded mining, v2 backpack storage, smelting recipe execution, marketplace buy flow, and the civilization governance boundary.</p>
+            </article>
             <article class="changelog-item">
               <span>0.1.63</span>
               <strong data-docs-i18n="changelog.items.v0163.title">Protocol docs expanded</strong>

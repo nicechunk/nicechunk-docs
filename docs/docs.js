@@ -160,6 +160,7 @@ function fallbackNavigation() {
       title: "Start",
       items: [
         { id: "overview", label: "Overview" },
+        { id: "nicechunk-thesis", label: "NiceChunk Thesis" },
         { id: "protocol-map", label: "Protocol Map" },
         { id: "status-model", label: "Status Model" },
         { id: "implementation-snapshot", label: "Implementation Snapshot" },
@@ -179,6 +180,9 @@ function fallbackNavigation() {
         { id: "mining-resources", label: "Mining & Resources" },
         { id: "forging-assets", label: "Forging & Assets" },
         { id: "assets-market", label: "Assets & Market" },
+        { id: "ncm-chain-assets", label: "NCM Chain Assets" },
+        { id: "ncfm-upow", label: "NCFM / UPOW" },
+        { id: "civilization-rules", label: "Civilization Rules" },
       ],
     },
     {
