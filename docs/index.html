@@ -452,8 +452,8 @@ function chunkCommitment(seed, chunkX, chunkZ, ruleVersion, overrideRoot) {
                 </tr>
                 <tr>
                   <td>ResourceDropTable</td>
-                  <td><code>["resource-drops", global_config]</code></td>
-                  <td data-docs-i18n="chainState.table.rows.resourceDropTable">Bounded extra-drop rule table used by rewarded mining. Each rule names source block, drop block, chance, altitude, depth, and salt.</td>
+                  <td><code>["resource-drops-v2", global_config]</code></td>
+                  <td data-docs-i18n="chainState.table.rows.resourceDropTable">Bounded extra-drop rule table used by rewarded mining. Each rule names source block, drop block, base chance, altitude, depth, salt, and drop volume range.</td>
                 </tr>
                 <tr>
                   <td>RecipeTable</td>
@@ -1002,7 +1002,7 @@ assert(profile.equippedBackpack !== DEFAULT_PUBKEY);</code></pre>
             <article class="changelog-item">
               <span>0.1.50</span>
               <strong data-docs-i18n="changelog.items.v0150.title">Docs alpha introduced</strong>
-              <p data-docs-i18n="changelog.items.v0150.body">Adds protocol docs page, public architecture, demos, independent docs language resources, and mainnet docs locale indexing.</p>
+              <p data-docs-i18n="changelog.items.v0150.body">Adds protocol docs page, public architecture, demos, and independent page-scoped docs locale files.</p>
             </article>
             <article class="changelog-item">
               <span>0.1.48</span>
