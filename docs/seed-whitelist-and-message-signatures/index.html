@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="seed-whitelist-and-message-signatures" data-docs-static-source="7d293cfc8c53274e6c146c58cd76d626256dac40cb41ed99312bf7ecd2a853bb">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="seed-whitelist-and-message-signatures" data-docs-static-source="754da576ad3a14ed905d1c663bf12612a2b7336547fa02a3459ceeb3b2af3aec">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/seed-whitelist-and-message-signatures.json" />
-    <meta name="nicechunk:source-sha256" content="7d293cfc8c53274e6c146c58cd76d626256dac40cb41ed99312bf7ecd2a853bb" />
+    <meta name="nicechunk:source-sha256" content="754da576ad3a14ed905d1c663bf12612a2b7336547fa02a3459ceeb3b2af3aec" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/seed-whitelist-and-message-signatures/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -150,7 +150,7 @@
 <div class="docs-guide-term"><dt>Solana cluster and Devnet</dt>
 <dd>A cluster is a separate Solana ledger. The client targets Devnet, but a detached Ed25519 message signature is not itself a Devnet transaction and the signed message contains no cluster field.</dd></div>
 <div class="docs-guide-term"><dt>Challenge</dt>
-<dd>The exact plain-text message prepared by the central Seed API for one signing attempt. It includes the campaign, wallet, nonce, issue time, submitted origin, purpose, and a no-transaction statement.</dd></div>
+<dd>The exact plain-text message prepared by the central Seed API for one signing attempt. It includes the registration ID, wallet, nonce, issue time, submitted origin, purpose, no-transaction terms, the planned free-allocation policy, and the central-record-only boundary.</dd></div>
 <div class="docs-guide-term"><dt>Campaign ID</dt>
 <dd>The server configuration label placed in the challenge. It names a central campaign record; it is not a Solana program address, PDA, mint, or transaction.</dd></div>
 <div class="docs-guide-term"><dt>Nonce</dt>
@@ -179,8 +179,8 @@
 <dd>Insert a row when the wallet is new, or update the existing row when that wallet signs again. The current table makes wallet globally unique rather than unique per campaign.</dd></div>
 <div class="docs-guide-term"><dt>registered</dt>
 <dd>The current central database status after a successful join. It does not mean qualified, anti-abuse approved, settled, transferred, or received.</dd></div>
-<div class="docs-guide-term"><dt>Campaign reward metadata</dt>
-<dd>The central reward_nck integer and displayed campaign amount. They describe a proposed campaign quantity; they do not identify an SPL mint or prove a payment.</dd></div>
+<div class="docs-guide-term"><dt>Planned allocation metadata</dt>
+<dd>The central planned_allocation_nck integer, allocation_status string, and displayed policy amount describe a plan rather than entitlement. They do not identify an SPL mint, decide eligibility, or prove a token transfer.</dd></div>
 <div class="docs-guide-term"><dt>SPL NCK payment evidence</dt>
 <dd>A real token claim needs the cluster, exact NCK mint, six-decimal base units, the wallet-owned token account, a successful Token Program transaction, and the resulting on-chain balance.</dd></div></dl></section>
 <section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
@@ -204,7 +204,7 @@
 <p class="docs-prose">When a player presses Connect, Seed selects the first supported injected wallet it detects and calls provider.connect. After approval, the provider returns a public key. The page records that address under the Seed-specific local key and also writes the site's shared wallet binding. It then performs a public GET status query for that address. The server can therefore see which address is being checked before the player requests or signs a challenge.</p>
 <p class="docs-prose">That connection step does not export the external wallet's private key, sign a message, create a transaction, pay a fee, or prove continuing control. A browser localStorage address can also survive a reload while no wallet provider is connected. The current corrected state logic distinguishes a cached address, an active provider connection, and a registration confirmed by a successful status or join response for the exact same wallet. A local cache is still editable browser data, never independent proof.</p>
 <p class="docs-prose">The page tries to detect or switch the wallet toward Solana Devnet. Some providers cannot report a network or support switching; the network helper can explicitly return unknown and unverified. The Seed page now presents that result as not verified. More importantly, this registration API never queries a Solana RPC, and the later message contains no cluster or mint. A Devnet interface preference must not be described as an on-chain Devnet registration.</p>
-<p class="docs-prose">The status endpoint is public and requires no wallet signature. Anyone who knows an address can ask for the registration ID, campaign, wallet label, status, reward number, and timestamps that endpoint returns. Guardian relay and deterministic world reconstruction do not participate in connection, challenge signing, central registration, or payment evidence.</p>
+<p class="docs-prose">The status endpoint is public and requires no wallet signature. Anyone who knows an address can ask for the registration ID, campaign, wallet label, central status, planned allocation metadata, explicit not-determined eligibility status, not-implemented distribution status, and timestamps that endpoint returns. Guardian relay and deterministic world reconstruction do not participate in connection, challenge signing, central registration, or payment evidence.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Connect returns</span>
 <strong>One public address</strong>
 <p>It does not return the external wallet's private key or approve the later message.</p></article>
@@ -225,7 +225,7 @@
 <section class="docs-content-section" id="exact-message-two-verifications"><p class="docs-eyebrow">CHALLENGE AND SIGNATURE BOUNDARY</p>
 <h2>The wallet signs one exact message, then browser and server verify it separately</h2>
 <p class="docs-prose">The central API validates that the submitted wallet decodes to 32 bytes, creates a URL-safe random nonce from 24 random bytes, records the server time, and builds the message line by line. The default challenge lifetime is 600 seconds, subject to the server's environment setting. The challenge row is written immediately with wallet, full message, issue and expiry times, IP string, and User-Agent, even if the player later cancels the wallet prompt.</p>
-<p class="docs-prose">Before approving, read the complete wallet message: campaign, wallet, nonce, issue time, origin, purpose, and the statement that the signature does not authorize a transaction or transfer. The origin line is supplied by client JSON and is not currently checked against a trusted request Host or Origin header. Wallet name is not part of the signed text. Signing therefore proves agreement with the literal bytes, not that every printed metadata field was independently authenticated by the server.</p>
+<p class="docs-prose">Before approving, read the complete wallet message: registration ID, wallet, nonce, issue time, origin, purpose, the expanded no-transaction and no-purchase terms, the planned free-allocation policy, and the statement that current registration is only a central record. The origin line is supplied by client JSON and is not currently checked against a trusted request Host or Origin header. Wallet name is not part of the signed text. Signing therefore proves agreement with the literal bytes, not that every printed metadata field was independently authenticated by the server.</p>
 <p class="docs-prose">The browser encodes the returned message with TextEncoder, asks provider.signMessage to sign those bytes, converts the result to 64 signature bytes, and verifies it with TweetNaCl and the wallet public key. Only after that local check does it POST wallet, wallet name, nonce, full message, and Base58 signature. The server then loads the saved nonce, rejects a missing, used, expired, wallet-mismatched, message-mismatched, or invalidly signed challenge, and runs Ed25519 verification again.</p>
 <p class="docs-prose">A valid signature means the corresponding private key produced a signature for those exact bytes. When the server also accepts an unexpired challenge, the submission reached that service within the challenge window; the signature itself contains no trusted timestamp. It supports the central service's registration decision. It does not identify a unique human, prove permanent ownership, create a Solana transaction, include instructions or accounts, pay a fee, produce a blockhash or explorer receipt, call a program, or move funds. Message signatures can still matter wherever another system accepts the same signed message, so read them rather than treating them as harmless decoration.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Freshness input</span>
@@ -255,7 +255,7 @@
 <p>The current server copies a client-supplied origin string into the challenge without binding it to an allowlist or trusted request header. Check the real browser address and wallet prompt independently.</p></aside></section>
 <section class="docs-content-section" id="central-record-and-privacy"><p class="docs-eyebrow">CENTRAL STORAGE AND PRIVACY BOUNDARY</p>
 <h2>Registered is a maintainable SQLite record, not an immutable chain account</h2>
-<p class="docs-prose">The service has two central tables. A challenge row stores nonce, wallet, exact message, issued_at, expires_at, optional used_at, IP, and User-Agent. A whitelist row stores an auto-increment ID, campaign ID, globally unique wallet, wallet name, signature, exact message, unique nonce, status, reward_nck, IP, User-Agent, created_at, and updated_at. It does not store the private key. Nothing in either table is a Solana PDA or token account.</p>
+<p class="docs-prose">The service has two central tables. A challenge row stores nonce, wallet, exact message, issued_at, expires_at, optional used_at, IP, and User-Agent. A whitelist row stores an auto-increment ID, campaign ID, globally unique wallet, wallet name, signature, exact message, unique nonce, central status, planned_allocation_nck, allocation_status, IP, User-Agent, created_at, and updated_at. It does not store the private key, eligibility decision, distribution receipt, or token balance. Nothing in either table is a Solana PDA or token account.</p>
 <p class="docs-prose">After server verification, a new wallet inserts one whitelist row. A wallet that signs again updates its existing row with new wallet name, signature, message, nonce, status, IP, User-Agent, and update time while preserving the original ID and created_at. The current update forces status back to registered. The unique constraint is wallet alone rather than campaign plus wallet, and the update does not replace campaign_id even though the response reports the current configured campaign. Those details matter before this database can safely represent multiple campaigns or later settlement states.</p>
 <p class="docs-prose">The public status endpoint looks up a row by wallet without asking for a signature and returns a limited projection. The browser also caches an entry summary. The corrected client now trusts only a successful status or join response whose entry wallet exactly matches the current wallet; a null result, failure, disconnect, or wallet switch removes the displayed confirmation. It does not require the returned status to equal registered or compare a campaign ID. Its confirmation therefore means only that the central service returned a same-address entry through status or join, not that the entry belongs to the current campaign or establishes qualification, settlement, or payment. This prevents an old or forged local cache from appearing registered, but the resulting screen is still a central-service observation, not independent or on-chain proof.</p>
 <p class="docs-prose">Privacy begins before signing: challenge creation already stores request metadata. The repository shows no challenge cleanup job, user deletion path, or stated retention period. User-Agent is client-controlled, and the service takes the first X-Forwarded-For value as IP, so that stored string is not reliable proof of a unique person or source address. An operator can maintain or change the SQLite database. Registered therefore means only that this central service currently has a row it reports as registered.</p>
@@ -270,7 +270,7 @@
 <p>It preserves the original ID and created time, overwrites later proof fields, and currently resets status to registered.</p></article>
 <article class="docs-fact"><span>Public lookup</span>
 <strong>Status by known wallet address</strong>
-<p>No signature is required to read the projected campaign, label, status, reward number, and times.</p></article>
+<p>No signature is required to read the projected campaign, label, central status, planned-policy fields, eligibility status, distribution status, and times.</p></article>
 <article class="docs-fact"><span>Missing policy in source</span>
 <strong>No retention, cleanup, or user deletion path</strong>
 <p>The current repository also has no Seed schema migration or reproducible service unit tied to the static build.</p></article></div>
@@ -281,13 +281,13 @@
 <p>registered is not qualified; qualified is not settled; settled is not transferred; transferred is not the same observation as a wallet's current token balance. The current Seed implementation supplies only the first central state.</p></aside></section>
 <section class="docs-content-section" id="displayed-nck-not-payment"><p class="docs-eyebrow">TOKEN AND PAYMENT EVIDENCE BOUNDARY</p>
 <h2>A displayed 100 NCK value is not NCK in the wallet</h2>
-<p class="docs-prose">The current campaign page displays 100 NCK before a wallet connects. The SQLite schema gives reward_nck a default integer of 100, and the join response hard-codes rewardNck: 100. Those are three central presentation or data fields. Seed does not identify an NCK mint in its code, import the SPL Token library, derive a token account, read a token balance, build a mint or transfer instruction, submit an RPC transaction, store a transaction signature, or wait for confirmation. Its displayed 0.01 SOL reference also has no purchase or SOL-payment path in Seed.</p>
+<p class="docs-prose">The current page labels 100 NCK as a planned free allocation before a wallet connects. The SQLite schema stores planned_allocation_nck with a default integer of 100 and allocation_status = planned_policy_not_entitlement. Join and status responses expose plannedAllocationNck together with eligibilityStatus = not_determined and distributionStatus = not_implemented. Those are central policy and status fields, not entitlement or token evidence. The whitelist path does not identify an NCK mint in its code, import the SPL Token library, derive a token account, read a token balance, build a mint or transfer instruction, submit an RPC transaction, store a transaction signature, or wait for confirmation. Its displayed 0.01 SOL policy reference also has no purchase or SOL-payment path here.</p>
 <p class="docs-prose">The source has no implemented first-batch size, ordering rule, campaign end, qualification algorithm, anti-abuse decision, settlement state machine, or payout worker. The database has registered but no code path that establishes qualified, settled, transferred, or received. Campaign copy can describe an intended allocation, but it cannot be presented as guaranteed, enforceable, already sent, or visible in a wallet.</p>
 <p class="docs-prose">A real NCK check must start with the correct cluster and exact mint. The current Devnet NCK mint is HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo and uses six decimals. One hundred whole NCK would therefore equal 100,000,000 base units. Even that calculation is not payment evidence: the receiver needs a token account owned by the registered wallet for that mint, a successful Token Program transfer, a transaction signature and slot at a stated commitment, and a resulting balance observation.</p>
 <p class="docs-prose">The Marketplace program shows what an actual NCK movement path looks like: it checks the NCK mint, Token Program, and source and destination token-account owners, reads and splits the listing's already stored base-unit price, calls transfer_checked, and invokes the Token Program. The client performs the earlier whole-token-to-base-unit conversion when a listing price is created. Seed calls none of either path. The same public address can exist on Devnet and Mainnet Beta while holding different balances on each ledger, so an address or mint existing somewhere is not enough.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Current implemented state</span>
 <strong>registered</strong>
-<p>A central SQLite row exists and may contain reward_nck = 100. No later qualification or payout state is implemented in this path.</p></article>
+<p>A central SQLite row exists and may contain planned_allocation_nck = 100 with a non-entitlement policy status. Eligibility remains not determined and distribution remains not implemented.</p></article>
 <article class="docs-fact"><span>Devnet NCK identity</span>
 <strong>HSnWF5...PQPo · six decimals</strong>
 <p>This exact mint belongs to the chain implementation outside Seed; the Seed schema and message do not bind to it.</p></article>
@@ -317,7 +317,7 @@
 <h2>Eight excerpts separate address, signed bytes, central storage, and token movement</h2>
 <p>The formulas state the exact acceptance condition and the payment evidence that is absent. The verbatim excerpts show connection and status lookup, challenge construction, browser signing, server verification, SQLite fields, repeat registration, corrected local-state trust, and a real SPL transfer path used only as a contrast.</p></div>
 <div class="docs-formula-grid"><article class="docs-formula"><h3>The exact challenge message</h3>
-<div aria-label="The challenge message is the title, campaign, wallet, nonce, issue time, client-supplied origin, purpose, and no-transaction statement joined as exact lines." class="docs-formula-expression" role="math"><code>message = title + campaign + wallet + nonce + issuedAt + clientSuppliedOrigin + purpose + noTransactionStatement</code></div>
+<div aria-label="The challenge message is the title, registration ID, wallet, nonce, issue time, client-supplied origin, purpose, no-transaction and no-purchase terms, planned free-allocation policy, and central-record-only boundary joined as exact lines." class="docs-formula-expression" role="math"><code>message = title + campaign + wallet + nonce + issuedAt + clientSuppliedOrigin + purpose + noTransactionStatement</code></div>
 <p class="docs-technical-explanation">The server joins these fields with newline characters and the wallet signs the resulting UTF-8 bytes. Wallet name, IP, User-Agent, Solana cluster, NCK mint, token account, and reward amount are not in the signed text. Origin appears in the bytes but is currently copied from client JSON rather than authenticated against the request host.</p>
 <dl class="docs-formula-terms"><dt>nonce</dt>
 <dd>A fresh URL-safe token generated from 24 random bytes and stored as the challenge key.</dd>
@@ -339,12 +339,12 @@
 <dt>Ed25519Verify</dt>
 <dd>Cryptographic verification of public key, exact UTF-8 bytes, and detached signature.</dd></dl></article>
 <article class="docs-formula"><h3>Registration metadata is not payment evidence</h3>
-<div aria-label="Registered with reward NCK equal to one hundred is not the same as qualified, settled, an SPL transfer, or an increased wallet token balance." class="docs-formula-expression" role="math"><code>registered AND reward_nck = 100 != qualified != settled != SPL transfer != wallet token balance increased</code></div>
+<div aria-label="Registered with a planned allocation of one hundred NCK and a non-entitlement policy status is not the same as eligible, distributed, an SPL transfer, or an increased wallet token balance." class="docs-formula-expression" role="math"><code>registered AND planned_allocation_nck = 100 AND allocation_status = planned_policy_not_entitlement != eligible != distributed != SPL transfer != wallet token balance increased</code></div>
 <p class="docs-technical-explanation">The left side is central database state. The right-side observations would require explicit campaign decisions and then matching Solana evidence. With six decimals, 100 whole NCK equals 100,000,000 base units, but arithmetic and display text cannot prove that those units moved.</p>
 <dl class="docs-formula-terms"><dt>registered</dt>
 <dd>The central whitelist row currently reports status registered.</dd>
-<dt>reward_nck = 100</dt>
-<dd>A central integer default and response field, with no mint, token account, transfer signature, or balance attached.</dd>
+<dt>planned_allocation_nck = 100</dt>
+<dd>A central planned-policy integer, paired with a non-entitlement status and no mint, eligibility decision, token account, transfer signature, or balance.</dd>
 <dt>SPL transfer</dt>
 <dd>A successful Token Program instruction moving base units between validated token accounts for the exact mint.</dd>
 <dt>wallet token balance increased</dt>
@@ -356,7 +356,7 @@
 <code class="docs-code-source">seed/seed.js</code></div>
 <pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const result = await wallet.provider.connect();
     const publicKey = publicKeyToString(result?.publicKey || wallet.provider.publicKey);
-    if (!publicKey) throw new Error("Missing wallet public key.");
+    if (!publicKey) throw new Error(text("status.actions.missingPublicKey"));
     const walletChanged = publicKey !== seedState.wallet;
     seedState = transitionSeedWallet(seedState, publicKey);
     seedState = {
@@ -385,14 +385,16 @@
         nonce = secrets.token_urlsafe(24)
         issued_at = utc_now_iso()
         message = "\n".join([
-            "NiceChunk Seed Whitelist Registration",
-            f"Campaign: {CAMPAIGN_ID}",
+            "NiceChunk Player Whitelist Registration",
+            f"Registration ID: {CAMPAIGN_ID}",
             f"Wallet: {wallet}",
             f"Nonce: {nonce}",
             f"Issued At: {issued_at}",
             f"Origin: {origin}",
-            "Purpose: Bind this wallet and join the NiceChunk public beta seed whitelist.",
-            "This signature does not authorize a transaction or transfer funds.",
+            "Purpose: Prove control of this wallet and submit a free player-whitelist registration.",
+            "This signature does not authorize a transaction, transfer funds, purchase NCK, reserve a paid allocation, or make an investment.",
+            "Registration requires no payment. The planned initial 100 NCK allocation for eligible whitelisted players is free.",
+            "Current registration stores only a central record; it does not determine eligibility or transfer NCK.",
         ])
         with sqlite3.connect(DB_PATH) as db:
             db.execute(
@@ -403,7 +405,7 @@
 <ol class="docs-code-walkthrough"><li><strong>1-3</strong>
 <p>Capture integer server time, generate a random URL-safe nonce from 24 random bytes, and format a UTC issue time.</p></li>
 <li><strong>4-13</strong>
-<p>Join the title, campaign, wallet, nonce, issue time, client-supplied origin, purpose, and no-transaction statement into exact newline-separated text.</p></li>
+<p>Join the title, registration ID, wallet, nonce, issue time, client-supplied origin, purpose, no-transaction and no-purchase terms, planned free-allocation policy, and central-record-only boundary into exact newline-separated text.</p></li>
 <li><strong>14-18</strong>
 <p>Store nonce, wallet, exact message, issue and expiry times, IP string, and User-Agent in SQLite before returning the challenge.</p></li></ol></article>
 <article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser signs exact bytes and verifies before join</h3>
@@ -412,11 +414,14 @@
 <pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const encodedMessage = new TextEncoder().encode(challenge.message);
     const signResult = await seedState.provider.signMessage(encodedMessage, "utf8");
     const signature = signatureToBytes(signResult);
-    if (!signature?.length) throw new Error("Missing wallet signature.");
+    if (!signature?.length) throw new Error(text("status.actions.missingSignature"));
     if (!nacl.sign.detached.verify(encodedMessage, signature, bs58.decode(seedState.wallet))) {
-      throw new Error("Local wallet signature verification failed.");
+      throw new Error(text("status.actions.localVerificationFailed"));
     }
-    setSeedMessage("SUBMITTING REGISTRATION", "Signature verified locally. Submitting your seed user registration...");
+    setSeedMessage(
+      text("status.actions.submittingState"),
+      text("status.actions.submittingMessage"),
+    );
     const result = await apiPost("/api/seed/join", {
       wallet: seedState.wallet,
       walletName: seedState.walletName || selectedWallet?.name || "Solana Wallet",
@@ -457,7 +462,7 @@
 <p>Return separate missing, used, and expired errors; a wallet mismatch or message mismatch shares the same challenge_mismatch error.</p></li>
 <li><strong>13-16</strong>
 <p>Verify the 64-byte signature over the submitted UTF-8 message with the submitted wallet public key and reject an invalid signature.</p></li></ol></article>
-<article class="docs-code-snippet"><div class="docs-code-heading"><h3>SQLite stores proof, request metadata, and a reward number</h3>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>SQLite stores proof, request metadata, and planned-policy fields</h3>
 <span class="docs-code-language">SQL</span>
 <code class="docs-code-source">seed_api.py</code></div>
 <pre class="docs-code-block" tabindex="0"><code data-language="SQL">CREATE TABLE IF NOT EXISTS seed_whitelist_entries (
@@ -469,13 +474,14 @@
                 message TEXT NOT NULL,
                 nonce TEXT NOT NULL UNIQUE,
                 status TEXT NOT NULL DEFAULT 'registered',
-                reward_nck INTEGER NOT NULL DEFAULT 100,
+                planned_allocation_nck INTEGER NOT NULL DEFAULT 100,
+                allocation_status TEXT NOT NULL DEFAULT 'planned_policy_not_entitlement',
                 ip TEXT,
                 user_agent TEXT,
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )</code></pre>
-<p class="docs-technical-explanation">This table is the registration authority for the Seed flow. It stores a central row and a reward metadata integer. It has no mint, token account, base-unit amount, payout transaction, slot, commitment, or token balance field.</p>
+<p class="docs-technical-explanation">This table is the central registration authority for the whitelist flow. It stores a planned-policy quantity and an explicit non-entitlement allocation status. It has no mint, token account, base-unit amount, eligibility decision, payout transaction, slot, commitment, or token balance field.</p>
 <ol class="docs-code-walkthrough"><li><strong>1-4</strong>
 <p>Create a central table with an auto-increment ID, campaign label, and wallet that is globally unique across all campaigns.</p></li>
 <li><strong>5-8</strong>
@@ -594,9 +600,9 @@ export function applySeedStatusPayload(state, payload) {
 <article class="docs-evidence-item"><code>scripts/audit-seed-flow.mjs</code>
 <p>Runs ten mock Chromium scenarios for forged cache data, empty and failed status responses, wallet changes, disconnects, stale responses, unknown or observable networks, and a permanently pending status request without generating or printing a private key.</p></article>
 <article class="docs-evidence-item"><code>seed/index.html</code>
-<p>Contains the campaign presentation whose displayed allocation and bootstrap reference must remain separate from the registration and token evidence.</p></article>
+<p>Contains the player-whitelist presentation whose planned free allocation and separate future treasury-rate reference must remain distinct from current registration and token evidence.</p></article>
 <article class="docs-evidence-item"><code>seed_api.py</code>
-<p>Defines central service configuration, challenge and whitelist schemas, challenge message construction, Ed25519 verification, registration upsert, public status, admin listing, stored request metadata, and hard-coded response reward.</p></article>
+<p>Defines central service configuration, challenge and whitelist schemas, challenge message construction, Ed25519 verification, registration upsert, public status, admin listing, stored request metadata, and explicit planned-allocation, not-determined eligibility, and not-implemented distribution fields.</p></article>
 <article class="docs-evidence-item"><code>nginx.site.conf</code>
 <p>Proxies the public Seed and invite API routes to the local Python service on port 8787, establishing the central-service deployment boundary.</p></article>
 <article class="docs-evidence-item"><code>src/solanaNetwork.js</code>
