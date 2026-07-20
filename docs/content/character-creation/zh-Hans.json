@@ -1,0 +1,970 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-character-creation-zh-Hans-821e478a8ded529b",
+    "contentHash": "821e478a8ded529b"
+  },
+  "kind": "topic",
+  "slug": "character-creation",
+  "shortTitle": "角色创建",
+  "seo": {
+    "title": "角色创建：名称、NCM 模型与链上记录",
+    "description": "沿着 NiceChunk 的角色创建流程，依次了解本地钱包绑定、名称查询、两个固定 NCM 预览、一次 Player 交易、三条公开记录、本地缓存、邀请与出生点之间的边界。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制权 04 · 角色创建",
+    "title": "创建角色只有一次链上写入，前后还围绕着多个本地步骤",
+    "summary": "当前创建页面从浏览器中的钱包绑定开始：检查名称但不预留名称，预览两个固定 NCM2 村民中的一个，在本地计算候选出生点，然后请求 owner 钱包批准一笔 Player Program 交易。首次创建时，这笔交易可以同时创建 PlayerProfile、PlayerAppearance 和 UsernameIndex；之后再次 upsert 时，则按照每种记录各自的规则重写或验证它们。只有交易在 confirmed 返回后，页面才会尝试写入角色缓存、在需要时另行发起邀请交易，并跳转到 Play。这些结果彼此相关，但不能用其中一个证明其余结果。",
+    "readingTime": "阅读约 28 分钟",
+    "visual": {
+      "src": "/docs/media/character-creation-overview-v1.webp",
+      "alt": "这幅教学场景根据 NiceChunk 标准村民与真实 Chunk.js 山坡参考生成：男孩操作一台木制压机，下方柜台摆着三种彼此独立的容器——两个浅托盘和一个装有小型方块纹样模型的敞开盒子——女孩在旁观察；青色边框和橙色边框则与柜台分开放置。",
+      "caption": "压机与三种柜台容器表示一次获批操作处理三条彼此独立的公开记录：首次创建可以创建全部三条，之后的 upsert 则可能重写某条记录，也可能只验证它。敞开的模型盒表示选定的 NCM 身体；远处的青色边框和单独的橙色托盘分别表示不属于这笔角色交易的出生点与邀请结果。所有物件都只是教学比喻，不是真实的钱包控制、PDA、交易、模型解码器、出生点标记或游戏内状态指示器。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "当我选择名称和模型、批准“创建角色”并进入世界时，实际发生了什么？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制权 · 15 步中的第 4 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "不懂编程或区块链的普通玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "本地准备 · owner 签署的 Player 交易 · confirmed 结果 · 本地缓存 · 可选的第二笔邀请交易"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 16 日 · 当前含未提交改动的工作树、标准 NCM 样例文件、合约源码，以及 finalized 的 Devnet 租金与部署观测"
+      }
+    ],
+    "terms": [
+      {
+        "term": "钱包绑定",
+        "meaning": "登录页面在本浏览器中保存的公开地址与绑定时间。创建页面打开前要求这些本地字段存在；字段存在并不是一份新的密码学证明，不能证明钱包 Provider 此刻仍已连接或仍受当前用户控制。"
+      },
+      {
+        "term": "名称可用性读取",
+        "meaning": "在 confirmed 下，通过 RPC 查询拟用名称所对应的可预测 UsernameIndex 地址。账户缺失只表示该名称在这次读取时看起来可用；它不会预留地址，也不保证稍后的交易一定成功抢到名称。"
+      },
+      {
+        "term": "标准化名称哈希",
+        "meaning": "先把 UTF-8 名称中的 ASCII A 至 Z 转为小写，其余字符保持不变，再计算 SHA-256。因此，Alice 与 alice 会指向同一个 UsernameIndex。"
+      },
+      {
+        "term": "NCM2 代码",
+        "meaning": "客户端解码器可以将其变成彩色长方体的紧凑文本。当前两个创建选项都是已提交到仓库的标准字符串；页面不会根据玩家选择生成新的身体代码。"
+      },
+      {
+        "term": "模型类型",
+        "meaning": "当前客户端用一个字节保存模型类型：男性为 1，女性为 2。程序只验证这两个数字；它并不能证明类型 2 中装的是标准女孩几何模型。"
+      },
+      {
+        "term": "交易",
+        "meaning": "发送给 Solana 的已签名数据包，其中包含确切的指令与账户。角色创建会构建一笔交易，内含一条计算预算指令和一条 Player Program 指令。"
+      },
+      {
+        "term": "插入或更新（Upsert）",
+        "meaning": "一种既能创建缺失记录、也能处理已有记录的操作。它不表示每条记录都会以相同方式追加或重写：这条角色流程会重写 Profile 与 Appearance 数据，验证已有的同名索引；当选择另一个尚未使用的名称时，则创建新的索引。"
+      },
+      {
+        "term": "RPC 读取",
+        "meaning": "向 Solana 网络服务器请求公开账户数据。它可以报告该服务器在指定 commitment 下观察到的内容，但一次读取不是钱包签名、账户锁定、名称预留或交易。"
+      },
+      {
+        "term": "PDA",
+        "meaning": "根据公开输入推导出的、可预测且由程序拥有的账户地址。PDA 没有钱包私钥。角色创建会分别为 profile、appearance 和名称索引推导不同地址。"
+      },
+      {
+        "term": "PlayerProfile",
+        "meaning": "一条 773 字节、与 owner 关联的公开记录。首次创建时，它会接收默认值和选定的显示名称；之后 upsert 会保留该账户，并重写名称和更新 slot。"
+      },
+      {
+        "term": "PlayerAppearance",
+        "meaning": "一条 9,612 字节的公开记录，其中包含 owner 与 profile 链接、财政库关闭权限、模型类型、显示名称、称号、NCM 代码、时间戳，以及 12 条可见装备记录。"
+      },
+      {
+        "term": "UsernameIndex",
+        "meaning": "一条 256 字节、一个名称对应一个 owner 的查询记录，其地址由标准化名称哈希决定。有了它，无需扫描所有玩家账户便可直接检查名称唯一性。"
+      },
+      {
+        "term": "Lamport",
+        "meaning": "SOL 的最小原生单位。1 SOL 等于 1,000,000,000 lamports，因此即使页面以小数显示 SOL 数量，程序仍用整数保存 lamport 余额。"
+      },
+      {
+        "term": "免租最低余额",
+        "meaning": "按所观测 Solana 租金规则，数据账户必须持有的 lamports。程序分配或重新分配账户时，由 owner 为缺失账户和余额缺口出资；当前处理已有 Appearance 的路径也会补足其租金余额。有效的已有 Profile 或 UsernameIndex 会直接返回，不会进行通用的租金补足。交易手续费另算。"
+      },
+      {
+        "term": "confirmed（已确认）",
+        "meaning": "当前交易辅助函数停止等待时所采用的 commitment。它比仅仅发出签名更强，但不等同于 finalized；它本身也不能说明之后的本地缓存或邀请工作是否完成。"
+      },
+      {
+        "term": "finalized（已最终确认）",
+        "meaning": "Solana 中更强的 commitment 标签，表示交易已被网络扎根。当前创建辅助函数在满足 confirmed 条件后就会返回，因此页面不能悄悄把这个结果改称 finalized。"
+      },
+      {
+        "term": "本地角色缓存",
+        "meaning": "角色交易返回后写入的、可编辑的 localStorage 数据。名称只使用一个全局 nicechunk.username 键；性别、模型代码、标签与创建时间则都会尝试同时写入旧版全局键和钱包作用域键。这些写入没有保护，因此异常可能留下不完整缓存。"
+      },
+      {
+        "term": "邀请登记",
+        "meaning": "一笔单独的 Player Program 交易，可能把新钱包追加到邀请人的页面。它发生在角色交易之后；即使失败，也不会撤销角色。"
+      },
+      {
+        "term": "待处理的邀请出生点",
+        "meaning": "一条按钱包划分的浏览器记录，包含本地计算的位置、相机角度、Guardian Region 与邀请参数。页面调用一个尽力而为的辅助函数并捕获存储失败，因此无法保证记录一定持久化。它不是由角色指令写入的，而且当前 play/main.js 运行时不会使用它。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "检查名称只是准备，不代表拥有名称",
+      "body": "页面先读取 UsernameIndex，之后才允许进入下一步；提交时通常会复用缓存中的“可用”或“已拥有”结果。只有被程序接受的交易才能建立或验证 owner 关系。"
+    },
+    {
+      "title": "当前恰好只有两个固定模型可选",
+      "body": "男孩是一个含 353 个字符、可解码为 56 个长方体的 NCM2 字符串；女孩是一个含 451 个字符、可解码为 70 个长方体的 NCM2 字符串。预览或复制任一字符串都不会产生链上写入。"
+    },
+    {
+      "title": "一次 owner 批准可以处理三条记录",
+      "body": "指令标签 8 接收六个账户，并以原子方式处理 owner 的 PlayerProfile、PlayerAppearance 与标准 UsernameIndex。首次创建可以创建全部三条记录；同名 upsert 只验证已有名称索引，不会重写它。"
+    },
+    {
+      "title": "角色 confirmed、缓存登录、邀请与出生点是不同结果",
+      "body": "页面只会在 confirmed 后尝试写入缓存，随后再单独尝试邀请登记并跳转。缓存失败可能导致链上已经提交后页面仍报告失败；Play 运行时之后会读取 Profile 与 Appearance，邀请失败不会回滚创建，而当前 Play 入口从不应用待处理的出生点记录。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "before-create-is-preparation",
+      "eyebrow": "入口、名称与出生点准备",
+      "title": "钱包绑定与名称查询只是在准备请求；它们不会创建角色",
+      "paragraphs": [
+        "创建页面首先读取浏览器共享的钱包会话。如果缺少 walletAddress 或 walletBoundAt，就返回登录页。如果两个字符串都存在，页面会显示缩短后的地址并继续启动，不要求新的消息签名或交易签名。这表示首屏只知道浏览器声称绑定了哪个公开地址；它尚未证明注入式钱包当前已连接、仍由同一个人控制，也未证明任何 Player 账户存在。",
+        "玩家输入时，前端会去掉名称首尾空白，把长度限制为 32 个 Unicode 字符和 300 个 UTF-8 字节，并接受 ASCII 字母、数字、下划线，或 JavaScript Script=Han 属性匹配的任意字符。暂停输入 420 毫秒后，页面只把名称中的 ASCII 大写字母转成小写，计算 SHA-256 并推导 UsernameIndex，再以 confirmed 读取该地址。记录缺失会允许进入下一步；已由当前钱包拥有的记录也视为可用。因此 Alice 与 alice 会有意发生冲突，而非 ASCII 字符不会进行大小写折叠。",
+        "这次读取并不会预留名称。当匹配的本地状态已经是“可用”或“已拥有”时，普通提交路径不会强制进行第二次 RPC 读取，而是复用该结果。如果确实再次查询，但辅助函数在 RPC 出错后返回 null，那么当前表达式 result?.available !== false 也会求值为 true，因此只有明确的 available: false 才会阻止预检。在本玩家提交前，另一笔交易可能抢先创建同一个缺失的 UsernameIndex；不过 Player Program 会在交易内部重新执行 PDA 与 owner 检查。此外还有一处验证差异：浏览器的 Script=Han 类别包含合约较窄的 U+4E00 至 U+9FFF 范围之外的汉字。这样的名称可能在页面上看似有效且可用，却仍被程序拒绝。决定名称是否被接受的是程序最终结果，而不是看起来绿色的准备状态。",
+        "请求钱包签名前，页面还会根据邀请信息或 Genesis Guardian Region 信息，以及本地可用的世界配置计算候选出生点。该位置不包含在角色指令中；只有角色交易返回后，页面才把它保存到待处理的浏览器记录。因此，名称查询和出生点计算都不会创建 profile、appearance、名称所有权记录或位置写入。"
+      ],
+      "facts": [
+        {
+          "label": "进入页面需要",
+          "value": "两个本地钱包绑定字段",
+          "detail": "walletAddress 与 walletBoundAt 会把浏览器引导至创建页面；它们不是新的钱包控制权证明。"
+        },
+        {
+          "label": "查询时机",
+          "value": "防抖 420 毫秒，然后进行 confirmed RPC 读取",
+          "detail": "检查会推导并读取一个 UsernameIndex；该请求不会锁定或预留任何账户。"
+        },
+        {
+          "label": "提交前预检",
+          "value": "通常复用缓存中的成功结果",
+          "detail": "辅助函数会阻止明确的 available=false，但当前 null 错误结果仍可能通过；链上程序始终拥有最终决定权。"
+        },
+        {
+          "label": "名称身份",
+          "value": "不区分 ASCII 大小写",
+          "detail": "计算 SHA-256 前只会把 A 至 Z 转为小写，因此 Alice 与 alice 共用同一个可预测名称地址。"
+        },
+        {
+          "label": "候选出生点",
+          "value": "仅限本地准备",
+          "detail": "选定的位置与相机数值不在指令标签 8 中，也不是 PlayerProfile 位置数据。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-before-create-is-preparation-v2.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩在带有六个等大空凹槽的木架旁，拿着一张中央嵌有方形图案的普通长方形木质检查卡，女孩在旁观察；敞开的空箱与空浅托盘彼此分开，仍留在柜台上。",
+        "caption": "拿在六个等大空凹槽之外的普通卡片，表示把拟用名称与可寻址的索引空间进行比较，但没有把名称放入其中，也没有占用该空间。空箱与空托盘说明准备过程尚未生成角色记录或预留结果。这些都只是教学比喻，不是钥匙、凭证、钱包证明、哈希、RPC 响应、PDA、交易、预留或可用性保证。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "现在可用，不代表已经为你预留",
+        "body": "请把名称检查视为一种有用的预览。如果另一笔被接受的交易先创建了该标准 UsernameIndex，你之后的交易应当以原子方式整体失败，而不能夺走这个名称。"
+      }
+    },
+    {
+      "id": "two-fixed-model-previews",
+      "eyebrow": "当前模型选择与合约边界",
+      "title": "客户端预览两个固定的标准 NCM2 模型；合约验证的文本范围宽得多",
+      "paragraphs": [
+        "当前页面恰好包含两个硬编码选项。男性选项与仓库中的 chr_peasant_guy_blackhair.ncm 文本去掉末尾换行后完全一致；女性选项也与 chr_peasant_girl_orangehair.ncm 去掉末尾换行后的文本一致。包含换行符时，原始样例文件分别为 354 和 452 字节；提交的字符串则为 353 和 451 字节。本地 NCM 解码器把所选文本转换成长方体，Three.js 绘制这些方块，拖动操作旋转预览。整个过程不会铸造、上传任何东西，也不会根据玩家面部生成模型；“Generated Chain Code”这个标签具有误导性，因为页面只是选择已有标准文本，并未生成新的身体。",
+        "男孩代码含 353 个 ASCII 字符，可解码为 8 种颜色的 56 个长方体。女孩代码含 451 个字符，可解码为 10 种颜色的 70 个长方体。两者都以 NCM2 开头，远低于 Appearance 模型代码 2,048 个 UTF-8 字节的上限。复制代码只是把公开模型文本复制到剪贴板；这既不能证明剪贴板内容私密，也不会创建链上记录。",
+        "当前客户端为男孩发送模型类型 1，为女孩发送模型类型 2。Player Program 本身只检查类型是否为 1 或 2、代码是否为有效 UTF-8、长度是否为 1 至 2,048 字节，以及文本是否以区分大小写的 NCM 开头。它不会调用 NCM 解码器、验证长方体几何结构、强制要求 NCM2、把字节与任一标准样例比较，也不会把类型 2 绑定到女孩代码。官方页面提供的范围比当前合约实际接受的范围窄。",
+        "保存的 Appearance 可以包含名称、称号、一份身体模型代码和 12 条可见装备记录；但创建时发送的是空称号，而且程序会把每条 Appearance 装备记录初始化为空。因此，“所有角色数据都在链上”这句话范围过大：候选出生点、邀请结果、浏览器标签、动画、相机及其他游戏状态都不属于这次身体代码写入。"
+      ],
+      "facts": [
+        {
+          "label": "标准男孩模型",
+          "value": "353 个字符 · 56 个长方体",
+          "detail": "NCM2、8 种颜色；样例文件换行符之前为 353 个 UTF-8 字节。"
+        },
+        {
+          "label": "标准女孩模型",
+          "value": "451 个字符 · 70 个长方体",
+          "detail": "NCM2、10 种颜色；样例文件换行符之前为 451 个 UTF-8 字节。"
+        },
+        {
+          "label": "客户端选项",
+          "value": "恰好两个固定字符串",
+          "detail": "页面的普通创建流程没有身体编辑器、随机生成器、上传功能或任意代码输入框。"
+        },
+        {
+          "label": "程序验证",
+          "value": "类型 1 或 2 · UTF-8 · 1–2,048 字节 · 前缀 NCM",
+          "detail": "程序不会解码几何结构，也不能证明某个性别标签与某一具体身体字符串相匹配。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-two-fixed-model-previews-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩以中性预览姿势站在一座石台上，女孩在第二座空石台旁等待；两人之间放着一个小型分层色样。",
+        "caption": "一座有人、一座空置的石台表示在两个现有固定预览之间切换，而不是创建第三个身体。分层色样表示紧凑的模型颜色数据。青色边缘光只是说明性美术效果，不是 NCM 验证器、选中状态证明、mint、上传或链上确认。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "以 NCM 为前缀，不等于几何结构已验证",
+        "body": "客户端可以解码两个官方样例，但当前程序会保存任何符合大小限制、以区分大小写的 NCM 为前缀且被接受的 UTF-8 文本。读者不能把这项前缀检查夸大成完整的模型审计。"
+      }
+    },
+    {
+      "id": "one-transaction-three-records",
+      "eyebrow": "OWNER 批准、账户与存储资金",
+      "title": "一条由 owner 签署的指令会以原子方式处理三条公开记录，但并不总会重写全部三条",
+      "paragraphs": [
+        "按下“创建角色”后，页面会调用 ensureNameAvailable；该函数通常复用内存中匹配的“可用”或“已拥有”结果，而不会强制再次进行 RPC 读取。随后，页面选择当前固定模型并调用 createPlayerAppearanceOnChain。链适配器向钱包 Provider 获取 owner 公钥，推导三个 PDA，把 female 映射为模型类型 2、把其他所有提交的性别值映射为 1，并构建一笔交易。第一条指令把计算单元上限提高到 240,000；第二条是 Player Program 的标签 8 指令，恰好使用六个账户：owner、PlayerProfile、PlayerAppearance、GlobalConfig、System Program 与 UsernameIndex。",
+        "程序要求 owner 签名且账户可写，检查可写记录账户、System Program 以及由 Core 拥有的 GlobalConfig，并自行推导与 owner 关联的 profile 和 appearance 地址。它确保 profile 存在，把选定名称写入其中，并创建或验证标准 UsernameIndex。若已有名称和 owner 相同，UsernameIndex 验证会直接返回，不重写该账户。随后程序创建或验证 Appearance，并打包模型与元数据。任何检查或分配失败，整条指令都会作为一个整体失败；页面不应把它描述为角色“部分创建成功”。",
+        "按 2026 年 7 月 16 日在 finalized 的 Devnet 上观测到的租金规则，空的 773 字节 profile 需要 0.00627096 SOL，9,612 字节 appearance 需要 0.0677904 SOL，256 字节名称索引需要 0.00267264 SOL。因此，首次创建且三者都缺失时，账户余额约需 0.076734 SOL，另加交易手续费。已有的 profile、appearance 或名称索引会改变实际补入金额，失败交易仍可能产生手续费后果。这些数字只是观测结果，不是永久报价。",
+        "页面文案说这笔储备金不是付给团队的款项，但真实托管边界还需要更细致地说明。账户存在期间，注入的 lamports 会留在程序拥有的账户中。Player Program 标签 9 只允许配置好的协议财政库权限方关闭 PlayerAppearance，要求接收方就是同一财政库，并把 Appearance 中的全部 lamports 转到那里。当前程序没有让玩家关闭 Appearance 并取回资金的对应指令。这不表示首次创建的全部金额会立刻支付给财政库，但也表示不能向玩家承诺其可以单方面取回 Appearance 储备金。",
+        "对于 Appearance，upsert 也意味着替换，而不是追加。再次写入已有 Appearance 时，程序会保留原始创建 slot 与时间，但会重新打包整条记录，并把全部 12 条 Appearance 装备记录初始化为空。因此，它可能清除保存在该 Appearance 中的可见装备记录。NameIndex 的行为不同：同名 upsert 只验证已有索引；新名称会创建新索引，但不会释放该钱包之前的名称索引。"
+      ],
+      "facts": [
+        {
+          "label": "Player 指令",
+          "value": "标签 8 · 六个账户",
+          "detail": "同一笔交易中，一条计算预算指令位于一条 upsert_player_appearance 指令之前。"
+        },
+        {
+          "label": "Profile 记录",
+          "value": "player-v7 · 773 字节",
+          "detail": "首次创建租金观测值：6,270,960 lamports，即 0.00627096 SOL。"
+        },
+        {
+          "label": "Appearance 记录",
+          "value": "appearance-v1 · 9,612 字节",
+          "detail": "首次创建租金观测值：67,790,400 lamports；保存的关闭权限方是协议财政库。"
+        },
+        {
+          "label": "名称记录",
+          "value": "player-name-v1 + 哈希 · 256 字节",
+          "detail": "首次创建租金观测值：2,672,640 lamports；该地址代表经 ASCII 小写化后的名称身份。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-one-transaction-three-records-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩转动一台木制压机，横梁延伸到三个独立工位——单方块托盘、名称形状托盘，以及装有分层模型的敞开箱子；女孩空着双手在旁观察。",
+        "caption": "一台压机表示一条由 owner 批准的指令，三个独立工位分别表示 PlayerProfile、UsernameIndex 与 PlayerAppearance。机械联动只用于说明原子处理；它不是交易构建器、签名者、账户推导、租金计量器，也不能证明任何 Devnet 写入成功。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "存储出资与资金收回权限是两个不同问题",
+        "body": "既要问现在由谁提供 lamports，也要问程序允许谁日后收回它们。对于 PlayerAppearance，当前答案是：由玩家出资创建，只有协议财政库可以关闭。"
+      }
+    },
+    {
+      "id": "confirmed-is-not-everything",
+      "eyebrow": "确认、缓存、邀请与 Play 交接",
+      "title": "角色已 confirmed，并不能证明之后每个浏览器步骤与邀请步骤都成功",
+      "paragraphs": [
+        "共享交易辅助函数发送已签名交易，并在 confirmed 停止等待。只有 createPlayerAppearanceOnChain 返回 submitted 结果后，页面才尝试保存用户名和角色信息。名称只写入全局 nicechunk.username 键；性别、模型代码、标签与创建时间则各写两次：一次写入旧版全局键，一次写入钱包作用域键。这些 setItem 调用没有局部 try/catch。如果链上结果返回后存储抛出异常，外层创建 catch 会报告失败并让玩家停留在页面上，尽管已被接受的交易无法被这个浏览器错误回滚；较早的写入可能保留，较晚的写入则可能缺失。成功的 localStorage 写入能让后续页面更快，但它们仍只是可编辑的设备数据，不是另一份签名、链上账户或独立验证。",
+        "这个区别在登录入口很重要。如果用户名已经存在，而且钱包作用域的角色代码键也存在，resolveBoundWalletCharacter 会直接调用 showReady，不会再次读取 PlayerAppearance。若没有这条捷径，登录流程会读取 owner 的 Appearance，通过链适配器检查其 owner 与 program，并根据返回的模型代码重建缓存。捷径不表示整个游戏会永远信任缓存：play/main.js 启动后，chainPlayer 的首次刷新会异步读取 PlayerProfile、PlayerAppearance 与进度。准确的边界是：登录可以跳过读取，但 Play 随后会自行同步公开记录。",
+        "无保护的角色缓存写入成功后，创建流程会调用尽力而为的辅助函数，尝试保存待处理的邀请出生点和本地邀请回执，再调用 registerInviteResult。这两个辅助函数会捕获 localStorage 失败，因此进入邀请步骤并不能证明任一本地记录已经持久化。当存在有效 referrer 时，registerInviteResult 会调用 registerInviteOnChain，针对一个 InviteIndex 页面构建并提交另一笔交易。邀请人页面缺失、记录重复、钱包问题、用户拒绝、RPC 错误或程序失败，都可能产生未提交或失败结果。角色交易此时已经完成，不会被回滚；页面会尝试记录邀请结果，在有效 referrer 的追加未提交时给出警告，但仍会跳转到 Play。",
+        "待处理出生点记录是另一条独立边界。创建页面根据 Guardian Region 与地形高度计算它，但指令标签 8 不会写入该位置。仓库中较旧的 src/main.js 会使用这条本地记录；当前 play/main.js 入口既不导入也不调用 consumePendingInviteSpawn。因此，在本次审核的运行时中，尝试保存草稿——甚至在存储中发现草稿——都不能证明 Play 已应用它。页面不能把“Character appearance created on-chain”扩展成缓存、邀请、出生点、finalized 或所有可见 Play 状态也都成功的主张。"
+      ],
+      "steps": [
+        {
+          "title": "检查角色交易本身",
+          "body": "使用获准的诊断工具返回的完整签名，在 Solana Explorer 中以 cluster=devnet 查看。确认交易成功、包含 Player Program CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB，并用预期的 owner 与派生账户调用标签 8。只有“成功”标签而没有完整签名，证据力度更弱。"
+        },
+        {
+          "title": "确认后读取全部三个地址",
+          "body": "根据 owner 推导 PlayerProfile 与 PlayerAppearance，并根据经 ASCII 小写化名称的 SHA-256 推导 UsernameIndex。逐一验证账户地址、Player Program owner、精确数据长度、magic、保存的 owner，以及相关名称或模型字段。"
+        },
+        {
+          "title": "在干净浏览器中测试缓存边界",
+          "body": "另开一个没有角色 localStorage 的隐私浏览器，并绑定同一钱包。真实的 Appearance 应当可以通过 RPC 找到，并重新填充会话。若就绪页面只在旧浏览器中出现，这只能说明缓存带来便利，不能证明已从链上重建。"
+        },
+        {
+          "title": "分别检查邀请与出生点",
+          "body": "如果提供了邀请，请检查它单独的签名与邀请人的 InviteIndex，不要因为角色成功就假定邀请已经追加。随后观察 Play 的实际起始位置；当前 play/main.js 不会使用待处理的本地出生点记录。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "交易等待",
+          "value": "confirmed，而不是 finalized",
+          "detail": "辅助函数在满足 confirmed 轮询条件后返回；页面不会等待 finalized 标签。"
+        },
+        {
+          "label": "缓存时机",
+          "value": "角色结果返回后写入，没有存储保护",
+          "detail": "链上已经提交后，setItem 失败仍可能进入外层错误路径；界面无法撤销该交易。"
+        },
+        {
+          "label": "Play 身份同步",
+          "value": "异步读取 Profile 与 Appearance",
+          "detail": "登录入口可能跳过 Appearance，但 play/main.js 会启动强制的 chainPlayer 刷新，读取这两条公开记录。"
+        },
+        {
+          "label": "邀请时机",
+          "value": "之后单独发起的交易",
+          "detail": "邀请失败会被记录或写入日志，但不会撤销已经 confirmed 的角色交易。"
+        },
+        {
+          "label": "出生点交接",
+          "value": "尽力而为的本地保存，当前 Play 入口不会应用",
+          "detail": "保存辅助函数会捕获 localStorage 失败，且不报告持久化结果。src/main.js 中有使用方，但本次审核的 play/main.js 运行时没有。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-confirmed-is-not-everything-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：女孩站在木工作坊内三张带绿色边缘的记录表旁；另一个房间里放着一只带橙色边缘的敞开盒子，男孩则望向室外远处地面上的青色边框。",
+        "caption": "成组的绿色记录表示角色交易所涉及的记录；单独的橙色盒子表示之后的邀请处理，远处的青色边框表示候选出生点交接。它们在空间上彼此分离，用来说明一个 confirmed 结果不能证明其他结果。画面中的颜色与物件都不是真实的 commitment 指示器、localStorage、InviteIndex 数据或出生点应用证据。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "准确说出你验证的是哪一种结果",
+        "body": "“角色交易已 confirmed”“Appearance 已读回”“浏览器缓存已写入”“缓存登录已接受”“邀请已追加”“出生点已应用”和“交易已 finalized”是七种不同陈述。只报告你有对应证据支持的结果。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现代码",
+    "title": "代码把预览、程序写入与后续浏览器工作分开",
+    "summary": "这些摘录展示名称规则差异、固定模型预览、交易构建、UsernameIndex 行为、Appearance 替换与关闭、confirmed 轮询、缓存行为、单独的邀请提交，以及出生点交接。通俗说明会解释每段摘录能证明什么，以及哪些内容仍在其范围之外。"
+  },
+  "formulas": [
+    {
+      "title": "当前实现的创建顺序",
+      "expression": "local binding → name read → fixed NCM preview → local spawn candidate → owner transaction → confirmed → character-cache attempt → { success: best-effort spawn/receipt saves + optional invite → redirect; failure: error UI, no chain rollback }",
+      "ariaLabel": "本地钱包绑定之后依次进行名称读取、固定 NCM 预览、本地候选出生点计算、owner 交易、confirmed 结果与角色缓存尝试。缓存成功后，会尽力保存待处理出生点与回执、可选地发起邀请并跳转；缓存失败则进入错误界面，但不会回滚链上交易。",
+      "explanation": "箭头表示执行顺序，不表示各阶段拥有同等证明力。前四个阶段在设备上准备输入；owner 交易才是角色写入。confirmed 之后，无保护的角色缓存错误可能阻止后续出生点、邀请与跳转流程，却不会撤销交易。待处理出生点与回执辅助函数会自行捕获存储错误，因此进入邀请或跳转也不能证明这些本地草稿已保存。跳转成功同样不能证明当前 Play 运行时使用了待处理出生点。",
+      "terms": [
+        {
+          "symbol": "name read",
+          "meaning": "在某个时点查询一个可预测的 UsernameIndex，并不是预留。"
+        },
+        {
+          "symbol": "owner transaction",
+          "meaning": "一笔经钱包批准的交易，其中包含计算预算与 Player Program 标签 8。"
+        },
+        {
+          "symbol": "confirmed",
+          "meaning": "当前辅助函数返回时采用的 commitment；它不是 finalized 标签。"
+        },
+        {
+          "symbol": "character-cache attempt",
+          "meaning": "交易后进行的无保护写入：全局名称，以及全局与钱包作用域的角色 localStorage；异常会进入外层错误路径，并可能留下不完整缓存。"
+        },
+        {
+          "symbol": "best-effort spawn/receipt saves",
+          "meaning": "之后两个会在内部捕获存储错误的 localStorage 辅助函数。调用它们不能证明任一记录已经持久化。"
+        },
+        {
+          "symbol": "optional invite transaction",
+          "meaning": "第二次提交；没有有效 referrer 时会跳过，而且可以独立失败。"
+        }
+      ]
+    },
+    {
+      "title": "三个公开地址的推导方式不同",
+      "expression": "Profile = PDA(Player, \"player-v7\", owner); Appearance = PDA(Player, \"appearance-v1\", owner); Name = PDA(Player, \"player-name-v1\", SHA256(ASCII-lowercase(name)))",
+      "ariaLabel": "Profile 根据 Player Program、player-v7 标签和 owner 推导；Appearance 根据 Player Program、appearance-v1 标签和 owner 推导；Name 根据 Player Program、player-name-v1 标签及经 ASCII 小写化名称的 SHA-256 推导。",
+      "explanation": "同一钱包会生成两个基于 owner 的地址，而名称记录基于公开的标准哈希。这里的 PDA 指可预测的公开账户地址，不是助记词或秘密 seed。每次 PDA 推导也都包含 Player Program ID。",
+      "terms": [
+        {
+          "symbol": "owner",
+          "meaning": "必须签署角色指令、并保存在记录中的公钥。"
+        },
+        {
+          "symbol": "ASCII-lowercase(name)",
+          "meaning": "把 A 至 Z 改为 a 至 z，其余 UTF-8 字符保持不变。"
+        },
+        {
+          "symbol": "SHA256",
+          "meaning": "一个 32 字节的公开摘要，用作固定大小的 PDA seed；它不是加密。"
+        }
+      ]
+    },
+    {
+      "title": "两个官方基准样例只是合约所接受模型范围的一小部分",
+      "expression": "{(1, canonical boy NCM2), (2, canonical girl NCM2)} ⊂ {(kind, code) | kind ∈ {1, 2}; code is UTF-8; 1–2,048 bytes; code starts with case-sensitive NCM}",
+      "ariaLabel": "两组官方“模型类型与基准样例”组合，是当前 Player Program 所接受“模型类型与代码”组合的真子集。",
+      "explanation": "真子集表示官方页面的每个选项都符合合约规则，但还有许多其他字符串也符合这些规则。客户端恰好提供两个可解码的基准样例。程序只验证类型数字、UTF-8 与字节限制，以及 NCM 前缀；它不能证明 NCM2 几何结构，也不会把某个基准样例与某种类型绑定。",
+      "terms": [
+        {
+          "symbol": "left-hand set",
+          "meaning": "官方创建页面允许玩家预览和提交的两个、已精确去除末尾空白的字符串。"
+        },
+        {
+          "symbol": "⊂",
+          "meaning": "真子集：左侧所有值都被右侧允许，但右侧还允许其他值。"
+        },
+        {
+          "symbol": "accepted model envelope",
+          "meaning": "Player Program 强制执行的外层文本与大小检查；它不是完整的 NCM 几何验证。"
+        }
+      ]
+    },
+    {
+      "title": "观测到的首次创建存储资金",
+      "expression": "0.00627096 SOL + 0.06779040 SOL + 0.00267264 SOL = 0.07673400 SOL, plus transaction fee",
+      "ariaLabel": "观测到的 profile 免租最低余额、appearance 免租最低余额与 username index 免租最低余额相加，等于 0.076734 SOL，另加交易手续费。",
+      "explanation": "这笔合计假设三个账户都不存在，采用 2026 年 7 月 16 日获取的 finalized Devnet 租金查询结果。已有且有资金的账户可以减少需要补入的 lamports。网络租金规则与手续费可能变化，而且当前 Appearance 关闭路径会把收回的 Appearance lamports 发送给协议财政库，而不是玩家。",
+      "terms": [
+        {
+          "symbol": "0.00627096 SOL",
+          "meaning": "观测到的 773 字节 PlayerProfile 免租最低余额。"
+        },
+        {
+          "symbol": "0.06779040 SOL",
+          "meaning": "观测到的 9,612 字节 PlayerAppearance 免租最低余额。"
+        },
+        {
+          "symbol": "0.00267264 SOL",
+          "meaning": "观测到的 256 字节 UsernameIndex 免租最低余额。"
+        },
+        {
+          "symbol": "transaction fee",
+          "meaning": "处理交易所需的单独费用；它不包含在账户余额合计中。"
+        }
+      ]
+    },
+    {
+      "title": "一个结果不能代替之后的所有结果",
+      "expression": "characterConfirmed ≠ appearanceReadBack ≠ cacheWritten ≠ cacheTrusted ≠ inviteRegistered ≠ spawnApplied ≠ finalized",
+      "ariaLabel": "角色 confirmed 与 appearance 已读回、缓存已写入、缓存登录已信任、邀请已登记、出生点已应用或交易已 finalized，并不是同一种观测。",
+      "explanation": "不等号并不是说后续步骤一定失败，而是说明每项主张都有自己的证据来源与失败边界。严谨的状态消息会准确说出所处阶段，而不会把全部七项都压缩成一个“已创建”。",
+      "terms": [
+        {
+          "symbol": "characterConfirmed",
+          "meaning": "标签 8 交易满足了客户端的 confirmed 等待条件。"
+        },
+        {
+          "symbol": "appearanceReadBack",
+          "meaning": "之后的 RPC 读取找到了派生的 Appearance 账户，并在解码前验证了其 program owner 与保存的 owner。"
+        },
+        {
+          "symbol": "cacheWritten",
+          "meaning": "创建页面无保护的用户名与角色缓存写入序列完成且未抛出异常；但它仍是可编辑的设备状态。"
+        },
+        {
+          "symbol": "cacheTrusted",
+          "meaning": "登录界面接受了钱包作用域的浏览器数据；这可能在没有重新读取 Appearance 的情况下发生。"
+        },
+        {
+          "symbol": "inviteRegistered",
+          "meaning": "一笔单独的追加交易成功，或一条匹配的已有 InviteIndex 记录得到了独立验证。"
+        },
+        {
+          "symbol": "spawnApplied",
+          "meaning": "实际 Play 运行时使用了预期位置，而不只是创建流程尝试保存一份本地草稿。"
+        },
+        {
+          "symbol": "finalized",
+          "meaning": "交易之后达到了 Solana 更强的 finalized commitment；创建辅助函数不会等待这个标签。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "可用性检查会读取一个派生的名称账户",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function checkPlayerNameAvailability(playerName, ownerAddress = null) {\n  const { normalized } = encodePlayerName(playerName);\n  if (!normalized) return { available: false, reason: \"empty-player-name\" };\n  const [usernameIndex] = await deriveUsernameIndexPdaForName(normalized);\n  const account = await getNicechunkConnection().getAccountInfo(usernameIndex, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      available: true,\n      usernameIndex: usernameIndex.toBase58(),\n      playerName: normalized,\n    };\n  }",
+      "explanation": "客户端会规范化拟用文本，推导一个可预测的 UsernameIndex，并进行 confirmed 读取。没有返回数据时，它会向界面报告“可用”。这段代码中没有锁、预留交易、签名或对之后状态的保证。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "规范化提交的名称，并在发出任何 RPC 请求前拒绝空结果。"
+        },
+        {
+          "lines": "4-5",
+          "meaning": "推导标准名称 PDA，并在 confirmed 下准确读取该账户。"
+        },
+        {
+          "lines": "6-12",
+          "meaning": "在本次响应中把缺失账户视为可用，并返回候选地址与显示名称。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器接受 Unicode Script=Han 类别",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function encodePlayerName(playerName) {\n  const normalized = String(playerName ?? \"\").trim();\n  if (Array.from(normalized).length > playerNameMaxChars) {\n    throw new Error(`Player name is too long: max ${playerNameMaxChars} characters.`);\n  }\n  if (!/^[\\p{Script=Han}A-Za-z0-9_]*$/u.test(normalized)) {\n    throw new Error(\"Player name contains unsupported characters.\");\n  }\n  const bytes = Buffer.from(normalized, \"utf8\");\n  if (bytes.length > playerNameMaxBytes) {\n    throw new Error(`Player name is too large: max ${playerNameMaxBytes} UTF-8 bytes.`);\n  }\n  return { normalized, bytes };\n}",
+      "explanation": "浏览器会统计 Unicode 字符、应用字节上限，并接受 ASCII 字母、数字、下划线，或 JavaScript 宽泛的 Script=Han 属性中的任意字符。这是一项有用的客户端检查，但并不是合约的确切规则，不能保证提交一定通过。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "去掉文本首尾空白，并执行浏览器的字符数上限。"
+        },
+        {
+          "lines": "6-8",
+          "meaning": "应用页面所使用的宽泛 Script=Han 或 ASCII 模式。"
+        },
+        {
+          "lines": "9-14",
+          "meaning": "编码为 UTF-8，执行字节上限，并返回规范化文本与字节。"
+        }
+      ]
+    },
+    {
+      "title": "合约只接受其明确规定的汉字码点区间",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_name(name: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if name.len() > PLAYER_NAME_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidPlayerName);\n        }\n        let value =\n            core::str::from_utf8(name).map_err(|_| NicechunkPlayerError::InvalidPlayerName)?;\n        let mut char_count = 0usize;\n        for ch in value.chars() {\n            char_count += 1;\n            if char_count > PLAYER_NAME_MAX_CHARS {\n                return Err(NicechunkPlayerError::InvalidPlayerName);\n            }\n            let valid =\n                ch == '_' || ch.is_ascii_alphanumeric() || ('\\u{4e00}'..='\\u{9fff}').contains(&ch);\n            if !valid {\n                return Err(NicechunkPlayerError::InvalidPlayerName);\n            }\n        }\n        Ok(value)\n    }",
+      "explanation": "Player Program 会独立检查 UTF-8、同样的配置大小上限，以及明确的字符规则。它的汉字区间只有 U+4E00 至 U+9FFF，比 JavaScript Script=Han 更窄。区间外的字符可能通过页面上的绿色准备状态，但交易仍会失败。",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "检查字符之前，先拒绝超出预算或无效的 UTF-8 字节序列。"
+        },
+        {
+          "lines": "7-12",
+          "meaning": "统计 Unicode 标量值，并执行合约的字符数上限。"
+        },
+        {
+          "lines": "13-20",
+          "meaning": "只允许下划线、ASCII 字母数字，或明确的 U+4E00–U+9FFF 区间。"
+        }
+      ]
+    },
+    {
+      "title": "提交通常复用缓存的可用性结果，只有明确的 false 才会被阻止",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "async function ensureNameAvailable(name) {\n  const normalized = String(name || \"\").trim();\n  if (!isValidName(normalized)) return false;\n  if (nameAvailability.name === normalized && nameAvailability.status === \"available\") return true;\n  if (nameAvailability.name === normalized && nameAvailability.status === \"owned\") return true;\n  const result = await checkCurrentNameAvailability(normalized);\n  return result?.available !== false;\n}",
+      "explanation": "匹配的 available 或 owned 状态会立即返回，不会重新进行 RPC 读取。需要再次检查时，最后的比较只拒绝字面值 false。因为 null?.available 是 undefined，而 undefined 不等于 false，所以 RPC 错误产生的 null 可能通过这项预检。Player Program 的 PDA 与 owner 检查仍拥有最终决定权，依然可以拒绝交易。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "去掉名称首尾空白，并在本地格式检查失败时停止。"
+        },
+        {
+          "lines": "4-5",
+          "meaning": "对完全相同的文本复用内存中的成功结果，而不是再次读取名称账户。"
+        },
+        {
+          "lines": "6-7",
+          "meaning": "执行查询时阻止明确的 unavailable，但当前会允许 null 或其他并非字面值 false 的结果。"
+        }
+      ]
+    },
+    {
+      "title": "选择模型会解码并预览已经提供的文本",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "function selectModel(index) {\n  activeIndex = Math.max(0, Math.min(characterModels.length - 1, index));\n  const model = characterModels[activeIndex];\n  currentCharacter = decodeNcm(model.code);\n  selectedModelName.textContent = t(model.labelKey);\n  chainCode.value = model.code;\n  codeBytes.textContent = String(new TextEncoder().encode(model.code).length);\n  boxCount.textContent = String(currentCharacter.boxes.length);\n  codePrefix.textContent = model.code.split(\":\", 1)[0] || \"NCM\";\n  genderCards.forEach((card) => card.classList.toggle(\"is-active\", card.dataset.gender === model.gender));\n  renderCharacter(currentCharacter);\n  updateCreateState();\n}",
+      "explanation": "characterModels 是在该函数上方定义的双元素数组。选择操作被限制在这个数组内；函数会解码其中已有代码，显示字节数与长方体数，并渲染本地预览。它不会生成新的 NCM 字符串、请求钱包签名或写入账户。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "从固定数组中选择一个条目；超出范围的索引会被限制回该数组范围内。"
+        },
+        {
+          "lines": "4-9",
+          "meaning": "解码所选字符串，并显示其标签、确切文本、UTF-8 字节数、长方体数与前缀。"
+        },
+        {
+          "lines": "10-12",
+          "meaning": "更新本地选中样式，绘制解码后的长方体，并重新判断页面能否继续。"
+        }
+      ]
+    },
+    {
+      "title": "页面先等待角色调用，然后执行无保护的浏览器缓存写入",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "    const model = characterModels[activeIndex];\n    const spawnState = await createInitialSpawnState();\n    const { createPlayerAppearanceOnChain } = await import(\"../src/chain/nicechunkChain.js\");\n    const result = await createPlayerAppearanceOnChain({\n      playerName: name,\n      gender: model.gender,\n      title: \"\",\n      ncmCode: model.code,\n    });\n    if (result?.submitted === false) throw new Error(result.reason || \"player-appearance-not-saved\");\n    persistUsername(name);\n    localStorage.setItem(characterStorageKeys.gender, model.gender);\n    localStorage.setItem(characterStorageKeys.code, model.code);\n    localStorage.setItem(characterStorageKeys.label, t(model.labelKey));\n    localStorage.setItem(characterStorageKeys.createdAt, String(Date.now()));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.gender), model.gender);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.code), model.code);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.label), t(model.labelKey));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.createdAt), String(Date.now()));",
+      "explanation": "候选出生点会先被计算，但不会传给 createPlayerAppearanceOnChain。被 await 的角色调用只接收名称、性别标签、空称号与固定模型代码。随后才写入浏览器中的名称与模型缓存，但这些 setItem 调用没有内部错误保护。链上可能已经 confirmed 后，存储异常仍会到达 submitCharacter 的外层 catch，因此 UI 可能报告失败，却不会撤销公开记录。",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "选择固定模型，并把候选出生点计算作为单独的本地准备。"
+        },
+        {
+          "lines": "3-10",
+          "meaning": "加载链适配器，等待 appearance upsert，并把明确的 not-submitted 结果转为失败。"
+        },
+        {
+          "lines": "11-19",
+          "meaning": "只有之后，才在 localStorage 中保存名称，以及模型选择的旧版全局副本和钱包作用域副本。"
+        }
+      ]
+    },
+    {
+      "title": "链适配器构建一笔 240,000 计算单元的交易",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const [playerProfile] = derivePlayerProfilePda(provider.publicKey);\n  const [appearance] = derivePlayerAppearancePda(provider.publicKey);\n  const [usernameIndex] = await deriveUsernameIndexPdaForName(normalized);\n  const modelKind = String(gender).toLowerCase() === \"female\" ? 2 : 1;\n  const tx = new Transaction();\n  tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 240_000 }));\n  tx.add(createUpsertPlayerAppearanceInstruction({\n    authority: provider.publicKey,\n    playerProfile,\n    appearance,\n    usernameIndex,\n    modelKind,\n    playerNameBytes: nameBytes,\n    titleBytes,\n    codeBytes,\n  }));\n  const conn = getNicechunkConnection();\n  const signature = await signAndSendWalletTransaction(provider, tx, conn);",
+      "explanation": "公开的 owner 决定 profile 与 appearance 地址，标准名称则决定索引。交易包含一条计算预算指令和一条 upsert 指令，随后经过单独的钱包签名与 confirmed 提交辅助函数。本地计算的出生点并不在其中。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "推导三个不同的 PDA，并把客户端性别标签映射为单字节模型类型。"
+        },
+        {
+          "lines": "5-16",
+          "meaning": "构建一笔计算单元上限为 240,000 的交易，其中包含确切的角色载荷与账户。"
+        },
+        {
+          "lines": "17-18",
+          "meaning": "通过钱包路径提交，并等待辅助函数结果后再返回创建页面。"
+        }
+      ]
+    },
+    {
+      "title": "指令标签 8 列出全部六个账户",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const header = Buffer.alloc(8);\n  header.writeUInt8(8, 0);\n  header.writeUInt8(Number(modelKind) === 2 ? 2 : 1, 1);\n  header.writeUInt16LE(name.length, 2);\n  header.writeUInt16LE(title.length, 4);\n  header.writeUInt16LE(code.length, 6);\n  return new TransactionInstruction({\n    programId: playerProgramId,\n    keys: [\n      { pubkey: authority, isSigner: true, isWritable: true },\n      { pubkey: playerProfile, isSigner: false, isWritable: true },\n      { pubkey: appearance, isSigner: false, isWritable: true },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n      { pubkey: usernameIndex, isSigner: false, isWritable: true },\n    ],\n    data: Buffer.concat([header, name, title, code]),\n  });",
+      "explanation": "头部第一个字节选择 Player Program 标签 8。头部其余部分声明模型类型与字节长度，后面紧跟确切的名称、称号和代码字节。六个账户 meta 表明哪些公开记录可以改变、哪个 owner 必须签名；其中没有邀请索引或出生点位置。",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "把指令标签、规范化模型类型与三个字节长度编码进一个八字节头部。"
+        },
+        {
+          "lines": "7-16",
+          "meaning": "以 Player Program 为目标，声明一个签名者、三个可写 PDA、GlobalConfig 与 System Program。"
+        },
+        {
+          "lines": "17-18",
+          "meaning": "把头部与确切文本字节拼接成指令载荷。"
+        }
+      ]
+    },
+    {
+      "title": "已有名称索引会被验证；缺失的名称索引会被创建",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let name_hash = canonical_player_name_hash(player_name);\n    let (expected_username_index, bump) = username_index_pda(program_id, &name_hash);\n    require_key_eq(\n        username_index.key,\n        &expected_username_index,\n        NicechunkPlayerError::InvalidUsernameIndexPda,\n    )?;\n    if username_index.owner == program_id {\n        let data = username_index.try_borrow_data()?;\n        return UsernameIndex::validate_owner_or_available(\n            &data,\n            owner,\n            player_profile,\n            global_config,\n            &name_hash,\n        );\n    }\n    if username_index.owner != &system_program::ID || username_index.data_len() != 0 {\n        return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n    }\n    create_or_allocate_username_index_pda(\n        payer,\n        username_index,\n        system_program_account,\n        program_id,\n        &name_hash,\n        bump,\n    )?;\n    let mut data = username_index.try_borrow_mut_data()?;\n    UsernameIndex::pack(\n        &mut data,\n        &UsernameIndexInitArgs {\n            bump,\n            owner,\n            player_profile,\n            global_config,\n            name_hash: &name_hash,\n            display_name: player_name,\n            created_slot: clock.slot,\n        },\n    )\n}",
+      "explanation": "程序为提交的标准名称推导索引。如果该账户已经由 Player Program 拥有，验证后便直接返回，不会重新打包。若该地址仍是空的 System 账户，程序会分配并打包一个新索引。标签 8 只提供这一个已提交名称的索引，因此更换新名称会创建新索引，却没有向这条路径提供旧索引供其关闭或释放。",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "对提交的标准名称计算哈希，推导其确切 PDA，并拒绝不同地址。"
+        },
+        {
+          "lines": "8-17",
+          "meaning": "对于已有、由 Player Program 拥有的索引，验证其 owner 与关联记录，然后直接返回而不重写。"
+        },
+        {
+          "lines": "18-28",
+          "meaning": "拒绝非空的外部账户；否则在派生地址分配缺失索引。"
+        },
+        {
+          "lines": "29-42",
+          "meaning": "把 owner、关联 profile、配置、标准哈希、显示名称与创建 slot 打包进新索引。"
+        }
+      ]
+    },
+    {
+      "title": "只有配置好的财政库可以关闭 Appearance 并接收其中的 lamports",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "fn close_player_appearance(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    if accounts.len() != 3 {\n        return Err(NicechunkPlayerError::InvalidAccountCount.into());\n    }\n    let account_info_iter = &mut accounts.iter();\n    let treasury_authority = next_account_info(account_info_iter)?;\n    let appearance = next_account_info(account_info_iter)?;\n    let recipient = next_account_info(account_info_iter)?;\n\n    if !treasury_authority.is_signer || !treasury_authority.is_writable || !recipient.is_writable {\n        return Err(NicechunkPlayerError::InvalidTreasuryAuthority.into());\n    }\n    require_key_eq(\n        treasury_authority.key,\n        &NICECHUNK_TREASURY_AUTHORITY,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        recipient.key,\n        treasury_authority.key,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        appearance.owner,\n        program_id,\n        NicechunkPlayerError::InvalidAppearanceOwner,\n    )?;\n\n    {\n        let data = appearance.try_borrow_data()?;\n        PlayerAppearance::validate_treasury_authority(&data, treasury_authority.key)?;\n        let owner = PlayerAppearance::owner(&data)?;\n        let (expected_appearance, _) =\n            Pubkey::find_program_address(&[PLAYER_APPEARANCE_SEED, owner.as_ref()], program_id);\n        require_key_eq(\n            appearance.key,\n            &expected_appearance,\n            NicechunkPlayerError::InvalidAppearancePda,\n        )?;\n    }\n    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;\n    Ok(())\n}",
+      "explanation": "标签 9 不是玩家退款路径。它要求配置好的财政库签名，要求接收账户就是同一财政库，检查由程序拥有且根据 owner 派生的 Appearance，清空其数据，并把每个 lamport 都转给财政库。玩家为 Appearance 创建出资，但这里没有对应的关闭并收回资金指令。",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "严格要求财政库签名者、Appearance 账户与接收方这三个账户。"
+        },
+        {
+          "lines": "10-27",
+          "meaning": "要求账户可写、使用配置好的财政库密钥、接收方为同一密钥，并且账户由 Player Program 拥有。"
+        },
+        {
+          "lines": "29-40",
+          "meaning": "验证 Appearance 中保存的财政库，以及根据其玩家 owner 推导的 Appearance PDA。"
+        },
+        {
+          "lines": "41-52",
+          "meaning": "把账户数据清零，将全部 lamports 转给财政库接收方，并让 Appearance 的 lamports 归零。"
+        }
+      ]
+    },
+    {
+      "title": "合约检查的是外层范围，而不是 NCM 几何结构",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_model_kind(model_kind: u8) -> Result<(), NicechunkPlayerError> {\n        if model_kind != CHARACTER_MODEL_KIND_MALE && model_kind != CHARACTER_MODEL_KIND_FEMALE {\n            return Err(NicechunkPlayerError::InvalidCharacterModelKind);\n        }\n        Ok(())\n    }\n\n    pub fn validate_title(title: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if title.len() > APPEARANCE_TITLE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidAppearanceTitle);\n        }\n        core::str::from_utf8(title).map_err(|_| NicechunkPlayerError::InvalidAppearanceTitle)\n    }\n\n    pub fn validate_model_code(code: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if code.is_empty() || code.len() > APPEARANCE_MODEL_CODE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        let value =\n            core::str::from_utf8(code).map_err(|_| NicechunkPlayerError::InvalidCharacterCode)?;\n        if !value.starts_with(\"NCM\") {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        Ok(value)\n    }",
+      "explanation": "程序只接受模型类型 1 和 2，验证 UTF-8 称号与代码大小，并要求 NCM 前缀。这些验证器中没有 NCM 解码器、长方体计数、调色板检查、NCM2 版本要求，也不会比较模型类型与基准样例字节。",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "只接受两个数值型模型类型；这验证的是标签字节，而不是身体几何结构。"
+        },
+        {
+          "lines": "8-13",
+          "meaning": "要求可选称号符合字节预算，并且是有效 UTF-8。"
+        },
+        {
+          "lines": "15-25",
+          "meaning": "要求模型字符串非空、符合字节预算、是有效 UTF-8，并以区分大小写的 NCM 为前缀；随后直接返回文本而不解码。"
+        }
+      ]
+    },
+    {
+      "title": "重新打包 Appearance 会把全部 12 条可见装备记录初始化为空",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        writer.bytes(args.model_code)?;\n        writer.bytes(\n            &[0_u8; APPEARANCE_MODEL_CODE_MAX_BYTES]\n                [..APPEARANCE_MODEL_CODE_MAX_BYTES - args.model_code.len()],\n        )?;\n        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {\n            writer.u8(0)?;\n            writer.u8(slot as u8)?;\n            writer.bytes(&[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;\n        }",
+      "explanation": "写入并填充模型代码后，pack 会为每个 Appearance 装备槽写入状态零和用零填充的字节。新记录与已有记录的 upsert 都运行同一个 pack 例程，因此之后的角色 upsert 可能清除其中已经保存的可见装备记录。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "写入确切的模型代码字节，并用零填满固定的 2,048 字节代码区域。"
+        },
+        {
+          "lines": "6-10",
+          "meaning": "对全部 12 个槽位写入空状态、槽位编号，并用零填满固定记录的剩余部分。"
+        }
+      ]
+    },
+    {
+      "title": "钱包辅助函数等待 confirmed，而不是 finalized",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }\n\n  if (typeof provider.signAndSendTransaction !== \"function\") {\n    throw new Error(\"Wallet does not support transaction signing.\");\n  }\n  const result = await provider.signAndSendTransaction(transaction);\n  const signature = typeof result === \"string\" ? result : result?.signature;\n  if (!signature) throw new Error(\"Wallet did not return a transaction signature.\");\n  await confirmTransactionByHttpPolling(conn, {\n    signature,\n    blockhash: transaction.recentBlockhash,\n    lastValidBlockHeight: transaction.lastValidBlockHeight,\n  }, \"confirmed\");\n  return signature;",
+      "explanation": "两条受支持的钱包路径都会提交已签名交易，然后以字面 commitment confirmed 调用同一个 HTTP 轮询辅助函数。此处返回签名表示已经满足该轮询条件；它不表示页面等到了 Solana 之后的 finalized 标签。",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "对于本地签名的钱包：序列化、提交、轮询至 confirmed，并返回签名。"
+        },
+        {
+          "lines": "12-17",
+          "meaning": "对于签名并发送的钱包：要求支持该功能，并要求实际返回签名。"
+        },
+        {
+          "lines": "18-23",
+          "meaning": "在第二条路径上轮询至同一个 confirmed commitment，然后返回。"
+        }
+      ]
+    },
+    {
+      "title": "保存待处理出生点与邀请回执时会吞掉存储错误",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function storePendingInviteSpawn(walletAddress, payload) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !payload) return;\n  try {\n    localStorage.setItem(inviteSpawnStorageKey(wallet), JSON.stringify({\n      ...payload,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Spawn still works from the chain PDA if local storage is unavailable.\n  }\n}\n\nexport function consumePendingInviteSpawn(walletAddress, { surfaceHeight } = {}) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet) return null;\n  const key = inviteSpawnStorageKey(wallet);\n  try {\n    const raw = localStorage.getItem(key);\n    if (!raw) return null;\n    localStorage.removeItem(key);\n    const parsed = JSON.parse(raw);\n    const state = parsed?.position\n      ? {\n          position: parsed.position,\n          yaw: Number.isFinite(Number(parsed.yaw)) ? Number(parsed.yaw) : Math.PI * 0.25,\n          cameraPitch: Number.isFinite(Number(parsed.cameraPitch)) ? Number(parsed.cameraPitch) : -0.42,\n          guardianRegion: normalizeGuardianRegion(parsed.guardianRegion),\n        }\n      : guardianSpawnStateForRegion(parsed?.guardianRegion, { surfaceHeight });\n    return state;\n  } catch {\n    localStorage.removeItem(key);\n    return null;\n  }\n}\n\nexport function storeInviteReceipt(walletAddress, receipt) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !receipt) return;\n  try {\n    localStorage.setItem(inviteReceiptStorageKey(wallet), JSON.stringify({\n      ...receipt,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Non-critical analytics cache.\n  }\n}",
+      "explanation": "两个保存辅助函数都不返回成功值，并在内部捕获 localStorage 异常。因此，无论写入成功还是失败，调用方都会继续，不能因为没有异常就推断已经持久化。中间的函数展示运行时如何使用并删除已保存出生点，但仅仅定义这个使用方，并不能证明当前 Play 入口调用了它。",
+      "walkthrough": [
+        {
+          "lines": "1-12",
+          "meaning": "尝试写入钱包作用域的待处理出生点；吞掉任何存储异常，并且不报告结果。"
+        },
+        {
+          "lines": "14-36",
+          "meaning": "使用该 consumer 的调用方会读取一次、删除草稿、进行规范化，并在失败时返回 null。"
+        },
+        {
+          "lines": "38-49",
+          "meaning": "尝试写入钱包作用域的邀请回执；同样吞掉存储失败，并且不报告结果。"
+        }
+      ]
+    },
+    {
+      "title": "邀请登记会构建并提交另一笔交易",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const pageIndex = Number(targetPage.pageIndex);\n  const [inviteIndex] = deriveInviteIndexPda(inviter, pageIndex);\n  const previousInviteIndex = pageIndex > 0 ? deriveInviteIndexPda(inviter, pageIndex - 1)[0] : null;\n  const tx = new Transaction().add(createAppendInviteRegistrationInstruction({\n    invited: provider.publicKey,\n    inviter,\n    inviteIndex,\n    pageIndex,\n    previousInviteIndex,\n  }));\n  const conn = getNicechunkConnection();\n  const signature = await signAndSendWalletTransaction(provider, tx, conn);\n  return {\n    submitted: true,\n    signature,\n    invited: provider.publicKey.toBase58(),\n    inviter: inviter.toBase58(),\n    inviteIndex: inviteIndex.toBase58(),\n    pageIndex,\n    capacity: inviteIndexCapacity,\n    programId: playerProgramId.toBase58(),\n  };\n}",
+      "explanation": "这是 registerInviteOnChain 的结尾，而不是角色 upsert。它推导一个 InviteIndex 页面，创建包含追加指令的新 Transaction，请求钱包路径提交，并返回自己的签名。角色确认不能代替这份独立签名或 InviteIndex 读取。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "选择并推导邀请人的目标 InviteIndex 页面，以及可选的上一页。"
+        },
+        {
+          "lines": "4-10",
+          "meaning": "构建一笔新交易，其中包含邀请追加账户与页面信息。"
+        },
+        {
+          "lines": "11-23",
+          "meaning": "单独提交，并返回不同的签名与 InviteIndex 结果。"
+        }
+      ]
+    },
+    {
+      "title": "只有这里展示的备用启动路径会使用待处理出生点",
+      "language": "JavaScript",
+      "source": "src/main.js",
+      "code": "async function resolveConfiguredInitialPlayerState() {\n  const inviteSpawnState = consumePendingInviteSpawn(currentSession.walletAddress, { surfaceHeight });\n  const normalizedInviteState = normalizedStartupPlayerState(inviteSpawnState);\n  if (normalizedInviteState) return normalizedInviteState;\n\n  const chainPlayerState = await loadPlayerPdaPositionState();\n  if (chainPlayerState) return chainPlayerState;",
+      "explanation": "这条较旧或备用的 src/main.js 路径会明确使用钱包作用域的出生点草稿，之后才回退到链上 Player 位置。本次审核的当前入口是 play/main.js；所获取源码中没有导入或调用 consumePendingInviteSpawn。这段摘录只能证明其他地方存在 consumer；要确定本次审核的 Play 入口中没有它，依据的是源码审计，而非仅凭这段摘录。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "使用并规范化待处理的邀请出生点；若有效，就优先采用。"
+        },
+        {
+          "lines": "6-7",
+          "meaning": "只有备用的本地交接失败后，这条路径才会尝试 Player 位置状态。"
+        }
+      ]
+    },
+    {
+      "title": "登录入口可以在读取 Appearance 前接受钱包作用域缓存",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "async function resolveBoundWalletCharacter(sequence) {\n  if (username && hasLocalCharacterCreated(walletAddress)) {\n    await maybeRegisterInviteForExistingCharacter({ displayName: username, playerName: username });\n    if (sequence !== loginResolutionSequence) return;\n    showReady();\n    return;\n  }\n\n  statusLine.textContent = t(\"login.status.networkChecking\");\n  try {\n    const { fetchPlayerAppearanceForOwner } = await import(\"../src/chain/nicechunkChain.js\");\n    const appearance = await fetchPlayerAppearanceForOwner(walletAddress);\n    if (sequence !== loginResolutionSequence) return;\n\n    if (appearance?.modelCode) {\n      restoreCharacterSessionFromAppearance(appearance);\n      await maybeRegisterInviteForExistingCharacter(appearance);\n      showReady();\n      return;\n    }",
+      "explanation": "第一个分支只要求本地用户名和钱包作用域的角色代码键，可选地处理邀请，并在不进行 Appearance RPC 读取的情况下显示就绪。只有缓存捷径没有返回时，第二个分支才执行链上读取。这只是一条登录入口的便利边界：play/main.js 随后会启动异步的 Profile 与 Appearance 刷新，因此这段摘录并不表示 Play 永久用缓存取代链上状态。",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "若两个本地信号都存在，执行可选的邀请处理，并把登录界面标记为就绪。"
+        },
+        {
+          "lines": "9-13",
+          "meaning": "否则进入网络路径，读取该钱包的公开 Appearance 账户。"
+        },
+        {
+          "lines": "15-20",
+          "meaning": "当链上数据包含模型代码时，据此恢复浏览器状态，单独处理邀请，然后显示就绪。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "定义两个固定 NCM2 模型字符串、本地钱包会话入口检查、防抖名称查询、前端名称规则、本地预览、候选出生点计算、角色调用、一次全局用户名写入、全局与钱包作用域的模型字段写入、尽力而为的待处理出生点与回执调用、单独的邀请尝试，以及跳转。"
+    },
+    {
+      "path": "player_creat/index.html",
+      "claim": "包含当前面向用户的“Generated Chain Code”“all character data”“storage reserve”和“not payment to team”等表述；本指南会限定这些表述可能让人产生的过强理解。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "推导三个 PDA，为名称哈希规范化 ASCII 大小写，读取名称可用性，执行客户端字节范围，构建标签 8 及其六个账户，请求钱包提交，等待 confirmed，并解码经 owner 检查的 Appearance 数据。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "路由标签 8，验证签名者与账户，计算经 ASCII 小写化的名称哈希，确保 Profile 与 UsernameIndex 存在但不释放旧索引，创建或验证 Appearance，保留创建元数据并重新打包，而且只把标签 9 的关闭与收回权限授予配置好的财政库。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义账户 seed 与精确长度、合约较窄的名称字符范围、Appearance 字段与 12 条装备记录、只检查 NCM 前缀的模型验证，以及完整 pack 行为。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "定义当前保存在 Appearance 中、且关闭路径所要求的协议财政库权限方。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "提供标准男孩 NCM2 样例文件：包含末尾换行时文件共 354 字节；去掉换行后的 353 字节文本与创建页面字符串一致，可解码为 8 种颜色的 56 个长方体。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "提供标准女孩 NCM2 样例文件：包含末尾换行时文件共 452 字节；去掉换行后的 451 字节文本与创建页面字符串一致，可解码为 10 种颜色的 70 个长方体。"
+    },
+    {
+      "path": "src/vox/ncm.js",
+      "claim": "实现预览所用的浏览器端 NCM 解码器；Player Program 不会执行这个 JavaScript 解码器。"
+    },
+    {
+      "path": "login/login.js",
+      "claim": "展示登录捷径：把一个全局用户名与钱包作用域的角色代码键结合，从而跳过新的 Appearance 读取；也展示用于恢复浏览器角色数据的后备链上读取。"
+    },
+    {
+      "path": "src/player/inviteSpawn.js",
+      "claim": "定义邀请参数解析、Guardian Region 出生点计算、会捕获 localStorage 失败且尽力而为的钱包作用域待处理出生点与回执存储，以及供调用它的运行时使用待处理出生点的逻辑。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "是本指南审核的当前 Play 入口；它会启动一次强制的异步 PlayerProfile 与 PlayerAppearance 刷新，并且不导入或调用 consumePendingInviteSpawn。"
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "实现 Play 端刷新：登录入口完成后，并发读取 PlayerProfile、PlayerAppearance 与进度。"
+    },
+    {
+      "path": "src/main.js",
+      "claim": "包含一条确实会使用待处理邀请出生点的较旧或备用启动路径，说明为什么不能因为其他地方存在该逻辑，就把它归到当前 Play 入口。"
+    },
+    {
+      "path": "target/deploy/nicechunk_player.so",
+      "claim": "保留的本地 Player 构建产物为 172,880 字节，并在当日审计时与 finalized Devnet ProgramData 分配哈希一致；已修改源码文件的时间晚于该构建产物，因此不能据此证明这些修改已经部署。"
+    },
+    {
+      "path": "docs/audits/character-creation-devnet-2026-07-16.json",
+      "claim": "记录 finalized Devnet genesis、RPC 版本、Player Program 与 ProgramData 观测、本地构建产物对比、账户大小租金查询、源码哈希、NCM 测量结果，以及明确的部署限制。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制权学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，分清名称、邀请记录与候选出生点",
+      "summary": "角色创建可以交接名称、邀请提示和候选出生点数据，但它们并不是同一个承诺。下一篇已审核指南会说明：哪项结果是链上名称查询、哪个钱包会追加邀请记录、哪些提示仍可编辑，以及当前 Play 启动实际使用什么。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "seed-whitelist-and-message-signatures",
+        "title": "Seed 白名单与消息签名",
+        "summary": "回顾为什么确切的链下消息证明和中心化活动记录，不同于这笔由 owner 签署的 Player 交易。"
+      },
+      {
+        "label": "下一篇已审核指南",
+        "slug": "names-invites-and-spawn",
+        "title": "名称、邀请与出生点",
+        "summary": "了解为什么唯一 UsernameIndex、由受邀钱包写入的账本记录，以及浏览器端候选出生点是三种彼此独立的结果。"
+      }
+    ]
+  },
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "钱包登录与安全",
+      "summary": "回顾为什么浏览器连接、消息签名、交易签名、提交与确认是彼此独立的决定。"
+    },
+    {
+      "slug": "ncm-codes",
+      "href": "/docs/ncm-codes/",
+      "title": "NCM 代码与链上模型",
+      "summary": "解码紧凑的身体基准样例，并区分浏览器几何验证与 Player Program 当前的前缀和大小检查。"
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA",
+      "summary": "查看角色创建所创建或重写的 profile 记录；同一条指令还会分别创建、重写或验证 Appearance 与 UsernameIndex。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "Player 会话与委托操作",
+      "summary": "对比由 owner 签署的角色创建，与之后可能使用临时 session authority 的受限游戏操作。"
+    }
+  ]
+}

@@ -1,0 +1,1543 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-session-funding-and-expiry-zh-Hans-304eaf01ba942a02",
+    "contentHash": "304eaf01ba942a02"
+  },
+  "slug": "session-funding-and-expiry",
+  "kind": "topic",
+  "shortTitle": "会话注资与到期",
+  "seo": {
+    "title": "NiceChunk 会话注资与到期：SOL、时间与恢复",
+    "description": "了解为什么 NiceChunk 会话的注资目标并不是余额、浏览器会在什么情况下为会话授权地址补足资金、浏览器计时与链上时间有何不同，以及在会话到期、数据陈旧或设置结果不确定后应该核实什么。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制权 · 第 12 步",
+    "title": "会话注资与到期：目标不是余额，浏览器时间也不是链上时间",
+    "summary": "NiceChunk 仓库中的客户端使用四个彼此独立的对象：浏览器保存的补足金额、已连接所有者的钱包、用于游戏签名的地址，以及单独承担存储租金的公开 PlayerSession 记录。页面还会重点说明五种客户端计时策略——8 小时、15 分钟、5 分钟、60 秒和 30 秒——而 Solana 程序会使用链上时间决定能否设置和使用会话。本玩家决策指南会把这些对象和时钟逐一分开；权限细节请回看第 2.11 步，完整的手续费、租金、关闭与退款清单则留到第 2.13 步。",
+    "readingTime": "阅读约需 54 分钟",
+    "visual": {
+      "src": "/docs/media/session-funding-and-expiry-overview-v1.webp",
+      "alt": "NiceChunk 标准村民男孩转动一个空木制目标桩，旁边是一只紧闭的深色所有者箱；标准村民女孩打开较小的铜制费用箱。同一座海岸驿站内，石制记录台、本地沙漏和公共日晷在空间上彼此分离。",
+      "caption": "这幅基于真实 Chunk.js 海岸场景生成的图片使用游戏烘焙材质，将空目标框、深色所有者箱、铜制授权箱、石制记录基座、本地沙漏和公共日晷清楚分开。它们的大小、内容物、沙量和阴影都只是没有数值标签的教学道具，并不能证明余额、转账、PDA 状态、时间戳、到期情况或恢复结果。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "如果模块化 Play 界面显示“Session: 0.1 SOL”或一个到期时间，这个 SOL 数字是真实余额吗？由哪个时钟决定能否访问？普通玩家在批准或重试之前，可以安全核实哪些信息？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制权 · 共 15 步中的第 12 步"
+      },
+      {
+        "label": "适合读者",
+        "value": "没有编程或区块链基础的玩家"
+      },
+      {
+        "label": "决策指南的范围",
+        "value": "第 2.11 步负责解释权限掩码、使用方范围、已存储的操作计数器以及密钥并非沙箱的边界。本页回答注资、计时、重试和密钥生命周期方面的决策问题。第 2.13 步将按账户类型逐项列出确切的手续费支付者、租金支付者、关闭指令、退款和可恢复余额。"
+      },
+      {
+        "label": "已审查的仓库源码路径",
+        "value": "仓库中的生产源码路径为 /play/index.html → /play/main.js → play/* → play/play-chain-adapter.js → 解析得到的链模块。仓库文件描述的是当前源码行为，但仅凭这些文件无法证明线上浏览器实际加载了哪一份资源。"
+      },
+      {
+        "label": "已留存线上字节证据的边界",
+        "value": "Player Sessions 审计留存的 2026-07-19 UTC 静态生产快照，以字节固定了一份带版本的候选链模块，并记录了等价的 28,800 秒、900 秒、100,000,000 lamports 和注资前缀字面量。这是一次固定 HTTPS GET 审计，不是钱包会话、RPC 余额读取、动态导入观测或交易。"
+      },
+      {
+        "label": "网络证据的边界",
+        "value": "留存的 Devnet confirmed 快照记录了 PlayerSession PDA 租金和到期分类，但没有查询会话授权地址余额、所有者余额、浏览器目标值、任何秘密信息或 Mainnet。因此，本页绝不会用捕获到的十条 Session 记录推断某位玩家当前拥有多少资金。"
+      },
+      {
+        "label": "审查日期",
+        "value": "2026 年 7 月 19 日 · 仓库字面源码摘录，以及留存的离线、Devnet 和静态生产环境 Player Sessions 证据"
+      }
+    ],
+    "terms": [
+      {
+        "term": "注资目标",
+        "meaning": "保存在浏览器中的一个数字，用来计算所有者可能需要向会话授权地址补足多少资金。它不是账户、托管资金、支出上限、付款收据，也不代表转账一定发生过。"
+      },
+      {
+        "term": "公钥地址与私钥",
+        "meaning": "公钥地址用于标识任何人都可以查询的账户。私钥是能够代表该地址授权交易的秘密签名材料，绝不能粘贴到陌生网站中。"
+      },
+      {
+        "term": "密钥对（Keypair）",
+        "meaning": "代码用这个词表示一个公钥地址及其私密签名字节。独立的插件 Session Keypair 仍然是普通 Solana 签名者，并不是一把只能在 NiceChunk 内使用的受限密钥。"
+      },
+      {
+        "term": "所有者余额",
+        "meaning": "已连接所有者地址中可以支配的 lamports。插件模式下，这个地址为设置流程和余额偏低的会话授权地址提供资金；Local Game Wallet 模式下，它同时也是会话授权地址。"
+      },
+      {
+        "term": "会话授权地址余额",
+        "meaning": "用于游戏调用的普通签名者地址中可支配的 lamports。插件模式通常使用单独地址；Local Game Wallet 则直接使用所有者地址。"
+      },
+      {
+        "term": "PlayerSession 租金",
+        "meaning": "由独立的 184 字节 PlayerSession PDA 持有、用于维持其数据空间的 lamports。这些 lamports 并不是会话授权地址可支配的手续费余额。"
+      },
+      {
+        "term": "Lamport",
+        "meaning": "SOL 的最小单位。1 SOL 等于 1,000,000,000 lamports，因此 0.1 SOL 等于 100,000,000 lamports。"
+      },
+      {
+        "term": "补足资金",
+        "meaning": "仅转入所选目标值与较低当前余额之间差额的操作。在已审查的客户端中，只有授权地址余额低于 0.1 SOL 时才会进入自动补足分支。"
+      },
+      {
+        "term": "插件会话（Plugin Session）",
+        "meaning": "一种安排：长期使用的外部钱包继续担任所有者，而浏览器中单独保存的 Keypair 通常成为 sessionAuthority。"
+      },
+      {
+        "term": "本地游戏钱包（Local Game Wallet）",
+        "meaning": "保存在浏览器中的持久钱包，同一把密钥同时担任 owner 和 sessionAuthority。因此，它的全部所有者余额也就是授权地址余额。"
+      },
+      {
+        "term": "浏览器时间",
+        "meaning": "某台设备通过 Date.now() 计算的时间。它用于驱动客户端刷新和缓存决策，但不能决定合约是否接受 Session。"
+      },
+      {
+        "term": "链上时间",
+        "meaning": "Solana 程序执行指令时读取的 Clock.unix_timestamp。设置流程和已审计的使用方会将 expiresAt 与这个值比较。"
+      },
+      {
+        "term": "到期时间戳",
+        "meaning": "代码中名为 expiresAt 的 Unix 秒数值。浏览器会提出并可能复制这个值，而程序在执行指令时会把公开记录中的值与链上时间比较。"
+      },
+      {
+        "term": "RPC",
+        "meaning": "浏览器或区块浏览器用来查询余额、账户、交易状态和链上下文的网络服务。RPC 回答失败或陈旧，并不能证明底层账户已经发生变化。"
+      },
+      {
+        "term": "承诺级别、confirmed 与 finalized",
+        "meaning": "承诺级别（commitment）表示 RPC 读取需要集群达到何种程度的共识。confirmed 强于 processed，但 confirmed 与 finalized 是不同的状态标签；已审查的辅助函数等待的是 confirmed，而不是明确要求 finalized。"
+      },
+      {
+        "term": "手续费支付者",
+        "meaning": "用自己的 SOL 支付交易手续费的账户。在已审查的插件设置流程中，所有者是手续费支付者；之后受支持的游戏调用则可以改用会话授权地址。"
+      },
+      {
+        "term": "提前刷新窗口",
+        "meaning": "客户端设置的 15 分钟安全窗口。如果复制来的到期时间已经落入这个窗口，即使尚未归零，也会被视为需要设置或刷新。"
+      },
+      {
+        "term": "就绪缓存",
+        "meaning": "Local Game Wallet 路径中持续五分钟的内存快捷缓存。它可以省去一次 RPC 读取，但不会延长链上记录。"
+      },
+      {
+        "term": "状态缓存",
+        "meaning": "单独保存 60 秒的内存快照；除非请求 force 读取，否则 getGameplaySessionStatus 会返回它。"
+      },
+      {
+        "term": "余额缓存",
+        "meaning": "Play 钱包界面针对已连接钱包地址使用的 30 秒缓存。如果已经取得过一个余额值，而后续刷新失败，界面可以保留该值并将其标记为陈旧。"
+      },
+      {
+        "term": "缓存生命周期（TTL）",
+        "meaning": "浏览器再次查询前，可以重复使用某个内存结果多长时间。TTL 只决定何时再次读取，不会延长链上的 Session。"
+      },
+      {
+        "term": "浏览器存储与 Base58/Base64",
+        "meaning": "浏览器存储会把网站数据保存在设备上。Base58 和 Base64 只是把字节转换成文本，并不会加密或保护私钥。"
+      },
+      {
+        "term": "提交（Commit）",
+        "meaning": "某个系统中持久化的状态变更。设置交易与之后在浏览器中写入秘密信息属于两个不同系统，并不是一次原子提交。"
+      },
+      {
+        "term": "原子交易",
+        "meaning": "一笔 Solana 交易，其中所有指令要么一起生效，要么一起回滚。随后写入浏览器存储的操作不属于这笔原子交易。"
+      },
+      {
+        "term": "未知结果",
+        "meaning": "客户端提交后没有获得可靠最终答案的情况。它既不能证明失败，也不能证明成功，因此重试前必须核实相关地址和签名状态。"
+      },
+      {
+        "term": "轮换",
+        "meaning": "改用另一把会话授权密钥，从而派生出不同的 PlayerSession PDA。这样做不会关闭或撤销旧记录，也不会退回旧记录的资金。"
+      },
+      {
+        "term": "恢复",
+        "meaning": "在到期、删除、丢失或泄露后重新取得控制权，或者建立安全替代方案。正确做法取决于你仍然控制着哪一把私钥。"
+      },
+      {
+        "term": "可信区块浏览器",
+        "meaning": "在正确 Solana 网络上，用来查询公钥地址或交易签名的可信只读服务。它绝不需要私钥或秘密助记词。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "四个看起来都像资金的数值，并不是同一笔余额",
+      "body": "注资目标是浏览器策略；所有者地址和会话授权地址各自拥有可支配余额；PlayerSession PDA 则单独持有租金。解释任何 SOL 数字之前，务必先说清楚它对应哪个地址或账户。"
+    },
+    {
+      "title": "更高的目标值不会被持续补足",
+      "body": "已审查的补足辅助函数发现余额达到或超过 0.1 SOL 时会立即返回。即使浏览器保存的目标是 0.50 SOL，这个分支也不会自动把持有 0.11 SOL 的授权地址补到 0.50 SOL。"
+    },
+    {
+      "title": "两种钱包模式的风险暴露不同",
+      "body": "插件模式通常把配置的游戏资金放在单独的授权地址中。这种分离既不是支出上限，也不是密钥沙箱。Local Game Wallet 让 owner 和 sessionAuthority 使用浏览器中同一把长期密钥，因此根本不存在一个需要单独补足的会话钱袋。"
+    },
+    {
+      "title": "浏览器计时器只安排检查；链上时间才决定是否接受",
+      "body": "8 小时、15 分钟、5 分钟、60 秒和 30 秒分别服务于不同的客户端决策。只有 expiresAt 仍然大于合约读取的 Clock 时间戳时，合约才会接受会话。"
+    },
+    {
+      "title": "只有确认旧授权地址和交易结果后才能重试",
+      "body": "在插件钱包模式下，已存储且有效的密钥通常会被复用；插件记录缺失或无效时，客户端会生成新的授权地址和 PDA。Local Game Wallet 不会在这里生成替代会话授权地址。结果不确定时，第一个地址可能已经收到资金；盲目重试可能再次留下无法使用的余额和租金分配。"
+    },
+    {
+      "title": "到期不等于删除、退款或钱包恢复",
+      "body": "到期会阻止已审计的 Session 使用方继续使用该记录，但不会擦除密钥、转走 SOL、关闭 PDA、退还租金，也不能遏制已经泄露的所有者密钥或 Local Game Wallet 密钥。"
+    },
+    {
+      "title": "注资不会授予游戏权限",
+      "body": "SOL 只能让地址支付手续费或账户所需资金；它不会设置 allowedActions，也不会迫使使用方接受这把密钥。第 2.11 步解释了权限掩码、使用方检查，以及当前并未强制执行的已存储操作计数器。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "four-money-objects",
+      "eyebrow": "一个目标、两个地址、一个 PDA",
+      "title": "第一步：先说清四个不同的资金对象",
+      "paragraphs": [
+        "注资目标只是保存在当前浏览器中的一个数字。在现有模块化 Play 源码中，界面文字“Session: X SOL”直接由 state.sessionLamports 生成，而这个状态就是本地保存的目标值；它不是所有者或会话授权地址的 RPC 余额。注资面板会把所选数值限制为至少 0.1 SOL，转换成 lamports，以所有者范围的键名保存，并在之后把已知数值标为“Current session funding target”。保存或显示这个数字不会创建交易，也不能证明任何地址收到了资金。",
+        "所有者余额和会话授权地址余额都是普通地址余额。在插件模式下，它们通常属于不同公钥：所有者批准设置和可能发生的转账，而会话授权地址随后为受支持的游戏交易支付手续费。读取已连接所有者的钱包界面所得数值，不能悄悄拿来证明独立授权地址的余额；同样，授权地址状态读取也不能证明所有者钱包里还剩多少资金。",
+        "PlayerSession PDA 是第四个账户。Player Program 向 Solana Rent 查询一个 184 字节数据账户所需的最低余额，并由所有者付款来创建或补足该 PDA 的空间分配。留存的 Devnet 快照在其特定日期和上下文中观察到，每个捕获的 PDA 持有 2,171,520 lamports，但并未查询任何一个可支配余额地址。这个数字只能视为有日期限制的 Devnet 租金证据，不能当成通用的当前余额。"
+      ],
+      "facts": [
+        {
+          "label": "浏览器策略",
+          "value": "以 lamports 表示的配置目标",
+          "detail": "这个数字不归任何公钥地址所有，保存它也不会发送 SOL。"
+        },
+        {
+          "label": "模块化 Play 界面",
+          "value": "Session: X SOL = state.sessionLamports 目标值",
+          "detail": "界面上可见的 X 是本地展示状态，不是所有者或会话授权地址的 getBalance 结果。"
+        },
+        {
+          "label": "已连接钱包",
+          "value": "所有者地址余额",
+          "detail": "Play 界面以 confirmed 承诺级别对 walletAddress 请求 getBalance。"
+        },
+        {
+          "label": "游戏签名者",
+          "value": "sessionAuthority 地址余额",
+          "detail": "插件状态读取已存储 Keypair 的公钥地址；该地址可能与 owner 不同。"
+        },
+        {
+          "label": "授权记录",
+          "value": "PlayerSession PDA 的租金 lamports",
+          "detail": "这是由程序拥有的独立数据账户，而不是授权地址可支配的资金。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：“目标 0.1 SOL”是否表示我的会话已经拥有 0.1 SOL？",
+        "body": "不是。在已审查的模块化 Play 源码中，“Session: X SOL”来自 state.sessionLamports，也就是浏览器保存的目标值；它不是所有者或授权地址的 RPC 余额。先确认所选钱包模式和确切公钥地址，再进行一次最新的公开余额读取，之后才能判断资金是否到账。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-target-vs-balances-v1.webp",
+        "alt": "NiceChunk 标准村民男孩调节一个没有刻度的木制目标框，旁边是一只紧闭的大型深色箱子；标准村民女孩打开较小的铜箱，并指向一座分离的灰色石制记录台，记录台拥有自己的基座凹槽。",
+        "caption": "这幅生成图片使用真实 Chunk.js 海岸场景和游戏烘焙材质，将四个比喻清楚分开：策略框、所有者箱、授权箱和记录基座。空框不会改变任何资金数量，容器也没有显示具体数值，因此图片不能证明 SOL 余额、租金、所有权、RPC 读取或已完成的转账。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "top-up-trigger-and-target",
+      "eyebrow": "仅在低于最低线时",
+      "title": "只有余额低于 0.1 SOL 后，已审查的辅助函数才会向目标值补足",
+      "paragraphs": [
+        "配置目标会被限制为至少 100,000,000 lamports。链模块先查找浏览器中该所有者专用的数值，再查找默认值；如果选出的数值缺失、无效或过小，最后回退到最低值。整个选择过程描述的仍然是策略，而不是资金余额。",
+        "对于已经存储的插件 Session，如果授权地址至少拥有最低的 0.1 SOL，fundGameplaySessionIfNeeded 会立即返回。只有更低的余额才会继续选择目标值。如果该余额也低于所选目标，客户端会要求所有者转入“目标值减去当前余额”的差额。这只是一次补足触发条件，并不会持续维持目标余额。",
+        "例如，当目标为 0.50 SOL 时：如果以 confirmed 承诺级别读取到授权地址余额为 0.06 SOL，所请求的差额就是 0.44 SOL；但若余额为 0.11 SOL，这个辅助函数不会自动补足。在已审查的插件设置流程中，所有者是交易手续费支付者，并为新分配的 PlayerSession PDA 提供资金。之后受支持的游戏调用可以改用会话授权地址作为手续费支付者，也可能从其余额中支付手续费或为操作创建的账户注资。第 2.13 步会准确列出这些手续费与租金路径。",
+        "即使注资完成，也不会因此获得任何游戏权限。已有资金的授权地址还必须提交一条 PlayerSession，并通过相关使用方对所有者、账户关系、到期时间和允许操作的检查。该权限掩码由第 2.11 步详细解释；那里也说明了为什么已存储的 maxActions 和 actionCount 字段目前并不是强制执行的支出或操作上限。"
+      ],
+      "facts": [
+        {
+          "label": "最低触发线",
+          "value": "100,000,000 lamports = 0.1 SOL",
+          "detail": "这是仓库客户端策略和留存的静态生产字面量，不是合约字段。"
+        },
+        {
+          "label": "低余额",
+          "value": "转账额 = 目标值 − 当前余额",
+          "detail": "仅当当前余额既低于进入分支的最低线、又低于所选目标时才会执行。"
+        },
+        {
+          "label": "至少达到最低值",
+          "value": "自动转账额 = 0",
+          "detail": "已审查的补足辅助函数不会把余额补到更高的已存储目标值。"
+        },
+        {
+          "label": "注资之后",
+          "value": "之后承担手续费或账户注资责任，可能会降低授权地址余额",
+          "detail": "所有者支付已审查插件设置的手续费和 Session PDA 空间分配；第 2.13 步会分别说明之后的每个付款方和恢复路径。"
+        },
+        {
+          "label": "权限",
+          "value": "不会由 SOL 授予",
+          "detail": "注资不会设置 allowedActions，也不能绕过第 2.11 步所解释的使用方检查。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：目标是 0.50 SOL，为什么显示 0.11 SOL 的会话没有被补足？",
+        "body": "因为第一个条件只检查余额是否低于 0.1 SOL。一旦余额达到该阈值，辅助函数就会直接返回，不再与更高的目标值比较。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-threshold-top-up-v1.webp",
+        "alt": "NiceChunk 标准村民男孩抬起木制水闸，水流进入一个铜边水池；标准村民女孩查看另一个水量更满的独立水池。它们位于同一座海岸补给站，山坡上方还有深色蓄水池和第二条敞开水槽。",
+        "caption": "这幅基于真实 Chunk.js 海岸场景生成的图片使用游戏烘焙材质，并以两个水池近似比喻阈值。两个水位都只是示意，右侧水槽看起来也有水；因此，图片不能证明进入了哪个分支、进行了任何 0.1 SOL 比较、计算了目标差额、查询了余额、获得了钱包批准、执行了转账或完成了确认。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "plugin-versus-local-wallet-funding",
+      "eyebrow": "两种注资结构",
+      "title": "插件会话把签名者的小额钱袋分开；Local Game Wallet 则不会",
+      "paragraphs": [
+        "在插件模式下，owner 与 sessionAuthority 通常不同。客户端可以把 SOL 从所有者转给独立授权地址，并在设置交易上同时附加两方签名。之后受支持的调用可以使用该授权地址作为交易手续费支付者。这种安排会把配置的游戏资金放在独立地址中，但它只是分离，并非隔离：PlayerSession 不会限制该地址的余额，也不会从技术上限制这把普通授权密钥可以签署什么。",
+        "Local Game Wallet 使用浏览器中同一把持久 Keypair 同时担任 owner 和 sessionAuthority。链模块在 Local 模式的状态对象中把 configuredFundingLamports 和 minimumFundingLamports 报告为零，表示“不适用单独会话注资策略”。这些零不代表地址余额为零，不会覆盖其他位置显示的浏览器目标值，也不会把目标值变成余额。同一个地址余额同时对应所有者和授权地址角色，而 PlayerSession PDA 租金仍然独立。",
+        "Local Game Wallet 私钥以 Base58 文本形式保存在浏览器存储中。插件会话则在所有者范围的 Session 键名下保存另一把经过 Base64 编码的私钥。两种编码都不是加密。简单来说，每次作出注资决定前，先问清游戏使用的是两个地址，还是同一个地址承担两个角色；不要只相信“会话钱包”这类模糊标签。"
+      ],
+      "facts": [
+        {
+          "label": "插件模式",
+          "value": "owner 通常不同于 sessionAuthority",
+          "detail": "独立授权地址可以接收适量补足资金，并为受支持的调用签名。"
+        },
+        {
+          "label": "本地游戏钱包（Local Game Wallet）",
+          "value": "owner 等于 sessionAuthority",
+          "detail": "一把持久密钥控制该地址的全部余额，并同时承担两个设置角色。"
+        },
+        {
+          "label": "Local 模式状态",
+          "value": "报告的配置最低值和目标值为 0",
+          "detail": "这表示该状态对象不适用单独会话注资，并不表示钱包余额或所有浏览器目标值都是零。"
+        },
+        {
+          "label": "PDA 租金",
+          "value": "两种模式下都保持独立",
+          "detail": "所有者密钥与授权密钥相同，也不会让程序拥有的 Session PDA 合并进钱包。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：Local Game Wallet 是更安全的“无会话资金”选项吗？",
+        "body": "它消除的是独立钱袋，而不是风险。浏览器中的这一把密钥控制所有者的全部余额，还能同时满足 Session 设置的两个角色；一旦密钥丢失或被复制，风险暴露范围反而更广。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-plugin-vs-local-wallet-v1.webp",
+        "alt": "NiceChunk 标准村民男孩站在大型深色箱子旁，手持一把独立铜钥匙，钥匙下方是配套的小铜箱；标准村民女孩把一根深色钥匙条放在相连石木装置的两个凹槽前，该装置位于一只更大的箱子上方。",
+        "caption": "这幅基于真实 Chunk.js 工坊生成的图片使用游戏烘焙材质，对比了彼此分开的插件式密钥与费用箱，以及合二为一的 Local Game Wallet 装置。道具的数量和位置只用于解释角色关系；不能证明密钥所有权、加密存储、钱包余额、资金风险范围、签名范围、设置成功或任何实时模式选择。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "five-browser-windows-and-chain-time",
+      "eyebrow": "六个不同的时间问题",
+      "title": "五个重点浏览器窗口只安排工作；Solana Clock 才决定合约是否接受",
+      "paragraphs": [
+        "客户端请求的 expiresAt 是浏览器当前时间加 28,800 秒，也就是八小时。只有复制来的插件到期时间还剩超过 900 秒时，客户端才认为它可以复用。这些都是浏览器计算；设备时钟、已存储数值或账户状态不正确时，计算结果也可能错误。设置流程会独立拒绝小于或等于 Clock.unix_timestamp 的 expiresAt。",
+        "另外三个重点缓存分别回答更窄的问题。Local Game Wallet 就绪缓存可以在五分钟内跳过网络账户读取，并返回一个重新计算的“当前时间加八小时”数值；它不会重写链上记录。除非使用 force 选项，否则 Session 状态源码 API 可以在六十秒内返回缓存快照；Play 所有者余额界面则会在三十秒内复用以 confirmed 承诺级别取得的余额。它们都不会延长授权。",
+        "这五个是本指南重点说明的 Session 与注资时间窗口，并不包含客户端中的所有计时器。同一份源码还包含 12 秒的余额请求中止计时、一个用于缺少有限区块高度信息分支的独立 60 秒确认回退，以及更短的轮询间隔。两个计时器即使秒数相同，职责也不一定相同。",
+        "真正使用时，已审计的 Chunk、Building 和 Backpack 分支会读取 Clock，并在 expiresAt 小于或等于链上时间时拒绝操作。因此，浏览器里看似乐观的倒计时可能与合约拒绝同时出现；反过来，浏览器副本看起来已经到期，也可能只是陈旧数据，而链上记录已经刷新。决定性检查是读取记录并通过使用方的链上时间门槛，而不是看某一个界面倒计时。"
+      ],
+      "facts": [
+        {
+          "label": "8 小时",
+          "value": "请求的 Session 持续时间",
+          "detail": "客户端默认值为 28,800 秒，并不是合约规定的最长时间。"
+        },
+        {
+          "label": "15 分钟",
+          "value": "提前刷新或复用的安全窗口",
+          "detail": "浏览器设置的 900 秒安全余量。"
+        },
+        {
+          "label": "5 分钟",
+          "value": "Local Game Wallet 就绪缓存 TTL",
+          "detail": "可以跳过一次 RPC Session 读取，并返回计算生成的到期值。"
+        },
+        {
+          "label": "60 秒",
+          "value": "Session 状态缓存 TTL",
+          "detail": "这是展示/读取缓存，不是授权生命周期。"
+        },
+        {
+          "label": "30 秒",
+          "value": "Play 所有者余额缓存与刷新间隔",
+          "detail": "这是钱包界面策略，不是 Session 刷新或链上时间。"
+        },
+        {
+          "label": "指令执行时",
+          "value": "Clock.unix_timestamp",
+          "detail": "程序内部用于设置和使用方检查的权威比较值。"
+        },
+        {
+          "label": "其他客户端计时器",
+          "value": "不属于本页五窗口教学集合",
+          "detail": "请求中止和交易轮询不会因此变成 Session 持续时间、提前刷新窗口或链上时间。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：倒计时明明还有时间，为什么操作仍会被拒绝？",
+        "body": "倒计时可能使用复制到浏览器的数据或缓存。合约执行时会把公开记录与链上 Clock 比较，还可能因为身份、权限或操作检查而拒绝。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-time-boundaries-v1.webp",
+        "alt": "NiceChunk 标准村民男孩查看一座架子，上面有三个大小不同的沙漏、一个滴水碗和一个摆锤；标准村民女孩独自站在公共庭院中，面向一座大型石制日晷塔。",
+        "caption": "这幅生成图片把五件本地调度道具放在真实 Chunk.js 海岸驿站内部，并把一座独立公共日晷放在室外，全部使用游戏烘焙材质渲染。装置大小、沙量、水量、摆锤和阴影位置都没有编码任何时长或状态，不能证明浏览器时间、链上时间、缓存年龄、到期情况或合约是否接受。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "reuse-refresh-or-new-authority",
+      "eyebrow": "同一密钥，还是不同的 PDA",
+      "title": "能正常读取的已存密钥通常会被复用；记录缺失或无效时才会创建新的权限地址",
+      "paragraphs": [
+        "插件模式会先尝试打开浏览器为当前 owner 保存的记录。已保存的私钥字节必须能重新生成记录在旁的公钥地址，复制保存的到期时间也必须是可用数字。只要这些检查通过，即使已接近到期，流程也会继续使用同一个插件 Keypair，并要求设置流程沿用同一个 sessionAuthority。同一个 owner 与 sessionAuthority 会选中同一个确定性 PlayerSession 地址。",
+        "如果该插件记录缺失、格式错误、无法访问、包含无效私钥字节，或重新生成的公钥地址与记录不符，加载器就不会返回可复用密钥。随后插件设置流程会生成一个新 Keypair。这个不同的 sessionAuthority 会选中另一个 PlayerSession PDA，而旧权限地址的余额和旧 PDA 都不会被改动。浏览器已经无法读取的私钥字节，程序也无法凭空找回。",
+        "Local Game Wallet 的边界不同：这条流程不会生成一个独立的替代 sessionAuthority。它会重新加载长期保存的 owner Keypair，并选中 owner-owner 组合对应的 Session PDA。缓存未命中时，以 confirmed 承诺级别读取的账户只有同时通过客户端按浏览器时间计算的 15 分钟检查才会被复用；这仍不代表使用方基于链上时间作出的判定。如果 Local Game Wallet 密钥不可用或与 owner 不匹配，流程会报告钱包不可用，而不会悄悄创建新的 Session 密钥。轮换和刷新是两种不同操作，而且两者都不等于撤销。"
+      ],
+      "facts": [
+        {
+          "label": "已存插件密钥可正常解码",
+          "value": "复用同一个 Keypair",
+          "detail": "临近到期时的设置仍使用 stored.keypair，因此选中的 PDA 不变。"
+        },
+        {
+          "label": "已存插件密钥无法加载",
+          "value": "Keypair.generate()",
+          "detail": "只有插件路径会生成新的 sessionAuthority，并因此选中不同的 PDA。"
+        },
+        {
+          "label": "本地游戏钱包（Local Game Wallet）",
+          "value": "sessionAuthority 仍是 owner",
+          "detail": "这条流程没有独立的 Session 密钥轮换分支；长期密钥无法使用时只会报告不可用。"
+        },
+        {
+          "label": "旧状态",
+          "value": "不会被新密钥设置改动",
+          "detail": "新 PDA 交易不会把旧 Session 账户或旧权限地址余额作为输入。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：再次点击一定会得到新的 Session 密钥吗？",
+        "body": "不会。插件模式通常会复用有效的已存密钥，刷新时也一样；只有插件记录无法加载时才会生成新的 sessionAuthority。Local Game Wallet 在这里绝不会生成这种独立替代密钥：它要么继续使用匹配的 owner 密钥，要么报告钱包不可用。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-key-reuse-v1.webp",
+        "alt": "NiceChunk 标准村民男孩把一把完好的铜钥匙放回立式灰色石台的凹槽；标准村民女孩则在第二座石台旁锻打一把形状不同的铜钥匙，两人之间放着一个开裂的空木托和碎片。",
+        "caption": "这幅以真实 Chunk.js 场景生成的锁匠院落使用烘焙游戏材质，把“复用完好密钥”和“在另一处制作替代密钥”并排呈现，同时两座石台都仍然存在。画面无法验证浏览器存储、密钥解析、PDA 派生、刷新或轮换是否成功；新钥匙的出现也不代表旧记录已经关闭、清空、退款或恢复。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "two-commit-uncertain-result",
+      "eyebrow": "链上交易在先，浏览器副本在后",
+      "title": "设置流程先执行原子性的链上交易，再进行非原子性的浏览器私钥写入",
+      "paragraphs": [
+        "全新的插件设置会构建一笔 Solana 交易。根据现有状态，这笔交易可以初始化 Profile、向权限地址转入与目标值之间的差额，并创建或刷新 PlayerSession。Solana 会以原子方式处理这些指令：只要其中一条已执行指令失败，就不会只保留转账却回滚后面的 Session 指令。第 2.13 步会进一步拆解这笔交易内部及其周边的准确手续费与 rent 支出。",
+        "浏览器生命周期还有另一条边界。钱包辅助函数完成签名和广播，并在 RPC 报告交易达到 confirmed 承诺级别后返回。confirmed 比 processed 更强，但它与 finalized 不是同一个状态标签。只有辅助函数观察到 confirmed 后，设置流程才会调用独立的浏览器存储函数。之后的 localStorage.setItem 操作不属于 Solana 交易，因此存储不可用、配额不足、抛出异常或页面关闭，都可能造成资金和 PDA 已经存在，浏览器却没有持久保存私钥副本。",
+        "交易字节提交后，传输或 RPC 故障也可能让客户端得到不确定结果。单凭错误消息，既不能证明交易被拒绝，也不能证明交易成功。如果钱包活动记录或错误报告给出了交易签名，普通玩家可以在所选 Solana 网络上用可信区块浏览器查询这个公开签名。可信区块浏览器不需要任何私钥。",
+        "已审查的普通模块化 Play 界面不保证显示本次尝试使用的 sessionAuthority 地址或规范 PDA，也没有 PDA 派生按钮或 Session 余额归集按钮。如果拿不到交易签名或所需公开标识，结果就仍然是未知。不要为了碰运气而连续批准同一个设置请求；应保留不含秘密的钱包活动与错误详情，并改用官方支持渠道。"
+      ],
+      "facts": [
+        {
+          "label": "交易内部",
+          "value": "可选 Profile 初始化 + 转账 + Session 设置",
+          "detail": "这些链上指令会一起成功，或一起回滚。"
+        },
+        {
+          "label": "辅助函数确认 confirmed 并返回之后",
+          "value": "storeGameplaySession",
+          "detail": "辅助函数观察到 confirmed 后，独立的浏览器写入才开始；本页不会把该观察结果改称为 finalized。"
+        },
+        {
+          "label": "承诺级别边界",
+          "value": "confirmed 与 finalized 不是同一状态标签",
+          "detail": "已审查的辅助函数在等待 confirmed 承诺级别时，会接受 confirmed 或 finalized 状态。"
+        },
+        {
+          "label": "提交后报错",
+          "value": "结果可能仍是未知",
+          "detail": "不要把客户端没有拿到确认等同于交易已被拒绝。"
+        },
+        {
+          "label": "盲目重试风险",
+          "value": "另一份权限地址余额与 PDA rent",
+          "detail": "第一次的私钥未保存、随后又生成新 Keypair 时，就可能出现这种情况。"
+        },
+        {
+          "label": "普通模块化界面的边界",
+          "value": "不保证能看到交易签名和尝试使用的权限地址",
+          "detail": "已审查的模块化 Play 普通界面没有提供 PDA 派生或 Session SOL 归集控件。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：批准后页面报错了，我应该再次批准吗？",
+        "body": "先不要。只有当钱包活动记录或错误报告给出公开交易签名时，才使用可信区块浏览器查询，而且绝不能在那里输入私钥。如果拿不到签名或本次尝试使用的权限地址，结果仍然是未知，因为普通模块化 Play 不保证提供这些标识，也没有 PDA／归集工具。不要连续批准；请保存不含秘密的错误详情，并联系官方支持。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-uncertain-result-v1.webp",
+        "alt": "NiceChunk 标准村民男孩在石铁压机和实心记录石块旁拿着一块空白浅色凭据牌；标准村民女孩正把铜钥匙推入歪斜的半开木抽屉，并停住一辆载有封闭铜箱的手推车。",
+        "caption": "这幅以真实 Chunk.js 场景生成的驿站使用烘焙游戏材质，把公开记录的隐喻放在独立的卡住存储抽屉和暂停重试的手推车之前。空间顺序不构成执行证据：画面无法证明广播、确认、程序成功、localStorage 写入成功或失败、密钥丢失、注资，或任何真实玩家的结果。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "verify-stale-or-wrong-balance",
+      "eyebrow": "核对地址、网络、新鲜度与用途",
+      "title": "遇到过期或异常的 SOL 数字，应按固定顺序核验",
+      "paragraphs": [
+        "先确认这个数字的用途。面板中的目标值来自浏览器存储；账户 HUD 读取当前连接的 owner；插件 Session 状态读取已存的权限地址；PDA 中的 lamports 属于数据账户。如果钱包模式是 Local Game Wallet，owner 与 sessionAuthority 地址相同，但目标值和 PDA rent 仍是彼此独立的对象。",
+        "第二步核对上下文：复制界面上确实可见的完整公开地址，确认所选集群和 RPC 端点，并留意读取是否使用 confirmed 承诺级别。界面提供可见刷新按钮时，应使用它，而不要轻信 30 秒 HUD 缓存或 60 秒 Session 状态缓存。源码 API 有 force 选项，但已审查的普通模块化 Play 界面并不保证向玩家提供强制刷新控件。刷新失败时，HUD 可能会刻意保留上一次已知余额并标记为过期；这对展示有帮助，却不是最新链上事实。",
+        "第三步只使用你实际拥有的公开证据。如果钱包活动记录或错误报告给出签名，就在同一网络上用可信区块浏览器查询，再检查已知的权限地址。派生和读取规范 PlayerSession PDA 需要公开的 owner、sessionAuthority 标识以及相应工具，而普通模块化 Play 并不保证提供这些条件。如果缺少这些标识，就应停在“未知”，不要拿浏览器目标值或再次批准来填补证据空白。余额只能证明某个地址上有多少 lamports，不能证明通行证可用；非空 PDA 只能证明账户存在，不能证明使用方会接受它。"
+      ],
+      "facts": [
+        {
+          "label": "1 · 用途",
+          "value": "目标值、owner、sessionAuthority 或 PDA",
+          "detail": "比较数字前，先说清它属于哪个对象。"
+        },
+        {
+          "label": "2 · 地址",
+          "value": "完整 Base58 公钥",
+          "detail": "缩略标签可能掩盖 owner 与 sessionAuthority 并非同一地址。"
+        },
+        {
+          "label": "3 · 上下文",
+          "value": "集群、RPC、承诺级别与新鲜度",
+          "detail": "即使余额本身有效，若来自错误网络，回答的仍是错误问题。"
+        },
+        {
+          "label": "4 · 因果证据",
+          "value": "只使用实际可得的公开标识",
+          "detail": "交易签名、权限地址、PDA 与链上时间检查各自证明不同事实；缺少标识时，结果仍是未知。"
+        },
+        {
+          "label": "界面边界",
+          "value": "不保证提供强制刷新或 PDA 工具",
+          "detail": "源码 API 可以强制读取状态，但已审查的普通模块化界面没有暴露所有诊断操作。"
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "玩家问题：两个面板显示不一致时，我该相信哪个数字？",
+        "body": "不要只凭标签相信其中任何一个。比较实际可得的完整公开地址与网络上下文；条件允许时使用界面上的刷新或可信区块浏览器，并按用途给每个数字分类。普通模块化 Play 不保证提供 force／PDA 诊断按钮；缺少必要标识时，诚实的结论是“未知”，而不是再批准一次。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-stale-balance-check-v1.webp",
+        "alt": "NiceChunk 标准村民在同一张工作台前检查无标记目标框、深色环形印章、空白凭据牌、蒙尘玻璃容器、打开的铜箱、木制钥匙托盘和带钥匙凹槽的灰色石台；远处还有未动过的补给箱与雾中的信号塔。",
+        "caption": "这幅以真实 Chunk.js 场景生成的检查站使用烘焙游戏材质，排列出多个没有连线或标签的证据隐喻。它们的顺序用于引导核验，但任何圆环、牌片、水位、箱内物品、钥匙、凹槽、木箱或远处塔楼，都不是真实地址、签名、缓存值、余额、RPC 响应、Session 字段、错误原因或补充资金决定。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "expiry-logout-loss-and-recovery",
+      "eyebrow": "能否恢复取决于密钥",
+      "title": "到期、退出、私钥丢失与 owner 泄露，需要分别应对",
+      "paragraphs": [
+        "如果只有独立的插件 Session 密钥泄露，应立即停止使用它。链上到期会让已审查且识别 Session 的使用方停止接受旧记录，但持有私钥的人仍可能抢先转走剩余 SOL。只有仍保有安全、可用的密钥副本时，这些 lamports 才可能被转移；转移不保证成功，而且已审查的普通 Play 界面没有 Session 余额归集按钮。绝不能把私钥粘贴到未知网站、区块浏览器、表单或支持聊天中。",
+        "如果唯一的私钥副本已经丢失或确实删除，公开地址、余额和 PDA 仍可能存在，但普通浏览器流程已经无法为它们签名。插件模式重新连接时可能生成新的 sessionAuthority 和另一份由 rent 支付的数据 PDA，却无法找回旧私钥，也不会自动转移旧 SOL。Player Program 调度提供创建或刷新，但没有已审查到的 Session 关闭、撤销、停用或 rent 退款处理器。第 2.13 步会盘点其他账户类型中确切存在的关闭或恢复路径。",
+        "如果 owner 钱包或 Local Game Wallet 密钥泄露，旧 Session 到期并不能彻底止损，因为该密钥仍可批准未来的设置；Local Game Wallet 甚至可以独自满足两个签名角色。请停止批准新请求，并遵循可信钱包提供商的安全事件处理流程。Logout 只会尝试按本地前缀删除数据，可能静默失败，也可能触及同源下其他 owner 后缀，而且不会改变任何链上状态。任何转移资产的尝试都可能与攻击者竞速，因此本页不会承诺一定能够恢复。"
+      ],
+      "facts": [
+        {
+          "label": "独立 Session 密钥泄露",
+          "value": "停止使用；已审查的旧访问权限在链上到期时终止",
+          "detail": "持有私钥的人仍可能抢先转移剩余 SOL；到期不会自动归集余额。"
+        },
+        {
+          "label": "独立密钥丢失",
+          "value": "新密钥不能找回旧资金",
+          "detail": "即使可用私钥已经不存在，地址和 PDA 仍可能保留。"
+        },
+        {
+          "label": "Owner 或 Local Game Wallet 泄露",
+          "value": "仅靠到期并不足够",
+          "detail": "长期密钥仍可批准或直接满足未来设置所需的角色。"
+        },
+        {
+          "label": "退出登录",
+          "value": "仅是尽力而为的浏览器清理",
+          "detail": "不会撤销 Session、关闭 PDA、退还 rent，也不会归集权限地址余额。"
+        },
+        {
+          "label": "安全恢复边界",
+          "value": "只有安全可用的密钥仍在时才可能恢复；永不保证成功",
+          "detail": "当前 Play 没有归集按钮，私钥绝不能粘贴到未知网站或聊天中。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：按下 Logout 实际能恢复什么？",
+        "body": "链上什么也不会恢复。Logout 只会尝试清理浏览器数据并跳转；它不会撤销、关闭、退款或归集余额。如果独立权限密钥已经泄露，应停止使用。只有仍保有安全可用的密钥副本时，剩余 SOL 才可能被转移；当前 Play 没有归集按钮，转移还可能与攻击者竞速，并且绝不能把私钥粘贴到未知网站。"
+      },
+      "visual": {
+        "src": "/docs/media/session-funding-and-expiry-expiry-recovery-v1.webp",
+        "alt": "NiceChunk 标准村民男孩在完好的石质记录和铜箱旁检查浅色凭据；标准村民女孩把新铜钥匙与合拢的备份册放在身边，附近还有开裂的托架、清空的格柜、带沙漏的关闭闸门，以及暴露在外的深色箱子。",
+        "caption": "这幅以真实 Chunk.js 场景生成的恢复院落使用烘焙游戏材质，让闸门、格柜、旧记录、旧箱子、开裂托架、替代钥匙、备份册与暴露的 owner 箱保持明显分离。这些道具不能证明到期、拒绝、退出登录、安全删除、密钥泄露、备份有效、替换、退款、撤销、关闭支持或旧资金恢复。",
+        "width": 1774,
+        "height": 887
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "逐项核验每个决定",
+    "title": "把每一项余额、计时、重试与恢复结论对应到它的真实来源",
+    "summary": "每条公式都标明所属章节，并用普通玩家能理解的语言解释。每段源码均按连续原文范围复制，并配有逐步讲解。仓库源码、带日期的生产环境静态字节与保留的 Devnet 观察始终分别标注，避免把客户端默认值误说成永久不变的链上事实。"
+  },
+  "formulas": [
+    {
+      "sectionId": "four-money-objects",
+      "title": "四个彼此独立的资金对象",
+      "expression": "moneyContext = { browserTarget, ownerBalance(owner), authorityBalance(sessionAuthority), rentLamports(PlayerSessionPDA) }",
+      "ariaLabel": "资金上下文包含浏览器目标值、owner 地址余额、sessionAuthority 地址余额，以及单独存放在 PlayerSession PDA 中的 rent lamports。",
+      "explanation": "大括号只是把问题归为一组，并没有把资金合在一起。除非地址与账户类型都吻合，否则其中一个成员的数值不能作为另一个成员的证据。",
+      "terms": [
+        {
+          "symbol": "browserTarget",
+          "meaning": "不会创建交易的本地策略值。"
+        },
+        {
+          "symbol": "ownerBalance",
+          "meaning": "owner 公钥地址上可支出的 lamports。"
+        },
+        {
+          "symbol": "authorityBalance",
+          "meaning": "游戏签名者公钥地址上可支出的 lamports。"
+        },
+        {
+          "symbol": "rentLamports",
+          "meaning": "由独立程序所有数据账户持有的 lamports。"
+        }
+      ]
+    },
+    {
+      "sectionId": "four-money-objects",
+      "title": "SOL 与 lamport 换算",
+      "expression": "lamports = SOL × 1,000,000,000; 0.1 SOL = 100,000,000 lamports",
+      "ariaLabel": "1 SOL 等于 10 亿 lamports，因此 0.1 SOL 等于 1 亿 lamports。",
+      "explanation": "换算只改变计量单位。它既不能说明换算后的 lamports 属于哪个账户，也不能证明发生过转账。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "配置目标值的选择规则",
+      "expression": "selected = ownerTarget when present, otherwise defaultTarget; target = floor(selected) when finite and at least 100,000,000, otherwise 100,000,000",
+      "ariaLabel": "存在 owner 专属目标值时使用它，否则使用默认目标值；如果选中的值无效或过小，则回退到 1 亿 lamports。",
+      "explanation": "浏览器会在两个来源中选择一个已存值，而不是把两者合并；随后只接受不小于最低值的有限数字。这是浏览器策略，不是链上 Session 字段。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "当前补充资金分支",
+      "expression": "topUp(balance,target) = balance < 0.1 SOL ? max(0, target − balance) : 0",
+      "ariaLabel": "只有当前余额低于 0.1 SOL 时，才按目标值与余额之间的正差额补充资金；否则转账金额为零。",
+      "explanation": "这套运算顺序说明了：余额只要高于最低值，就不会自动补到更大的目标值。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "低余额计算示例",
+      "expression": "target 0.50 SOL − balance 0.06 SOL = requested top-up 0.44 SOL",
+      "ariaLabel": "目标值为 0.50 SOL、余额为 0.06 SOL 时，请求补充的差额为 0.44 SOL。",
+      "explanation": "这道算式只说明源码分支如何计算。请求还必须经过 owner 批准、成功执行并重新读取最新余额，才能作为资金已到账的证据。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "title": "插件钱包的注资结构",
+      "expression": "pluginMode: ownerAddress differs from authorityAddress; each address has its own balance",
+      "ariaLabel": "普通插件模式下，owner 与 sessionAuthority 是不同公钥，因此两份余额属于两个独立地址。",
+      "explanation": "两份余额属于不同地址；这里并不是在讨论统计学上的独立性。转账可以在两者之间移动 lamports，但 Session 记录不会合并所有权，也不会限制权限密钥本身能支出的上限。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "title": "Local Game Wallet 的资金结构",
+      "expression": "localMode: owner = sessionAuthority ⇒ ownerBalance = authorityBalance for the same address; PDA rent remains separate",
+      "ariaLabel": "Local Game Wallet 模式下，owner 与 sessionAuthority 是同一个地址，因此共享一份余额；PlayerSession PDA 的 rent 仍然独立。",
+      "explanation": "这里的相等表示地址相同，并不是安全保证。同一把浏览器密钥控制该地址的全部余额，也同时承担两个设置角色。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "浏览器请求的到期时间",
+      "expression": "requestedExpiresAt = floor(Date.now() / 1000) + 28,800",
+      "ariaLabel": "浏览器请求的到期时间等于它当前的 Unix 秒数加 28,800 秒，也就是 8 小时。",
+      "explanation": "这只是客户端请求。Player Program 会接受任何在链上执行时严格晚于当前链上时间的到期值，并没有强制 8 小时上限。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "插件复用安全窗口",
+      "expression": "localReuseTimeOK = storedExpiresAt > browserNow + 900 seconds",
+      "ariaLabel": "要进入快速复用分支，浏览器保存的到期时间必须比当前浏览器时间晚 900 秒以上，也就是超过 15 分钟。",
+      "explanation": "通过这项基于复制时间的判断，并不能验证 Session 记录的完整内容，也不能保证后续使用方会接受它。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "缓存窗口不等于授权",
+      "expression": "age(ready result) < 300s; age(Session status) < 60s; age(owner-balance result) < 30s",
+      "ariaLabel": "就绪缓存有效期小于 5 分钟，Session 状态缓存小于 60 秒，owner 余额缓存小于 30 秒。",
+      "explanation": "每个不等式只决定浏览器能否复用本地数据；它们都不会修改公开账户中的 expiresAt。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "权威的链上时间规则",
+      "expression": "setupOrUseTimeOK = expiresAt > Clock.unix_timestamp",
+      "ariaLabel": "只有已存到期时间严格大于 Solana Clock 的 Unix 时间戳时，设置或 Session 使用才能通过时间检查。",
+      "explanation": "两者相等时就已经到期。即使这项比较通过，使用方仍可能因身份、所有权或权限条件不满足而拒绝。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "title": "同一密钥下的 PDA 选择",
+      "expression": "P_session = PDA(PlayerProgram,[\"session\",owner,authority]); same owner + same authority ⇒ same address",
+      "ariaLabel": "PlayerSession 地址由 Player Program、固定的 session 种子、owner 与 sessionAuthority 共同派生，因此顺序相同的密钥组合会选中同一个地址。",
+      "explanation": "选中同一个地址并不保证刷新成功；已存关系和当前 Profile 检查仍然必须通过。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "title": "替代密钥下的 PDA 选择",
+      "expression": "authority_new ≠ authority_old ⇒ P_session,new ≠ P_session,old; old state unchanged",
+      "ariaLabel": "换成不同的 sessionAuthority 会改变规范 PlayerSession 地址，而旧 Session 记录与旧权限地址余额保持不变。",
+      "explanation": "新的设置交易不会附带自动关闭旧账户、归集 SOL、退还 rent 或撤销权限的副作用。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "原子性的链上部分",
+      "expression": "chainCommit = atomic(optional Profile init + optional authority transfer + Session create/refresh)",
+      "ariaLabel": "可选的 Profile 初始化、可选的权限地址注资转账，以及 Session 创建或刷新，都是同一笔原子性 Solana 交易中的指令。",
+      "explanation": "如果这笔交易执行时有指令报错，其中的状态变更会一起回滚。这不会让之后的浏览器存储写入也变成同一原子操作。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "两个系统之间的持久化边界",
+      "expression": "helper observes confirmed → browser attempts localStorage.setItem(private key); the chain transaction is not atomic with the browser write",
+      "ariaLabel": "辅助函数观察到 confirmed 状态后，浏览器才尝试保存私钥；这次浏览器写入与链上交易不是同一原子操作。",
+      "explanation": "这里不会把 confirmed 改称为 finalized。辅助函数观察到 confirmed 后，如果浏览器存储失败，可能留下已经注资的权限地址和公开 PDA，却没有持久保存的浏览器密钥副本。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "未知结果不等于失败",
+      "expression": "after-submit client error: possible result = confirmed, rejected, blockhash-expired, or still unknown; do not retry blindly",
+      "ariaLabel": "提交后的客户端错误可能对应已 confirmed、已拒绝、blockhash 过期，或仍然未知，因此玩家绝不能盲目重试。",
+      "explanation": "这只是可能诊断状态的列表，并不是概率判断。公开交易签名可以缩小范围；普通界面没有提供签名或权限地址标识时，诚实结论仍然是“未知”。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "title": "描述余额需要四项坐标",
+      "expression": "balanceClaim = (fullAddress, cluster, commitment, observedAt)",
+      "ariaLabel": "有意义的余额结论必须说明完整公开地址、Solana 集群、承诺级别与观察时间。",
+      "explanation": "缺少这些坐标时，两个本来都正确的数值也可能看似矛盾，因为它们描述的可能是不同密钥、不同网络或不同缓存时间。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "title": "设置完成后的证据核验顺序",
+      "expression": "when public identifiers exist: inspect signature → inspect known authority → inspect derived Session PDA; missing identifiers → result stays unknown",
+      "ariaLabel": "公开标识可得时，依次检查交易签名、已知权限地址与派生的 Session 账户；标识缺失时，结果应保持为未知。",
+      "explanation": "这个顺序并不表示前一步成功就能证明后续全部成功。普通模块化 Play 不保证提供所有标识或 PDA 工具；即使转账已 confirmed，被注资权限地址对应的 Session 仍可能缺失、已到期或被拒绝。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "独立 Session 密钥的到期边界",
+      "expression": "independent authority expires on chain → audited Session access stops; key control and any remaining SOL do not move automatically",
+      "ariaLabel": "独立 Session 记录按链上时间到期后，已审查的 Session 访问会停止，但普通私钥与其中剩余的 SOL 仍继续存在。",
+      "explanation": "只有安全可用的密钥副本仍然存在时，剩余 SOL 才可能被转移；转移不保证成功，还可能与攻击者竞速。到期不会把余额转到任何地方。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "Logout 的作用边界",
+      "expression": "logoutEffect = bestEffortLocalDeletion + redirect; chainMutation = 0",
+      "ariaLabel": "Logout 会尝试删除浏览器数据并跳转，但不会造成任何链上变更。",
+      "explanation": "这里的零指已审查 Logout 处理器创建的链上交易数量。存储删除同样可能失败，而且不会被回读验证。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "Owner 泄露的影响不会随一次到期结束",
+      "expression": "ownerSecretCompromised ⇒ attacker can authorize future setup; oldSessionExpiry ≠ complete containment",
+      "ariaLabel": "如果 owner 私钥泄露，攻击者仍能授权未来的设置，因此一份旧 Session 到期并不能完全控制风险。",
+      "explanation": "Local Game Wallet 的影响范围最广，因为同一把已泄露密钥同时承担 owner 与 sessionAuthority 角色。"
+    }
+  ],
+  "codeSnippets": [
+    {
+      "sectionId": "four-money-objects",
+      "title": "Play 面板保存目标值并说明它的边界",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "    elements.sessionFundingForm?.addEventListener(\"submit\", (event) => {\n      event.preventDefault();\n      const sol = Math.max(MINIMUM_SESSION_SOL, Number(elements.sessionFundingAmount?.value) || MINIMUM_SESSION_SOL);\n      state.sessionLamports = Math.trunc(sol * LAMPORTS_PER_SOL);\n      saveSessionLamports(state.walletAddress, state.sessionLamports);\n      saveSessionAcknowledged(state.walletAddress);\n      closeSessionPanel(true);\n      render();\n      appendChainEvent(`Session funding target set to ${formatSol(state.sessionLamports)} SOL for ${ownerLabel()}.`);\n      setStatus(`Session funding target set to ${formatSol(state.sessionLamports)} SOL. It is a top-up target, not a spending cap or authorization limit.`);\n    });",
+      "explanation": "提交此表单会限制并保存一个浏览器数值、更新界面，而且明确称它为目标值。这段连续源码不包含转账，也不读取 RPC 余额。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "把所选 SOL 策略转换为整数 lamport 目标值，并确保它不低于 0.1 SOL。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "保存 owner 范围内的浏览器偏好并重绘面板，全程不构造交易。"
+        },
+        {
+          "lines": "第 9–11 行",
+          "meaning": "告诉玩家，这个数值是充值目标，而不是余额上限或授权上限。"
+        }
+      ]
+    },
+    {
+      "sectionId": "four-money-objects",
+      "title": "模块化 Play Session HUD 显示本地目标值",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "    const sessionText = state.sessionLamports > 0 ? `Session: ${formatSol(state.sessionLamports)} SOL` : \"Session: not funded\";\n    const rpcText = state.heliusApiKey\n      ? ui(\"main.profile.rpcHelius\", \"Helius RPC\")\n      : ui(\"main.profile.rpcPublic\", \"Public RPC\");\n    if (elements.accountName) elements.accountName.textContent = identity.name || profile.name || \"Local Miner\";\n    if (elements.accountLevel) elements.accountLevel.textContent = `Lv. ${levelFromProfile(profile)}`;\n    if (elements.accountTitle) elements.accountTitle.textContent = identity.title || chainModeLabel(state.chainMode);\n    renderWalletBalance();\n    if (elements.accountSessionBalance) elements.accountSessionBalance.textContent = sessionText;",
+      "explanation": "可见的 Session 文本直接由 state.sessionLamports 格式化，而所有者钱包余额由另一个函数渲染。这段原始源码证明，“Session: X SOL”展示的是本地目标值，而不是任何一个 RPC 余额。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "直接用内存中的 sessionLamports 目标值构建可见 Session 标签；数值为零时显示尚未注资。"
+        },
+        {
+          "lines": "第 2–7 行",
+          "meaning": "准备无关的 RPC、名称、等级和头衔显示，同时不改变 Session 目标值。"
+        },
+        {
+          "lines": "第 8–9 行",
+          "meaning": "单独渲染所有者钱包余额，再把预先构建、由目标值推导的 Session 文本放入独立 HUD 元素。"
+        }
+      ]
+    },
+    {
+      "sectionId": "four-money-objects",
+      "title": "所有者 HUD 使用 walletAddress 调用 getBalance",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "      body: JSON.stringify({\n        jsonrpc: \"2.0\",\n        id: \"nicechunk-wallet-balance\",\n        method: \"getBalance\",\n        params: [walletAddress, { commitment: \"confirmed\" }],\n      }),\n      signal: controller?.signal,\n      cache: \"no-store\",",
+      "explanation": "Play 的余额请求绑定 walletAddress 和 confirmed 承诺级别。在插件模式下，这个已连接的所有者地址可能不同于已存储的 Session authority。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "为已连接的钱包地址构建一次 JSON-RPC getBalance 请求，并使用 confirmed 承诺级别。"
+        },
+        {
+          "lines": "第 6–8 行",
+          "meaning": "附加请求中止信号并禁用 HTTP 响应缓存；独立的内存 UI 缓存仍然存在。"
+        }
+      ]
+    },
+    {
+      "sectionId": "four-money-objects",
+      "title": "PlayerSession 分配会单独计算租金",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let rent = Rent::get()?;\n    let lamports = rent.minimum_balance(PlayerSession::LEN);\n\n    if player_session.lamports() == 0 {\n        let create = system_instruction::create_account(\n            payer.key,\n            player_session.key,\n            lamports,\n            PlayerSession::LEN as u64,\n            program_id,\n        );",
+      "explanation": "Player Program 会按固定的 Session 数据长度计算租金，并用这笔 lamport 分配创建 PDA。这不是向 sessionAuthority 转账。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "向链上的 Rent sysvar 查询 PlayerSession 分配所需的最低余额。"
+        },
+        {
+          "lines": "第 4–11 行",
+          "meaning": "当 PDA 没有 lamport 时，为这个程序所有的数据账户构建一条由付款方出资的账户创建指令。"
+        }
+      ]
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "公共设置函数把目标值限制为不低于客户端最低值",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export function setConfiguredGameplaySessionFundingSol(value, owner = null) {\n  const parsed = Number(value);\n  const lamports = Number.isFinite(parsed)\n    ? Math.max(minimumSessionFundingLamports, Math.ceil(parsed * lamportsPerSol))\n    : minimumSessionFundingLamports;\n  if (hasLocalStorage()) localStorage.setItem(sessionFundingStorageKey(owner), String(lamports));\n  return lamports / lamportsPerSol;\n}",
+      "explanation": "这个设置函数会规范化一项浏览器偏好，并在 localStorage 可用时保存它。它既不读取，也不改变 authority 地址的余额。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "把有限的 SOL 输入向上取整转换为 lamport，并限制为不低于 0.1 SOL。"
+        },
+        {
+          "lines": "第 6–7 行",
+          "meaning": "在所选后缀对应的键下保存目标值，并返回规范化后的 SOL 显示值。"
+        }
+      ]
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "所有者专属目标值依次回退到默认值和最低值",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function getConfiguredGameplaySessionFundingLamports(owner = null) {\n  if (!hasLocalStorage()) return minimumSessionFundingLamports;\n  const ownerValue = localStorage.getItem(sessionFundingStorageKey(owner));\n  const defaultValue = localStorage.getItem(sessionFundingStorageKey(null));\n  const parsed = Number(ownerValue ?? defaultValue);\n  return Number.isFinite(parsed) && parsed >= minimumSessionFundingLamports\n    ? Math.floor(parsed)\n    : minimumSessionFundingLamports;\n}",
+      "explanation": "空值合并运算符会在所有者专属值存在时选择它，否则选择默认值；最后的分支会拒绝无效值或低于最低值的数值。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "没有存储时使用最低值；否则读取所有者专属键和浏览器默认键。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "选择一个值，并且只在它是有限数且不低于最低值时接受。"
+        }
+      ]
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "title": "充值辅助函数先检查最低门槛，再检查目标值",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function fundGameplaySessionIfNeeded(provider, sessionAuthority, sessionBalance, conn) {\n  if (sessionBalance >= minimumSessionFundingLamports) return;\n  const targetLamports = getConfiguredGameplaySessionFundingLamports(provider.publicKey);\n  if (sessionBalance >= targetLamports) return;\n  const lamports = targetLamports - sessionBalance;\n  if (lamports <= 0) return;\n  const tx = new Transaction();\n  tx.add(SystemProgram.transfer({\n    fromPubkey: provider.publicKey,\n    toPubkey: sessionAuthority,\n    lamports,\n  }));\n  await signAndSendWalletTransaction(provider, tx, conn);\n}",
+      "explanation": "运算顺序决定结果：余额达到或超过 0.1 SOL 时会直接返回，尚不会考虑更高的目标值。余额更低时，才可能请求把正数差额从 owner 转给 authority。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "达到最低门槛时直接退出；只有更低的余额才会加载并比较配置的目标值。"
+        },
+        {
+          "lines": "第 5–6 行",
+          "meaning": "计算并验证一个严格大于零的差额。"
+        },
+        {
+          "lines": "第 7–13 行",
+          "meaning": "构建从 owner 到 authority 的 System 转账，并让钱包辅助函数提交。"
+        }
+      ]
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "title": "Local Game Wallet 状态只有一个地址，没有单独目标值",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function createLocalGameWalletStatus(owner, balanceLamports = null, expiresAt = null) {\n  const ownerKey = owner?.toBase58?.() ?? String(owner ?? \"\");\n  const normalizedBalance = Number.isFinite(balanceLamports) ? Math.floor(balanceLamports) : null;\n  return {\n    walletAvailable: true,\n    owner: ownerKey,\n    acknowledged: true,\n    configuredFundingLamports: 0,\n    minimumFundingLamports: 0,\n    balanceLamports: normalizedBalance,\n    balanceSol: normalizedBalance === null ? null : normalizedBalance / lamportsPerSol,\n    publicKey: ownerKey,\n    sessionAuthority: ownerKey,\n    expiresAt,\n    usesGameplaySession: false,\n    walletMode: \"localGameWallet\",\n  };\n}",
+      "explanation": "状态对象同时把 ownerKey 用作 owner、publicKey 和 sessionAuthority，并把独立 Session 的注资策略字段报告为零。目标值为零不代表钱包余额为零。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "规范化唯一的 Local Game Wallet 地址，以及可选的新鲜余额。"
+        },
+        {
+          "lines": "第 4–10 行",
+          "meaning": "报告不存在单独的注资目标，同时保留这个唯一地址的实际余额。"
+        },
+        {
+          "lines": "第 11–17 行",
+          "meaning": "把同一个密钥放入 public 和 authority 角色，并明确标注钱包模式。"
+        }
+      ]
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "title": "Local Game Wallet 用 owner 同时填入两个设置角色",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: owner,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));\n\n  await signAndSendKeypairTransaction(keypair, tx, conn);",
+      "explanation": "同一个公钥同时占据 owner 和 sessionAuthority 角色，持久保存的 Local Game Wallet Keypair 会直接签署交易。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "构建 Session 设置，并在 authority 角色中再次使用 owner。"
+        },
+        {
+          "lines": "第 9 行",
+          "meaning": "使用同一个长期浏览器 Keypair 签名并提交。"
+        }
+      ]
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "title": "Local Game Wallet 私钥只是普通 Base58 文本",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "function storeLocalGameWalletKeypair(keypair, source = \"created\") {\n  const address = keypair.publicKey.toBase58();\n  const secretKey = bs58.encode(keypair.secretKey);\n  const createdAt = String(Date.now());\n  if (!hasLocalStorage()) throw new Error(\"Browser local storage is unavailable.\");\n  localStorage.setItem(localGameWalletKeys.address, address);\n  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);",
+      "explanation": "Base58 只改变表示形式，并不会加密完整的长期密钥。因此，资金风险集中在这个同时承担 owner 和 authority 的地址上。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "派生地址、可逆的 Base58 私钥文本和浏览器创建时间。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "要求 localStorage 可用，并同时保存公开地址和私有签名字节。"
+        }
+      ]
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "代码仓库策略声明时长、偏差余量和缓存窗口",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "const sessionDurationSeconds = 8 * 60 * 60;\nconst sessionRefreshSkewSeconds = 15 * 60;\nconst lamportsPerSol = 1_000_000_000;\nconst minimumSessionFundingLamports = 100_000_000;\nconst sessionMinimumMiningLamports = 8_000_000;\nconst sessionAllowedActions = (1 << 1) | (1 << 2);\nconst sessionMaxActions = 10_000;\nconst miningComputeUnitLimit = 1_400_000;\nconst fallbackTransactionFeeLamports = 5_000;\nconst transactionConfirmationPollMs = 500;\nconst transactionBlockHeightPollMs = 1_000;\nconst transactionConfirmationTimeoutMs = 60_000;\nconst treeFellMaxChunkCount = 4;\nconst treeFellLeafRadius = 2;\nconst supportCollapseMaxOnChainBlocks = 48;\nconst bulkMiningModeDebug = 1;\nconst chunkDeltaCacheTtlMs = 60_000;\nconst gameplaySessionStatusCacheTtlMs = 60_000;\nconst gameplaySessionReadyCacheTtlMs = 5 * 60_000;",
+      "explanation": "相关声明设置了 8 小时时长、15 分钟偏差余量、60 秒状态缓存和 5 分钟就绪缓存。附近另一个 60 秒确认回退属于不同策略，不能与 Session 生命周期混为一谈。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "声明请求时长、刷新偏差余量、SOL 换算和注资最低值。"
+        },
+        {
+          "lines": "第 5–16 行",
+          "meaning": "声明同一模块中与此无关的动作、费用、轮询和游戏常量。"
+        },
+        {
+          "lines": "第 17–19 行",
+          "meaning": "声明相互独立的 60 秒 Session 状态缓存和 5 分钟就绪缓存生命周期。"
+        }
+      ]
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "Play 单独声明 30 秒的所有者余额缓存",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "const LAMPORTS_PER_SOL = 1_000_000_000;\nconst MINIMUM_SESSION_SOL = 0.1;\nconst BALANCE_CACHE_TTL_MS = 30_000;\nconst BALANCE_REFRESH_INTERVAL_MS = 30_000;\nconst BALANCE_REQUEST_TIMEOUT_MS = 12_000;\nlet localWalletModulePromise = null;\nlet localWalletModuleManifestPromise = null;\nconst walletBalanceCache = new Map();",
+      "explanation": "HUD 的 30 秒缓存与刷新间隔，独立于链模块的 Session 状态缓存和就绪缓存。12 秒 HTTP 中止时间又是另一个计时器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "声明 UI 单位换算和显示的最低目标值。"
+        },
+        {
+          "lines": "第 3–5 行",
+          "meaning": "设置所有者余额缓存、刷新间隔和请求中止策略。"
+        },
+        {
+          "lines": "第 6–8 行",
+          "meaning": "把模块加载状态与余额缓存数据保存在不同的内存值中。"
+        }
+      ]
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "title": "Player Program 用链上 Clock 比较请求的到期时间",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let clock = Clock::get()?;\n    if expires_at <= clock.unix_timestamp {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }",
+      "explanation": "设置指令执行时，只接受严格晚于当前链上时间的到期时间。合约作出这个判断时不会使用浏览器 Date.now 或缓存年龄。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "在程序指令执行期间读取 Solana 的 Clock sysvar。"
+        },
+        {
+          "lines": "第 2–4 行",
+          "meaning": "拒绝等于或早于链上 Unix 时间戳的到期时间。"
+        }
+      ]
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "title": "已存储的插件记录一旦校验失败，就不会返回可复用密钥",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function loadStoredGameplaySession(owner) {\n  try {\n    if (!hasLocalStorage()) return null;\n    const raw = localStorage.getItem(sessionStorageKey(owner));\n    if (!raw) return null;\n    const parsed = JSON.parse(raw);\n    if (!parsed?.secretKey || !Number.isFinite(parsed.expiresAt)) return null;\n    const secretKey = base64ToBytes(parsed.secretKey);\n    const keypair = Keypair.fromSecretKey(secretKey);\n    if (parsed.publicKey && keypair.publicKey.toBase58() !== parsed.publicKey) return null;\n    return { keypair, expiresAt: Number(parsed.expiresAt) };\n  } catch {\n    return null;\n  }\n}",
+      "explanation": "存储缺失、JSON 格式错误、字段无效、私钥字节无效或公钥不匹配，都会让调用方得到 null，而不是可访问的旧 Keypair。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "要求 localStorage 可读，并存在一条 owner 范围内的序列化记录。"
+        },
+        {
+          "lines": "第 6–10 行",
+          "meaning": "解码 JSON 和私钥字节，然后拒绝可选的已保存公钥不匹配情况。"
+        },
+        {
+          "lines": "第 11–14 行",
+          "meaning": "返回恢复出的密钥和到期时间；任何解码或存储异常都返回 null。"
+        }
+      ]
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "title": "设置路径会复用已存储的 Keypair，否则生成一个替代密钥",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const keypair = stored?.keypair ?? Keypair.generate();\n  const expiresAt = nowSeconds + sessionDurationSeconds;\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, keypair.publicKey);\n  const tx = new Transaction();",
+      "explanation": "即使没有进入快速复用分支，成功解码的存储记录也会保留原来的确切 authority。只有存储结果为 null 才会调用 Keypair.generate，从而产生不同的 authority 种子。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "优先使用恢复出的 Keypair；只有不存在可用存储记录时才生成新密钥。"
+        },
+        {
+          "lines": "第 2–5 行",
+          "meaning": "请求新的浏览器到期时间，并用 owner 和所选密钥派生 Profile 与 Session 地址。"
+        }
+      ]
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "title": "Local Game Wallet 始终以两次 owner 派生 Session",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function getOrCreateLocalGameWalletGameplaySession(provider) {\n  const owner = provider.publicKey;\n  const keypair = getLocalGameWalletKeypair();\n  if (!keypair?.publicKey?.equals?.(owner)) {\n    throw new Error(\"Local game wallet is unavailable.\");\n  }\n\n  const nowSeconds = Math.floor(Date.now() / 1000);\n  const expiresAt = nowSeconds + sessionDurationSeconds;\n  if (isGameplaySessionReadyCached(owner, owner)) {\n    return { keypair, expiresAt, localGameWallet: true };\n  }\n\n  const conn = getNicechunkConnection();\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, owner);",
+      "explanation": "这个分支要求持久保存的 Local Game Wallet 密钥与 owner 匹配，用 owner 同时填入两个位置查询就绪状态，并派生同密钥 PDA。它没有单独的 authority 生成器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "加载持久密钥；如果其公钥不同于 provider 的 owner，就拒绝继续。"
+        },
+        {
+          "lines": "第 8–12 行",
+          "meaning": "计算浏览器时间，并允许使用 5 分钟的同密钥就绪快捷路径。"
+        },
+        {
+          "lines": "第 14–16 行",
+          "meaning": "缓存未命中时，派生 Profile 地址和 owner-owner Session 地址，以供 RPC 检查。"
+        }
+      ]
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "新的插件设置会把注资和 Session 设置放进同一笔交易",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  if (!profileAccount?.data?.length) {\n    tx.add(createInitializePlayerInstruction(owner, playerProfile, \"\"));\n  }\n  const targetLamports = sessionBalance < minimumSessionFundingLamports\n    ? getConfiguredGameplaySessionFundingLamports(owner)\n    : sessionBalance;\n  if (sessionBalance < targetLamports) {\n    tx.add(SystemProgram.transfer({\n      fromPubkey: owner,\n      toPubkey: keypair.publicKey,\n      lamports: targetLamports - sessionBalance,\n    }));\n  }\n  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: keypair.publicKey,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));",
+      "explanation": "可选的 Profile 初始化、可选的目标差额转账，以及创建或刷新指令，都会在提交前追加到同一个交易对象中。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "只有获取到的 Profile 没有数据时，才添加 Profile 初始化。"
+        },
+        {
+          "lines": "第 4–13 行",
+          "meaning": "按最低门槛规则选择目标值；只有差额为正时，才追加一笔从 owner 到新 authority 的转账。"
+        },
+        {
+          "lines": "第 14–20 行",
+          "meaning": "把针对确切所选 authority 和到期时间的 Session 设置追加到同一笔交易。"
+        }
+      ]
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "钱包辅助函数返回后，浏览器才持久化私钥",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);\n  const session = { keypair, expiresAt };\n  storeGameplaySession(owner, session);\n  markGameplaySessionReady(owner, keypair.publicKey, targetLamports);",
+      "explanation": "钱包辅助函数会先观察到它所请求的 confirmed 承诺级别。只有随后，源码才调用浏览器存储持久化并标记内存就绪缓存，所以私钥副本是在交易之外进行的第二次提交；confirmed 并没有被改称为 finalized。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "返回前，依次应用额外的 authority 签名、owner 批准、广播，以及辅助函数在 confirmed 承诺级别的观察。"
+        },
+        {
+          "lines": "第 2–3 行",
+          "meaning": "在该 confirmed 观察之后，组装本地浏览器记录，并尝试持久化其中的私钥。"
+        },
+        {
+          "lines": "第 4 行",
+          "meaning": "只有 storeGameplaySession 正常返回且没有抛出异常后，才标记为就绪。"
+        }
+      ]
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "钱包辅助函数先广播，再轮询 confirmed 状态",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }",
+      "explanation": "在这个 provider 分支中，状态轮询完成前，原始交易就已经提交。辅助函数请求 confirmed，它可以接受 confirmed 或 finalized 状态，但并不专门要求 finalized。因此，后续报错需要核对实际结果，不能直接假定什么都没有上链。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "取得 owner 签名并广播序列化交易字节，随后收到一个签名字符串。"
+        },
+        {
+          "lines": "第 4–8 行",
+          "meaning": "轮询该签名和 blockhash 生命周期，同时明确请求 confirmed 而不是 finalized 承诺级别。"
+        },
+        {
+          "lines": "第 9 行",
+          "meaning": "只有辅助函数的 confirmed 判定成功后才返回签名；这里的措辞并不会把它升级为 finalized。"
+        }
+      ]
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "title": "常规模块化错误信息会显示原因，但不会显示全部恢复标识",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "    } catch (error) {\n      state.chainMode = \"adapter-error\";\n      const reason = readableError(error);\n      logSubmissionFailure(action, pending, {\n        stage: \"exception\",\n        reason,\n        error,\n      });\n      state.chainResults.set(pending.txId, { reason });\n      const rolledBack = action === \"mine\" ? controls.rollbackTx?.(pending.txId) : null;\n      if (!rolledBack) {\n        appendSubmissionState(\n          action,\n          pending,\n          `${pending.txId} chain adapter error: ${reason}.`,\n          \"error\",\n          { reason },\n        );\n      }\n      render();\n    }",
+      "explanation": "玩家看到的事件文本包含本地 pending ID 和可读原因。如果错误对象携带更多信息，单独的结构化控制台报告可能会记录它们；但这个可见分支不保证提供交易签名、尝试使用的 authority、派生 PDA 或余额归集控制项。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "把抛出的值转换成可读原因，并把更丰富的细节发送给独立的结构化失败日志器。"
+        },
+        {
+          "lines": "第 9–18 行",
+          "meaning": "围绕本地回滚状态保存并显示原因，但不会承诺可见消息中一定包含交易签名或 authority 地址。"
+        },
+        {
+          "lines": "第 19–20 行",
+          "meaning": "渲染更新后的错误状态；这段代码没有暴露 PDA 派生或 Session 余额归集操作。"
+        }
+      ]
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "title": "Session 状态可能返回缓存 60 秒的快照",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const owner = provider.publicKey;\n  const ownerKey = owner.toBase58();\n  const cached = gameplaySessionStatusCache.get(ownerKey);\n  if (!force && cached && Date.now() - cached.loadedAt < gameplaySessionStatusCacheTtlMs) {\n    return { ...cached.status };\n  }",
+      "explanation": "状态缓存以 owner 为键，并可通过 force 绕过。如果没有 force，一个仍有效的缓存对象可以直接返回，而不会重新读取余额或 Session。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "规范化已连接的 owner，并取得其内存 Session 状态条目。"
+        },
+        {
+          "lines": "第 4–6 行",
+          "meaning": "当 force 为 false 且条目仍在声明的 TTL 内时，返回它的副本。"
+        }
+      ]
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "title": "HUD 刷新失败时可能保留旧值，并将其标记为 stale",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "      .catch((error) => {\n        if (requestSerial === state.walletBalanceRequestSerial) {\n          state.walletBalanceStatus = hadBalance ? \"stale\" : \"error\";\n          renderWalletBalance();\n          console.warn(\"NiceChunk wallet balance refresh failed\", error);\n        }\n        return { ok: false, reason: readableError(error) };\n      })",
+      "explanation": "存在旧余额时，刷新失败会把它标记为 stale，而不是清空。这个数字仍可用于界面提示，但它不是新的 RPC 观测结果。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "只处理最新请求；如果已有先前已知余额，就选择 stale 状态。"
+        },
+        {
+          "lines": "第 4–5 行",
+          "meaning": "重绘该状态，并在控制台记录刷新错误。"
+        },
+        {
+          "lines": "第 7–8 行",
+          "meaning": "返回结构化失败，不把它伪装成一次成功的新鲜读取。"
+        }
+      ]
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "title": "插件 Session 状态读取已存储的 authority 地址",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  let balanceLamports = null;\n  try {\n    balanceLamports = await getNicechunkConnection().getBalance(stored.keypair.publicKey, \"confirmed\");\n  } catch (error) {\n    reportRpcError(error, \"session-balance\");\n    throw error;\n  }\n\n  const status = {\n    walletAvailable: true,\n    owner: ownerKey,\n    acknowledged: hasAcknowledgedGameplaySessionFunding(owner),\n    configuredFundingLamports,\n    minimumFundingLamports: minimumSessionFundingLamports,\n    balanceLamports,\n    balanceSol: balanceLamports / lamportsPerSol,\n    publicKey: stored.keypair.publicKey.toBase58(),\n    expiresAt: stored.expiresAt,\n    usesGameplaySession: true,\n    walletMode: \"pluginWallet\",\n  };",
+      "explanation": "这次读取针对 stored.keypair.publicKey，随后把 owner 与 authority 相关字段一起返回。不能把这个对象理解成一个合并后的钱包。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "以 confirmed 承诺级别读取已存储 authority 的余额；若失败则直接呈现 RPC 错误。"
+        },
+        {
+          "lines": "第 9–14 行",
+          "meaning": "把 owner 身份和配置的浏览器注资策略保留为彼此独立的状态字段。"
+        },
+        {
+          "lines": "第 15–21 行",
+          "meaning": "附加 authority 余额、复制的到期时间、公钥和明确的插件模式。"
+        }
+      ]
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "经审核的 Player 分发器支持创建或刷新，却没有终止 Session 的指令标签",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
+      "explanation": "标签 4 创建或刷新 PlayerSession。当前标签 13 和 14 用于转移或交换装备槽位，不会关闭 Session。在这份完整审核过的分发表中，仍没有用于关闭、撤销、停用或退还 PlayerSession 的标签；标签 9 关闭的是 Appearance。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "分发玩家身份和装备标签，其中标签 4 用于创建或刷新 Session。"
+        },
+        {
+          "lines": "第 7–14 行",
+          "meaning": "分发锻造、名称、Appearance、邀请和 v2 装备操作；关闭 Appearance 不等于关闭 Session。"
+        },
+        {
+          "lines": "第 15–16 行",
+          "meaning": "分发当前的装备转移与交换指令；两者都不会改变 PlayerSession 生命周期。"
+        },
+        {
+          "lines": "第 17–18 行",
+          "meaning": "拒绝所有未声明标签，而不是暴露未列出的 Session 关闭、撤销、停用或退款操作。"
+        }
+      ]
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "退出登录会扫描当前同源下所有匹配的运行时前缀",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "export function clearWalletSession(storage = globalThis.localStorage) {\n  for (const key of Object.values(walletSessionKeys)) remove(storage, key);\n  const keys = [];\n  try {\n    for (let index = 0; index < storage.length; index += 1) {\n      const key = storage.key(index);\n      if (key) keys.push(key);\n    }\n  } catch {\n    return;\n  }\n  for (const key of keys) {\n    if (runtimeCachePrefixes.some((prefix) => key.startsWith(prefix))) remove(storage, key);\n  }\n}",
+      "explanation": "清理会先尝试移除身份字段，再处理每一个匹配的前缀，并不限定 owner 后缀。枚举失败会提前退出，而且这个函数不会发送链上交易。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "尝试移除固定的钱包身份浏览器键。"
+        },
+        {
+          "lines": "第 3–11 行",
+          "meaning": "枚举存储键；如果枚举抛出异常，就放弃前缀清理流程。"
+        },
+        {
+          "lines": "第 12–15 行",
+          "meaning": "尝试移除当前同源下所有后缀中每一个已识别的运行时前缀键。"
+        }
+      ]
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "title": "单个键的清理错误会被吞掉",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "function remove(storage, key) {\n  try {\n    storage?.removeItem?.(key);\n  } catch {\n    // Logout still redirects even when browser storage is unavailable.\n  }\n}",
+      "explanation": "辅助函数不会回读键值，也不会报告移除失败。即使浏览器存储里仍留有私钥或目标值，退出登录流程也可以继续。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "针对传入的键尝试执行一次可选的 localStorage 移除。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "捕获并忽略异常，让重定向流程继续，但不保证删除成功。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "sectionId": "four-money-objects",
+      "path": "play/play-chain-session.js",
+      "claim": "模块化 Play 按 owner 保存注资目标值，直接用 state.sessionLamports 渲染 `Session: X SOL`，同时另行以 confirmed 承诺级别查询当前连接 walletAddress 的余额。"
+    },
+    {
+      "sectionId": "four-money-objects",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "插件 Session 状态会对 stored.keypair.publicKey 调用 getBalance，因此它显示的权限地址余额可能与 Play owner HUD 所对应的地址不同。"
+    },
+    {
+      "sectionId": "four-money-objects",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "PlayerSession 分配会为 PlayerSession::LEN 计算 Rent::minimum_balance，并使用 owner 付款方创建独立 PDA 或补足其资金。"
+    },
+    {
+      "sectionId": "four-money-objects",
+      "path": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "claim": "保留的 confirmed Devnet 快照记录：在该次观察中，184 字节 Session 账户的最低 rent 为 2,171,520 lamports；快照明确没有提供任何权限地址余额。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "目标值读取器使用 ownerValue ?? defaultValue，并应用 100,000,000 lamports 下限；注资辅助函数会先检查这个最低值，再读取更高的目标值。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "path": "play/play-chain-session.js",
+      "claim": "可见表单会把保存的 SOL 目标值限制为至少 0.1，并明确告诉玩家这个值不是消费上限或授权上限。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "PlayerSession 设置会单独验证 allowed_actions、相对链上时间位于未来的到期值、签名角色与账户关系，因此单纯转入 SOL 不会赋予使用方权限。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "path": "docs/audits/player-sessions-production-2026-07-18.json",
+      "claim": "保留的 2026-07-19 UTC 生产环境静态字节审计记录了 100,000,000 lamports 最低值、先 owner 后默认值的读取顺序，以及固定 GET 的隐私边界。"
+    },
+    {
+      "sectionId": "top-up-trigger-and-target",
+      "path": "docs/audits/player-sessions-derived-2026-07-18.json",
+      "claim": "确定性的 Player Sessions 审计把客户端注资策略、普通密钥的签名能力与 PlayerSession 记录字段明确分开。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "插件设置会在可用时使用单独选中的 Keypair；Local Game Wallet 设置则把 owner 作为 sessionAuthority 传入，并在状态中报告同一个地址。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "path": "src/localGameWallet.js",
+      "claim": "Local Game Wallet 把长期私钥字节以可逆的 Base58 字符串保存在独立浏览器存储键中，而不是保存在加密的 Session 密钥库里。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Player Program 要求 owner 与 session_authority 两个签名角色；Local Game Wallet 交易中，同一个匹配公钥可以同时承担这两个角色。"
+    },
+    {
+      "sectionId": "plugin-versus-local-wallet-funding",
+      "path": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "claim": "带日期的 Devnet 快照观察到 5 份 owner 等于 sessionAuthority 的 Session 记录，以及 5 份权限地址不同的记录；采集过程没有读取或持有任何对应私钥。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "仓库源码声明了 28,800 秒持续时间、900 秒偏移窗口、60 秒 Session 状态缓存，以及 5 分钟 Local Game Wallet 就绪缓存。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "path": "play/play-chain-session.js",
+      "claim": "Play 另行声明了 30 秒的当前连接钱包余额缓存与刷新间隔，以及 12 秒 RPC 请求中止时间。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Session 设置会读取 Clock，并拒绝小于或等于 clock.unix_timestamp 的 expires_at，不使用浏览器缓存计时器作判定。"
+    },
+    {
+      "sectionId": "five-browser-windows-and-chain-time",
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "已审查的 Chunk 操作上下文会读取 Solana Clock，并在指令实际使用 Session 时把 Clock.unix_timestamp 传入 PlayerSession 验证。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "loadStoredGameplaySession 只有在存储、JSON、私钥、到期值及可选公钥检查全部通过后才返回 Keypair；否则插件设置会选择 Keypair.generate。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "SDK 按固定顺序使用字面量 session 种子、owner 公钥与 sessionAuthority 公钥派生规范 Session 地址。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "PlayerSession 刷新会先验证已存 owner、sessionAuthority、Profile 与配置关系，再在同一账户上重写选定字段。"
+    },
+    {
+      "sectionId": "reuse-refresh-or-new-authority",
+      "path": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "claim": "带日期的快照中，一名保留 owner 对应 3 个规范 Session PDA；这只能说明它们同时存在，不能证明它们可同时使用，也不能说明这些密钥为何产生。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "全新的插件设置会先把可选 Profile 初始化、可选的 owner 到权限地址注资，以及 Session 设置加入同一个 Transaction，再调用钱包辅助函数。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "钱包辅助函数会广播交易并明确按 confirmed 承诺级别轮询；之后 getOrCreateGameplaySession 才调用 storeGameplaySession。它的判断可接受 confirmed 或 finalized 状态，但并不专门要求 finalized。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "docs/audits/player-sessions-derived-2026-07-18.json",
+      "claim": "保留的派生审计把浏览器私钥存储与链上 Session 状态记录为两个独立生命周期界面，而不是一份原子记录。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "docs/audits/player-sessions-production-2026-07-18.json",
+      "claim": "线上静态字节审计记录了存储字段名与设置默认值，但没有发送交易，也没有读取浏览器存储，因此无法证明任何玩家的设置结果。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "play/play-chain-session.js",
+      "claim": "已审查的模块化 Play 异常分支会显示待处理 ID 与可读原因，更丰富的字段则进入独立结构化日志；可见消息不保证包含交易签名、权限地址、PDA 派生结果或归集控件。"
+    },
+    {
+      "sectionId": "two-commit-uncertain-result",
+      "path": "play/play-chain-submission-log.js",
+      "claim": "只有错误、结果或待处理记录本身确实携带交易签名时，结构化失败报告才能提取它，因此文档必须明确保留“签名不可得”这一结果。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "path": "play/play-chain-session.js",
+      "claim": "当前连接钱包 HUD 按 RPC URL 与钱包地址组合缓存；刷新失败后会把此前已知余额标记为过期，并使用 confirmed getBalance 请求。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "getGameplaySessionStatus 在源码层支持 force 选项；未强制时可能返回缓存 60 秒的 owner 状态。已审查的普通模块化 Play 界面不会因此自动拥有面向玩家的 force 或 PDA 工具。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "path": "src/rpcConfig.js",
+      "claim": "运行时 RPC 配置独立于任何公开地址来解析所选集群与端点，因此网络上下文也是余额结论的一部分。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "path": "scripts/capture-player-sessions-devnet.mjs",
+      "claim": "保留的 Devnet 采集固定了共享上下文与区块时间，并明确区分 Session 账户观察结果、未查询的权限地址余额和私钥。"
+    },
+    {
+      "sectionId": "verify-stale-or-wrong-balance",
+      "path": "play/play-chain-session.js",
+      "claim": "已审查的模块化 Play 界面实现了 owner 钱包余额刷新与可读失败提示，但没有保证向玩家提供源码层 Session 强制读取、PDA 派生或权限地址余额归集控件。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "完整审查的 Player 调度目前覆盖到 tag 14，其中 tag 13 是装备转移、tag 14 是交换；tag 4 仍是 Session 创建或刷新，没有任何 tag 用于关闭、撤销、停用 PlayerSession 或退还其 rent。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "path": "play/play-auth-session.js",
+      "claim": "Logout 会尝试删除身份数据并按前缀扫描运行时存储键；枚举失败时可能直接退出，每个键的删除异常也会被忽略，而且不会执行链上撤销或 sessionAuthority SOL 归集。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "path": "src/localGameWallet.js",
+      "claim": "长期保存的 Local Game Wallet 私钥使用插件 Session 前缀之外的存储键，因此清理插件 Session 不等于恢复 owner 密钥。"
+    },
+    {
+      "sectionId": "expiry-logout-loss-and-recovery",
+      "path": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "claim": "相对于采集时 confirmed 上下文中的时间，保留的 10 个 Session 账户全部已经到期，但这些公开账户及其 rent lamports 仍然存在。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "PlayerSession 限制的是配合它的使用方，而不是密钥本身",
+      "summary": "第 2.11 步深入说明签名角色、浏览器密钥存储、权限位、使用方范围、已存操作计数器以及缺失的撤销能力。本页不重复整份合约审计。"
+    },
+    {
+      "slug": "local-game-wallet-backup-and-risk",
+      "href": "/docs/local-game-wallet-backup-and-risk/",
+      "title": "给 Local Game Wallet 注资前先做好备份",
+      "summary": "了解长期保存在浏览器中的 owner 私钥；在 Local Game Wallet 模式下，该地址的全部余额也就是权限地址余额。"
+    },
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "连接钱包、批准消息与批准交易是三件不同的事",
+      "summary": "批准补充资金或 Session 创建／刷新交易前，先回顾钱包提示究竟能授权什么。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包学习路径",
+      "title": "从这份玩家检查清单继续查看准确的手续费、rent、关闭与退款明细",
+      "summary": "本指南回答玩家眼前需要作出的决定：哪个数字只是目标值、哪个地址拥有余额、哪套时钟决定到期，以及何时必须把结果保留为未知。下一篇指南会追踪每个相关手续费付款方和 rent 付款方，再按账户逐一演示准确的关闭、退款、滞留余额与恢复路径。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "player-sessions",
+        "title": "一次钱包批准可以创建会到期的 NiceChunk 通行证——但它不会把密钥关进沙箱",
+        "summary": "回顾这份资金与时间检查清单所依赖的签名者、权限、使用方、浏览器存储、操作计数器与撤销能力边界。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "transaction-fees-rent-and-recovery",
+        "title": "交易手续费、账户 rent 与恢复：谁来支付，哪些资金可以返还",
+        "summary": "准确盘点交易手续费付款方、账户 rent 付款方、关闭指令、退款、滞留余额与恢复前提，不把每一笔 lamport 都当成同一种成本。"
+      }
+    ]
+  }
+}

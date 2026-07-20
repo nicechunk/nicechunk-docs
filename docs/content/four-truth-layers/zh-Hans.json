@@ -1,0 +1,459 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-four-truth-layers-zh-Hans-8d01eb810f381f66",
+    "contentHash": "8d01eb810f381f66"
+  },
+  "kind": "topic",
+  "slug": "four-truth-layers",
+  "shortTitle": "四层事实",
+  "seo": {
+    "title": "四层事实：读懂 NiceChunk 的证据",
+    "description": "了解 NiceChunk 为什么能立即响应、Guardian 消息能证明什么、哪些证据可以支持一个共享的已移除坐标，以及一次无旧状态的完整重载如何重建结果。"
+  },
+  "hero": {
+    "eyebrow": "从这里开始 02 · 看证据，不只看效果",
+    "title": "同一幅画面，可能展示四种不同层次的事实",
+    "summary": "NiceChunk 可以立即显示可撤销的本地反馈和 Guardian 提示。对于一个共享的已移除坐标，证据范围要窄得多：受支持的交易必须达到当前客户端等待的承诺级别，而且无旧状态的客户端读取并验证预期 Chunk 记录时，该记录必须包含这个坐标。每一种观察都可以是真实的，但它们证明的不是同一件事。",
+    "readingTime": "阅读约 12 分钟",
+    "visual": {
+      "src": "/docs/media/four-truth-layers-overview-v1.webp",
+      "alt": "这幅教学场景参考标准村民模型与真实 Chunk.js 河岸生成：女孩准备挖掘一块完整的石头体素，男孩正绕过一棵醒目的树走近。",
+      "caption": "目标仍然完整，镐子还没有碰到它。这个开场画面要问的是：接下来看到的各种现象分别能证明什么？自然光线与画面构图只是讲解用的美术表现，并非游戏状态指示器。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "为什么共享世界还没改变，画面就能先作出反应？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "从这里开始 · 6 步中的第 2 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "不懂编程或区块链的普通玩家"
+      },
+      {
+        "label": "当前网络",
+        "value": "Solana Devnet（开发网）"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 15 日 · 当前工作树与本地运行证据"
+      }
+    ],
+    "terms": [
+      {
+        "term": "本地反馈与待处理改动",
+        "meaning": "由当前设备计算出的工具挥动、目标轮廓、耐久度更新或临时提议。待处理提议仍可能被接受、仅保留在本地，或被回滚。"
+      },
+      {
+        "term": "Guardian 提示",
+        "meaning": "一条低延迟的附近消息。它能让另一个客户端快速响应，但不能证明某条 Solana 指令已经成功。"
+      },
+      {
+        "term": "交易",
+        "meaning": "发送给 Solana 的带签名请求。它的成功范围只限于该请求中的确切指令、账户和签名者。"
+      },
+      {
+        "term": "程序",
+        "meaning": "检查一条指令的链上代码；它只能更新该指令获准改变的账户。"
+      },
+      {
+        "term": "账户与 PDA",
+        "meaning": "账户用于存储字节。PDA（程序派生地址）是根据约定输入计算出的、可预先推导的账户地址，并不是根据秘密密钥生成的。"
+      },
+      {
+        "term": "RPC 读取",
+        "meaning": "向 Solana 节点请求账户数据。刚刚发起的请求不一定自动得到最新可能的答案，也不能证明是哪笔交易造成了这些字节。"
+      },
+      {
+        "term": "承诺级别",
+        "meaning": "Solana 为交易或读取结果标注的置信级别。当前客户端等待 confirmed（已确认），它并不是更强的 finalized（最终确定）阶段。"
+      },
+      {
+        "term": "回滚",
+        "meaning": "移除被拒绝的本地提议，并恢复这次尝试中已扣除的工具耐久度等本地状态。"
+      },
+      {
+        "term": "无旧状态重建",
+        "meaning": "完整重载或另一个不带旧内存提示的独立客户端，会先根据公开输入重建未改动地形，再应用经过验证的记录，而不是下载一份包办所有内容的存档。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "即时反馈也可以如实表达",
+      "body": "工具挥动、目标轮廓、耐久度更新或待处理数值，都能如实说明当前设备作出了响应；它们并不声称共享账户已经改变。"
+    },
+    {
+      "title": "两幅画面可以对同一条提示作出一致反应",
+      "body": "Guardian 能让附近的客户端快速响应。两幅渲染画面即使一致，仍不能证明程序已执行，也不能证明结果会持久保存。"
+    },
+    {
+      "title": "要证明结果能持续存在，需要正确的证据",
+      "body": "对于一个已移除坐标，达到 confirmed（已确认）的受支持指令，与包含该坐标且经过验证的 Chunk 记录回答的是两个不同问题：刚才执行了什么，以及无旧状态的客户端能够重建什么。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "local-feedback",
+      "eyebrow": "设备层事实",
+      "title": "第一帧反馈来自你的设备",
+      "paragraphs": [
+        "女孩按下挖矿操作后，浏览器会选择目标、检查距离与当前设备已经加载的保护数据，并播放工具动画。移动的工具碰撞盒真正接触体素时，控制器会记录一次接触，在本地扣除工具耐久度，并重绘快捷栏。当前 Play 运行时不会产生挖矿接触音效，也不会生成接触碎屑粒子效果。",
+        "在当前自动挖矿流程中，达到所需接触次数后会创建一条待处理记录；但在这项待处理动作得到确认前，目标方块不会变成空气。如果钱包不可用或提交失败，挖矿流程可以回滚这次待处理尝试，并恢复本地扣除的工具耐久度。链上同步被主动关闭时，界面会把结果标为本地预览，而不会假装交易已经失败或成功。"
+      ],
+      "facts": [
+        {
+          "label": "能证明什么",
+          "value": "当前设备处理了这次交互",
+          "detail": "输入、目标选择、距离检查、工具动画、碰撞、耐久度更新与临时数值都在当前设备上运行。"
+        },
+        {
+          "label": "不能证明什么",
+          "value": "已经完成共享写入",
+          "detail": "任何一帧动画、目标轮廓、标签、接触次数或本地扣除的耐久度，都不能单独表明 Solana 指令已经成功。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/four-truth-layers-local-feedback-v1.webp",
+        "alt": "这幅教学场景参考标准村民模型与真实 Chunk.js 河岸生成：女孩敲击同一块仍然完整的石头体素，少量象征性的青色碎块随之出现，男孩仍在远处。",
+        "caption": "镐子已经接触目标，但石头仍占据原来的坐标。青色方块只是教学比喻：当前运行时不会产生挖矿接触碎屑或接触音效，青色也不是游戏中的确认信号。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "再逼真的动画也不是交易回执",
+        "body": "本地检查可以改善反馈并避免明显错误。对于任何受支持的共享写入，程序仍会独立完成自己的检查。"
+      }
+    },
+    {
+      "id": "guardian-news",
+      "eyebrow": "中继层事实",
+      "title": "共享世界还没有定论，另一名玩家可能已经收到消息",
+      "paragraphs": [
+        "Guardian 的职责被刻意限制得更小：以低延迟传递范围受限的附近动态。接收方客户端无需等待一次 Solana 往返，就能对移动、聊天、装备、挖掘或建筑消息作出反应。对于当前的挖掘消息，接收方会把所报告的坐标绘制为空气，并安排一次独立的账户刷新。",
+        "当前运行时有一项重要限制：在同一个会话中，这条新渲染差量会被保留下来，直到某份账户快照曾经观察到相同的值。如果下一份快照不包含该坐标，它不会立即清除这个尚未被账户数据观察到的 Guardian 缺口。完整重载或另一个独立的无旧状态客户端会清除内存提示，并根据公开输入与经过验证的记录重新构建。在这种无旧状态重建支持该缺口之前，两幅一致的画面仍然只是在共同显示已送达的消息。"
+      ],
+      "facts": [
+        {
+          "label": "能证明什么",
+          "value": "附近消息已送达",
+          "detail": "接收方客户端取得一条范围受限的消息，并用它及时更新了画面。"
+        },
+        {
+          "label": "不能证明什么",
+          "value": "结算结果或钱包控制权",
+          "detail": "Guardian 不会执行 Chunk 指令；它当前的问候流程也不是钱包签名挑战。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/four-truth-layers-guardian-news-v1.webp",
+        "alt": "这幅教学场景参考标准村民模型与真实 Chunk.js 河岸生成：接收消息的男孩转向远处的女孩，而他的客户端显示一个整齐的体素缺口与些许象征性碎屑。",
+        "caption": "这是接收方客户端收到快速挖掘提示后的画面。即使普通刷新没有找到这个尚未被账户数据观察到的缺口，当前会话仍可能保留它；完整重载或另一个独立的无旧状态客户端，才是有用的纠正检验。生成场景中的任何线条、装置或颜色都不能证明已经结算。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "快速消息依然有用，但这条提示可能会滞留",
+        "body": "附近客户端立即响应，会让多人在线体验更自然。当前必须如实说明的边界是：即使账户刷新结果不包含某条挖掘提示，这条尚未被账户数据观察到的提示仍可能留在当前会话中，直到完整重载。"
+      }
+    },
+    {
+      "id": "narrow-shared-result",
+      "eyebrow": "程序与账户层事实",
+      "title": "程序只接受一项边界明确的主张，而不是整幅画面",
+      "paragraphs": [
+        "对于受支持的挖矿操作，客户端会通过获允许的签名者提交整数坐标和所需账户。Chunk 程序会独立推导并检查相关地址，验证会话与账户关系，重新计算生成方块，拒绝受保护或重复的移除，应用规则表，并且只在交易成功时写入数据。",
+        "当前客户端等待的是 confirmed（已确认），而不是 finalized（最终确定）。在自动流程中，只有成功提交的结果才会进入本地待处理确认步骤；被拒绝或出现异常的挖矿流程会回滚。对于本页的单方块示例，这笔交易可以支持“Chunk 程序接受了该坐标的移除”这一主张。但仅凭它本身，不能审计镜头、女孩的手部路径、Guardian 消息、Backpack 奖励、PlayerProgress、已保存位置，也不能审计一次多方块坍塌中的每一笔交易。"
+      ],
+      "facts": [
+        {
+          "label": "交易能证明什么",
+          "value": "一次确切且已接受的移除",
+          "detail": "对于这个单方块示例，它能指明调用的指令、提供的账户与签名者、执行结果、坐标，以及观察到的承诺级别。"
+        },
+        {
+          "label": "Chunk 账户能证明什么",
+          "value": "预期记录包含该坐标",
+          "detail": "无旧状态的客户端可以推导预期的 ChunkBroken 地址，验证返回的账户数据，并检查其中是否存在这个移除坐标。"
+        },
+        {
+          "label": "两者在这里都不能证明什么",
+          "value": "奖励、进度、位置或整次坍塌",
+          "detail": "这些主张涉及其他账户或交易，必须分别在各自范围内核验。"
+        },
+        {
+          "label": "当前承诺级别",
+          "value": "confirmed（已确认）",
+          "detail": "这条流程的实现不会等待 finalized（最终确定），因此本页不会把这项观察称为最终结果或不可逆结果。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/four-truth-layers-confirmation-boundary-v1.webp",
+        "alt": "这幅教学场景参考标准村民模型与真实 Chunk.js 河岸生成：女孩放下镐子，男孩查看同一个单体素缺口；画面中没有粒子或状态特效。",
+        "caption": "故事现在沿着受支持操作成功的分支继续，但这个安静的缺口仍只是插图，不是回执。证据来自确切的程序执行和经过验证的账户；自然日光并不代表已达到 finalized（最终确定）。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "要问清执行了什么、读取了什么",
+        "body": "一个简短状态标签远不如完整问题有力：运行了哪个程序？提供了哪些账户与签名者？达到了哪个承诺级别？受影响的账户能否再次被正确推导和验证？"
+      }
+    },
+    {
+      "id": "rebuild-and-test",
+      "eyebrow": "重建层事实",
+      "title": "刷新是一项有用的检验，不是万能证明",
+      "paragraphs": [
+        "这里的“无旧状态客户端”，是指完整重载后的客户端，或另一个没有旧内存渲染提示的独立客户端。它会根据已配置的种子、版本、整数坐标和世界规则重新生成未改动地形，再应用 ChunkBroken 移除记录等经过验证的数据。画面是对这些输入的呈现；程序并没有验证每一处树木表面、每一个水面像素、每个镜头角度或角色姿势。",
+        "只有当客户端请求的是预期地址，并拒绝所属程序、executable（可执行）标志、世界最低高度、数据头、版本、容量或字节长度不正确的返回数据时，账户读取才有意义。即便如此，它也只是对这一个账户的一次 confirmed（已确认）RPC 观察：它不能证明某个 RPC 节点绝不会出错，不等于 finalized（最终确定），不会自动绑定到某一笔交易的确认 slot（槽位），也不能为 Backpack 或其他所有账户作证。"
+      ],
+      "steps": [
+        {
+          "title": "镐子动了，目标仍在",
+          "body": "应把它归为本地反馈。它说明交互在当前设备上运行了，而不是共享状态已经改变。"
+        },
+        {
+          "title": "附近客户端很快显示出缺口",
+          "body": "应把它归为 Guardian 提示。在当前会话中，即使账户数据没有显示该缺口，它仍可能在普通刷新后继续存在；因此，在把“持续存在”当作证据前，请先完整重载或使用另一个独立的无旧状态客户端。"
+        },
+        {
+          "title": "达到 confirmed 的单方块挖矿之后，是有效的 Chunk 读取",
+          "body": "当预期的 ChunkBroken 记录包含同一坐标时，可把它归为这个单一移除坐标的更强证据。它不会悄悄证明奖励、进度、位置或另一个方块。"
+        },
+        {
+          "title": "两个无旧状态的客户端画出同一座未改动山丘",
+          "body": "应把它归为确定性重建。它说明公开输入可以重复得到同一结果，而不是证明玩家发起过交易。"
+        }
+      ],
+      "bullets": [
+        "画面发生变化，并不自动等于发生了一笔交易。",
+        "两幅一致的画面，并不自动等于已经结算的共享状态。",
+        "confirmed（已确认）与 finalized（最终确定）不是同一种观察。",
+        "账户读取必须验证目标地址、所属程序、executable（可执行）标志、预期的世界最低高度和字节结构。",
+        "确定性重建只能证明其公开输入与所选记录覆盖的范围。"
+      ],
+      "facts": [
+        {
+          "label": "无旧状态重建能证明什么",
+          "value": "同一范围内的相同输入会重建出相同结果",
+          "detail": "如果无旧状态的客户端验证了包含该坐标的 ChunkBroken 记录，它就有证据把该坐标渲染为已移除。"
+        },
+        {
+          "label": "不能证明什么",
+          "value": "原因、最终性或无关账户",
+          "detail": "仅凭这次读取，无法确定是哪笔交易造成了这些字节，不能把 confirmed（已确认）升级为 finalized（最终确定），也不能验证 Backpack 奖励或 PlayerProgress。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/four-truth-layers-rpc-reconstruction-v1.webp",
+        "alt": "这幅教学场景参考标准村民模型与真实 Chunk.js 河岸生成：在无旧状态的反向视角中，同一棵醒目的树与一个持续存在的体素缺口仍然可见，女孩和男孩正从不同方向返回。",
+        "caption": "这个反向镜头代表一次完整重载：公开世界输入重建地形，而包含该坐标且经过验证的 ChunkBroken 记录，让恰好一个体素保持为空。画面只是在说明这个限定范围内的结果；让它持续存在的证据并不是 Guardian 消息。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "重新加载后仍然存在是证据，但还不是完整的独立审计",
+        "body": "在无旧状态的完整重载后仍然存在的缺口，是对玩家有用的证据。独立审计仍需要通过诊断手段取得完整交易签名，以及正确推导出的账户地址、所属程序和解码后数据；普通事件流只显示缩短后的签名。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "读懂证据",
+    "title": "达到 confirmed 的移除与经过验证的 Chunk 记录，回答的是两个不同问题",
+    "summary": "这个公式列出审计一个已移除坐标所需的证据；它不审计整笔挖矿奖励，也不能代替 Solana 共识。两段源码分别说明：自动客户端何时确认待处理结果，以及返回的 Chunk 记录在重建前会因哪些问题被拒绝。"
+  },
+  "formulas": [
+    {
+      "title": "审计一个已移除坐标所需的证据",
+      "expression": "E_removed(p) = T_confirmed(在 p 进行单方块挖矿) ∧ R_confirmed(预期 ChunkBroken 包含 p)",
+      "ariaLabel": "要为一个已移除坐标 p 提供证据，既需要一笔针对 p 且达到 confirmed（已确认）的单方块挖矿交易，也需要一次达到 confirmed、并读到预期 ChunkBroken 账户中包含 p 的结果。",
+      "explanation": "符号 ∧ 表示“并且”。T_confirmed 回答这条单方块指令是否在所提供的账户和签名者条件下，于客户端观察的承诺级别执行完成；R_confirmed 回答无旧状态的客户端是否收到并验证了预期的 ChunkBroken 账户，而且在其中找到了坐标 p。读取本身不会创建状态，也不能证明是哪笔交易造成了这些字节；confirmed（已确认）不能被改称为 finalized（最终确定）；Backpack 奖励、PlayerProgress、已保存位置和多方块结果都需要各自的证据。",
+      "terms": [
+        {
+          "symbol": "E_removed(p)",
+          "meaning": "把坐标 p 审计为一条共享移除记录所需的证据。"
+        },
+        {
+          "symbol": "T_confirmed(...) ",
+          "meaning": "针对 p 的确切单方块挖矿交易达到了 confirmed（已确认）或更强级别，并且没有报告执行错误。"
+        },
+        {
+          "symbol": "R_confirmed(...) ",
+          "meaning": "一次达到 confirmed（已确认）的 RPC 响应返回了预期的 ChunkBroken 账户，其所属程序与字节格式通过验证，并且解码后的移除记录包含 p。"
+        },
+        {
+          "symbol": "∧",
+          "meaning": "这条坐标级审计规则要求两边同时成立；任何一边都不能悄悄被扩大为对无关账户、奖励或画面的证明。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "自动流程只会在适配器报告成功后确认待处理动作",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "      if (result?.submitted) {\n        state.chainMode = \"chain-ready\";\n        const reconciliation = action === \"mine\"\n          ? reconcilePendingMineWithChainResult(pending, result.result)\n          : null;\n        if (reconciliation?.droppedCount) {\n          gameState.playerProfile.minedBlocks = Math.max(\n            0,\n            Math.trunc(Number(gameState.playerProfile.minedBlocks) || 0) - reconciliation.droppedCount,\n          );\n          gameState.savePlayerProfile();\n        }\n        if (action === \"mine\" && result.result?.partialCollapse) {\n          logPartialCollapseFailure(pending, result);\n        }\n        if (action === \"mine\" && result.result?.partialBulkMine) {\n          logPartialBulkMiningFailure(pending, result);\n        }\n        state.chainResults.set(pending.txId, { signature: result.signature, result: result.result });\n        pending.chainSubmitted = true;\n        pending.chainAction = action;\n        pending.chainSignature = result.signature;\n        pending.chainPlayerPositionSaved = Boolean(result.result?.playerPositionSaved);\n        pending.chainResult = result.result ?? null;\n        const confirmed = controls.confirmTx?.(pending.txId);",
+      "explanation": "这是适配器返回“提交成功”后进入的自动链上流程。适配器更底层的发送流程会等待 confirmed（已确认），但等待过程不在这段源码中。这里会先核对多方块操作中可能只成功一部分的结果，保存返回结果与主要展示签名，然后才对匹配的本地待处理动作调用 confirmTx。钱包缺失、适配器拒绝提交或发生异常时，其他分支会回滚挖矿。另一个手动 Confirm（确认）输入仍然只在本地生效，不属于这个分支。",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "只有适配器报告提交成功时才进入此分支，然后让界面回到 chain-ready（链上就绪）模式。"
+        },
+        {
+          "lines": "3-5",
+          "meaning": "对于挖矿，把拟议方块与链上结果实际接受的子集进行核对；其他操作在这里不进行挖矿结果对账。"
+        },
+        {
+          "lines": "6-12",
+          "meaning": "如果多方块计划在对账时丢失了部分方块，就从本地统计的已挖总数中扣除那些未被接受的方块。"
+        },
+        {
+          "lines": "13-15",
+          "meaning": "如实报告支撑坍塌有一部分失败，而不是把整个计划描述成一次非成即败的完整成功。"
+        },
+        {
+          "lines": "16-21",
+          "meaning": "把主要展示签名、操作类型、位置保存结果与返回结果存入匹配的待处理记录。多交易结果还可能在这个字段之外携带其他签名。"
+        },
+        {
+          "lines": "22",
+          "meaning": "直到此时，才让挖矿或放置控制器在本地确认这个确切的待处理交易 ID。"
+        }
+      ]
+    },
+    {
+      "title": "最新 Chunk 数据必须通过所属程序与字节检查",
+      "language": "JavaScript",
+      "source": "play/play-chain-chunk-deltas.js",
+      "code": "      if (account && expectedOwner && accountOwnerAddress(account) !== expectedOwner) throw new Error(\"ChunkBroken account owner does not match the active chunk program.\");\n      if (account?.executable) throw new Error(\"ChunkBroken account cannot be executable.\");\n      const deltas = account?.data?.length\n        ? decodeChunkBrokenDeltas(account.data, chunk.chunkX, chunk.chunkZ, chunkSize, expectedMinY)\n        : [];\n      snapshots.push({\n        id: chunk.id ?? chunkId(chunk.chunkX, chunk.chunkZ),\n        chunkX: chunk.chunkX,\n        chunkZ: chunk.chunkZ,\n        expectedChainRevision: chunk.expectedChainRevision,\n        contextSlot: Math.max(0, Math.trunc(Number(contextSlot) || 0)),\n        deltas,\n      });\n    } catch (error) {\n      errors.push({\n        id: chunk.id ?? chunkId(chunk.chunkX, chunk.chunkZ),\n        error: readableError(error),\n      });\n    }",
+      "explanation": "在这段源码之前，同步流程已经推导出预期的 Chunk 账户地址。每个返回账户仍必须属于当前启用的 Chunk 程序，必须是数据而不是可执行代码，并且必须能按照预期的世界最低高度与 ChunkBroken 格式正确解码。只有通过检查的结果才会进入快照队列；失败结果会变成错误，而不会被当作可信地形数据。这些验证不能让某个 RPC 节点变得绝不会出错，也不会把响应绑定到某一笔交易的确认 slot（槽位）。",
+      "walkthrough": [
+        {
+          "lines": "1",
+          "meaning": "如果返回账户的所属程序不是当前客户端预期的活动 Chunk 程序，就拒绝该账户。"
+        },
+        {
+          "lines": "2",
+          "meaning": "拒绝可执行的程序代码，因为 ChunkBroken 记录必须是数据账户。"
+        },
+        {
+          "lines": "3-5",
+          "meaning": "使用预期的 Chunk 坐标、尺寸和世界最低高度解码非空字节；账户不存在表示该 Chunk 没有移除记录。"
+        },
+        {
+          "lines": "6-13",
+          "meaning": "只有经过验证的数据才会成为快照，并携带 Chunk 标识、预期本地修订号、RPC 上下文 slot（槽位）与解码后的移除记录。"
+        },
+        {
+          "lines": "14-19",
+          "meaning": "任何验证或解码过程中抛出的问题都会被记录为错误，而不会插入可信快照列表。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/mining-controller.js",
+      "claim": "在当前设备上处理目标、距离、碰撞、挖掘进度、耐久度、待处理记录创建、确认与回滚。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "区分本地预览、需要钱包、正在提交、自动确认成功、跳过提交和挖矿回滚等路径。"
+    },
+    {
+      "path": "play/play-input-actions.js",
+      "claim": "让手动 Confirm（确认）输入与自动链上确认保持分离，避免把本地确认悄悄称为交易回执。"
+    },
+    {
+      "path": "play/play-guardian.js",
+      "claim": "说明 Guardian 挖掘提示会改变接收方的渲染差量，随后请求一次独立的账户刷新。"
+    },
+    {
+      "path": "Guardian/src/app.cpp",
+      "claim": "实现范围受限的区域消息传递、序列检查、速率限制与转发，而不是执行 Solana 指令。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "构建受支持的游戏交易、返回真实签名，并等待 confirmed（已确认）而不是 finalized（最终确定）。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "独立验证挖矿账户与会话、生成方块、保护状态、重复移除、规则、奖励和已接受的写入。"
+    },
+    {
+      "path": "play/play-chain-chunk-deltas.js",
+      "claim": "推导当前 Chunk 记录地址，获取 confirmed（已确认）的 RPC 数据，验证所属程序与字节结构，并把通过检查的快照加入队列。"
+    },
+    {
+      "path": "chunk.js/chunk/chunk-state.js",
+      "claim": "定义生成方块、待处理改动与渲染差量的优先顺序，其中包括一条规则：在某份快照首次观察到相同值之前，保留尚未被账户数据观察到的 Guardian 类差量。"
+    },
+    {
+      "path": "chunk.js/world/world-generator.js",
+      "claim": "根据已配置的公开世界输入与整数坐标，重建未改动的世界方块。"
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "列出当前世界输入，以及客户端实际使用的 Solana Devnet 集群；即使产品配置中含有 mainnet 字样也是如此。"
+    },
+    {
+      "path": "docs/audits/global-config-genesis-devnet-2026-07-15.json",
+      "claim": "提供带日期的 Devnet 观察结果，并且只在本页涉及已部署账户主张时使用。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "nicechunk-in-one-picture",
+      "href": "/docs/nicechunk-in-one-picture/",
+      "title": "一张图看懂 NiceChunk",
+      "summary": "需要查看四种证据来源分别位于整套系统的哪里时，请返回完整系统地图。"
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "从即时反馈到已验证动作",
+      "summary": "追踪当前挖矿实现如何依次经过待处理状态、程序检查、自动确认、刷新与回滚。"
+    },
+    {
+      "slug": "guardian-regions",
+      "href": "/docs/guardian-regions/",
+      "title": "Guardian 区域与有限范围中继",
+      "summary": "通过已有的深入参考，了解区域发现、消息边界与中继权限。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "从“从这里开始”到“玩家控制”的学习路径导航",
+    "heading": {
+      "eyebrow": "继续前往“玩家、钱包与控制”",
+      "title": "下一步，弄清钱包连接究竟允许什么",
+      "summary": "建立四种证据标签后，下一篇指南会在进入更深层的操作流程前，区分公开地址、链下消息签名与链上交易批准。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "nicechunk-in-one-picture",
+        "title": "一张图看懂 NiceChunk",
+        "summary": "了解浏览器、Guardian、程序、账户、模型、材质与重建如何协作。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "wallet-login-and-safety",
+        "title": "钱包登录与安全",
+        "summary": "了解连接会分享什么、为什么消息签名批准与交易签名批准彼此独立、应检查哪些内容，以及哪些秘密必须保密。"
+      }
+    ]
+  }
+}

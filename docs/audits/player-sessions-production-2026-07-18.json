@@ -1,0 +1,1361 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-player-sessions-production-runtime-snapshot",
+  "auditDate": "2026-07-18",
+  "snapshotDate": "2026-07-19",
+  "captureStartedAt": "2026-07-19T00:44:27.337Z",
+  "capturedAt": "2026-07-19T00:44:32.257Z",
+  "productionOrigin": "https://nicechunk.com",
+  "scope": {
+    "statement": "A byte-pinned snapshot of the public NiceChunk production entry, runtime bundle, and runtime-resolved chain-module candidates.",
+    "productionSnapshotNotPermanentFact": true,
+    "repositorySourceUsedAsProductionEvidence": false,
+    "rawResponseBodiesRetained": false,
+    "retainedInstead": "Full response SHA-256/length/status metadata plus byte offsets and hashed short literal contexts.",
+    "dateSemantics": "auditDate names the documentation audit batch and output filename; snapshotDate is the real UTC date of the HTTPS observation."
+  },
+  "privacyAndNetworkBoundary": {
+    "transport": "TLS HTTPS only",
+    "requestMethod": "GET",
+    "fixedPublicHost": "nicechunk.com",
+    "requestsMade": 10,
+    "requestBodiesSent": 0,
+    "authorizationHeadersSent": false,
+    "cookiesSent": false,
+    "queryCredentialsSent": false,
+    "browserStorageRead": false,
+    "walletKeyMaterialRead": false,
+    "rpcMethodsCalled": [],
+    "transactionsConstructed": 0,
+    "transactionsSent": 0,
+    "note": "Static JavaScript contains storage-key and secretKey field names; this capture reads code bytes only and never reads any player's stored values."
+  },
+  "entrypoint": {
+    "requestedUrl": "https://nicechunk.com/play/index.html",
+    "buildVersionAttribute": "play-bundle-de6020cca220427a",
+    "buildVersionMeta": "play-bundle-de6020cca220427a",
+    "externalScriptPaths": [
+      "/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js"
+    ],
+    "moduleScriptPaths": [
+      "/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js"
+    ],
+    "runtimeModulePath": "/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+    "loadsPlayMainJs": false,
+    "playMainJsProbe": {
+      "status": 200,
+      "contentType": "text/html",
+      "sameBodySha256AsIndex": true,
+      "interpretation": "The probed /play/main.js URL returned the same HTML bytes as /play/index.html; it is an Nginx-style route fallback response, not JavaScript loaded by this index."
+    },
+    "playChainAdapterJsProbe": {
+      "url": "https://nicechunk.com/play/play-chain-adapter.js",
+      "status": 200,
+      "contentType": "text/html",
+      "sameBodySha256AsIndex": true,
+      "interpretation": "The probed repository-style adapter URL also returned the index HTML bytes, not adapter JavaScript."
+    }
+  },
+  "moduleResolution": {
+    "productionHostnameBranch": "Non-localhost uses the build-version-derived production candidate.",
+    "defaultChainAssetUrl": "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+    "chainCandidatePriority": [
+      "globalThis.NICECHUNK_CHAIN_MODULE_URL",
+      "localStorage[nicechunk.chainModuleUrl]",
+      "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+      "valid manifest-discovered chain entry URLs, /dist/.vite/manifest.json before /.vite/manifest.json"
+    ],
+    "overrideCaptureBoundary": "The two browser-specific overrides are evidenced as precedence rules in runtime bytes; this static capture did not read or set either override.",
+    "chainImportFallback": "Candidates are imported in order; import failures and modules missing accepted chain exports are skipped; exhaustion throws an error listing failures.",
+    "manifestProbes": [
+      {
+        "url": "https://nicechunk.com/dist/.vite/manifest.json",
+        "status": 200,
+        "contentType": "text/html",
+        "validJson": false,
+        "outcome": "Skipped because the 200 response is HTML, not a JSON manifest."
+      },
+      {
+        "url": "https://nicechunk.com/.vite/manifest.json",
+        "status": 200,
+        "contentType": "application/json",
+        "validJson": true,
+        "discoveredChainEntry": {
+          "key": "src/chain/nicechunkChain.js",
+          "file": "assets/nicechunkChain.js",
+          "url": "https://nicechunk.com/assets/nicechunkChain.js"
+        }
+      }
+    ],
+    "manifestChainAliasSameBytesAsVersionedChain": true,
+    "defaultBulkAssetUrl": "https://nicechunk.com/assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js",
+    "unversionedBulkProbe": {
+      "url": "https://nicechunk.com/assets/nicechunkBulkMining.js",
+      "status": 404,
+      "selectedByCurrentVersionedRuntime": false,
+      "boundary": "This URL is retained as a source/deployment boundary probe; with a non-empty build version, runtime bytes select the versioned dedicated URL instead."
+    },
+    "bulkCandidatePriority": [
+      "globalThis.NICECHUNK_BULK_MINING_MODULE_URL",
+      "https://nicechunk.com/assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js",
+      "then every chain-module candidate in chainCandidatePriority order"
+    ],
+    "bulkImportRequirement": "A candidate is accepted only when recordBulkMineOnChain is a function; missing exports and import failures fall through."
+  },
+  "sessionClientObservations": {
+    "sourceAsset": "versionedChain",
+    "sessionStoragePrefix": "nicechunk.session.v1.",
+    "sessionStorageKeyShape": "nicechunk.session.v1.<owner base58>",
+    "storedRecordFieldNames": [
+      "publicKey",
+      "secretKey",
+      "expiresAt",
+      "savedAt"
+    ],
+    "durationSeconds": 28800,
+    "durationHours": 8,
+    "refreshSkewSeconds": 900,
+    "allowedActionsMask": 6,
+    "allowedActionBitsSet": [
+      1,
+      2
+    ],
+    "maxActionsWritten": 10000,
+    "minimumFundingLamports": 100000000,
+    "minimumFundingSol": 0.1,
+    "fundingStoragePrefix": "nicechunk.sessionFundingLamports.v1.",
+    "fundingLookupOrder": [
+      "owner-specific storage value when non-null",
+      "otherwise default storage value",
+      "then 100000000-lamport minimum when the selected value is non-finite or below minimum"
+    ],
+    "fundingSelectionOperator": "ownerValue ?? defaultValue",
+    "evidenceBoundary": "These are production client serialization/storage defaults. This snapshot does not claim that every stored field is enforced by consumer programs."
+  },
+  "featureObservations": {
+    "placement": {
+      "exportedFunction": "recordBlockPlacementOnChain",
+      "exportedByVersionedChain": true,
+      "observedReturn": {
+        "submitted": false,
+        "reason": "chain-placement-disabled"
+      }
+    },
+    "backpackUnifiedGameTarget": {
+      "isUnifiedGame": true,
+      "namespaceByte": 1,
+      "gameProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "backpackProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "exportedFunctionsObserved": [
+        "discardBackpackResourceAt",
+        "discardBackpackResourcesAt"
+      ],
+      "evidenceBoundary": "The target and namespace are values retained in the fetched chain asset; no instruction was constructed or sent."
+    },
+    "bulkMining": {
+      "runtimeDebugGateObserved": true,
+      "requestedExportName": "recordBulkMineOnChain",
+      "versionedDedicatedCandidateStatus": 404,
+      "unversionedBoundaryProbeStatus": 404,
+      "versionedChainExportsRequestedName": false,
+      "manifestAliasExportsRequestedName": false,
+      "versionedChainExactTagWriterSearches": {
+        "batchTag20WriteUInt8LiteralCount": 0,
+        "rangeTag21WriteUInt8LiteralCount": 0
+      },
+      "defaultStaticCandidateFinding": "At capture time the dedicated versioned candidate was 404, while both fetched chain candidates had identical bytes and no recordBulkMineOnChain export name. No default fetched candidate supplied a byte-verifiable bulk-mining tag path. The separately probed unversioned bulk URL was also 404 but is not selected by this versioned runtime.",
+      "overrideBoundary": "A page-specific global or localStorage chain override could change candidate bytes; no override was read, set, or exercised by this capture."
+    }
+  },
+  "resources": [
+    {
+      "id": "playIndex",
+      "requestUrl": "https://nicechunk.com/play/index.html",
+      "finalUrl": "https://nicechunk.com/play/index.html",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 55636,
+      "bodyLength": 55636,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "etag": "\"6a5ba988-d954\"",
+      "lastModified": "Sat, 18 Jul 2026 16:27:52 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "playMainFallback",
+      "requestUrl": "https://nicechunk.com/play/main.js",
+      "finalUrl": "https://nicechunk.com/play/main.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 55636,
+      "bodyLength": 55636,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "etag": "\"6a5ba988-d954\"",
+      "lastModified": "Sat, 18 Jul 2026 16:27:52 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "playAdapterFallback",
+      "requestUrl": "https://nicechunk.com/play/play-chain-adapter.js",
+      "finalUrl": "https://nicechunk.com/play/play-chain-adapter.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 55636,
+      "bodyLength": 55636,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "etag": "\"6a5ba988-d954\"",
+      "lastModified": "Sat, 18 Jul 2026 16:27:52 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "versionedRuntime",
+      "requestUrl": "https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+      "finalUrl": "https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/javascript",
+      "contentEncoding": null,
+      "contentLengthHeader": 989679,
+      "bodyLength": 989679,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "etag": "\"6a5ba404-f19ef\"",
+      "lastModified": "Sat, 18 Jul 2026 16:04:20 GMT",
+      "cacheControl": "max-age=31536000, public, max-age=31536000, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "versionedChain",
+      "requestUrl": "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+      "finalUrl": "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/javascript",
+      "contentEncoding": null,
+      "contentLengthHeader": 112446,
+      "bodyLength": 112446,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "etag": "\"6a5ba455-1b73e\"",
+      "lastModified": "Sat, 18 Jul 2026 16:05:41 GMT",
+      "cacheControl": "max-age=31536000, public, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "versionedBulkCandidate",
+      "requestUrl": "https://nicechunk.com/assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js",
+      "finalUrl": "https://nicechunk.com/assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js",
+      "redirected": false,
+      "status": 404,
+      "ok": false,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 162,
+      "bodyLength": 162,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+      "etag": null,
+      "lastModified": null,
+      "cacheControl": "public, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "unversionedBulkProbe",
+      "requestUrl": "https://nicechunk.com/assets/nicechunkBulkMining.js",
+      "finalUrl": "https://nicechunk.com/assets/nicechunkBulkMining.js",
+      "redirected": false,
+      "status": 404,
+      "ok": false,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 162,
+      "bodyLength": 162,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+      "etag": null,
+      "lastModified": null,
+      "cacheControl": "public, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "distManifestProbe",
+      "requestUrl": "https://nicechunk.com/dist/.vite/manifest.json",
+      "finalUrl": "https://nicechunk.com/dist/.vite/manifest.json",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 17753,
+      "bodyLength": 17753,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "4a6e872e5c45c42003337506c10619d34d7c694d68a018effa69576df1e81d85",
+      "etag": "\"6a56c0e7-4559\"",
+      "lastModified": "Tue, 14 Jul 2026 23:06:15 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "rootManifest",
+      "requestUrl": "https://nicechunk.com/.vite/manifest.json",
+      "finalUrl": "https://nicechunk.com/.vite/manifest.json",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/json",
+      "contentEncoding": null,
+      "contentLengthHeader": 17532,
+      "bodyLength": 17532,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "4226a65604583c9b3663e430678f94d944ac45a5edcf26e3701d2f852a9fc06a",
+      "etag": "\"6a56c0e7-447c\"",
+      "lastModified": "Tue, 14 Jul 2026 23:06:15 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "manifestChainAlias",
+      "requestUrl": "https://nicechunk.com/assets/nicechunkChain.js",
+      "finalUrl": "https://nicechunk.com/assets/nicechunkChain.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/javascript",
+      "contentEncoding": null,
+      "contentLengthHeader": 112446,
+      "bodyLength": 112446,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "etag": "\"6a56c0e7-1b73e\"",
+      "lastModified": "Tue, 14 Jul 2026 23:06:15 GMT",
+      "cacheControl": "no-cache",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    }
+  ],
+  "literalEvidence": [
+    {
+      "id": "index-build-version",
+      "sourceResource": "playIndex",
+      "sourceBodyLength": 55636,
+      "sourceSha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "play-bundle-de6020cca220427a",
+      "needleByteLength": 28,
+      "needleSha256": "f20ce0132a9f4f4e5f2473e3bea3bd5936f05407ffd050a9ca572273c911b013",
+      "occurrenceCount": 4,
+      "byteOffsets": [
+        80,
+        569,
+        1683,
+        1802
+      ],
+      "contexts": [
+        {
+          "startByte": 0,
+          "endByte": 228,
+          "needleOffsetWithinContext": 80,
+          "byteLength": 228,
+          "base64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImVuIiBkYXRhLWkxOG4tc2NvcGU9InBsYXkiIGRhdGEtaTE4bi1idWlsZC12ZXJzaW9uPSJwbGF5LWJ1bmRsZS1kZTYwMjBjY2EyMjA0MjdhIj4KICA8aGVhZD4KICAgIDxtZXRhIGNoYXJzZXQ9IlVURi04IiAvPgogICAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAsIHZpZXdw",
+          "sha256": "6cbf474e5afb46522d2735685a00109a6878513887e3d482c99c0d97d05102d4",
+          "utf8Preview": "<!doctype html>\n<html lang=\"en\" data-i18n-scope=\"play\" data-i18n-build-version=\"play-bundle-de6020cca220427a\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewp"
+        },
+        {
+          "startByte": 449,
+          "endByte": 717,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 268,
+          "base64": "aXY9IlByYWdtYSIgY29udGVudD0ibm8tY2FjaGUiIC8+CiAgICA8dGl0bGU+TmljZUNodW5rIFBsYXk8L3RpdGxlPgogICAgPG1ldGEgbmFtZT0ibmljZWNodW5rLXJ1bnRpbWUtdmVyc2lvbiIgY29udGVudD0icGxheS1idW5kbGUtZGU2MDIwY2NhMjIwNDI3YSIgLz4KICAgIDxzY3JpcHQ+CiAgICAgICgoKSA9PiB7CiAgICAgICAgdHJ5IHsKICAgICAgICAgIGNvbnN0IHdhbGxldCA9IGxvY2FsU3RvcmFnZS5nZXRJdGVtKCJuaWNlY2h1bmsud2FsbGV0QWRkcmVzcyIpOw==",
+          "sha256": "b9d54121a402c4cc8386ecdb9296a43fc493f43a675064d455eb73e43f9d5926",
+          "utf8Preview": "iv=\"Pragma\" content=\"no-cache\" />\n    <title>NiceChunk Play</title>\n    <meta name=\"nicechunk-runtime-version\" content=\"play-bundle-de6020cca220427a\" />\n    <script>\n      (() => {\n        try {\n          const wallet = localStorage.getItem(\"nicechunk.walletAddress\");"
+        },
+        {
+          "startByte": 1563,
+          "endByte": 1831,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 268,
+          "base64": "MyIgLz4KICAgIDxsaW5rIHJlbD0ibWFuaWZlc3QiIGhyZWY9Ii9zaXRlLndlYm1hbmlmZXN0P3Y9MC4xLjUzIiAvPgogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIGNyb3Nzb3JpZ2luIHNyYz0iL3J1bnRpbWUvcGxheS1idW5kbGUtZGU2MDIwY2NhMjIwNDI3YS9hc3NldHMvaW5kZXgtQlBQTXYtNWIuanMiPjwvc2NyaXB0PgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBjcm9zc29yaWdpbiBocmVmPSIvcnVudGltZS9wbGF5LWJ1bmRsZS1kZTYwMjBjY2EyMjA0MjdhLw==",
+          "sha256": "7286f39f1f395bb46537f514ab47a78c38c52423f538f03a5babc3f218db5291",
+          "utf8Preview": "3\" />\n    <link rel=\"manifest\" href=\"/site.webmanifest?v=0.1.53\" />\n    <script type=\"module\" crossorigin src=\"/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"/runtime/play-bundle-de6020cca220427a/"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "index-versioned-runtime-src",
+      "sourceResource": "playIndex",
+      "sourceBodyLength": 55636,
+      "sourceSha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+      "needleByteLength": 62,
+      "needleSha256": "fb4807f5ceceb3728dc30140d737d07971768f13907f45c0fef9e6714ff44bc9",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        1674
+      ],
+      "contexts": [
+        {
+          "startByte": 1554,
+          "endByte": 1856,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 302,
+          "base64": "Zz92PTAuMS41MyIgLz4KICAgIDxsaW5rIHJlbD0ibWFuaWZlc3QiIGhyZWY9Ii9zaXRlLndlYm1hbmlmZXN0P3Y9MC4xLjUzIiAvPgogICAgPHNjcmlwdCB0eXBlPSJtb2R1bGUiIGNyb3Nzb3JpZ2luIHNyYz0iL3J1bnRpbWUvcGxheS1idW5kbGUtZGU2MDIwY2NhMjIwNDI3YS9hc3NldHMvaW5kZXgtQlBQTXYtNWIuanMiPjwvc2NyaXB0PgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBjcm9zc29yaWdpbiBocmVmPSIvcnVudGltZS9wbGF5LWJ1bmRsZS1kZTYwMjBjY2EyMjA0MjdhL2Fzc2V0cy9pbmRleC1EME01WWhHSC5jc3M=",
+          "sha256": "c5d36a73ce755843c7a662cbe4caf8a0365003e8c8e866db0c22ec33e2b5e4ca",
+          "utf8Preview": "g?v=0.1.53\" />\n    <link rel=\"manifest\" href=\"/site.webmanifest?v=0.1.53\" />\n    <script type=\"module\" crossorigin src=\"/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js\"></script>\n    <link rel=\"stylesheet\" crossorigin href=\"/runtime/play-bundle-de6020cca220427a/assets/index-D0M5YhGH.css"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "index-does-not-reference-source-main",
+      "sourceResource": "playIndex",
+      "sourceBodyLength": 55636,
+      "sourceSha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "/play/main.js",
+      "needleByteLength": 13,
+      "needleSha256": "2f141c9f9aa9a571daf3aeefa2a34f58c6d7833e48379df6c1670e8e40916b1a",
+      "occurrenceCount": 0,
+      "byteOffsets": [],
+      "contexts": [],
+      "negativeSearch": true
+    },
+    {
+      "id": "source-main-fallback-is-html",
+      "sourceResource": "playMainFallback",
+      "sourceBodyLength": 55636,
+      "sourceSha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "<!doctype html>",
+      "needleByteLength": 15,
+      "needleSha256": "fe26c59e91ac8de694b2531dc3bdc1b7faf471d3d7e4e00870af60f5f22897cb",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        0
+      ],
+      "contexts": [
+        {
+          "startByte": 0,
+          "endByte": 135,
+          "needleOffsetWithinContext": 0,
+          "byteLength": 135,
+          "base64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImVuIiBkYXRhLWkxOG4tc2NvcGU9InBsYXkiIGRhdGEtaTE4bi1idWlsZC12ZXJzaW9uPSJwbGF5LWJ1bmRsZS1kZTYwMjBjY2EyMjA0MjdhIj4KICA8aGVhZD4KICAgIDxtZXRhIGNoYXJz",
+          "sha256": "77bd28638eff4988169bf42dabb38e16ea4e251391fbfe6b242fcdaa5f992ab7",
+          "utf8Preview": "<!doctype html>\n<html lang=\"en\" data-i18n-scope=\"play\" data-i18n-build-version=\"play-bundle-de6020cca220427a\">\n  <head>\n    <meta chars"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "source-adapter-fallback-is-html",
+      "sourceResource": "playAdapterFallback",
+      "sourceBodyLength": 55636,
+      "sourceSha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "<!doctype html>",
+      "needleByteLength": 15,
+      "needleSha256": "fe26c59e91ac8de694b2531dc3bdc1b7faf471d3d7e4e00870af60f5f22897cb",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        0
+      ],
+      "contexts": [
+        {
+          "startByte": 0,
+          "endByte": 135,
+          "needleOffsetWithinContext": 0,
+          "byteLength": 135,
+          "base64": "PCFkb2N0eXBlIGh0bWw+CjxodG1sIGxhbmc9ImVuIiBkYXRhLWkxOG4tc2NvcGU9InBsYXkiIGRhdGEtaTE4bi1idWlsZC12ZXJzaW9uPSJwbGF5LWJ1bmRsZS1kZTYwMjBjY2EyMjA0MjdhIj4KICA8aGVhZD4KICAgIDxtZXRhIGNoYXJz",
+          "sha256": "77bd28638eff4988169bf42dabb38e16ea4e251391fbfe6b242fcdaa5f992ab7",
+          "utf8Preview": "<!doctype html>\n<html lang=\"en\" data-i18n-scope=\"play\" data-i18n-build-version=\"play-bundle-de6020cca220427a\">\n  <head>\n    <meta chars"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-chain-storage-override-key",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "nicechunk.chainModuleUrl",
+      "needleByteLength": 24,
+      "needleSha256": "886d9aef574c095b2dba8450d5f841a5d23e774d5f44b6da72d95112b5957350",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        594528
+      ],
+      "contexts": [
+        {
+          "startByte": 594408,
+          "endByte": 594672,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 264,
+          "base64": "dWxsO2xldFtbbixyXV09ZS5lbnRyaWVzKCk7aWYocjwyKXJldHVybiBudWxsO2xldCBpPUhTKG4pO3JldHVybiBpP1VTKGksdCk6bnVsbH1qUyh0Uyk7dmFyIHRDPWBuaWNlY2h1bmsuY2hhaW5TeW5jYCxuQz1gbmljZWNodW5rLmNoYWluTW9kdWxlVXJsYCxyQz1PYmplY3QuZnJlZXplKFtgL2Rpc3QvLnZpdGUvbWFuaWZlc3QuanNvbmAsYC8udml0ZS9tYW5pZmVzdC5qc29uYF0pLGlDPU9iamVjdC5mcmVlemUoW10pLGFDPVN0cmluZyhnbG9iYWxUaGlzLmRvY3Vt",
+          "sha256": "9d6da4d62b89eeedb9f47d4a4a0de070332946ef38a46ff52f5fed07f9ba47c5",
+          "utf8Preview": "ull;let[[n,r]]=e.entries();if(r<2)return null;let i=HS(n);return i?US(i,t):null}jS(tS);var tC=`nicechunk.chainSync`,nC=`nicechunk.chainModuleUrl`,rC=Object.freeze([`/dist/.vite/manifest.json`,`/.vite/manifest.json`]),iC=Object.freeze([]),aC=String(globalThis.docum"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-chain-global-override",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "globalThis.NICECHUNK_CHAIN_MODULE_URL",
+      "needleByteLength": 37,
+      "needleSha256": "1d311eb1a5b0de12ade869e62bf008931730e91b656ac25ed7a548b7af30ca3a",
+      "occurrenceCount": 2,
+      "byteOffsets": [
+        598035,
+        598326
+      ],
+      "contexts": [
+        {
+          "startByte": 597915,
+          "endByte": 598192,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 277,
+          "base64": "ZS5qb2luKGB8YCk7cmV0dXJuIHBDJiZtQz09PXQ/cEM6KG1DPXQscEM9VEMoZSkuY2F0Y2goZT0+e3Rocm93IHBDPW51bGwsaEM9YGAsZX0pLHBDKX1hc3luYyBmdW5jdGlvbiBiQygpe2xldCBlPVtdO01DKGUsZ2xvYmFsVGhpcy5OSUNFQ0hVTktfQ0hBSU5fTU9EVUxFX1VSTCksTUMoZSxMQyhuQykpO2ZvcihsZXQgdCBvZiBDQygpKU1DKGUsdCk7Zm9yKGxldCB0IG9mIGF3YWl0IERDKCkpTUMoZSx0KTtyZXR1cm4gZX1hc3luYyBmdW5jdGlvbiB4Qygpe2xldCBlPVtdO01DKGUsZ2xvYg==",
+          "sha256": "c8eb327e50ade448df0b6a672d4177c0cfb0c852b69a9278546c0f75497d27c0",
+          "utf8Preview": "e.join(`|`);return pC&&mC===t?pC:(mC=t,pC=TC(e).catch(e=>{throw pC=null,hC=``,e}),pC)}async function bC(){let e=[];MC(e,globalThis.NICECHUNK_CHAIN_MODULE_URL),MC(e,LC(nC));for(let t of CC())MC(e,t);for(let t of await DC())MC(e,t);return e}async function xC(){let e=[];MC(e,glob"
+        },
+        {
+          "startByte": 598206,
+          "endByte": 598483,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 277,
+          "base64": "TktfQlVMS19NSU5JTkdfTU9EVUxFX1VSTCk7Zm9yKGxldCB0IG9mIHNDKU1DKGUsdCk7Zm9yKGxldCB0IG9mIGF3YWl0IGJDKCkpTUMoZSx0KTtyZXR1cm4gZX1mdW5jdGlvbiBTQygpe2xldCBlPVtdO01DKGUsZ2xvYmFsVGhpcy5OSUNFQ0hVTktfQ0hBSU5fTU9EVUxFX1VSTCksTUMoZSxMQyhuQykpO2ZvcihsZXQgdCBvZiBDQygpKU1DKGUsdCk7cmV0dXJuIGV9ZnVuY3Rpb24gQ0MoKXtsZXQgZT1TdHJpbmcoZ2xvYmFsVGhpcy5sb2NhdGlvbj8uaG9zdG5hbWV8fGBgKTtyZXR1cm4gZQ==",
+          "sha256": "55b0544d6e02d4c1eca02875c2791057f008d7e775b979d41d52178fc93f2c96",
+          "utf8Preview": "NK_BULK_MINING_MODULE_URL);for(let t of sC)MC(e,t);for(let t of await bC())MC(e,t);return e}function SC(){let e=[];MC(e,globalThis.NICECHUNK_CHAIN_MODULE_URL),MC(e,LC(nC));for(let t of CC())MC(e,t);return e}function CC(){let e=String(globalThis.location?.hostname||``);return e"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-bulk-global-override",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "globalThis.NICECHUNK_BULK_MINING_MODULE_URL",
+      "needleByteLength": 43,
+      "needleSha256": "06da17af831470dbef562cc33b5bd26c76d27961eb501c82ec1a7dcd3b445893",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        598188
+      ],
+      "contexts": [
+        {
+          "startByte": 598068,
+          "endByte": 598351,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 283,
+          "base64": "X1VSTCksTUMoZSxMQyhuQykpO2ZvcihsZXQgdCBvZiBDQygpKU1DKGUsdCk7Zm9yKGxldCB0IG9mIGF3YWl0IERDKCkpTUMoZSx0KTtyZXR1cm4gZX1hc3luYyBmdW5jdGlvbiB4Qygpe2xldCBlPVtdO01DKGUsZ2xvYmFsVGhpcy5OSUNFQ0hVTktfQlVMS19NSU5JTkdfTU9EVUxFX1VSTCk7Zm9yKGxldCB0IG9mIHNDKU1DKGUsdCk7Zm9yKGxldCB0IG9mIGF3YWl0IGJDKCkpTUMoZSx0KTtyZXR1cm4gZX1mdW5jdGlvbiBTQygpe2xldCBlPVtdO01DKGUsZ2xvYmFsVGhpcy5OSUNFQ0hVTktfQ0hBSQ==",
+          "sha256": "e86a0f6fb3248cc70133d4ebc5edf0a16a2177ecdf3335e537fe04fce8c4baca",
+          "utf8Preview": "_URL),MC(e,LC(nC));for(let t of CC())MC(e,t);for(let t of await DC())MC(e,t);return e}async function xC(){let e=[];MC(e,globalThis.NICECHUNK_BULK_MINING_MODULE_URL);for(let t of sC)MC(e,t);for(let t of await bC())MC(e,t);return e}function SC(){let e=[];MC(e,globalThis.NICECHUNK_CHAI"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-versioned-chain-pattern",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "/assets/nicechunkChain.${encodeURIComponent(aC)}.js",
+      "needleByteLength": 51,
+      "needleSha256": "7a14d6b51f3193a47728b90a3e2bd00f0485808c8f5e9a8fefbca0be9d799db4",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        594754
+      ],
+      "contexts": [
+        {
+          "startByte": 594634,
+          "endByte": 594925,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 291,
+          "base64": "LmZyZWV6ZShbXSksYUM9U3RyaW5nKGdsb2JhbFRoaXMuZG9jdW1lbnQ/LmRvY3VtZW50RWxlbWVudD8uZGF0YXNldD8uaTE4bkJ1aWxkVmVyc2lvbnx8YGApLnRyaW0oKSxvQz1PYmplY3QuZnJlZXplKFthQz9gL2Fzc2V0cy9uaWNlY2h1bmtDaGFpbi4ke2VuY29kZVVSSUNvbXBvbmVudChhQyl9LmpzYDpgL2Fzc2V0cy9uaWNlY2h1bmtDaGFpbi5qc2BdKSxzQz1PYmplY3QuZnJlZXplKGFDP1tgL2Fzc2V0cy9uaWNlY2h1bmtCdWxrTWluaW5nLiR7ZW5jb2RlVVJJQ29tcG9uZW50KGFDKX0uanNgXTpbXSksY0M9",
+          "sha256": "44206340f09170e50c9573145ebb489c5896d9d61762cc3d29ff89a8a1403e0a",
+          "utf8Preview": ".freeze([]),aC=String(globalThis.document?.documentElement?.dataset?.i18nBuildVersion||``).trim(),oC=Object.freeze([aC?`/assets/nicechunkChain.${encodeURIComponent(aC)}.js`:`/assets/nicechunkChain.js`]),sC=Object.freeze(aC?[`/assets/nicechunkBulkMining.${encodeURIComponent(aC)}.js`]:[]),cC="
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-versioned-bulk-pattern",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "/assets/nicechunkBulkMining.${encodeURIComponent(aC)}.js",
+      "needleByteLength": 56,
+      "needleSha256": "067f2f0cc93ece3141274ef9da93c97ba1366d5ef85bfbf55030bfdd32220e55",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        594859
+      ],
+      "contexts": [
+        {
+          "startByte": 594739,
+          "endByte": 595035,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 296,
+          "base64": "Y3QuZnJlZXplKFthQz9gL2Fzc2V0cy9uaWNlY2h1bmtDaGFpbi4ke2VuY29kZVVSSUNvbXBvbmVudChhQyl9LmpzYDpgL2Fzc2V0cy9uaWNlY2h1bmtDaGFpbi5qc2BdKSxzQz1PYmplY3QuZnJlZXplKGFDP1tgL2Fzc2V0cy9uaWNlY2h1bmtCdWxrTWluaW5nLiR7ZW5jb2RlVVJJQ29tcG9uZW50KGFDKX0uanNgXTpbXSksY0M9MCxsQz1udWxsLHVDPWBgLGRDPWBgLGZDPW51bGwscEM9bnVsbCxtQz1gYCxoQz1gYDtmdW5jdGlvbiBnQyh7Z2V0V2FsbGV0QWRkcmVzczplPSgpPT5gYCxnZXRQbGF5ZXJQb3NpdGlvbjp0PSg=",
+          "sha256": "44a14cafde1ab0fabd877226efac8dc3fd8dbe31cade3f5e92332bd226951e7e",
+          "utf8Preview": "ct.freeze([aC?`/assets/nicechunkChain.${encodeURIComponent(aC)}.js`:`/assets/nicechunkChain.js`]),sC=Object.freeze(aC?[`/assets/nicechunkBulkMining.${encodeURIComponent(aC)}.js`]:[]),cC=0,lC=null,uC=``,dC=``,fC=null,pC=null,mC=``,hC=``;function gC({getWalletAddress:e=()=>``,getPlayerPosition:t=("
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-manifest-probe-order",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "Object.freeze([`/dist/.vite/manifest.json`,`/.vite/manifest.json`])",
+      "needleByteLength": 67,
+      "needleSha256": "7fbe1af7e9740c1a399e9312cf3b68dc73ccd33dd50b67366116206f4499bc65",
+      "occurrenceCount": 2,
+      "byteOffsets": [
+        594557,
+        664519
+      ],
+      "contexts": [
+        {
+          "startByte": 594437,
+          "endByte": 594744,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 307,
+          "base64": "KHI8MilyZXR1cm4gbnVsbDtsZXQgaT1IUyhuKTtyZXR1cm4gaT9VUyhpLHQpOm51bGx9alModFMpO3ZhciB0Qz1gbmljZWNodW5rLmNoYWluU3luY2AsbkM9YG5pY2VjaHVuay5jaGFpbk1vZHVsZVVybGAsckM9T2JqZWN0LmZyZWV6ZShbYC9kaXN0Ly52aXRlL21hbmlmZXN0Lmpzb25gLGAvLnZpdGUvbWFuaWZlc3QuanNvbmBdKSxpQz1PYmplY3QuZnJlZXplKFtdKSxhQz1TdHJpbmcoZ2xvYmFsVGhpcy5kb2N1bWVudD8uZG9jdW1lbnRFbGVtZW50Py5kYXRhc2V0Py5pMThuQnVpbGRWZXJzaW9ufHxgYCkudHJpbSgpLG9DPU9iamVjdC5mcg==",
+          "sha256": "524a51289b334fd6141fce8fdd6d432c9020d08ed7c87a855917ca33d085e901",
+          "utf8Preview": "(r<2)return null;let i=HS(n);return i?US(i,t):null}jS(tS);var tC=`nicechunk.chainSync`,nC=`nicechunk.chainModuleUrl`,rC=Object.freeze([`/dist/.vite/manifest.json`,`/.vite/manifest.json`]),iC=Object.freeze([]),aC=String(globalThis.document?.documentElement?.dataset?.i18nBuildVersion||``).trim(),oC=Object.fr"
+        },
+        {
+          "startByte": 664399,
+          "endByte": 664706,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 307,
+          "base64": "d0U9YG5pY2VjaHVuay53YWxsZXRCb3VuZEF0YCxURT1gbmljZWNodW5rLnNlc3Npb25GdW5kaW5nTGFtcG9ydHMudjEuYCxFRT1gbmljZWNodW5rLnNlc3Npb25GdW5kaW5nQWNrbm93bGVkZ2VkLnYxLmAsREU9T2JqZWN0LmZyZWV6ZShbYC9kaXN0Ly52aXRlL21hbmlmZXN0Lmpzb25gLGAvLnZpdGUvbWFuaWZlc3QuanNvbmBdKSxPRT1PYmplY3QuZnJlZXplKFtdKSxrRT0xZTksQUU9LjEsakU9M2U0LE1FPTNlNCxORT0xMmUzLFBFPW51bGwsRkU9bnVsbCxJRT1uZXcgTWFwO2Z1bmN0aW9uIExFKHtlbGVtZW50czplLGdhbWVTdGF0ZTp0LA==",
+          "sha256": "9bd97ec10c45275ceceae7b3e7e085aa3a02101ca652113c830a641fbecf7553",
+          "utf8Preview": "wE=`nicechunk.walletBoundAt`,TE=`nicechunk.sessionFundingLamports.v1.`,EE=`nicechunk.sessionFundingAcknowledged.v1.`,DE=Object.freeze([`/dist/.vite/manifest.json`,`/.vite/manifest.json`]),OE=Object.freeze([]),kE=1e9,AE=.1,jE=3e4,ME=3e4,NE=12e3,PE=null,FE=null,IE=new Map;function LE({elements:e,gameState:t,"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-chain-failover",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "missing chain exports",
+      "needleByteLength": 21,
+      "needleSha256": "a049cbb7f5bf67cc10e8f0b2f1706c23909b44b623acb195205b9cbe368b6ef7",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        598639
+      ],
+      "contexts": [
+        {
+          "startByte": 598519,
+          "endByte": 598780,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 261,
+          "base64": "PWA6OjFgP2lDOm9DfWFzeW5jIGZ1bmN0aW9uIHdDKGUpe2xldCB0PVtdO2ZvcihsZXQgbiBvZiBlKXRyeXtsZXQgZT1hd2FpdCBNbSgoKT0+aW1wb3J0KG4pLFtdKTtpZighRUMoZSkpe3QucHVzaChgJHtufTogbWlzc2luZyBjaGFpbiBleHBvcnRzYCk7Y29udGludWV9cmV0dXJuIGRDPW4sZX1jYXRjaChlKXt0LnB1c2goYCR7bn06ICR7ZT8ubWVzc2FnZXx8U3RyaW5nKGUpfWApfXRocm93IEVycm9yKGBVbmFibGUgdG8gbG9hZCBOaWNlQ2h1bmsgY2hhaW4g",
+          "sha256": "eee528341fa730d322caa4b14c11d650b7da200027ec311dd1f205442ac269a1",
+          "utf8Preview": "=`::1`?iC:oC}async function wC(e){let t=[];for(let n of e)try{let e=await Mm(()=>import(n),[]);if(!EC(e)){t.push(`${n}: missing chain exports`);continue}return dC=n,e}catch(e){t.push(`${n}: ${e?.message||String(e)}`)}throw Error(`Unable to load NiceChunk chain "
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-bulk-failover",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "missing bulk mining export",
+      "needleByteLength": 26,
+      "needleSha256": "ff880b176d7d763a937f8c9e95f7854900ba95fb1ba525c40ff1de9490637b0c",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        598955
+      ],
+      "contexts": [
+        {
+          "startByte": 598835,
+          "endByte": 599101,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 266,
+          "base64": "dCB0PVtdO2ZvcihsZXQgbiBvZiBlKXRyeXtsZXQgZT1hd2FpdCBNbSgoKT0+aW1wb3J0KG4pLFtdKTtpZih0eXBlb2YgZS5yZWNvcmRCdWxrTWluZU9uQ2hhaW4hPWBmdW5jdGlvbmApe3QucHVzaChgJHtufTogbWlzc2luZyBidWxrIG1pbmluZyBleHBvcnRgKTtjb250aW51ZX1yZXR1cm4gaEM9bixlfWNhdGNoKGUpe3QucHVzaChgJHtufTogJHtlPy5tZXNzYWdlfHxTdHJpbmcoZSl9YCl9dGhyb3cgRXJyb3IoYFVuYWJsZSB0byBsb2FkIE5pY2VDaHVuayBidWxrIG0=",
+          "sha256": "ca98b526b4e52743e204e32befc698bd83baf8cab45d655a8ccad12ceb9700f6",
+          "utf8Preview": "t t=[];for(let n of e)try{let e=await Mm(()=>import(n),[]);if(typeof e.recordBulkMineOnChain!=`function`){t.push(`${n}: missing bulk mining export`);continue}return hC=n,e}catch(e){t.push(`${n}: ${e?.message||String(e)}`)}throw Error(`Unable to load NiceChunk bulk m"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-debug-bulk-gate",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "r.miningKind===`debug-bulk`&&r.batchAuthorization===`debug`",
+      "needleByteLength": 59,
+      "needleSha256": "d8d1e34ebf5935eb3d5016ba62bb4725a9867a8cca148076affacb376b408cf9",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        595993
+      ],
+      "contexts": [
+        {
+          "startByte": 595873,
+          "endByte": 596172,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 299,
+          "base64": "KSYmci5ibG9ja3MubGVuZ3RoPjEsZj1yLm1pbmluZ0tpbmQ9PT1gc3VwcG9ydC1jb2xsYXBzZWAmJkFycmF5LmlzQXJyYXkoci5jb2xsYXBzZUJsb2NrcykmJnIuY29sbGFwc2VCbG9ja3MubGVuZ3RoPjA7aWYoci5taW5pbmdLaW5kPT09YGRlYnVnLWJ1bGtgJiZyLmJhdGNoQXV0aG9yaXphdGlvbj09PWBkZWJ1Z2AmJkFycmF5LmlzQXJyYXkoci5ibG9ja3MpJiZyLmJsb2Nrcy5sZW5ndGg+MCl7bGV0IGU9YXdhaXQgeUMoKTtyZXR1cm4gdHlwZW9mIGUucmVjb3JkQnVsa01pbmVPbkNoYWluPT1gZnVuY3Rpb25gP3UoYXdhaXQ=",
+          "sha256": "990a11a9020b86cce95da7506e2d3678375cb1dda1adf27d15e76df09837d171",
+          "utf8Preview": ")&&r.blocks.length>1,f=r.miningKind===`support-collapse`&&Array.isArray(r.collapseBlocks)&&r.collapseBlocks.length>0;if(r.miningKind===`debug-bulk`&&r.batchAuthorization===`debug`&&Array.isArray(r.blocks)&&r.blocks.length>0){let e=await yC();return typeof e.recordBulkMineOnChain==`function`?u(await"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "runtime-bulk-export-requests",
+      "sourceResource": "versionedRuntime",
+      "sourceBodyLength": 989679,
+      "sourceSha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "recordBulkMineOnChain",
+      "needleByteLength": 21,
+      "needleSha256": "9bb69c8e989d3e21c30538cde7d58157f35cced8bf61f531727fdef368d50526",
+      "occurrenceCount": 4,
+      "byteOffsets": [
+        596131,
+        596175,
+        598906,
+        599222
+      ],
+      "contexts": [
+        {
+          "startByte": 596011,
+          "endByte": 596272,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 261,
+          "base64": "YnVnLWJ1bGtgJiZyLmJhdGNoQXV0aG9yaXphdGlvbj09PWBkZWJ1Z2AmJkFycmF5LmlzQXJyYXkoci5ibG9ja3MpJiZyLmJsb2Nrcy5sZW5ndGg+MCl7bGV0IGU9YXdhaXQgeUMoKTtyZXR1cm4gdHlwZW9mIGUucmVjb3JkQnVsa01pbmVPbkNoYWluPT1gZnVuY3Rpb25gP3UoYXdhaXQgZS5yZWNvcmRCdWxrTWluZU9uQ2hhaW4oci5ibG9ja3MubWFwKE5DKSx7Li4ucyxtb2RlOmBkZWJ1Z2B9KSk6ZChgcmVjb3JkLWJ1bGstbWluZS11bmF2YWlsYWJsZWApfWxl",
+          "sha256": "4f7dcf63f7f34f421e3c79898ca6c29f93df6aee54ac2a40bcdfa0807a2ed12c",
+          "utf8Preview": "bug-bulk`&&r.batchAuthorization===`debug`&&Array.isArray(r.blocks)&&r.blocks.length>0){let e=await yC();return typeof e.recordBulkMineOnChain==`function`?u(await e.recordBulkMineOnChain(r.blocks.map(NC),{...s,mode:`debug`})):d(`record-bulk-mine-unavailable`)}le"
+        },
+        {
+          "startByte": 596055,
+          "endByte": 596316,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 261,
+          "base64": "cnJheS5pc0FycmF5KHIuYmxvY2tzKSYmci5ibG9ja3MubGVuZ3RoPjApe2xldCBlPWF3YWl0IHlDKCk7cmV0dXJuIHR5cGVvZiBlLnJlY29yZEJ1bGtNaW5lT25DaGFpbj09YGZ1bmN0aW9uYD91KGF3YWl0IGUucmVjb3JkQnVsa01pbmVPbkNoYWluKHIuYmxvY2tzLm1hcChOQyksey4uLnMsbW9kZTpgZGVidWdgfSkpOmQoYHJlY29yZC1idWxrLW1pbmUtdW5hdmFpbGFibGVgKX1sZXQgcD1hd2FpdCB2QygpO2lmKGYpcmV0dXJuIHR5cGVvZiBwLnJlY29yZFN1",
+          "sha256": "71c1acc8c5f2e12c2ea25476c06d0bea89947cdbd4c193e4146555e5c5c8a7b3",
+          "utf8Preview": "rray.isArray(r.blocks)&&r.blocks.length>0){let e=await yC();return typeof e.recordBulkMineOnChain==`function`?u(await e.recordBulkMineOnChain(r.blocks.map(NC),{...s,mode:`debug`})):d(`record-bulk-mine-unavailable`)}let p=await vC();if(f)return typeof p.recordSu"
+        },
+        {
+          "startByte": 598786,
+          "endByte": 599047,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 261,
+          "base64": "LiBUcmllZCAke3Quam9pbihgOyBgKX1gKX1hc3luYyBmdW5jdGlvbiBUQyhlKXtsZXQgdD1bXTtmb3IobGV0IG4gb2YgZSl0cnl7bGV0IGU9YXdhaXQgTW0oKCk9PmltcG9ydChuKSxbXSk7aWYodHlwZW9mIGUucmVjb3JkQnVsa01pbmVPbkNoYWluIT1gZnVuY3Rpb25gKXt0LnB1c2goYCR7bn06IG1pc3NpbmcgYnVsayBtaW5pbmcgZXhwb3J0YCk7Y29udGludWV9cmV0dXJuIGhDPW4sZX1jYXRjaChlKXt0LnB1c2goYCR7bn06ICR7ZT8ubWVzc2FnZXx8U3Ry",
+          "sha256": "01031b60d39bc38e840103eb675b7244875580fad1173f48b9f71ec6ec9a9b1a",
+          "utf8Preview": ". Tried ${t.join(`; `)}`)}async function TC(e){let t=[];for(let n of e)try{let e=await Mm(()=>import(n),[]);if(typeof e.recordBulkMineOnChain!=`function`){t.push(`${n}: missing bulk mining export`);continue}return hC=n,e}catch(e){t.push(`${n}: ${e?.message||Str"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-client-constants",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "En=`nicechunk.session.v1.`,Dn=`nicechunk.sessionFundingLamports.v1.`,On=`nicechunk.sessionFundingAcknowledged.v1.`,kn=480*60,An=900,k=1e9,A=1e8,jn=6,Mn=1e4",
+      "needleByteLength": 155,
+      "needleSha256": "6631ed3ac309872fcd2bc260a0388800e8ececd574f2afd3734c14c64fbdbbe1",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        4204
+      ],
+      "contexts": [
+        {
+          "startByte": 4084,
+          "endByte": 4479,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 395,
+          "base64": "bno1OFp0TVB5Nlp2eEw0THlOZFBIVlc3V3ZGYCksQ249YG5pY2VjaHVuay53YWxsZXRBZGRyZXNzYCx3bj1gbmljZWNodW5rLmNoYWluU3luY2AsVG49YG5pY2VjaHVuay5lcXVpcHBlZEJhY2twYWNrLnYxLmAsRW49YG5pY2VjaHVuay5zZXNzaW9uLnYxLmAsRG49YG5pY2VjaHVuay5zZXNzaW9uRnVuZGluZ0xhbXBvcnRzLnYxLmAsT249YG5pY2VjaHVuay5zZXNzaW9uRnVuZGluZ0Fja25vd2xlZGdlZC52MS5gLGtuPTQ4MCo2MCxBbj05MDAsaz0xZTksQT0xZTgsam49NixNbj0xZTQsTm49MTRlNSxQbj01ZTMsRm49NTAwLEluPTFlMyxMbj02ZTQsUm49NCx6bj0yLEJuPTQ4LFZuPTZlNCxIbj02ZTQsVW49NSo2ZTQsV249MTAqNmU0LEduPW5ldyBNYXAsS249bmV3IFNldCxxbj1uZXcgTWFwLEo=",
+          "sha256": "2a622d4627e76d2e53a9cc196eb4219b639df252a4cd550e7b40877522f5bc3d",
+          "utf8Preview": "nz58ZtMPy6ZvxL4LyNdPHVW7WvF`),Cn=`nicechunk.walletAddress`,wn=`nicechunk.chainSync`,Tn=`nicechunk.equippedBackpack.v1.`,En=`nicechunk.session.v1.`,Dn=`nicechunk.sessionFundingLamports.v1.`,On=`nicechunk.sessionFundingAcknowledged.v1.`,kn=480*60,An=900,k=1e9,A=1e8,jn=6,Mn=1e4,Nn=14e5,Pn=5e3,Fn=500,In=1e3,Ln=6e4,Rn=4,zn=2,Bn=48,Vn=6e4,Hn=6e4,Un=5*6e4,Wn=10*6e4,Gn=new Map,Kn=new Set,qn=new Map,J"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-instruction-defaults",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "a.writeUInt16LE(jn,9),a.writeUInt32LE(Mn,11)",
+      "needleByteLength": 44,
+      "needleSha256": "e372a4bb845ff6e087370098de9612056d8a68d812fb81cb76ed3b7abbe92618",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        79109
+      ],
+      "contexts": [
+        {
+          "startByte": 78989,
+          "endByte": 79273,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 284,
+          "base64": "cm9maWxlOm4scGxheWVyU2Vzc2lvbjpyLGV4cGlyZXNBdDppfSl7bGV0IGE9Uy5CdWZmZXIuYWxsb2MoMTUpO3JldHVybiBhLndyaXRlVUludDgoNCwwKSxhLndyaXRlQmlnSW50NjRMRShCaWdJbnQoaSksMSksYS53cml0ZVVJbnQxNkxFKGpuLDkpLGEud3JpdGVVSW50MzJMRShNbiwxMSksbmV3IG8oe3Byb2dyYW1JZDpDLGtleXM6W3twdWJrZXk6ZSxpc1NpZ25lcjohMCxpc1dyaXRhYmxlOiEwfSx7cHVia2V5OnQsaXNTaWduZXI6ITAsaXNXcml0YWJsZTohMX0se3B1YmtleTpuLGlzU2lnbmVyOiE=",
+          "sha256": "8a7b57dc9c6d98423b4f2cd26daaebb6a1c3248ae1ad28f1b954d1eb3fb32834",
+          "utf8Preview": "rofile:n,playerSession:r,expiresAt:i}){let a=S.Buffer.alloc(15);return a.writeUInt8(4,0),a.writeBigInt64LE(BigInt(i),1),a.writeUInt16LE(jn,9),a.writeUInt32LE(Mn,11),new o({programId:C,keys:[{pubkey:e,isSigner:!0,isWritable:!0},{pubkey:t,isSigner:!0,isWritable:!1},{pubkey:n,isSigner:!"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-eight-hour-expiry",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "let o=n?.keypair??u.generate(),s=r+kn",
+      "needleByteLength": 37,
+      "needleSha256": "771149aff540861d7a8f660be4962e73854d2cf49e62fb9308bf9ea90fbc3f50",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        98785
+      ],
+      "contexts": [
+        {
+          "startByte": 98665,
+          "endByte": 98942,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 277,
+          "base64": "bXBvcnRzOmEsYmFsYW5jZVNvbDphL2sscHVibGljS2V5Om4ua2V5cGFpci5wdWJsaWNLZXkudG9CYXNlNTgoKSxleHBpcmVzQXQ6bi5leHBpcmVzQXR9KSxYYSh0LG4ua2V5cGFpci5wdWJsaWNLZXksYSksbn19bGV0IG89bj8ua2V5cGFpcj8/dS5nZW5lcmF0ZSgpLHM9citrbixbY109Uih0KSxbZF09eih0LG8ucHVibGljS2V5KSxmPW5ldyBhLFtwLG1dPWF3YWl0IGkuZ2V0TXVsdGlwbGVBY2NvdW50c0luZm8oW2Msby5wdWJsaWNLZXldLGBjb25maXJtZWRgKSxoPUphKG0pO3A/LmRhdA==",
+          "sha256": "f9db3d22c04d4e5abcfdde86fb10e20f66b5e6522e95bbbd730f796c2bbe342d",
+          "utf8Preview": "mports:a,balanceSol:a/k,publicKey:n.keypair.publicKey.toBase58(),expiresAt:n.expiresAt}),Xa(t,n.keypair.publicKey,a),n}}let o=n?.keypair??u.generate(),s=r+kn,[c]=R(t),[d]=z(t,o.publicKey),f=new a,[p,m]=await i.getMultipleAccountsInfo([c,o.publicKey],`confirmed`),h=Ja(m);p?.dat"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-refresh-skew",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "n&&n.expiresAt>r+An",
+      "needleByteLength": 19,
+      "needleSha256": "e4d79bba9db0d570025fbcd8b2846263a387c333255aebaa5bdf4e10d629259b",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        98286
+      ],
+      "contexts": [
+        {
+          "startByte": 98166,
+          "endByte": 98425,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 259,
+          "base64": "ci5mcm9tKFsyXSkpfSl9YXN5bmMgZnVuY3Rpb24gWShlKXtpZihiKGUpKXJldHVybiB4cyhlKTtsZXQgdD1lLnB1YmxpY0tleSxuPURzKHQpLHI9TWF0aC5mbG9vcihEYXRlLm5vdygpLzFlMyksaT1GKCk7aWYobiYmbi5leHBpcmVzQXQ+citBbil7bGV0W3JdPXoodCxuLmtleXBhaXIucHVibGljS2V5KSxbYV09Uih0KSxbbyxzLGNdPWF3YWl0IGkuZ2V0TXVsdGlwbGVBY2NvdW50c0luZm8oW3Isbi5rZXlwYWlyLnB1YmxpY0tleSxhXSxgY29uZmlybWVkYA==",
+          "sha256": "48a15109bbfd4ddc5af6db8a12f5dd91ae184e1ff2abc81ce9f3856e41b53d92",
+          "utf8Preview": "r.from([2]))})}async function Y(e){if(b(e))return xs(e);let t=e.publicKey,n=Ds(t),r=Math.floor(Date.now()/1e3),i=F();if(n&&n.expiresAt>r+An){let[r]=z(t,n.keypair.publicKey),[a]=R(t),[o,s,c]=await i.getMultipleAccountsInfo([r,n.keypair.publicKey,a],`confirmed`"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-owner-storage-key",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "function Ms(e){return`${En}${e.toBase58()}`}",
+      "needleByteLength": 44,
+      "needleSha256": "22c1b2921aa6774e528932e565da75a2fc079a427bce79cbb991e5e7daf1ce5f",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        102294
+      ],
+      "contexts": [
+        {
+          "startByte": 102174,
+          "endByte": 102458,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 284,
+          "base64": "e3B1YmxpY0tleTp0LmtleXBhaXIucHVibGljS2V5LnRvQmFzZTU4KCksc2VjcmV0S2V5Om9jKHQua2V5cGFpci5zZWNyZXRLZXkpLGV4cGlyZXNBdDp0LmV4cGlyZXNBdCxzYXZlZEF0OkRhdGUubm93KCl9KSl9ZnVuY3Rpb24gTXMoZSl7cmV0dXJuYCR7RW59JHtlLnRvQmFzZTU4KCl9YH1mdW5jdGlvbiBOcyhlKXtyZXR1cm5gJHtUbn0ke2UudG9CYXNlNTgoKX1gfWZ1bmN0aW9uIFBzKGU9bnVsbCl7cmV0dXJuYCR7RG59JHtJcyhlKX1gfWZ1bmN0aW9uIEZzKGU9bnVsbCl7cmV0dXJuYCR7T259JHs=",
+          "sha256": "3e291f36c516a58621787a582c7c56325a56a729576a110b5bd07f6091d94116",
+          "utf8Preview": "{publicKey:t.keypair.publicKey.toBase58(),secretKey:oc(t.keypair.secretKey),expiresAt:t.expiresAt,savedAt:Date.now()}))}function Ms(e){return`${En}${e.toBase58()}`}function Ns(e){return`${Tn}${e.toBase58()}`}function Ps(e=null){return`${Dn}${Is(e)}`}function Fs(e=null){return`${On}${"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-funding-storage-order",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "let t=localStorage.getItem(Ps(e)),n=localStorage.getItem(Ps(null)),r=Number(t??n)",
+      "needleByteLength": 81,
+      "needleSha256": "6a3ba9f2e62490af8755fe1c611e90ff829359f1ac3ccc4ea996627e3e6d0521",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        103457
+      ],
+      "contexts": [
+        {
+          "startByte": 103337,
+          "endByte": 103658,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 321,
+          "base64": "cmV0dXJuIG89PT0wbj9hLnRvU3RyaW5nKCk6YCR7YX0uJHtvLnRvU3RyaW5nKCkucGFkU3RhcnQobixgMGApLnJlcGxhY2UoLzArJC8sYGApfWB9ZnVuY3Rpb24gWChlPW51bGwpe2lmKCFMKCkpcmV0dXJuIEE7bGV0IHQ9bG9jYWxTdG9yYWdlLmdldEl0ZW0oUHMoZSkpLG49bG9jYWxTdG9yYWdlLmdldEl0ZW0oUHMobnVsbCkpLHI9TnVtYmVyKHQ/P24pO3JldHVybiBOdW1iZXIuaXNGaW5pdGUocikmJnI+PUE/TWF0aC5mbG9vcihyKTpBfWFzeW5jIGZ1bmN0aW9uIFooZSx0LG49RigpLHI9W10pe2lmKHQuZmVlUGF5ZXI9ZS5wdWJsaWNLZXksdHlwZW9mIG4ucHJl",
+          "sha256": "fbec858f2db8d5e45cc5ef5d3f672fa5dffabd63abd2ccbcf2cd0cf8aca1a257",
+          "utf8Preview": "return o===0n?a.toString():`${a}.${o.toString().padStart(n,`0`).replace(/0+$/,``)}`}function X(e=null){if(!L())return A;let t=localStorage.getItem(Ps(e)),n=localStorage.getItem(Ps(null)),r=Number(t??n);return Number.isFinite(r)&&r>=A?Math.floor(r):A}async function Z(e,t,n=F(),r=[]){if(t.feePayer=e.publicKey,typeof n.pre"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-session-stored-fields",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "secretKey:oc(t.keypair.secretKey),expiresAt:t.expiresAt,savedAt:Date.now()",
+      "needleByteLength": 74,
+      "needleSha256": "a63d31f1888dfc3d9d6fbbfc961b2f8302c5f3a34de190727ae6ed08e081f4ac",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        102216
+      ],
+      "contexts": [
+        {
+          "startByte": 102096,
+          "endByte": 102410,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 314,
+          "base64": "dmVJdGVtKE5zKGUpKX1mdW5jdGlvbiBqcyhlLHQpe0woKSYmbG9jYWxTdG9yYWdlLnNldEl0ZW0oTXMoZSksSlNPTi5zdHJpbmdpZnkoe3B1YmxpY0tleTp0LmtleXBhaXIucHVibGljS2V5LnRvQmFzZTU4KCksc2VjcmV0S2V5Om9jKHQua2V5cGFpci5zZWNyZXRLZXkpLGV4cGlyZXNBdDp0LmV4cGlyZXNBdCxzYXZlZEF0OkRhdGUubm93KCl9KSl9ZnVuY3Rpb24gTXMoZSl7cmV0dXJuYCR7RW59JHtlLnRvQmFzZTU4KCl9YH1mdW5jdGlvbiBOcyhlKXtyZXR1cm5gJHtUbn0ke2UudG9CYXNlNTgoKX1gfWZ1bmN0aW9uIFBzKGU9bnVsbCl7cmV0dXJuYCQ=",
+          "sha256": "11b9ffb82a94894bae4b4273761fa0f4b8a11036bd2ae27d06c3575bbc1bf0d7",
+          "utf8Preview": "veItem(Ns(e))}function js(e,t){L()&&localStorage.setItem(Ms(e),JSON.stringify({publicKey:t.keypair.publicKey.toBase58(),secretKey:oc(t.keypair.secretKey),expiresAt:t.expiresAt,savedAt:Date.now()}))}function Ms(e){return`${En}${e.toBase58()}`}function Ns(e){return`${Tn}${e.toBase58()}`}function Ps(e=null){return`$"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-placement-disabled-return",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "async function Qa(e,t,n=0){return{submitted:!1,reason:`chain-placement-disabled`}}",
+      "needleByteLength": 82,
+      "needleSha256": "0d3c2acb0632e8ebf83732dd46071634cbd0b36cb6f389f0b5b71fe2b8f710b1",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        63056
+      ],
+      "contexts": [
+        {
+          "startByte": 62936,
+          "endByte": 63258,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 322,
+          "base64": "YXRoLmZsb29yKG4pOm51bGx9KX1mdW5jdGlvbiBaYShlLHQpe2xldCBuPVlhKGUsdCk7aWYoIW4pcmV0dXJuITE7bGV0IHI9Sm4uZ2V0KG4pO3JldHVybiEhKHImJkRhdGUubm93KCktci5sb2FkZWRBdDxVbil9YXN5bmMgZnVuY3Rpb24gUWEoZSx0LG49MCl7cmV0dXJue3N1Ym1pdHRlZDohMSxyZWFzb246YGNoYWluLXBsYWNlbWVudC1kaXNhYmxlZGB9fWZ1bmN0aW9uIFcoZSl7cmV0dXJuIE1hdGguZmxvb3IoZS9OKX1mdW5jdGlvbiBHKGUpe3JldHVybiBNYXRoLmZsb29yKGUvTil9ZnVuY3Rpb24gJGEoZSl7cmV0dXJuIGFjKGUsTil9ZnVuY3Rpb24gZW8oZSl7cg==",
+          "sha256": "14db0416b526353d6f22287713f9b904c3e3eb094838bbfde8d0d8ea63344542",
+          "utf8Preview": "ath.floor(n):null})}function Za(e,t){let n=Ya(e,t);if(!n)return!1;let r=Jn.get(n);return!!(r&&Date.now()-r.loadedAt<Un)}async function Qa(e,t,n=0){return{submitted:!1,reason:`chain-placement-disabled`}}function W(e){return Math.floor(e/N)}function G(e){return Math.floor(e/N)}function $a(e){return ac(e,N)}function eo(e){r"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-unified-game-context",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "B=Object.freeze({isUnifiedGame:!0,programId:w,chunkProgramId:T,buildingProgramId:ae,backpackProgramId:w,marketProgramId:w,smeltingProgramId:w})",
+      "needleByteLength": 143,
+      "needleSha256": "ab8a3ad08c2e90c8e990174c4b16234543e28edb0c63e874ac643d4a649bb39e",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        13244
+      ],
+      "contexts": [
+        {
+          "startByte": 13124,
+          "endByte": 13507,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 383,
+          "base64": "cihlPXcpe3JldHVybiBpLmZpbmRQcm9ncmFtQWRkcmVzc1N5bmMoW1MuQnVmZmVyLmZyb20oamUpXSxlKX1mdW5jdGlvbiAkcigpe3JldHVybiBRcih3KX1mdW5jdGlvbiBlaSgpe3JldHVybiBRcih3KX12YXIgQj1PYmplY3QuZnJlZXplKHtpc1VuaWZpZWRHYW1lOiEwLHByb2dyYW1JZDp3LGNodW5rUHJvZ3JhbUlkOlQsYnVpbGRpbmdQcm9ncmFtSWQ6YWUsYmFja3BhY2tQcm9ncmFtSWQ6dyxtYXJrZXRQcm9ncmFtSWQ6dyxzbWVsdGluZ1Byb2dyYW1JZDp3fSk7ZnVuY3Rpb24gVihlLHQsbil7cmV0dXJuIGU/LmlzVW5pZmllZEdhbWUmJih0PT09c2U/ZS5jaHVua1Byb2dyYW1JZDp0PT09b2U/ZS5iYWNrcGFja1Byb2dyYW1JZDp0PT09bGU/ZS5tYXJrZXRQcm9ncmFtSWQ=",
+          "sha256": "61f895a19ffd0e630047b5688896f51c421506a40e962312124a6002cbedc743",
+          "utf8Preview": "r(e=w){return i.findProgramAddressSync([S.Buffer.from(je)],e)}function $r(){return Qr(w)}function ei(){return Qr(w)}var B=Object.freeze({isUnifiedGame:!0,programId:w,chunkProgramId:T,buildingProgramId:ae,backpackProgramId:w,marketProgramId:w,smeltingProgramId:w});function V(e,t,n){return e?.isUnifiedGame&&(t===se?e.chunkProgramId:t===oe?e.backpackProgramId:t===le?e.marketProgramId"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-unified-game-namespace-values",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "oe=1,se=2,ce=3,le=4",
+      "needleByteLength": 19,
+      "needleSha256": "fed3458691577f7b209997b177a2201a0bfa8b8a722a68f9cc7777b6b488b10e",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        2239
+      ],
+      "contexts": [
+        {
+          "startByte": 2119,
+          "endByte": 2378,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 259,
+          "base64": "MlVQN2ApLFQ9bmV3IGkoYEduVktuNDQyS0RURGdDeWpWRzdTRXRDUVFMamFDaUx2ckVaRFdTVTEzd2JqYCksYWU9bmV3IGkoYDM5VU1UVVdYUWt1b21rRk5iRFBGNU5HWm5KbUc2cERrSkhWU2taeXFWd1d4YCksb2U9MSxzZT0yLGNlPTMsbGU9NCx1ZT1gZ2xvYmFsLWNvbmZpZ2AsZGU9YHBsYXllci12N2AsZmU9YGFwcGVhcmFuY2UtdjFgLHBlPWBzZXNzaW9uYCxtZT1gcmVzb3VyY2UtbWluZS1jb25maXJtYCxoZT1gcGxheWVyLW5hbWUtdjFgLGdlPWBpbg==",
+          "sha256": "9314479727e154585f18f017699211f560d06cd7df90544ed74edf30e7174cb9",
+          "utf8Preview": "2UP7`),T=new i(`GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj`),ae=new i(`39UMTUWXQkuomkFNbDPF5NGZnJmG6pDkJHVSkZyqVwWx`),oe=1,se=2,ce=3,le=4,ue=`global-config`,de=`player-v7`,fe=`appearance-v1`,pe=`session`,me=`resource-mine-confirm`,he=`player-name-v1`,ge=`in"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-namespace-prefix-rule",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "function V(e,t,n){return e?.isUnifiedGame&&(t===se?e.chunkProgramId:t===oe?e.backpackProgramId:t===le?e.marketProgramId:t===ce?e.smeltingProgramId:e.programId)?.equals?.(e.programId)?S.Buffer.concat([S.Buffer.from([t]),n]):n}",
+      "needleByteLength": 225,
+      "needleSha256": "a79c5ae85cfa832edcb9dbe424fd3d7f1522858c2cda9090671d7a79d18aecc3",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        13388
+      ],
+      "contexts": [
+        {
+          "startByte": 13268,
+          "endByte": 13733,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 465,
+          "base64": "ZWRHYW1lOiEwLHByb2dyYW1JZDp3LGNodW5rUHJvZ3JhbUlkOlQsYnVpbGRpbmdQcm9ncmFtSWQ6YWUsYmFja3BhY2tQcm9ncmFtSWQ6dyxtYXJrZXRQcm9ncmFtSWQ6dyxzbWVsdGluZ1Byb2dyYW1JZDp3fSk7ZnVuY3Rpb24gVihlLHQsbil7cmV0dXJuIGU/LmlzVW5pZmllZEdhbWUmJih0PT09c2U/ZS5jaHVua1Byb2dyYW1JZDp0PT09b2U/ZS5iYWNrcGFja1Byb2dyYW1JZDp0PT09bGU/ZS5tYXJrZXRQcm9ncmFtSWQ6dD09PWNlP2Uuc21lbHRpbmdQcm9ncmFtSWQ6ZS5wcm9ncmFtSWQpPy5lcXVhbHM/LihlLnByb2dyYW1JZCk/Uy5CdWZmZXIuY29uY2F0KFtTLkJ1ZmZlci5mcm9tKFt0XSksbl0pOm59ZnVuY3Rpb24gdGkoZSx0LG49Qil7cmV0dXJuIGhyKGUsdCxuLmNodW5rUHJvZ3JhbUlkKX1mdW5jdGlvbiBuaShlLHQsbj1CKXtyZXR1cm4gYnIoZSx0LG4uY2h1bmtQcm9ncmFtSWQpfWZ1bmN0aW9uIEgoZSx0",
+          "sha256": "6252bfa8ac1cdf0bcb8e64027e66706816422888b4ba9e8234ab912743194e6f",
+          "utf8Preview": "edGame:!0,programId:w,chunkProgramId:T,buildingProgramId:ae,backpackProgramId:w,marketProgramId:w,smeltingProgramId:w});function V(e,t,n){return e?.isUnifiedGame&&(t===se?e.chunkProgramId:t===oe?e.backpackProgramId:t===le?e.marketProgramId:t===ce?e.smeltingProgramId:e.programId)?.equals?.(e.programId)?S.Buffer.concat([S.Buffer.from([t]),n]):n}function ti(e,t,n=B){return hr(e,t,n.chunkProgramId)}function ni(e,t,n=B){return br(e,t,n.chunkProgramId)}function H(e,t"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-game-program-id",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "w=new i(`6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7`)",
+      "needleByteLength": 55,
+      "needleSha256": "16cf54fabc60c17bb1a215f5d77bb9fcd5addfa2c8e4e2c191402b8db28a5955",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        2070
+      ],
+      "contexts": [
+        {
+          "startByte": 1950,
+          "endByte": 2245,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 295,
+          "base64": "cik7dmFyIGllPW5ldyBpKGA5RWhNQ1JZTUplajFGMjFLemFBNVphbzNraEdHYzVhSmJER2JueGFvZ1FIdWApLEM9bmV3IGkoYENIWkhzQkNHbjU4aWgyV3JQZktTWWh2Q0VqTVBHaEFyVGlZQ0g3QVdXQmtCYCksdz1uZXcgaShgNkN1cm52bmVlekJ1SHdQVW5yQ2lGZzFRTVdlVUY2N3VmUXhZZWJ5cjJVUDdgKSxUPW5ldyBpKGBHblZLbjQ0MktEVERnQ3lqVkc3U0V0Q1FRTGphQ2lMdnJFWkRXU1UxM3diamApLGFlPW5ldyBpKGAzOVVNVFVXWFFrdW9ta0ZOYkRQRjVOR1puSm1HNnBEa0pIVlNrWnlxVndXeGApLG9lPTEscw==",
+          "sha256": "02347813239ccc8dd6010618cf99e16d5187ab5f531416b5b75dcc37ce6b775e",
+          "utf8Preview": "r);var ie=new i(`9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu`),C=new i(`CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB`),w=new i(`6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7`),T=new i(`GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj`),ae=new i(`39UMTUWXQkuomkFNbDPF5NGZnJmG6pDkJHVSkZyqVwWx`),oe=1,s"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-single-backpack-discard-export",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "discardBackpackResourceAt",
+      "needleByteLength": 25,
+      "needleSha256": "2de85c7d186f879de0783b7b5f0ddf73d4ca3f983dbe06876c633b79013f464b",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        111016
+      ],
+      "contexts": [
+        {
+          "startByte": 110896,
+          "endByte": 111161,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 265,
+          "base64": "eVBkYSxYciBhcyBkZXJpdmVTbWVsdGluZ1JlY2lwZVRhYmxlUGRhLElyIGFzIGRlcml2ZVN1cmZhY2VEZWNvcmF0aW9uVGFibGVQZGEsbXIgYXMgZGVyaXZlVXNlcm5hbWVJbmRleFBkYUZvck5hbWUsdWEgYXMgZGlzY2FyZEJhY2twYWNrUmVzb3VyY2VBdCxkYSBhcyBkaXNjYXJkQmFja3BhY2tSZXNvdXJjZXNBdCxLbyBhcyBlbmNvZGVCZWdpbkJ1aWxkaW5nSW5zdHJ1Y3Rpb25EYXRhLE5hIGFzIGVuc3VyZUdhbWVwbGF5U2Vzc2lvbkZ1bmRlZCx5YSBhcyBlc3RpbQ==",
+          "sha256": "9f8195951e604d43ce1fba2f370cdacedfbf71b0befd534f4dbf3bb36c5e0ccc",
+          "utf8Preview": "yPda,Xr as deriveSmeltingRecipeTablePda,Ir as deriveSurfaceDecorationTablePda,mr as deriveUsernameIndexPdaForName,ua as discardBackpackResourceAt,da as discardBackpackResourcesAt,Ko as encodeBeginBuildingInstructionData,Na as ensureGameplaySessionFunded,ya as estim"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-bulk-backpack-discard-export",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "discardBackpackResourcesAt",
+      "needleByteLength": 26,
+      "needleSha256": "cc0683d79b2cd17d4af63e67b86d55d897efb9c94b8dc56b0c65261c8a339543",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        111048
+      ],
+      "contexts": [
+        {
+          "startByte": 110928,
+          "endByte": 111194,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 266,
+          "base64": "YWJsZVBkYSxJciBhcyBkZXJpdmVTdXJmYWNlRGVjb3JhdGlvblRhYmxlUGRhLG1yIGFzIGRlcml2ZVVzZXJuYW1lSW5kZXhQZGFGb3JOYW1lLHVhIGFzIGRpc2NhcmRCYWNrcGFja1Jlc291cmNlQXQsZGEgYXMgZGlzY2FyZEJhY2twYWNrUmVzb3VyY2VzQXQsS28gYXMgZW5jb2RlQmVnaW5CdWlsZGluZ0luc3RydWN0aW9uRGF0YSxOYSBhcyBlbnN1cmVHYW1lcGxheVNlc3Npb25GdW5kZWQseWEgYXMgZXN0aW1hdGVJbnZpdGVJbmRleFBhZ2VTdG9yYWdlQ29zdCxtaSA=",
+          "sha256": "00175930b5896c887a34887082de3d98bbe7c85829c2c9711bd484fb3e7a9d56",
+          "utf8Preview": "ablePda,Ir as deriveSurfaceDecorationTablePda,mr as deriveUsernameIndexPdaForName,ua as discardBackpackResourceAt,da as discardBackpackResourcesAt,Ko as encodeBeginBuildingInstructionData,Na as ensureGameplaySessionFunded,ya as estimateInviteIndexPageStorageCost,mi "
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "chain-bulk-mining-export-absent",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "recordBulkMineOnChain",
+      "needleByteLength": 21,
+      "needleSha256": "9bb69c8e989d3e21c30538cde7d58157f35cced8bf61f531727fdef368d50526",
+      "occurrenceCount": 0,
+      "byteOffsets": [],
+      "contexts": [],
+      "negativeSearch": true
+    },
+    {
+      "id": "chain-batch-tag-20-writer-absent",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "writeUInt8(20,0)",
+      "needleByteLength": 16,
+      "needleSha256": "164980ef4868717c2e89e0b18d5f7bb75e795439fae52eed765a2a77988a6729",
+      "occurrenceCount": 0,
+      "byteOffsets": [],
+      "contexts": [],
+      "negativeSearch": true
+    },
+    {
+      "id": "chain-range-tag-21-writer-absent",
+      "sourceResource": "versionedChain",
+      "sourceBodyLength": 112446,
+      "sourceSha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "writeUInt8(21,0)",
+      "needleByteLength": 16,
+      "needleSha256": "d422790cb0ac4f8e0d47ebc7360b324e5756fec2407888024c6b0190c3f736a1",
+      "occurrenceCount": 0,
+      "byteOffsets": [],
+      "contexts": [],
+      "negativeSearch": true
+    },
+    {
+      "id": "root-manifest-chain-source-entry",
+      "sourceResource": "rootManifest",
+      "sourceBodyLength": 17532,
+      "sourceSha256": "4226a65604583c9b3663e430678f94d944ac45a5edcf26e3701d2f852a9fc06a",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "src/chain/nicechunkChain.js",
+      "needleByteLength": 27,
+      "needleSha256": "5115fcda108fa6e7593c1f29596108c1750a72624b53e387d098ac7ea32a2ada",
+      "occurrenceCount": 5,
+      "byteOffsets": [
+        9948,
+        12457,
+        14654,
+        14768,
+        17433
+      ],
+      "contexts": [
+        {
+          "startByte": 9828,
+          "endByte": 10095,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 267,
+          "base64": "RGYuanMiLAogICAgICAiX3ByZWxvYWQtaGVscGVyLUNaZ1dRRnNKLmpzIgogICAgXSwKICAgICJkeW5hbWljSW1wb3J0cyI6IFsKICAgICAgIl9sb2NhbEdhbWVXYWxsZXQtSDg2RUw0SjguanMiLAogICAgICAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIiwKICAgICAgIl9pbmRleC5icm93c2VyLmVzbS1EWDdZLUxQby5qcyIKICAgIF0sCiAgICAiY3NzIjogWwogICAgICAiYXNzZXRzL2xvZ2luLURsalczbng4LmNzcyIKICAgIF0KICB9LAogICJtaW5pbmcvaW5k",
+          "sha256": "a463b81f3654b3b715095363d4eabf6636427fc4000a747bc303b0ef7ef3c9ff",
+          "utf8Preview": "Df.js\",\n      \"_preload-helper-CZgWQFsJ.js\"\n    ],\n    \"dynamicImports\": [\n      \"_localGameWallet-H86EL4J8.js\",\n      \"src/chain/nicechunkChain.js\",\n      \"_index.browser.esm-DX7Y-LPo.js\"\n    ],\n    \"css\": [\n      \"assets/login-DljW3nx8.css\"\n    ]\n  },\n  \"mining/ind"
+        },
+        {
+          "startByte": 12337,
+          "endByte": 12604,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 267,
+          "base64": "ZXItQ1pnV1FGc0ouanMiLAogICAgICAiX2Nhbm9uaWNhbFJlc291cmNlLUJBbEpTcFFtLmpzIiwKICAgICAgIl9uY20tVFBRZTRQQ1IuanMiCiAgICBdLAogICAgImR5bmFtaWNJbXBvcnRzIjogWwogICAgICAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIiwKICAgICAgInNyYy9ndWFyZGlhblJlZ2lzdHJ5LmpzIgogICAgXSwKICAgICJjc3MiOiBbCiAgICAgICJhc3NldHMvcGxheWVyX2NyZWF0LUQ2VzZ6RHJSLmNzcyIKICAgIF0KICB9LAogICJwbGF5ZXJfc2V0",
+          "sha256": "fe686f85ce662654b6f89852b1d90c5477c2c7a62dc7335d670fbcca6fa75262",
+          "utf8Preview": "er-CZgWQFsJ.js\",\n      \"_canonicalResource-BAlJSpQm.js\",\n      \"_ncm-TPQe4PCR.js\"\n    ],\n    \"dynamicImports\": [\n      \"src/chain/nicechunkChain.js\",\n      \"src/guardianRegistry.js\"\n    ],\n    \"css\": [\n      \"assets/player_creat-D6W6zDrR.css\"\n    ]\n  },\n  \"player_set"
+        },
+        {
+          "startByte": 14534,
+          "endByte": 14801,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 267,
+          "base64": "ay1SZnFtMXNwaS5qcyIsCiAgICAgICJfcmVzb3VyY2VQcmV2aWV3LUJpN3FzV1FULmpzIgogICAgXSwKICAgICJjc3MiOiBbCiAgICAgICJhc3NldHMvc2VlZC11ekg1STdJNy5jc3MiCiAgICBdCiAgfSwKICAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIjogewogICAgImZpbGUiOiAiYXNzZXRzL25pY2VjaHVua0NoYWluLmpzIiwKICAgICJuYW1lIjogIm5pY2VjaHVua0NoYWluIiwKICAgICJzcmMiOiAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIiwKICAg",
+          "sha256": "c955abce830647dc51dc9e86df24cf9340a51690bd5c58276b7b0477f3107aa7",
+          "utf8Preview": "k-Rfqm1spi.js\",\n      \"_resourcePreview-Bi7qsWQT.js\"\n    ],\n    \"css\": [\n      \"assets/seed-uzH5I7I7.css\"\n    ]\n  },\n  \"src/chain/nicechunkChain.js\": {\n    \"file\": \"assets/nicechunkChain.js\",\n    \"name\": \"nicechunkChain\",\n    \"src\": \"src/chain/nicechunkChain.js\",\n   "
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "root-manifest-chain-file",
+      "sourceResource": "rootManifest",
+      "sourceBodyLength": 17532,
+      "sourceSha256": "4226a65604583c9b3663e430678f94d944ac45a5edcf26e3701d2f852a9fc06a",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "\"file\": \"assets/nicechunkChain.js\"",
+      "needleByteLength": 34,
+      "needleSha256": "8a5a6f05f94304577bddc4528f729f9b3408af757e9555f020e1921db8c72ea0",
+      "occurrenceCount": 1,
+      "byteOffsets": [
+        14690
+      ],
+      "contexts": [
+        {
+          "startByte": 14570,
+          "endByte": 14844,
+          "needleOffsetWithinContext": 120,
+          "byteLength": 274,
+          "base64": "aWV3LUJpN3FzV1FULmpzIgogICAgXSwKICAgICJjc3MiOiBbCiAgICAgICJhc3NldHMvc2VlZC11ekg1STdJNy5jc3MiCiAgICBdCiAgfSwKICAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIjogewogICAgImZpbGUiOiAiYXNzZXRzL25pY2VjaHVua0NoYWluLmpzIiwKICAgICJuYW1lIjogIm5pY2VjaHVua0NoYWluIiwKICAgICJzcmMiOiAic3JjL2NoYWluL25pY2VjaHVua0NoYWluLmpzIiwKICAgICJpc0R5bmFtaWNFbnRyeSI6IHRydWUsCiAgICAiaW1wb3J0cyI6IFsKIA==",
+          "sha256": "7fe2946f1fd0ca1ddac97cb345a757df7eacb83d0f39f557ade804ebb4fbb486",
+          "utf8Preview": "iew-Bi7qsWQT.js\"\n    ],\n    \"css\": [\n      \"assets/seed-uzH5I7I7.css\"\n    ]\n  },\n  \"src/chain/nicechunkChain.js\": {\n    \"file\": \"assets/nicechunkChain.js\",\n    \"name\": \"nicechunkChain\",\n    \"src\": \"src/chain/nicechunkChain.js\",\n    \"isDynamicEntry\": true,\n    \"imports\": [\n "
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "versioned-bulk-candidate-404",
+      "sourceResource": "versionedBulkCandidate",
+      "sourceBodyLength": 162,
+      "sourceSha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "404 Not Found",
+      "needleByteLength": 13,
+      "needleSha256": "7d04f7431bbfa41a04bcc7e6b98b9de0d919756c4c671c5785c99fff45f16402",
+      "occurrenceCount": 2,
+      "byteOffsets": [
+        21,
+        71
+      ],
+      "contexts": [
+        {
+          "startByte": 0,
+          "endByte": 154,
+          "needleOffsetWithinContext": 21,
+          "byteLength": 154,
+          "base64": "PGh0bWw+DQo8aGVhZD48dGl0bGU+NDA0IE5vdCBGb3VuZDwvdGl0bGU+PC9oZWFkPg0KPGJvZHk+DQo8Y2VudGVyPjxoMT40MDQgTm90IEZvdW5kPC9oMT48L2NlbnRlcj4NCjxocj48Y2VudGVyPm5naW54LzEuMjQuMCAoVWJ1bnR1KTwvY2VudGVyPg0KPC9ib2R5Pg0KPA==",
+          "sha256": "abfa17719c7cca6a81d20091d4860a039e57def9e551674fcb45cd6fef494525",
+          "utf8Preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx/1.24.0 (Ubuntu)</center>\r\n</body>\r\n<"
+        },
+        {
+          "startByte": 0,
+          "endByte": 162,
+          "needleOffsetWithinContext": 71,
+          "byteLength": 162,
+          "base64": "PGh0bWw+DQo8aGVhZD48dGl0bGU+NDA0IE5vdCBGb3VuZDwvdGl0bGU+PC9oZWFkPg0KPGJvZHk+DQo8Y2VudGVyPjxoMT40MDQgTm90IEZvdW5kPC9oMT48L2NlbnRlcj4NCjxocj48Y2VudGVyPm5naW54LzEuMjQuMCAoVWJ1bnR1KTwvY2VudGVyPg0KPC9ib2R5Pg0KPC9odG1sPg0K",
+          "sha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+          "utf8Preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx/1.24.0 (Ubuntu)</center>\r\n</body>\r\n</html>\r\n"
+        }
+      ],
+      "negativeSearch": false
+    },
+    {
+      "id": "unversioned-bulk-probe-404",
+      "sourceResource": "unversionedBulkProbe",
+      "sourceBodyLength": 162,
+      "sourceSha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+      "searchEncoding": "utf8 exact bytes",
+      "needleUtf8": "404 Not Found",
+      "needleByteLength": 13,
+      "needleSha256": "7d04f7431bbfa41a04bcc7e6b98b9de0d919756c4c671c5785c99fff45f16402",
+      "occurrenceCount": 2,
+      "byteOffsets": [
+        21,
+        71
+      ],
+      "contexts": [
+        {
+          "startByte": 0,
+          "endByte": 154,
+          "needleOffsetWithinContext": 21,
+          "byteLength": 154,
+          "base64": "PGh0bWw+DQo8aGVhZD48dGl0bGU+NDA0IE5vdCBGb3VuZDwvdGl0bGU+PC9oZWFkPg0KPGJvZHk+DQo8Y2VudGVyPjxoMT40MDQgTm90IEZvdW5kPC9oMT48L2NlbnRlcj4NCjxocj48Y2VudGVyPm5naW54LzEuMjQuMCAoVWJ1bnR1KTwvY2VudGVyPg0KPC9ib2R5Pg0KPA==",
+          "sha256": "abfa17719c7cca6a81d20091d4860a039e57def9e551674fcb45cd6fef494525",
+          "utf8Preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx/1.24.0 (Ubuntu)</center>\r\n</body>\r\n<"
+        },
+        {
+          "startByte": 0,
+          "endByte": 162,
+          "needleOffsetWithinContext": 71,
+          "byteLength": 162,
+          "base64": "PGh0bWw+DQo8aGVhZD48dGl0bGU+NDA0IE5vdCBGb3VuZDwvdGl0bGU+PC9oZWFkPg0KPGJvZHk+DQo8Y2VudGVyPjxoMT40MDQgTm90IEZvdW5kPC9oMT48L2NlbnRlcj4NCjxocj48Y2VudGVyPm5naW54LzEuMjQuMCAoVWJ1bnR1KTwvY2VudGVyPg0KPC9ib2R5Pg0KPC9odG1sPg0K",
+          "sha256": "766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07",
+          "utf8Preview": "<html>\r\n<head><title>404 Not Found</title></head>\r\n<body>\r\n<center><h1>404 Not Found</h1></center>\r\n<hr><center>nginx/1.24.0 (Ubuntu)</center>\r\n</body>\r\n</html>\r\n"
+        }
+      ],
+      "negativeSearch": false
+    }
+  ],
+  "offlineCheck": {
+    "networkRequests": 0,
+    "validates": [
+      "fixed resource URL/status/length/SHA-256 pins",
+      "report structural and semantic invariants",
+      "short literal bytes, offsets, context hashes, and source-hash bindings",
+      "whole-report canonical JSON SHA-256"
+    ],
+    "limitation": "Because full response bodies are intentionally not retained, --check validates the pinned capture and embedded literal evidence; recapturing the remote bytes requires capture mode."
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "canonicalization": "UTF-8 JSON.stringify(report without integrity)",
+    "canonicalJsonSha256": "47904330b5b86c395fe504df91bcfc08d038e860129fc5bb889efe7303d555f2"
+  }
+}

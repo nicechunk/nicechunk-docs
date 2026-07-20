@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="ncm-codes" data-docs-static-source="3f8643047985a9184c4fa9efe3f197426630e0d8ea708539d48cdb881dfc2cf9">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/ncm-codes.json" />
+    <meta name="nicechunk:source-sha256" content="3f8643047985a9184c4fa9efe3f197426630e0d8ea708539d48cdb881dfc2cf9" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/ncm-codes/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn how NiceChunk separates NCM aliases, NCM2 and NCM4 avatars, NCM3 buildings, PlayerAppearance storage, consumer-specific validation, Chunk.js reconstruction, and NCF1 forged equipment." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk NCM Codes: Stored Bytes, Verified Bounds, Rebuilt Geometry" />
+    <meta property="og:description" content="Learn how NiceChunk separates NCM aliases, NCM2 and NCM4 avatars, NCM3 buildings, PlayerAppearance storage, consumer-specific validation, Chunk.js reconstruction, and NCF1 forged equipment." />
+    <meta property="og:url" content="https://nicechunk.com/docs/ncm-codes/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/ncm-codes-overview-v1.webp" />
+    <meta property="og:image:alt" content="In one game-anime workshop scene, the canonical villager boy sorts color-coded cuboid pieces into a mechanical rail press while the canonical villager girl turns a crank that assembles a miniature orange-haired villager on a platform; wood and stone construction pieces cover the bench, with real Chunk.js terrain and water outside." />
+    <title>NiceChunk NCM Codes: Stored Bytes, Verified Bounds, Rebuilt Geometry</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/ncm-codes/#article",
+  "url": "https://nicechunk.com/docs/ncm-codes/",
+  "name": "Store compact intent, verify bounded bytes, rebuild the visible world",
+  "description": "Learn how NiceChunk separates NCM aliases, NCM2 and NCM4 avatars, NCM3 buildings, PlayerAppearance storage, consumer-specific validation, Chunk.js reconstruction, and NCF1 forged equipment.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Store compact intent, verify bounded bytes, rebuild the visible world",
+  "mainEntityOfPage": "https://nicechunk.com/docs/ncm-codes/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Read the prefix before deciding what the bytes mean",
+    "NCM2 preserves occupied shape and color, not the authoring file",
+    "NCM2 gains a heuristic rig, while NCM4 brings bones and explicit actions",
+    "The player account proves who stored text, not that the text is a canonical model",
+    "NCM3 receives structural verification because shared buildings need stronger bounds",
+    "Chunk.js builds the expensive products and currently applies one stricter memory guard"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#prefixes-and-purposes",
+      "name": "Read the prefix before deciding what the bytes mean"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#ncm2-packing",
+      "name": "NCM2 preserves occupied shape and color, not the authoring file"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#avatar-reconstruction",
+      "name": "NCM2 gains a heuristic rig, while NCM4 brings bones and explicit actions"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#player-pda-boundary",
+      "name": "The player account proves who stored text, not that the text is a canonical model"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#ncm3-validation",
+      "name": "NCM3 receives structural verification because shared buildings need stronger bounds"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/ncm-codes/#chunkjs-runtime-and-forge-boundary",
+      "name": "Chunk.js builds the expensive products and currently applies one stricter memory guard"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/ncm-codes-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>NCM Codes</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">CODEC 11 · REPRESENTATION BOUNDARIES</p>
+<h1>Store compact intent, verify bounded bytes, rebuild the visible world</h1>
+<p class="docs-hero-summary">NCM is a family name, not one universal model format. Current standard villagers use RGB palette-packed NCM2 cuboids, while the shared avatar renderer also accepts bounded self-contained NCM4 characters. PlayerAppearance stores model text after only a small prefix check, and buildings use canonical-material NCM3 commands whose raw bytes are sharded and structurally validated on chain. Chunk.js performs the expensive reconstruction work. Current held NCF1 equipment remains attached through the established NCM2 path rather than being folded into either character payload.</p>
+<span class="docs-reading-time">13 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In one game-anime workshop scene, the canonical villager boy sorts color-coded cuboid pieces into a mechanical rail press while the canonical villager girl turns a crank that assembles a miniature orange-haired villager on a platform; wood and stone construction pieces cover the bench, with real Chunk.js terrain and water outside." decoding="async" height="887" loading="eager" src="/docs/media/ncm-codes-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>A prefix identifies a route, not a universal guarantee</strong>
+<p>NCM: is a built-in boy alias, NCM1 and NCM2 are palette-and-cuboid encodings, NCM4 is a bounded animated character format, and NCM3 is a declarative building language. Similar names do not make their payloads interchangeable.</p></article>
+<article class="docs-key-point"><strong>Validation strength depends on the account</strong>
+<p>PlayerAppearance checks nonempty UTF-8 text, a 2,048-byte ceiling, and an uppercase NCM prefix. Building finalization instead hashes the complete raw NCM3 payload and parses canonical varints, materials, commands, dimensions, budgets, footprint, and height.</p></article>
+<article class="docs-key-point"><strong>The chain never renders the model</strong>
+<p>Chunk.js resolves avatar aliases, infers an NCM2 rig or consumes NCM4 bones and explicit actions, expands building commands, creates voxel maps, bakes world light, builds meshes, and supplies collision. Those client products are not constructed by the programs.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#prefixes-and-purposes">Read the prefix before deciding what the bytes mean</a></li>
+<li><a href="#ncm2-packing">NCM2 preserves occupied shape and color, not the authoring file</a></li>
+<li><a href="#avatar-reconstruction">NCM2 gains a heuristic rig, while NCM4 brings bones and explicit actions</a></li>
+<li><a href="#player-pda-boundary">The player account proves who stored text, not that the text is a canonical model</a></li>
+<li><a href="#ncm3-validation">NCM3 receives structural verification because shared buildings need stronger bounds</a></li>
+<li><a href="#chunkjs-runtime-and-forge-boundary">Chunk.js builds the expensive products and currently applies one stricter memory guard</a></li>
+<li><a href="#technical-details">Five equations expose what is compact, what is authoritative, and what still costs memory</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="prefixes-and-purposes"><p class="docs-eyebrow">ONE FAMILY NAME, SEVERAL CONTRACTS</p>
+<h2>Read the prefix before deciding what the bytes mean</h2>
+<p class="docs-prose">NCM: is not a serialized payload version. In the current avatar renderer it selects a small built-in alias table whose entries all resolve to the standard boy NCM2 bytes. NCM1: is the older palette-and-cuboid representation retained by the general source codec. NCM2: is the compact source-grid representation used by the current boy and girl fixtures. NCM4: is a separate self-contained animated character representation with bounded cuboids, bones, groups, actions, canonical Base64URL, and CRC32C.</p>
+<p class="docs-prose">NCM3: is a separate declarative building language. It stores canonical NiceChunk material IDs and ten bounded construction opcodes instead of character boxes or bones. It is not a backward-compatible NCM2 or NCM4 upgrade, and the building path never treats a character body as a building. NCF1. is separate again: it represents forged equipment and is independently decoded, meshed, cached, and currently attached through the established NCM2 avatar path.</p>
+<p class="docs-prose">The safest mental model is a router with explicit destinations. A family resemblance in the prefix does not imply the same byte layout, account, validator, trust level, scale, or renderer.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>NCM:</span>
+<strong>Built-in symbolic avatar alias</strong>
+<p>The alias itself contains no palette or cuboid payload.</p></article>
+<article class="docs-fact"><span>NCM1 / NCM2 / NCM4</span>
+<strong>Source models / static avatars / animated avatars</strong>
+<p>The general source codec reads NCM1 and NCM2; the shared avatar renderer dispatches NCM2 or NCM4 after alias resolution.</p></article>
+<article class="docs-fact"><span>NCM3 / NCF1</span>
+<strong>Buildings / forged equipment</strong>
+<p>They use different prefixes, bytes, validation boundaries, hashes, and runtime reconstruction paths.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not infer capabilities from the next number</strong>
+<p>NCM3 does not add materials or buildings to an NCM2 or NCM4 character stream. It defines another representation for another account and another reconstruction pipeline.</p></aside></section>
+<section class="docs-content-section" id="ncm2-packing"><p class="docs-eyebrow">RGB PALETTE AND BIT-PACKED CUBOIDS</p>
+<h2>NCM2 preserves occupied shape and color, not the authoring file</h2>
+<p class="docs-prose">The VOX conversion path groups occupied voxels into greedy, non-overlapping cuboids of one color. NCM2 then writes the original grid dimensions, an integer scale, cuboid and palette counts, one RGB triplet per palette entry, and a bit-packed cuboid stream. Origins use enough bits for their axis; extents are stored as size minus one using the corresponding axis width.</p>
+<p class="docs-prose">That representation is exact for the occupied RGB voxels covered by its non-overlapping cuboids, but lossy relative to the authoring file. It does not preserve source material identifiers, object names, bones, textures, alpha, arbitrary rotations, or an editor hierarchy. Equal RGB values become one palette entry, and the runtime creates generated part names. A later consumer can reproduce the axis-aligned colored boxes, but it cannot recover authoring metadata that never entered the payload.</p>
+<p class="docs-prose">The checked-in 32 by 32 by 32 girl fixture uses scale 9, 70 cuboids, and 10 colors: 334 raw bytes become 451 NCM2 text characters, while the repository file is 452 bytes because it ends with a newline. The boy uses the same grid and scale with 56 cuboids and 8 colors: 261 raw bytes, 353 text characters, and a 354-byte file.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Villager girl</span>
+<strong>70 cuboids · 10 colors · 334 raw bytes</strong>
+<p>The unpadded NCM2 text is 451 characters before its file newline.</p></article>
+<article class="docs-fact"><span>Villager boy</span>
+<strong>56 cuboids · 8 colors · 261 raw bytes</strong>
+<p>The unpadded NCM2 text is 353 characters before its file newline.</p></article>
+<article class="docs-fact"><span>Shared source grid</span>
+<strong>32 by 32 by 32 · scale 9</strong>
+<p>Dimensions and scale survive; authoring hierarchy and semantic bones do not.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Fixture validation checks real bytes, but only through its chosen codec</strong>
+<p>The fixture script decodes both checked-in villagers, requires nonempty boxes, and reports their character counts. Its general source codec rejects a truncated girl payload; the actual avatar NCM2 decoder is looser, can zero-fill missing geometry bits, and currently has no cuboid-count resource budget.</p></aside></section>
+<section class="docs-content-section" id="avatar-reconstruction"><p class="docs-eyebrow">CHUNK.JS AVATAR RUNTIME</p>
+<h2>NCM2 gains a heuristic rig, while NCM4 brings bones and explicit actions</h2>
+<p class="docs-prose">After a built-in NCM: alias is resolved to the standard boy, the current shared avatar loader dispatches NCM4: to the strict animated-character codec and otherwise accepts NCM2: for the established static-villager path. Both branches center decoded cuboids above the ground and emit vertex and index buffers, but their rig and equipment capabilities differ.</p>
+<p class="docs-prose">NCM2 carries no skeleton. Chunk.js infers head, torso, left arm, right arm, and leg membership from generated geometry names and normalized spatial position, calculates pivots from the resulting bounds, and adds hand anchors for tools. Animation therefore belongs to the renderer's current rigging policy; it is not proof of a bone layout stored in the model code.</p>
+<p class="docs-prose">For NCM2, forged equipment is composed after the body has been decoded. A selected NCF1 payload is restored through the forge runtime cache, positioned at the inferred hand anchor, and appended to avatar draw data. NCM4 preserves its own twenty-bone skeleton and explicit actions, but current normal Play moving and mining state does not select those actions; its mesh currently reports equipment: [] and handAnchors: {}, so the established held-tool attachment path is not yet integrated.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Accepted avatar payload</span>
+<strong>NCM2 or NCM4 after exact alias resolution</strong>
+<p>NCM1 remains a general source-codec format rather than a current avatar-loader route.</p></article>
+<article class="docs-fact"><span>Rig source</span>
+<strong>NCM2 heuristics · NCM4 stored bones</strong>
+<p>NCM2 infers groups and pivots; NCM4 carries its bounded skeleton and actions.</p></article>
+<article class="docs-fact"><span>Current held equipment</span>
+<strong>NCM2 body + independent NCF1 attachment</strong>
+<p>The NCM4 branch currently returns empty equipment and hand-anchor fields.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Renderer support and complete Play integration are different claims</strong>
+<p>Chunk.js can render NCM4 and sample an explicitly selected action, but normal Play has not yet mapped moving, mining, held tools, and collision to the same completeness as the NCM2 branch.</p></aside></section>
+<section class="docs-content-section" id="player-pda-boundary"><p class="docs-eyebrow">PLAYERAPPEARANCE STORAGE</p>
+<h2>The player account proves who stored text, not that the text is a canonical model</h2>
+<p class="docs-prose">PlayerAppearance reserves 2,048 bytes for UTF-8 model text. Its model-code validator rejects an empty value, an oversized value, invalid UTF-8, or text that does not begin with uppercase NCM. It does not parse NCM1, NCM2, NCM3, or NCM4; it does not decode Base64URL or verify CRC32C; and it does not inspect palette size, cuboid bounds, canonical encoding, geometry, bones, actions, or runtime cost.</p>
+<p class="docs-prose">modelKind is separately restricted to the male or female enum, but the validator never binds that enum to hair, proportions, colors, or any semantic feature in modelCode. A syntactically arbitrary string such as NCM followed by unrelated text can therefore satisfy this storage check even though no renderer can decode it.</p>
+<p class="docs-prose">The gameplay avatar session catches decode failures. If no working mesh exists it tries the built-in villager; otherwise it keeps the current mesh. This makes corrupt or unsupported appearance text survivable in the client, but fallback behavior is not retroactive on-chain model validation.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Reserved model text</span>
+<strong>2,048 UTF-8 bytes</strong>
+<p>The fixed account layout zero-fills the unused remainder.</p></article>
+<article class="docs-fact"><span>Chain format test</span>
+<strong>starts with uppercase NCM</strong>
+<p>No colon, numeric version, payload canonicality, or geometry rule is required here.</p></article>
+<article class="docs-fact"><span>modelKind binding</span>
+<strong>None</strong>
+<p>The enum and model bytes are validated independently.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Stored appearance is not a structural model proof</strong>
+<p>An initialized PlayerAppearance proves that an authorized player wrote bounded UTF-8 text with the accepted prefix. Only a compatible client decode demonstrates that the text currently produces an avatar.</p></aside></section>
+<section class="docs-content-section" id="ncm3-validation"><p class="docs-eyebrow">BUILDING PDA AND CANONICAL COMMANDS</p>
+<h2>NCM3 receives structural verification because shared buildings need stronger bounds</h2>
+<p class="docs-prose">NCM3 starts with binary version 1, three dimensions, and a command count. Its ten opcodes cover BOX, REPEAT_BOX, X- and Z-oriented gable surface, trim, and fill variants, TREE, and FENCE. Every material operand must be one of the 81 current canonical IDs: 1 through 52, 55 through 77, or 96 through 101. The chain accepts at most 4,096 commands and 256 voxels on each declared axis.</p>
+<p class="docs-prose">The Building Program reads unsigned varints canonically, rejects overflow and redundant terminal zero groups, validates every origin and extent, checks repeat steps and procedural envelopes, rejects trailing bytes, and accumulates at most 262,144 conservative validation units. A zero-command payload is valid if the version and dimensions are valid and no trailing bytes remain. Later cuboids overwrite earlier voxels only when Chunk.js expands them; the chain applies the same deterministic command-cost formulas without allocating that voxel Map.</p>
+<p class="docs-prose">Production stores NCM3 metadata, payload length, and a SHA-256 commitment in one NCKBLD02 BuildingManifest. The raw NCM3 payload bytes live exclusively after the 64-byte headers of one to eight NCKBDT01 BuildingShard accounts; neither account type stores the NCM3: Base64URL string. Finalization recomputes SHA-256 over the ordered raw payload, parses the full command stream, rotates the declared footprint, and checks foundation fit and build height before activation. The NCBP decoder still present in the JavaScript codec is an early helper, not the deployed production account layout.</p>
+<p class="docs-prose">TREE is only a compact explicit building command. It does not invoke natural world generation, query a SurfaceDecorationTable PDA, or require tree-like material semantics: both supplied material IDs merely have to pass the canonical allowlist. The validator also permits empty or visually unhelpful structures. It proves bounded syntax and placement, not architectural quality.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Canonical material allowlist</span>
+<strong>81 IDs</strong>
+<p>IDs 1-52, 55-77, and 96-101 are accepted by both current JavaScript and Rust paths.</p></article>
+<article class="docs-fact"><span>Command and dimension bounds</span>
+<strong>4,096 commands · 256 per axis</strong>
+<p>Ten declarative opcodes share one 262,144-unit conservative validation budget.</p></article>
+<article class="docs-fact"><span>Production storage</span>
+<strong>NCKBLD02 + NCKBDT01</strong>
+<p>One manifest commits the ordered raw bytes held by at most eight data shards.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>The authoritative hash covers raw payload bytes</strong>
+<p>BuildingManifest SHA-256 identity is not the local stableCodeId and not sha256Ncm3Code(), which hashes canonical prefixed text and is currently unused by production building storage.</p></aside></section>
+<section class="docs-content-section" id="chunkjs-runtime-and-forge-boundary"><p class="docs-eyebrow">CLIENT RECONSTRUCTION AND COMPATIBILITY</p>
+<h2>Chunk.js builds the expensive products and currently applies one stricter memory guard</h2>
+<p class="docs-prose">After the chain loader verifies ordered shards and the full SHA-256 digest, it restores the NCM3: text envelope for the codec. A dedicated building worker normally decodes commands, materializes deterministic local geometry, applies quarter-turn placement at one design voxel per world voxel, bakes light, builds terrain-compatible greedy meshes, separates visual materials, and emits compact collision masks. Transferable buffers return those products without copying their backing stores. The chain performs none of that rendering work.</p>
+<p class="docs-prose">The current JavaScript building path first applies the chain-equivalent 262,144-unit conservative command budget, then the voxelizer caps actual expanded cuboid writes at 262,144 and rejects more than 131,072 unique voxels. A single 256 by 3 by 256 BOX performs 196,608 writes and leaves 196,608 unique voxels. Its syntax, dimensions, allowed material, bounds, and command cost are acceptable to the NCM3 chain validator, yet the current client rejects it at the unique-voxel safety check. Until those ceilings are aligned, authors should stay at or below both limits to avoid this known incompatibility.</p>
+<p class="docs-prose">Overwrite-heavy designs expose the difference: every command retains its conservative validation-unit charge even if a later operation replaces its expanded voxels, while the client safety check measures the final Map size. The voxelizer separately caps actual expanded cuboid writes. Once accepted, placement and meshing can be reused through building caches, but the temporary voxel Map still determines peak reconstruction memory.</p>
+<p class="docs-prose">NCF1 does not close this NCM3 gap or provide an alternate building path. The forge runtime hashes raw NCF1 bytes with 32-bit FNV-1a, decodes component or baked-appearance geometry, builds a packed equipment mesh, and caches it separately. The backpack program derives forge requirements from the leading 108 header bits and computes the same design hash across the entire bounded 14- to 640-byte raw payload, including geometry, but that hash cannot reconstruct forge geometry and is unrelated to a BuildingManifest SHA-256 commitment.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Chain validation-unit ceiling</span>
+<strong>262,144</strong>
+<p>Every command contributes its conservative formula cost; BOX and REPEAT_BOX equal attempted writes, while gable and TREE costs can overestimate.</p></article>
+<article class="docs-fact"><span>Current client unique-voxel ceiling</span>
+<strong>131,072</strong>
+<p>This additional guard runs after the last-writer Map is materialized.</p></article>
+<article class="docs-fact"><span>Concrete compatibility probe</span>
+<strong>256 by 3 by 256 = 196,608</strong>
+<p>Structurally valid under the chain conservative validation-unit budget, but rejected by the current client Map limit.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Chain-valid is not yet sufficient for every current client</strong>
+<p>Keep production NCM3 designs within 131,072 final unique voxels as well as the 262,144-unit conservative validation budget. Raising only one limit would change memory and compatibility behavior, so the two implementations should be updated and tested together.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">PACKING, PLACEMENT, AND BOUNDED WORK</p>
+<h2>Five equations expose what is compact, what is authoritative, and what still costs memory</h2>
+<p>NCM2 saves repeated RGB and coordinate bits, NCM4 adds a separately bounded animated-character envelope, and NCM3 saves repeated construction intent. All defer visible meshes to Chunk.js. The equations below focus on the implemented NCM2 layout and transform plus the NCM3 overwrite rule, opcode budget, and production shard commitment.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>NCM2 packed byte length</h3>
+<div aria-label="beta(n) = max(1, ceil(log2(n))) for n &gt;= 1; b_cuboid = beta(P) + 2 * beta(Sx) + 2 * beta(Sy) + 2 * beta(Sz); B2 = V(Sx) + V(Sy) + V(Sz) + V(s) + V(C) + V(P) + 3P + ceil(C * b_cuboid / 8)" class="docs-formula-expression" role="math"><code>beta(n) = max(1, ceil(log2(n))) for n &gt;= 1; b_cuboid = beta(P) + 2 * beta(Sx) + 2 * beta(Sy) + 2 * beta(Sz); B2 = V(Sx) + V(Sy) + V(Sz) + V(s) + V(C) + V(P) + 3P + ceil(C * b_cuboid / 8)</code></div>
+<p class="docs-technical-explanation">The header uses unsigned varints for three source dimensions, integer scale, cuboid count, and palette count. Every palette entry costs three RGB bytes. The remaining cuboid fields are packed at widths derived from the palette and axis ranges; NCM2: plus unpadded Base64URL is the text envelope, not part of B2.</p>
+<dl class="docs-formula-terms"><dt>V(n)</dt>
+<dd>Unsigned-varint byte length of nonnegative integer n.</dd>
+<dt>Sx, Sy, Sz</dt>
+<dd>Source voxel-grid dimensions.</dd>
+<dt>s, C, P</dt>
+<dd>Integer scale, cuboid count, and RGB palette count.</dd>
+<dt>b_cuboid</dt>
+<dd>Bits for one palette index, three origins, and three size-minus-one fields.</dd></dl></article>
+<article class="docs-formula"><h3>NCM2 cuboid-to-avatar coordinate transform</h3>
+<div aria-label="cx = x + (w - 1) / 2; cy = y + (d - 1) / 2; cz = z + (h - 1) / 2; p = (round((cx - (Sx - 1) / 2)s), round((cz + 1 / 2)s), round(((Sy - 1) / 2 - cy)s)); size = (ws, hs, ds)" class="docs-formula-expression" role="math"><code>cx = x + (w - 1) / 2; cy = y + (d - 1) / 2; cz = z + (h - 1) / 2; p = (round((cx - (Sx - 1) / 2)s), round((cz + 1 / 2)s), round(((Sy - 1) / 2 - cy)s)); size = (ws, hs, ds)</code></div>
+<p class="docs-technical-explanation">The converter centers source X, promotes source Z to avatar height, and reverses source Y into runtime depth. The half-voxel vertical offset and integer rounding reproduce the current Chunk.js avatar boxes exactly.</p>
+<dl class="docs-formula-terms"><dt>x, y, z</dt>
+<dd>Minimum source-grid coordinate of one cuboid.</dd>
+<dt>w, h, d</dt>
+<dd>Source X width, source Z height, and source Y depth.</dd>
+<dt>p</dt>
+<dd>Integer avatar-box center after axis conversion and scale.</dd></dl></article>
+<article class="docs-formula"><h3>NCM3 deterministic overwrite rule</h3>
+<div aria-label="V(p) = m_j where j = max({ i | p in E(c_i) })" class="docs-formula-expression" role="math"><code>V(p) = m_j where j = max({ i | p in E(c_i) })</code></div>
+<p class="docs-technical-explanation">E(c_i) is the set of voxel coordinates expanded by command or cuboid i. If several expansions cover p, the material from the latest one wins; if none covers p, the position is empty. The validator budget is separate: it charges each command conservative validation units even when its expanded voxels are later overwritten. BOX and REPEAT_BOX units equal attempted voxel writes, while gable and TREE families can overestimate them.</p>
+<dl class="docs-formula-terms"><dt>V(p)</dt>
+<dd>Final canonical material stored at local voxel position p.</dd>
+<dt>E(c_i)</dt>
+<dd>Voxel positions expanded by the ith construction operation.</dd>
+<dt>m_j</dt>
+<dd>Material carried by the last covering operation.</dd></dl></article>
+<article class="docs-formula"><h3>NCM3 conservative validation-unit budget</h3>
+<div aria-label="o(BOX) = w*h*d; o(REPEAT_BOX) = n*w*h*d; Lx = ceil(w/2); Lz = ceil(d/2); o(GABLE_X, TRIM_X, FILL_X) = (2*Lx*d, 4*Lx, Lx*w*d); o(GABLE_Z, TRIM_Z, FILL_Z) = (2*Lz*w, 4*Lz, Lz*w*d); t = max(2, h-r); o(TREE) = 4*t + 8*r*(2*r+2) + 4; o(FENCE) = 2*len + 5*(ceil(len/spacing)+1); sum_i o(c_i) &lt;= 262144; current client also requires |V| &lt;= 131072" class="docs-formula-expression" role="math"><code>o(BOX) = w*h*d; o(REPEAT_BOX) = n*w*h*d; Lx = ceil(w/2); Lz = ceil(d/2); o(GABLE_X, TRIM_X, FILL_X) = (2*Lx*d, 4*Lx, Lx*w*d); o(GABLE_Z, TRIM_Z, FILL_Z) = (2*Lz*w, 4*Lz, Lz*w*d); t = max(2, h-r); o(TREE) = 4*t + 8*r*(2*r+2) + 4; o(FENCE) = 2*len + 5*(ceil(len/spacing)+1); sum_i o(c_i) &lt;= 262144; current client also requires |V| &lt;= 131072</code></div>
+<p class="docs-technical-explanation">These are the exact conservative command-cost formulas used by the JavaScript encoder and Rust validator for the ten opcodes. BOX and REPEAT_BOX equal their attempted voxel writes; gable and TREE formulas may overestimate the cuboid writes produced during expansion. The chain ceiling limits summed validation units. The additional Chunk.js ceiling limits final unique voxels, so overlap can reduce |V| without reducing the validation-unit total.</p>
+<dl class="docs-formula-terms"><dt>Lx, Lz</dt>
+<dd>Number of roof layers across the selected gable axis.</dd>
+<dt>h, r, t</dt>
+<dd>TREE height, crown radius, and derived trunk height.</dd>
+<dt>|V|</dt>
+<dd>Number of unique voxels remaining in the current client Map after last-writer overwrite.</dd></dl></article>
+<article class="docs-formula"><h3>Production NCM3 shards and content commitment</h3>
+<div aria-label="S = ceil(B / 8192) &lt;= 8 with 1 &lt;= B &lt;= 65535 for upload and B &gt;= 5 for structurally valid NCM3 v1; W = sum_i ceil(B_i / 700); H = SHA256(P_0 || P_1 || ... || P_(S-1))" class="docs-formula-expression" role="math"><code>S = ceil(B / 8192) &lt;= 8 with 1 &lt;= B &lt;= 65535 for upload and B &gt;= 5 for structurally valid NCM3 v1; W = sum_i ceil(B_i / 700); H = SHA256(P_0 || P_1 || ... || P_(S-1))</code></div>
+<p class="docs-technical-explanation">B is the raw binary NCM3 payload length, not the NCM3: text length. The upload and storage envelope accepts 1 through 65,535 bytes, but even a zero-command structurally valid NCM3 v1 payload needs at least 5 bytes for its version, X, Y, Z, and command count. Each shard P_i is uploaded sequentially in writes of at most 700 bytes. Finalization hashes the ordered raw shard slices, while the client restores the NCM3: prefix only after loading and verifying those bytes.</p>
+<dl class="docs-formula-terms"><dt>S</dt>
+<dd>Required BuildingShard count.</dd>
+<dt>W</dt>
+<dd>Minimum number of current payload-write instructions across all shards.</dd>
+<dt>H</dt>
+<dd>Authoritative 32-byte BuildingManifest content hash.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>NCM2 writes a palette header and one compact bit stream</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/vox/ncm.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function encodeNcmVox({ size, scale, cuboids }) {
+  const palette = [];
+  const paletteIndex = new Map();
+  for (const cuboid of cuboids) {
+    const color = normalizeColor(cuboid.color);
+    if (!paletteIndex.has(color)) {
+      paletteIndex.set(color, palette.length);
+      palette.push(color);
+    }
+  }
+
+  const bytes = [];
+  writeVar(bytes, size.x);
+  writeVar(bytes, size.y);
+  writeVar(bytes, size.z);
+  writeVar(bytes, scale);
+  writeVar(bytes, cuboids.length);
+  writeVar(bytes, palette.length);
+  for (const color of palette) writeRgb(bytes, color);
+
+  const bitWriter = createBitWriter();
+  const colorBits = bitWidth(Math.max(0, palette.length - 1));
+  const xBits = bitWidth(Math.max(0, size.x - 1));
+  const yBits = bitWidth(Math.max(0, size.y - 1));
+  const zBits = bitWidth(Math.max(0, size.z - 1));
+  for (const cuboid of cuboids) {
+    bitWriter.write(paletteIndex.get(normalizeColor(cuboid.color)) ?? 0, colorBits);
+    bitWriter.write(cuboid.x, xBits);
+    bitWriter.write(cuboid.y, yBits);
+    bitWriter.write(cuboid.z, zBits);
+    bitWriter.write(Math.max(0, cuboid.w - 1), xBits);
+    bitWriter.write(Math.max(0, cuboid.h - 1), zBits);
+    bitWriter.write(Math.max(0, cuboid.d - 1), yBits);
+  }
+
+  bytes.push(...bitWriter.finish());
+  return `NCM2:${base64UrlEncode(Uint8Array.from(bytes))}`;
+}</code></pre>
+<p class="docs-technical-explanation">Palette insertion order is deterministic for the supplied cuboid order. Axis-specific bit widths make the compact stream much smaller than a JSON box list while retaining exact integer extents.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>PlayerAppearance validates only a text envelope</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn validate_model_code(code: &amp;[u8]) -&gt; Result&lt;&amp;str, NicechunkPlayerError&gt; {
+        if code.is_empty() || code.len() &gt; APPEARANCE_MODEL_CODE_MAX_BYTES {
+            return Err(NicechunkPlayerError::InvalidCharacterCode);
+        }
+        let value =
+            core::str::from_utf8(code).map_err(|_| NicechunkPlayerError::InvalidCharacterCode)?;
+        if !value.starts_with("NCM") {
+            return Err(NicechunkPlayerError::InvalidCharacterCode);
+        }
+        Ok(value)
+    }</code></pre>
+<p class="docs-technical-explanation">This routine does not dispatch NCM versions, decode Base64URL, parse cuboids, test canonical bytes, or compare modelKind with model contents. The uppercase prefix check is intentionally much weaker than NCM3 building finalization.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>NCM3 serializes bounded declarative commands</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/ncm/blueprint-codec.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function encodeNcm3(blueprint) {
+  validateBlueprint(blueprint);
+  const bytes = [1];
+  writeVar(bytes, blueprint.size.x);
+  writeVar(bytes, blueprint.size.y);
+  writeVar(bytes, blueprint.size.z);
+  writeVar(bytes, blueprint.commands.length);
+
+  for (const command of blueprint.commands) {
+    bytes.push(command.op);
+    if (command.op === OPCODE.TREE) {
+      writeMaterial(bytes, command.trunkMaterial);
+      writeMaterial(bytes, command.leafMaterial);
+      [command.x, command.y, command.z, command.height, command.crownRadius].forEach((value) =&gt; writeVar(bytes, value));
+      continue;
+    }
+
+    writeMaterial(bytes, command.material);
+    if (command.op === OPCODE.BOX) {
+      [command.x, command.y, command.z, command.w - 1, command.h - 1, command.d - 1].forEach((value) =&gt; writeVar(bytes, value));
+    } else if (command.op === OPCODE.REPEAT_BOX) {
+      [command.x, command.y, command.z, command.w - 1, command.h - 1, command.d - 1, command.count - 1].forEach((value) =&gt; writeVar(bytes, value));
+      [command.dx, command.dy, command.dz].forEach((value) =&gt; writeSignedVar(bytes, value));
+    } else if (GABLE_OPS.has(command.op)) {
+      [command.x, command.y, command.z, command.width - 1, command.depth - 1].forEach((value) =&gt; writeVar(bytes, value));
+    } else if (command.op === OPCODE.FENCE) {
+      [command.x, command.y, command.z, command.length - 1, command.axis, command.spacing].forEach((value) =&gt; writeVar(bytes, value));
+    } else {
+      throw new Error(`Unsupported command opcode ${command.op}.`);
+    }
+  }
+  return `${NCM3_PREFIX}${base64UrlEncode(Uint8Array.from(bytes))}`;
+}</code></pre>
+<p class="docs-technical-explanation">NCM3 writes a binary version, declared dimensions, command count, opcode, material IDs, and integer operands. The payload contains data only; it never evaluates imported JavaScript.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Building Program parses dimensions, count, bounds, and BOX work</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_building/src/building.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn validate_ncm3_payload(slices: &amp;[&amp;[u8]]) -&gt; Result&lt;Ncm3Dimensions, NicechunkBuildingError&gt; {
+    let mut reader = PayloadReader::new(slices);
+    if reader.read_byte()? != 1 {
+        return Err(NicechunkBuildingError::InvalidNcm3);
+    }
+    let dimensions = Ncm3Dimensions {
+        x: reader.read_var()?,
+        y: reader.read_var()?,
+        z: reader.read_var()?,
+    };
+    if !(1..=NCM3_MAX_DIMENSION).contains(&amp;dimensions.x)
+        || !(1..=NCM3_MAX_DIMENSION).contains(&amp;dimensions.y)
+        || !(1..=NCM3_MAX_DIMENSION).contains(&amp;dimensions.z)
+    {
+        return Err(NicechunkBuildingError::InvalidNcm3);
+    }
+    let command_count = reader.read_var()?;
+    if command_count &gt; NCM3_MAX_COMMANDS {
+        return Err(NicechunkBuildingError::InvalidNcm3);
+    }
+    let mut operation_budget = 0_u64;
+    for _ in 0..command_count {
+        let opcode = reader.read_byte()?;
+        match opcode {
+            1 =&gt; {
+                read_material(&amp;mut reader)?;
+                let values = read_vars::&lt;6&gt;(&amp;mut reader)?;
+                validate_origin(values[0], values[1], values[2], dimensions)?;
+                let w = plus_one_bounded(values[3], dimensions.x)?;
+                let h = plus_one_bounded(values[4], dimensions.y)?;
+                let d = plus_one_bounded(values[5], dimensions.z)?;
+                validate_cuboid_bounds(values[0], values[1], values[2], w, h, d, dimensions)?;
+                add_budget(
+                    &amp;mut operation_budget,
+                    u64::from(w) * u64::from(h) * u64::from(d),
+                )?;
+            }</code></pre>
+<p class="docs-technical-explanation">The complete function continues with every other opcode, the shared conservative validation budget, material validation, canonical varints, repeat and procedural bounds, and a trailing-byte rejection. It returns the declared envelope for final footprint and height checks; it does not return a mesh.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js materializes the last-writer map and enforces its extra ceiling</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/ncm/blueprint-codec.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">/** Later commands overwrite earlier commands, matching a deterministic paint stack. */
+export function voxelize(blueprintOrCuboids, sizeOverride) {
+  const blueprint = Array.isArray(blueprintOrCuboids) ? null : blueprintOrCuboids;
+  const cuboids = blueprint ? expandBlueprint(blueprint) : blueprintOrCuboids;
+  const size = blueprint ? blueprint.size : normalizeSize(sizeOverride);
+  const voxels = new Map();
+  let operationBudget = 0;
+  for (const cuboid of cuboids) {
+    validateCuboid(cuboid, size);
+    operationBudget += cuboid.w * cuboid.h * cuboid.d;
+    if (operationBudget &gt; 262144) throw new Error("Expanded voxel operation budget exceeded.");
+    for (let y = cuboid.y; y &lt; cuboid.y + cuboid.h; y++) {
+      for (let z = cuboid.z; z &lt; cuboid.z + cuboid.d; z++) {
+        for (let x = cuboid.x; x &lt; cuboid.x + cuboid.w; x++) {
+          voxels.set(`${x},${y},${z}`, { x, y, z, material: cuboid.material });
+        }
+      }
+    }
+  }
+  if (voxels.size &gt; 131072) throw new Error("Expanded voxel safety limit exceeded.");
+  return voxels;
+}</code></pre>
+<p class="docs-technical-explanation">Map.set implements deterministic replacement. This loop's first ceiling counts actual expanded cuboid writes; blueprint validation separately applies the chain-equivalent conservative command budget before expansion. The final check is a stricter current-client memory guard over unique positions.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>src/vox/ncm.js</code>
+<p>Defines NCM1 and NCM2 encoding and decoding, greedy same-color cuboid conversion, axis mapping, palette packing, and generated runtime box fields.</p></article>
+<article class="docs-evidence-item"><code>scripts/validate-ncm-fixtures.mjs</code>
+<p>Exercises both checked-in villager fixtures through the general source codec; its truncated-payload rejection does not describe the looser avatar NCM2 bit reader.</p></article>
+<article class="docs-evidence-item"><code>public/media/vox/chr_peasant_girl_orangehair.ncm</code>
+<p>Provides the canonical 451-character girl NCM2 fixture used for the reported 70-cuboid, 10-color, 334-raw-byte measurement.</p></article>
+<article class="docs-evidence-item"><code>public/media/vox/chr_peasant_guy_blackhair.ncm</code>
+<p>Provides the canonical 353-character boy NCM2 fixture used for the reported 56-cuboid, 8-color, 261-raw-byte measurement.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/avatar-mesh.js</code>
+<p>Resolves boy-only aliases, dispatches NCM2 or NCM4, maps cuboids into runtime coordinates, applies the NCM2 heuristic rig and equipment path, and currently returns empty NCM4 equipment and hand anchors.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/ncm/character-codec.js</code>
+<p>Defines NCM4's canonical Base64URL and CRC32C envelope, bounded cuboids, twenty fixed bones, actions, and 1,532-byte raw payload ceiling.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/avatar-action.js</code>
+<p>Samples explicitly selected NCM4 actions, rotations, and visible groups independently of normal Play moving and mining state.</p></article>
+<article class="docs-evidence-item"><code>play/player-motion-controller.js</code>
+<p>Supplies normal moving and mining animation inputs without selecting an NCM4 action or clip.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/tests/smoke.test.mjs</code>
+<p>Covers default and symbolic NCM avatar decoding, stable animated vertex buffers, and built-in and forged equipment composition.</p></article>
+<article class="docs-evidence-item"><code>play/play-avatar-session.js</code>
+<p>Implements local avatar decode failure handling by falling back to the default model or retaining the current valid mesh.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines the fixed 2,048-byte PlayerAppearance model-code field, independent modelKind validation, prefix-only model text validation, and account packing tests.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/ncm/blueprint-codec.js</code>
+<p>Defines NCM3 command encoding, canonical material IDs, deterministic expansion, overwrite semantics, operation bounds, unique-voxel safety, and the non-production NCBP helper.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/tests/ncm-blueprint.test.mjs</code>
+<p>Covers canonical NCM3 round trips, allowed and rejected materials, command geometry, negative repeats, procedural bounds, and operation-budget rejection.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/building.rs</code>
+<p>Defines NCKBLD02 metadata and NCKBDT01 payload storage, shard and write limits, raw payload hashing, canonical varints, material and opcode validation, dimensions, command limits, and the shared conservative validation formulas.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/lib.rs</code>
+<p>Finalizes only complete ordered shard sets whose raw SHA-256 hash, parsed NCM3 envelope, rotated footprint, offsets, and build height pass.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Loads production NCKBLD02 manifests and NCKBDT01 shards, reassembles raw bytes, verifies SHA-256 and Guardian hash prefix, and restores the NCM3: client envelope.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/construction/building-mesh-worker.js</code>
+<p>Runs parsing, exact-scale placement, meshing, lighting, and collision-mask production off the main thread and transfers packed buffers back to the renderer.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/construction/building-parser.js</code>
+<p>Separates local stable code IDs and canonical-text hashing from production raw-byte identity while implementing exact-scale quarter-turn placement.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/tests/building-parser.test.mjs</code>
+<p>Covers one-to-one scale, rotation, offsets, foundation fit, cross-Chunk face culling, canonical material layers, and opaque-versus-glass mesh separation.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/tests/building-mesh-client.test.mjs</code>
+<p>Covers one-active-job worker scheduling, priority queue order, queued cancellation, and active stale-work abortion followed by clean work on a fresh worker.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/forge/forge-runtime-cache.js</code>
+<p>Restores canonical NCF1 independently, checks the raw FNV-1a design hash, builds packed forge geometry once, and evicts by entry and byte budgets.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/tests/forge-runtime-cache.test.mjs</code>
+<p>Covers canonical NCF1 restore, cache reuse, hash mismatch rejection, mesh attachment to the avatar, collision parts, and hidden-equipment cost removal.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Derives NCF1 material requirements from the leading 108 bits, hashes the entire raw payload with 32-bit FNV-1a, verifies selected backpack material capacity, and tests equal-or-greater material acceptance without reconstructing forge meshes.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

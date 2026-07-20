@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "es",
+    "label": "Spanish",
+    "version": "docs-locale-es-e75c1ca3da9e527c",
+    "contentHash": "e75c1ca3da9e527c"
+  },
+  "common": {
+    "language": "Idioma",
+    "comingSoon": "Próximamente",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "Inicio de NiceChunk",
+    "primaryNavigationAria": "Navegación principal",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "routes": {
+      "home": "Inicio",
+      "roadbook": "Ruta",
+      "worldRules": "Reglas",
+      "resources": "Recursos",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "Elementos",
+      "fairness": "Equidad",
+      "proofOfFrontier": "Prueba",
+      "seed": "Semilla",
+      "guardians": "Guardianes",
+      "contracts": "Contratos",
+      "civilization": "Civilización",
+      "trust": "Confianza",
+      "docs": "Docs",
+      "enterWorld": "Entrar al mundo"
+    }
+  },
+  "meta": {
+    "title": "Guía de campo de NiceChunk",
+    "description": "Documentación de NiceChunk para jugadores, basada en el juego activo, las reglas públicas y el comportamiento desplegado de los programas."
+  },
+  "accessibility": {
+    "skipContent": "Saltar al contenido"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "GUÍA DE CAMPO",
+    "homeAria": "Inicio de NiceChunk"
+  },
+  "navigation": {
+    "aria": "Navegación de la documentación",
+    "guide": "Guía",
+    "worldRules": "Reglas del mundo",
+    "programs": "Programas",
+    "enterWorld": "Entrar al mundo"
+  },
+  "status": {
+    "loading": "Cargando la guía de campo",
+    "loadingDetail": "Obteniendo un documento en el idioma seleccionado.",
+    "failed": "No se pudo cargar esta página de la guía.",
+    "failedDetail": "Comprueba la conexión o vuelve al índice de la guía."
+  },
+  "actions": {
+    "backToIndex": "Volver al índice de la guía",
+    "guideIndex": "Guía de campo",
+    "openGuide": "Abrir guía →"
+  },
+  "footer": {
+    "statement": "Elaborado a partir de las reglas y el código de programa activos. Las afirmaciones se limitan a lo que la implementación puede demostrar.",
+    "fairness": "Equidad",
+    "trust": "Confianza",
+    "roadmap": "Hoja de ruta"
+  },
+  "translation": {
+    "fallbackTitle": "Se muestra la fuente en inglés",
+    "fallbackBody": "Este tema tiene su propio archivo de idioma, pero la traducción revisada aún no está lista. Se muestra la fuente en inglés sin afirmaciones técnicas traducidas automáticamente."
+  },
+  "labels": {
+    "guideMetrics": "Cobertura de la guía de campo",
+    "breadcrumb": "Ruta de navegación",
+    "keyPoints": "Puntos clave",
+    "onThisPage": "En esta página",
+    "evidenceEyebrow": "EVIDENCIA DE IMPLEMENTACIÓN",
+    "evidenceTitle": "De dónde proceden estas afirmaciones",
+    "evidenceIntro": "Cada afirmación está vinculada de forma intencional a una ruta concreta de implementación. Estas referencias sirven para verificar, no para decorar."
+  },
+  "statusLabels": {
+    "ready": "Revisado",
+    "preview": "En revisión",
+    "planned": "Planificado"
+  },
+  "calloutLabels": {
+    "note": "Cómo leer esto",
+    "boundary": "Límite de implementación",
+    "verified": "Lo que garantiza el código"
+  }
+}

@@ -1,0 +1,750 @@
+{
+  "_meta": {
+    "language": "en",
+    "sourceLanguage": "en",
+    "translationStatus": "source-en",
+    "version": "docs-document-seed-whitelist-and-message-signatures-en-743f856e5cecbb63",
+    "contentHash": "743f856e5cecbb63"
+  },
+  "kind": "topic",
+  "slug": "seed-whitelist-and-message-signatures",
+  "shortTitle": "Seed Signatures and Reward Evidence",
+  "seo": {
+    "title": "Seed Whitelist Signatures, Central Registration, and NCK Evidence",
+    "description": "Learn what the NiceChunk Seed message signature proves, what the central SQLite service stores, and why a displayed 100 NCK amount is not an on-chain payment."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL 03 · MESSAGE PROOF",
+    "title": "A Seed signature can register an intent; it does not deliver NCK",
+    "summary": "The Seed page asks an external wallet to sign one exact UTF-8 campaign message. The browser checks the Ed25519 signature, the central Seed API checks it again, and that API writes a registration to SQLite. This path creates no Solana transaction, calls no NiceChunk or SPL Token program, and moves no NCK. The displayed 100 NCK value is campaign metadata until a correct on-chain token account, successful transfer, and resulting balance prove otherwise.",
+    "readingTime": "24 min read",
+    "visual": {
+      "src": "/docs/media/seed-whitelist-and-message-signatures-overview-v1.webp",
+      "alt": "In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the boy offers plain shaped pieces at an open registration shelter, the girl compares them beside a cubby record, and one gold-colored voxel remains embedded across the stream.",
+      "caption": "The shaped pieces and cubby are teaching metaphors for an exact message proof and a central registration. The distant embedded voxel represents value that has not moved. None is a real wallet object, signature, database row, token account, transaction, reward, or balance proof.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "What does the Seed whitelist signature prove, what does the server store, and why is a displayed 100 NCK amount not an on-chain payment?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 3 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Implemented boundary",
+        "value": "External wallet message signature · central Python API · SQLite registration · no Solana transaction"
+      },
+      {
+        "label": "Reviewed",
+        "value": "15 July 2026 · current working tree, seven focused state tests, and reproducible mock-browser Seed flow QA"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Wallet provider",
+        "meaning": "The interface exposed by a wallet app or extension. Seed asks it to connect and later to sign message bytes; it never asks the page to export the wallet's private key."
+      },
+      {
+        "term": "Public key or wallet address",
+        "meaning": "The public Solana identifier returned after connection. Anyone who knows it can query public chain data and, in this implementation, the public Seed status endpoint."
+      },
+      {
+        "term": "Private key",
+        "meaning": "The secret that creates valid signatures. It remains in the external wallet during this flow. Never type a private key or recovery phrase into the Seed page."
+      },
+      {
+        "term": "Connect",
+        "meaning": "Permission for the page to read the selected public address. Connect is not a message signature, a transaction signature, or proof that the same wallet is still available later."
+      },
+      {
+        "term": "Solana cluster and Devnet",
+        "meaning": "A cluster is a separate Solana ledger. The client targets Devnet, but a detached Ed25519 message signature is not itself a Devnet transaction and the signed message contains no cluster field."
+      },
+      {
+        "term": "Challenge",
+        "meaning": "The exact plain-text message prepared by the central Seed API for one signing attempt. It includes the campaign, wallet, nonce, issue time, submitted origin, purpose, and a no-transaction statement."
+      },
+      {
+        "term": "Campaign ID",
+        "meaning": "The server configuration label placed in the challenge. It names a central campaign record; it is not a Solana program address, PDA, mint, or transaction."
+      },
+      {
+        "term": "Nonce",
+        "meaning": "A fresh random value that distinguishes one challenge from another. The server uses a 24-byte URL-safe random token and stores it as the challenge primary key."
+      },
+      {
+        "term": "Issued At and TTL",
+        "meaning": "The challenge's issue time and time-to-live. The source default is 600 seconds, but an environment setting may change it; the response's expiresAt belongs to that exact challenge."
+      },
+      {
+        "term": "Origin string",
+        "meaning": "The page address sent in the request body and printed into the message. The server currently does not bind it to a trusted Host or Origin header, so it proves only what text was signed."
+      },
+      {
+        "term": "Exact UTF-8 bytes",
+        "meaning": "The byte representation of the complete message. Changing one character, line break, wallet, or nonce changes the bytes and should make the stored-message comparison or signature check fail."
+      },
+      {
+        "term": "Ed25519",
+        "meaning": "The public-key signature algorithm used by Solana keys and by this detached message proof. Verification checks a public key, exact message bytes, and signature together."
+      },
+      {
+        "term": "signMessage",
+        "meaning": "A wallet method that signs message bytes without building or submitting a Solana transaction. The signature still expresses agreement with the exact message a verifier accepts."
+      },
+      {
+        "term": "Detached signature",
+        "meaning": "A 64-byte signature stored separately from its message. It has meaning only when checked with the public key and the same exact bytes."
+      },
+      {
+        "term": "Browser verification",
+        "meaning": "TweetNaCl checks the returned signature before the browser submits the registration. This catches a mismatch early but does not prove the server has accepted or stored anything."
+      },
+      {
+        "term": "Server verification",
+        "meaning": "The Python API checks the saved challenge, expiry, prior use, wallet, exact message, and Ed25519 signature before writing the registration."
+      },
+      {
+        "term": "Replay protection",
+        "meaning": "The nonce, expiry time, and used_at field are meant to stop ordinary reuse of the same challenge. They do not prove one human per wallet, and the current consume step is not an atomic compare-and-set."
+      },
+      {
+        "term": "SQLite",
+        "meaning": "A central file-backed database used by the Seed API. Its rows can be maintained, backed up, changed, or deleted by the server operator; they are not Solana accounts."
+      },
+      {
+        "term": "Upsert",
+        "meaning": "Insert a row when the wallet is new, or update the existing row when that wallet signs again. The current table makes wallet globally unique rather than unique per campaign."
+      },
+      {
+        "term": "registered",
+        "meaning": "The current central database status after a successful join. It does not mean qualified, anti-abuse approved, settled, transferred, or received."
+      },
+      {
+        "term": "Campaign reward metadata",
+        "meaning": "The central reward_nck integer and displayed campaign amount. They describe a proposed campaign quantity; they do not identify an SPL mint or prove a payment."
+      },
+      {
+        "term": "SPL NCK payment evidence",
+        "meaning": "A real token claim needs the cluster, exact NCK mint, six-decimal base units, the wallet-owned token account, a successful Token Program transaction, and the resulting on-chain balance."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "Connection shares an address before any proof",
+      "body": "Seed stores the returned public address locally and immediately queries the public status endpoint. It does not receive the external wallet's private key, and an address alone does not prove current control."
+    },
+    {
+      "title": "One exact message is checked twice",
+      "body": "The wallet signs the server's UTF-8 challenge. The browser verifies it for early feedback; the server independently checks the saved challenge and signature before accepting a registration."
+    },
+    {
+      "title": "Registered means a central SQLite row",
+      "body": "The service stores wallet, signature, exact message, nonce, status, reward metadata, IP, User-Agent, and timestamps. It stores no private key and creates no Solana account."
+    },
+    {
+      "title": "Displayed NCK is not received NCK",
+      "body": "The current Seed path contains no mint, token account, transfer instruction, RPC submission, transaction receipt, or balance read. A real payment needs all of that evidence."
+    }
+  ],
+  "sections": [
+    {
+      "id": "address-before-proof",
+      "eyebrow": "CONNECTION AND ADDRESS BOUNDARY",
+      "title": "Connect shares a public address before the wallet signs anything",
+      "paragraphs": [
+        "When a player presses Connect, Seed selects the first supported injected wallet it detects and calls provider.connect. After approval, the provider returns a public key. The page records that address under the Seed-specific local key and also writes the site's shared wallet binding. It then performs a public GET status query for that address. The server can therefore see which address is being checked before the player requests or signs a challenge.",
+        "That connection step does not export the external wallet's private key, sign a message, create a transaction, pay a fee, or prove continuing control. A browser localStorage address can also survive a reload while no wallet provider is connected. The current corrected state logic distinguishes a cached address, an active provider connection, and a registration confirmed by a successful status or join response for the exact same wallet. A local cache is still editable browser data, never independent proof.",
+        "The page tries to detect or switch the wallet toward Solana Devnet. Some providers cannot report a network or support switching; the network helper can explicitly return unknown and unverified. The Seed page now presents that result as not verified. More importantly, this registration API never queries a Solana RPC, and the later message contains no cluster or mint. A Devnet interface preference must not be described as an on-chain Devnet registration.",
+        "The status endpoint is public and requires no wallet signature. Anyone who knows an address can ask for the registration ID, campaign, wallet label, status, reward number, and timestamps that endpoint returns. Guardian relay and deterministic world reconstruction do not participate in connection, challenge signing, central registration, or payment evidence."
+      ],
+      "facts": [
+        {
+          "label": "Connect returns",
+          "value": "One public address",
+          "detail": "It does not return the external wallet's private key or approve the later message."
+        },
+        {
+          "label": "Local browser state",
+          "value": "Seed address plus shared wallet binding",
+          "detail": "The current code writes nicechunk.seed.wallet and the shared nicechunk.walletAddress, walletName, and walletBoundAt fields."
+        },
+        {
+          "label": "First server lookup",
+          "value": "GET status by address",
+          "detail": "This happens after connection and before challenge signing; the endpoint itself does not demand proof of wallet control."
+        },
+        {
+          "label": "Not involved",
+          "value": "Solana RPC, Guardian, and world reconstruction",
+          "detail": "None authenticates this connection or turns it into shared game or token state."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-address-before-proof-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy shows one cutout wooden tile at an open shelter counter while one closed box remains behind him and the girl watches with empty hands.",
+        "caption": "The visible tile represents a public address; the closed box represents a secret that never crosses the counter. Both are teaching metaphors, not wallet objects. The scene proves no active provider, private-key safety, signature, server record, Devnet cluster, transaction, or payment.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Seed campaign does not mean wallet seed phrase",
+        "body": "This page should ask only for wallet connection and a readable signMessage approval. Never paste a recovery phrase, private key, wallet password, or secret-key file into the campaign page or a support message."
+      }
+    },
+    {
+      "id": "exact-message-two-verifications",
+      "eyebrow": "CHALLENGE AND SIGNATURE BOUNDARY",
+      "title": "The wallet signs one exact message, then browser and server verify it separately",
+      "paragraphs": [
+        "The central API validates that the submitted wallet decodes to 32 bytes, creates a URL-safe random nonce from 24 random bytes, records the server time, and builds the message line by line. The default challenge lifetime is 600 seconds, subject to the server's environment setting. The challenge row is written immediately with wallet, full message, issue and expiry times, IP string, and User-Agent, even if the player later cancels the wallet prompt.",
+        "Before approving, read the complete wallet message: campaign, wallet, nonce, issue time, origin, purpose, and the statement that the signature does not authorize a transaction or transfer. The origin line is supplied by client JSON and is not currently checked against a trusted request Host or Origin header. Wallet name is not part of the signed text. Signing therefore proves agreement with the literal bytes, not that every printed metadata field was independently authenticated by the server.",
+        "The browser encodes the returned message with TextEncoder, asks provider.signMessage to sign those bytes, converts the result to 64 signature bytes, and verifies it with TweetNaCl and the wallet public key. Only after that local check does it POST wallet, wallet name, nonce, full message, and Base58 signature. The server then loads the saved nonce, rejects a missing, used, expired, wallet-mismatched, message-mismatched, or invalidly signed challenge, and runs Ed25519 verification again.",
+        "A valid signature means the corresponding private key produced a signature for those exact bytes. When the server also accepts an unexpired challenge, the submission reached that service within the challenge window; the signature itself contains no trusted timestamp. It supports the central service's registration decision. It does not identify a unique human, prove permanent ownership, create a Solana transaction, include instructions or accounts, pay a fee, produce a blockhash or explorer receipt, call a program, or move funds. Message signatures can still matter wherever another system accepts the same signed message, so read them rather than treating them as harmless decoration."
+      ],
+      "steps": [
+        {
+          "title": "Match the campaign and wallet",
+          "body": "Confirm that the campaign text is expected and that the full wallet address matches the account you intended to use."
+        },
+        {
+          "title": "Read nonce, time, origin, and purpose",
+          "body": "Cancel if any line is missing or unexpected. Remember that the current origin is a signed string, not a server-authenticated domain proof."
+        },
+        {
+          "title": "Confirm the request type",
+          "body": "The wallet should present a readable message signature, not a transaction, token approval, SOL transfer, or request for a secret."
+        },
+        {
+          "title": "Reject and restart if unsure",
+          "body": "A rejected or expired challenge can be replaced with a fresh one. Never approve bytes you cannot inspect or explain."
+        }
+      ],
+      "facts": [
+        {
+          "label": "Freshness input",
+          "value": "Random nonce plus expiry",
+          "detail": "They separate attempts and limit ordinary replay of one stored challenge; they do not enforce one human per wallet."
+        },
+        {
+          "label": "First check",
+          "value": "TweetNaCl in the browser",
+          "detail": "It proves signature, exact message, and public key match locally, not that the API committed a record."
+        },
+        {
+          "label": "Acceptance check",
+          "value": "Python Ed25519 verification",
+          "detail": "The central service additionally checks nonce existence, use, expiry, wallet equality, and exact stored message equality."
+        },
+        {
+          "label": "Missing transaction parts",
+          "value": "No instructions, accounts, fee, blockhash, or RPC send",
+          "detail": "A 64-byte detached signature may look technical, but this path never becomes a Solana transaction."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-exact-message-two-verifications-v2.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy holds one solid T-shaped wooden tile above the first of two identical T-shaped cutout plates, while the girl checks the second plate at the same bench; the first rim is cyan and the second is green.",
+        "caption": "The one solid T-shaped tile and two cloned cutouts represent the same exact message relationship being checked separately by browser and server. They are not cryptographic devices, and the colors prove no valid signature, trusted origin, trusted time, server commit, transaction, or payment.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "The Origin line proves text, not where the request really came from",
+        "body": "The current server copies a client-supplied origin string into the challenge without binding it to an allowlist or trusted request header. Check the real browser address and wallet prompt independently."
+      }
+    },
+    {
+      "id": "central-record-and-privacy",
+      "eyebrow": "CENTRAL STORAGE AND PRIVACY BOUNDARY",
+      "title": "Registered is a maintainable SQLite record, not an immutable chain account",
+      "paragraphs": [
+        "The service has two central tables. A challenge row stores nonce, wallet, exact message, issued_at, expires_at, optional used_at, IP, and User-Agent. A whitelist row stores an auto-increment ID, campaign ID, globally unique wallet, wallet name, signature, exact message, unique nonce, status, reward_nck, IP, User-Agent, created_at, and updated_at. It does not store the private key. Nothing in either table is a Solana PDA or token account.",
+        "After server verification, a new wallet inserts one whitelist row. A wallet that signs again updates its existing row with new wallet name, signature, message, nonce, status, IP, User-Agent, and update time while preserving the original ID and created_at. The current update forces status back to registered. The unique constraint is wallet alone rather than campaign plus wallet, and the update does not replace campaign_id even though the response reports the current configured campaign. Those details matter before this database can safely represent multiple campaigns or later settlement states.",
+        "The public status endpoint looks up a row by wallet without asking for a signature and returns a limited projection. The browser also caches an entry summary. The corrected client now trusts only a successful status or join response whose entry wallet exactly matches the current wallet; a null result, failure, disconnect, or wallet switch removes the displayed confirmation. It does not require the returned status to equal registered or compare a campaign ID. Its confirmation therefore means only that the central service returned a same-address entry through status or join, not that the entry belongs to the current campaign or establishes qualification, settlement, or payment. This prevents an old or forged local cache from appearing registered, but the resulting screen is still a central-service observation, not independent or on-chain proof.",
+        "Privacy begins before signing: challenge creation already stores request metadata. The repository shows no challenge cleanup job, user deletion path, or stated retention period. User-Agent is client-controlled, and the service takes the first X-Forwarded-For value as IP, so that stored string is not reliable proof of a unique person or source address. An operator can maintain or change the SQLite database. Registered therefore means only that this central service currently has a row it reports as registered."
+      ],
+      "facts": [
+        {
+          "label": "Challenge data",
+          "value": "Wallet, exact message, time, IP, and User-Agent",
+          "detail": "The row exists before the wallet signs and can remain even when the player rejects the prompt."
+        },
+        {
+          "label": "Registration data",
+          "value": "Signature, message, nonce, status, reward metadata, and request metadata",
+          "detail": "The private key is not stored, but the signed statement and identifying request data are."
+        },
+        {
+          "label": "Repeat join",
+          "value": "Update the wallet's existing row",
+          "detail": "It preserves the original ID and created time, overwrites later proof fields, and currently resets status to registered."
+        },
+        {
+          "label": "Public lookup",
+          "value": "Status by known wallet address",
+          "detail": "No signature is required to read the projected campaign, label, status, reward number, and times."
+        },
+        {
+          "label": "Missing policy in source",
+          "value": "No retention, cleanup, or user deletion path",
+          "detail": "The current repository also has no Seed schema migration or reproducible service unit tied to the static build."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-central-record-and-privacy-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl places one plain wooden record box into an ordinary open cubby cabinet while the boy watches and one used shaped tile rests in a shallow tray.",
+        "caption": "The reachable cubby represents operator-maintained SQLite storage, and the tray represents a challenge set aside after use. They are teaching metaphors, not literal server objects. The scene proves no database commit, retention policy, trustworthy IP, unique person, chain account, finality, qualification, or payment.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Keep five campaign states separate",
+        "body": "registered is not qualified; qualified is not settled; settled is not transferred; transferred is not the same observation as a wallet's current token balance. The current Seed implementation supplies only the first central state."
+      }
+    },
+    {
+      "id": "displayed-nck-not-payment",
+      "eyebrow": "TOKEN AND PAYMENT EVIDENCE BOUNDARY",
+      "title": "A displayed 100 NCK value is not NCK in the wallet",
+      "paragraphs": [
+        "The current campaign page displays 100 NCK before a wallet connects. The SQLite schema gives reward_nck a default integer of 100, and the join response hard-codes rewardNck: 100. Those are three central presentation or data fields. Seed does not identify an NCK mint in its code, import the SPL Token library, derive a token account, read a token balance, build a mint or transfer instruction, submit an RPC transaction, store a transaction signature, or wait for confirmation. Its displayed 0.01 SOL reference also has no purchase or SOL-payment path in Seed.",
+        "The source has no implemented first-batch size, ordering rule, campaign end, qualification algorithm, anti-abuse decision, settlement state machine, or payout worker. The database has registered but no code path that establishes qualified, settled, transferred, or received. Campaign copy can describe an intended allocation, but it cannot be presented as guaranteed, enforceable, already sent, or visible in a wallet.",
+        "A real NCK check must start with the correct cluster and exact mint. The current Devnet NCK mint is HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo and uses six decimals. One hundred whole NCK would therefore equal 100,000,000 base units. Even that calculation is not payment evidence: the receiver needs a token account owned by the registered wallet for that mint, a successful Token Program transfer, a transaction signature and slot at a stated commitment, and a resulting balance observation.",
+        "The Marketplace program shows what an actual NCK movement path looks like: it checks the NCK mint, Token Program, and source and destination token-account owners, reads and splits the listing's already stored base-unit price, calls transfer_checked, and invokes the Token Program. The client performs the earlier whole-token-to-base-unit conversion when a listing price is created. Seed calls none of either path. The same public address can exist on Devnet and Mainnet Beta while holding different balances on each ledger, so an address or mint existing somewhere is not enough."
+      ],
+      "steps": [
+        {
+          "title": "Name the cluster and mint",
+          "body": "Do not accept the word NCK alone. Verify the intended Solana cluster and the complete mint address."
+        },
+        {
+          "title": "Find the wallet-owned token account",
+          "body": "Confirm that the token account uses that mint and that its owner is the registered wallet address."
+        },
+        {
+          "title": "Inspect a successful transfer",
+          "body": "A real receipt names a transaction signature, Token Program instruction, source, destination, amount in base units, slot, and commitment."
+        },
+        {
+          "title": "Read the resulting on-chain balance",
+          "body": "Compare the correct token account before and after. A campaign card, database number, or browser cache cannot replace this observation."
+        }
+      ],
+      "facts": [
+        {
+          "label": "Current implemented state",
+          "value": "registered",
+          "detail": "A central SQLite row exists and may contain reward_nck = 100. No later qualification or payout state is implemented in this path."
+        },
+        {
+          "label": "Devnet NCK identity",
+          "value": "HSnWF5...PQPo · six decimals",
+          "detail": "This exact mint belongs to the chain implementation outside Seed; the Seed schema and message do not bind to it."
+        },
+        {
+          "label": "One hundred whole NCK",
+          "value": "100,000,000 base units",
+          "detail": "Six decimals define this arithmetic. A number with correct units still does not prove a transfer occurred."
+        },
+        {
+          "label": "Minimum receipt",
+          "value": "Mint, token account, transaction, and balance",
+          "detail": "All must match the registered wallet and stated cluster before saying NCK was received."
+        },
+        {
+          "label": "Not involved",
+          "value": "Guardian and deterministic world reconstruction",
+          "detail": "Neither relay messages nor terrain generation can prove an SPL token payment."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-displayed-nck-not-payment-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy and girl inspect one completely empty wooden bin on the near bank while one gold-colored voxel remains embedded in stone across the water.",
+        "caption": "The empty bin represents the absence of demonstrated receipt, while the distant embedded voxel represents value that has not moved. Both are teaching metaphors, not an NCK mint, token account, transfer, or balance. The scene itself cannot prove nonpayment or payment; the named on-chain records must do that.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "Use chain evidence before saying received",
+        "body": "A real received claim needs the correct cluster, exact NCK mint, wallet-owned token account, successful transfer transaction, base-unit amount, slot or commitment, and resulting balance. This Seed registration supplies none of them."
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "FOLLOW THE PROOF",
+    "title": "Eight excerpts separate address, signed bytes, central storage, and token movement",
+    "summary": "The formulas state the exact acceptance condition and the payment evidence that is absent. The verbatim excerpts show connection and status lookup, challenge construction, browser signing, server verification, SQLite fields, repeat registration, corrected local-state trust, and a real SPL transfer path used only as a contrast."
+  },
+  "formulas": [
+    {
+      "title": "The exact challenge message",
+      "expression": "message = title + campaign + wallet + nonce + issuedAt + clientSuppliedOrigin + purpose + noTransactionStatement",
+      "ariaLabel": "The challenge message is the title, campaign, wallet, nonce, issue time, client-supplied origin, purpose, and no-transaction statement joined as exact lines.",
+      "explanation": "The server joins these fields with newline characters and the wallet signs the resulting UTF-8 bytes. Wallet name, IP, User-Agent, Solana cluster, NCK mint, token account, and reward amount are not in the signed text. Origin appears in the bytes but is currently copied from client JSON rather than authenticated against the request host.",
+      "terms": [
+        {
+          "symbol": "nonce",
+          "meaning": "A fresh URL-safe token generated from 24 random bytes and stored as the challenge key."
+        },
+        {
+          "symbol": "issuedAt",
+          "meaning": "A server-created UTC text time; expiry is stored separately as an integer timestamp."
+        },
+        {
+          "symbol": "clientSuppliedOrigin",
+          "meaning": "The literal client request-body string. It is signed text, not independently verified origin evidence."
+        },
+        {
+          "symbol": "+",
+          "meaning": "Means exact ordered concatenation with newline separators, not arithmetic addition."
+        }
+      ]
+    },
+    {
+      "title": "What the central service accepts",
+      "expression": "accepted = exists(nonce) AND unused AND now <= expiresAt AND storedWallet = wallet AND storedMessage = message AND Ed25519Verify(wallet, UTF8(message), signature)",
+      "ariaLabel": "The central service accepts when the nonce exists, is unused and unexpired, the stored wallet and message equal the submitted values, and Ed25519 verifies the signature over the UTF-8 message with the wallet public key.",
+      "explanation": "This is the implemented server acceptance boundary. The browser performs a similar cryptographic check first, but only the server's checks lead to its SQLite write. The expression does not contain a Solana cluster, RPC, program, account, transaction, fee, confirmation, qualification, anti-abuse decision, or token transfer.",
+      "terms": [
+        {
+          "symbol": "exists(nonce)",
+          "meaning": "A matching challenge row must already exist in central SQLite."
+        },
+        {
+          "symbol": "unused",
+          "meaning": "The row's used_at field must be empty at the time it is read. The current later update is not an atomic compare-and-set."
+        },
+        {
+          "symbol": "storedMessage = message",
+          "meaning": "Every byte represented by the submitted text must match the server's saved challenge text."
+        },
+        {
+          "symbol": "Ed25519Verify",
+          "meaning": "Cryptographic verification of public key, exact UTF-8 bytes, and detached signature."
+        }
+      ]
+    },
+    {
+      "title": "Registration metadata is not payment evidence",
+      "expression": "registered AND reward_nck = 100 != qualified != settled != SPL transfer != wallet token balance increased",
+      "ariaLabel": "Registered with reward NCK equal to one hundred is not the same as qualified, settled, an SPL transfer, or an increased wallet token balance.",
+      "explanation": "The left side is central database state. The right-side observations would require explicit campaign decisions and then matching Solana evidence. With six decimals, 100 whole NCK equals 100,000,000 base units, but arithmetic and display text cannot prove that those units moved.",
+      "terms": [
+        {
+          "symbol": "registered",
+          "meaning": "The central whitelist row currently reports status registered."
+        },
+        {
+          "symbol": "reward_nck = 100",
+          "meaning": "A central integer default and response field, with no mint, token account, transfer signature, or balance attached."
+        },
+        {
+          "symbol": "SPL transfer",
+          "meaning": "A successful Token Program instruction moving base units between validated token accounts for the exact mint."
+        },
+        {
+          "symbol": "wallet token balance increased",
+          "meaning": "A later observation of the correct wallet-owned token account on the stated cluster."
+        },
+        {
+          "symbol": "!=",
+          "meaning": "Means the two states are not interchangeable and one must not be used as evidence for the next."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Connection stores the address and immediately checks central status",
+      "language": "JavaScript",
+      "source": "seed/seed.js",
+      "code": "const result = await wallet.provider.connect();\n    const publicKey = publicKeyToString(result?.publicKey || wallet.provider.publicKey);\n    if (!publicKey) throw new Error(\"Missing wallet public key.\");\n    const walletChanged = publicKey !== seedState.wallet;\n    seedState = transitionSeedWallet(seedState, publicKey);\n    seedState = {\n      ...seedState,\n      provider: wallet.provider,\n      walletName: wallet.name,\n      error: \"\",\n    };\n    bindSeedWalletEvents(wallet.provider, wallet.name);\n    if (walletChanged) clearStoredSeedEntry();\n    localStorage.setItem(seedWalletStorageKey, publicKey);\n    await ensureSeedWalletNetwork(wallet.provider);\n    persistConnectedWallet({ walletAddress: publicKey, walletName: wallet.name });\n    await refreshEntryStatus(publicKey);",
+      "explanation": "This current client excerpt begins after the player chose Connect. It accepts a public key, changes the local state, stores the Seed address, applies the shared wallet binding, and queries the central status endpoint. It does not sign a message or transaction here.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Ask the external provider to connect, convert the returned public key to text, and reject a missing address."
+        },
+        {
+          "lines": "4-11",
+          "meaning": "Detect an account change, clear prior registration trust through the state transition, attach the live provider, and listen for later account or disconnect events."
+        },
+        {
+          "lines": "12-17",
+          "meaning": "Clear a stale entry when needed, store the address, attempt the client network policy, update the shared binding, and query the central registration by public address."
+        }
+      ]
+    },
+    {
+      "title": "The server creates and stores the exact challenge",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "now = int(time.time())\n        nonce = secrets.token_urlsafe(24)\n        issued_at = utc_now_iso()\n        message = \"\\n\".join([\n            \"NiceChunk Seed Whitelist Registration\",\n            f\"Campaign: {CAMPAIGN_ID}\",\n            f\"Wallet: {wallet}\",\n            f\"Nonce: {nonce}\",\n            f\"Issued At: {issued_at}\",\n            f\"Origin: {origin}\",\n            \"Purpose: Bind this wallet and join the NiceChunk public beta seed whitelist.\",\n            \"This signature does not authorize a transaction or transfer funds.\",\n        ])\n        with sqlite3.connect(DB_PATH) as db:\n            db.execute(\n                \"INSERT INTO seed_challenges(nonce,wallet,message,issued_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)\",\n                (nonce, wallet, message, now, now + CHALLENGE_TTL_SECONDS, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300]),\n            )",
+      "explanation": "The server creates freshness data, constructs the complete readable message, and writes a central challenge row before a wallet signs. The origin variable was read from client JSON earlier; this excerpt does not authenticate it against the request host.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Capture integer server time, generate a random URL-safe nonce from 24 random bytes, and format a UTC issue time."
+        },
+        {
+          "lines": "4-13",
+          "meaning": "Join the title, campaign, wallet, nonce, issue time, client-supplied origin, purpose, and no-transaction statement into exact newline-separated text."
+        },
+        {
+          "lines": "14-18",
+          "meaning": "Store nonce, wallet, exact message, issue and expiry times, IP string, and User-Agent in SQLite before returning the challenge."
+        }
+      ]
+    },
+    {
+      "title": "The browser signs exact bytes and verifies before join",
+      "language": "JavaScript",
+      "source": "seed/seed.js",
+      "code": "const encodedMessage = new TextEncoder().encode(challenge.message);\n    const signResult = await seedState.provider.signMessage(encodedMessage, \"utf8\");\n    const signature = signatureToBytes(signResult);\n    if (!signature?.length) throw new Error(\"Missing wallet signature.\");\n    if (!nacl.sign.detached.verify(encodedMessage, signature, bs58.decode(seedState.wallet))) {\n      throw new Error(\"Local wallet signature verification failed.\");\n    }\n    setSeedMessage(\"SUBMITTING REGISTRATION\", \"Signature verified locally. Submitting your seed user registration...\");\n    const result = await apiPost(\"/api/seed/join\", {\n      wallet: seedState.wallet,\n      walletName: seedState.walletName || selectedWallet?.name || \"Solana Wallet\",\n      nonce: challenge.nonce,\n      message: challenge.message,\n      signature: bs58.encode(signature),\n    });",
+      "explanation": "TextEncoder produces the bytes the wallet signs. TweetNaCl verifies those same bytes with the current public key. Only then are the wallet, unsigned wallet label, nonce, full message, and Base58 signature sent to the central join endpoint.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Encode the API message as UTF-8, request signMessage, normalize the wallet result, and require nonempty signature bytes."
+        },
+        {
+          "lines": "5-7",
+          "meaning": "Verify message, detached signature, and decoded wallet public key locally; stop before join when they do not match."
+        },
+        {
+          "lines": "8-15",
+          "meaning": "Report local verification and submit the central registration inputs. No transaction object, instruction, fee payer, or RPC submission appears."
+        }
+      ]
+    },
+    {
+      "title": "The server enforces challenge state and Ed25519",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "now = int(time.time())\n        with sqlite3.connect(DB_PATH) as db:\n            db.row_factory = sqlite3.Row\n            challenge = db.execute(\"SELECT * FROM seed_challenges WHERE nonce=?\", (nonce,)).fetchone()\n            if not challenge:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_not_found\"})\n            if challenge[\"used_at\"]:\n                return json_response(self, 409, {\"ok\": False, \"error\": \"challenge_used\"})\n            if challenge[\"expires_at\"] < now:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_expired\"})\n            if challenge[\"wallet\"] != wallet or challenge[\"message\"] != message:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_mismatch\"})\n            try:\n                Ed25519PublicKey.from_public_bytes(public_key).verify(signature_bytes, message.encode(\"utf-8\"))\n            except InvalidSignature:\n                return json_response(self, 401, {\"ok\": False, \"error\": \"signature_invalid\"})",
+      "explanation": "The central service makes its own decision. It loads the nonce, checks normal replay and expiry conditions, requires wallet and full message equality, and verifies the detached signature. Passing this block is still only permission to continue into the central database write.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Read current server time and load the complete challenge row by its parameter-bound nonce."
+        },
+        {
+          "lines": "5-12",
+          "meaning": "Return separate missing, used, and expired errors; a wallet mismatch or message mismatch shares the same challenge_mismatch error."
+        },
+        {
+          "lines": "13-16",
+          "meaning": "Verify the 64-byte signature over the submitted UTF-8 message with the submitted wallet public key and reject an invalid signature."
+        }
+      ]
+    },
+    {
+      "title": "SQLite stores proof, request metadata, and a reward number",
+      "language": "SQL",
+      "source": "seed_api.py",
+      "code": "CREATE TABLE IF NOT EXISTS seed_whitelist_entries (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                campaign_id TEXT NOT NULL,\n                wallet TEXT NOT NULL UNIQUE,\n                wallet_name TEXT,\n                signature TEXT NOT NULL,\n                message TEXT NOT NULL,\n                nonce TEXT NOT NULL UNIQUE,\n                status TEXT NOT NULL DEFAULT 'registered',\n                reward_nck INTEGER NOT NULL DEFAULT 100,\n                ip TEXT,\n                user_agent TEXT,\n                created_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            )",
+      "explanation": "This table is the registration authority for the Seed flow. It stores a central row and a reward metadata integer. It has no mint, token account, base-unit amount, payout transaction, slot, commitment, or token balance field.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Create a central table with an auto-increment ID, campaign label, and wallet that is globally unique across all campaigns."
+        },
+        {
+          "lines": "5-8",
+          "meaning": "Store the wallet label, detached signature, exact signed message, and a unique nonce."
+        },
+        {
+          "lines": "9-10",
+          "meaning": "Default the central status to registered and the central reward metadata integer to 100."
+        },
+        {
+          "lines": "11-15",
+          "meaning": "Store IP, User-Agent, creation time, and update time. No source retention or user-deletion rule appears in the schema."
+        }
+      ]
+    },
+    {
+      "title": "Repeat registration updates one row and consumes the challenge",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "existing = db.execute(\"SELECT id,created_at FROM seed_whitelist_entries WHERE wallet=?\", (wallet,)).fetchone()\n            if existing:\n                db.execute(\n                    \"UPDATE seed_whitelist_entries SET wallet_name=?, signature=?, message=?, nonce=?, status='registered', ip=?, user_agent=?, updated_at=? WHERE wallet=?\",\n                    (wallet_name, signature, message, nonce, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300], created_at, wallet),\n                )\n                entry_id = existing[\"id\"]\n                first_created = existing[\"created_at\"]\n            else:\n                cursor = db.execute(\n                    \"INSERT INTO seed_whitelist_entries(campaign_id,wallet,wallet_name,signature,message,nonce,ip,user_agent,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)\",\n                    (CAMPAIGN_ID, wallet, wallet_name, signature, message, nonce, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300], created_at, created_at),\n                )\n                entry_id = cursor.lastrowid\n                first_created = created_at\n            db.execute(\"UPDATE seed_challenges SET used_at=? WHERE nonce=?\", (now, nonce))\n            db.commit()",
+      "explanation": "A known wallet is updated rather than inserted again. The current update replaces proof and request metadata, resets status to registered, preserves the original ID and created time, and does not update campaign_id. It then marks the challenge used and commits these central writes.",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "Look up by wallet alone; for an existing row overwrite wallet label, proof, nonce, status, IP, User-Agent, and update time while keeping the first ID and creation time."
+        },
+        {
+          "lines": "9-15",
+          "meaning": "For a new wallet insert the current campaign and proof fields, then save the new row ID and first creation time."
+        },
+        {
+          "lines": "16-17",
+          "meaning": "Mark the challenge used and commit. The read-check and used update are not one compare-and-set statement, so this is not proof of exactly-once behavior under concurrency."
+        }
+      ]
+    },
+    {
+      "title": "The corrected browser trusts only matching server responses",
+      "language": "JavaScript",
+      "source": "seed/seed-state.js",
+      "code": "export function confirmSeedEntry(state, entry, source) {\n  const cleared = clearSeedEntryConfirmation(state);\n  if (!confirmedEntrySources.has(source) || !entryMatchesSeedWallet(entry, state.wallet)) {\n    return cleared;\n  }\n  return {\n    ...cleared,\n    entry,\n    entryConfirmation: source,\n    statusCheck: source === seedEntryConfirmation.status ? \"confirmed\" : state.statusCheck,\n  };\n}\n\nexport function applySeedStatusPayload(state, payload) {\n  if (payload?.ok !== true) return clearSeedEntryConfirmation(state, \"failed\");\n  if (!payload.entry) return clearSeedEntryConfirmation(state, \"empty\");\n  const confirmed = confirmSeedEntry(state, payload.entry, seedEntryConfirmation.status);\n  return isSeedRegistrationConfirmed(confirmed)\n    ? confirmed\n    : clearSeedEntryConfirmation(confirmed, \"failed\");\n}",
+      "explanation": "The earlier page could present any local entry as registered, including an entry for another wallet. The corrected pure state transition clears old trust first and accepts only status or join sources whose entry wallet exactly matches the current wallet. This improves the display but does not turn the central response into chain evidence.",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "Clear all previous registration confirmation and refuse an untrusted source or an entry whose wallet differs from the current wallet."
+        },
+        {
+          "lines": "6-11",
+          "meaning": "Retain the entry only with its trusted response source and record a confirmed status lookup when appropriate."
+        },
+        {
+          "lines": "14-20",
+          "meaning": "Treat failed and empty status payloads as no confirmation; route a nonempty response through exact-wallet matching and clear it again if that test fails."
+        }
+      ]
+    },
+    {
+      "title": "A real SPL movement invokes transfer_checked",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "fn transfer_nck<'a>(\n    source_token: &AccountInfo<'a>,\n    destination_token: &AccountInfo<'a>,\n    nck_mint: &AccountInfo<'a>,\n    owner: &AccountInfo<'a>,\n    token_program: &AccountInfo<'a>,\n    amount: u64,\n) -> ProgramResult {\n    let ix = spl_token::instruction::transfer_checked(\n        token_program.key,\n        source_token.key,\n        nck_mint.key,\n        destination_token.key,\n        owner.key,\n        &[],\n        amount,\n        NCK_DECIMALS,\n    )\n    .map_err(|_| NicechunkMarketError::InvalidInstruction)?;\n    invoke(\n        &ix,\n        &[\n            source_token.clone(),\n            nck_mint.clone(),\n            destination_token.clone(),\n            owner.clone(),\n            token_program.clone(),\n        ],\n    )\n}",
+      "explanation": "This Marketplace helper is a comparison, not part of Seed. Its caller first validates the exact NCK mint, Token Program, and token-account owners. The helper then builds a checked transfer with source, destination, mint, authority, amount, and decimals and invokes the Token Program. Seed contains no corresponding call.",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "Require explicit source token account, destination token account, mint, signing owner, Token Program, and integer base-unit amount."
+        },
+        {
+          "lines": "9-18",
+          "meaning": "Build transfer_checked with those accounts, the amount, and NCK_DECIMALS so the instruction is bound to the mint's unit scale."
+        },
+        {
+          "lines": "19-29",
+          "meaning": "Invoke the Token Program with all required accounts. A transaction must still execute successfully before any later balance claim."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "seed/seed.js",
+      "claim": "Implements wallet detection and connection, Seed and shared browser bindings, challenge request, signMessage, local TweetNaCl verification, central join, public status refresh, and the corrected registration display boundary."
+    },
+    {
+      "path": "seed/seed-state.js",
+      "claim": "Defines pure state transitions that separate cached addresses, active providers, matching status or join responses, empty status, failures, wallet changes, and unverified network results."
+    },
+    {
+      "path": "seed/tests/seed-state.test.mjs",
+      "claim": "Covers seven focused cases for untrusted cache entries, exact wallet matching, trusted response sources, wallet switching, empty or failed status, cached versus connected state, and unverified networks."
+    },
+    {
+      "path": "scripts/audit-seed-flow.mjs",
+      "claim": "Runs ten mock Chromium scenarios for forged cache data, empty and failed status responses, wallet changes, disconnects, stale responses, unknown or observable networks, and a permanently pending status request without generating or printing a private key."
+    },
+    {
+      "path": "seed/index.html",
+      "claim": "Contains the campaign presentation whose displayed allocation and bootstrap reference must remain separate from the registration and token evidence."
+    },
+    {
+      "path": "seed_api.py",
+      "claim": "Defines central service configuration, challenge and whitelist schemas, challenge message construction, Ed25519 verification, registration upsert, public status, admin listing, stored request metadata, and hard-coded response reward."
+    },
+    {
+      "path": "nginx.site.conf",
+      "claim": "Proxies the public Seed and invite API routes to the local Python service on port 8787, establishing the central-service deployment boundary."
+    },
+    {
+      "path": "src/solanaNetwork.js",
+      "claim": "Shows the client-required Devnet policy and the explicit unknown or unverified branch when a provider cannot report or switch network."
+    },
+    {
+      "path": "src/walletSession.js",
+      "claim": "Defines the shared browser wallet address, name, and binding-time fields that Seed connection also updates."
+    },
+    {
+      "path": "programs/nicechunk_market/src/cluster_config.rs",
+      "claim": "Names the cluster-specific NCK mint constants, including the current Devnet mint used for comparison with a real token path."
+    },
+    {
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "Shows an actual NCK payment path validating the mint, Token Program, and token accounts before invoking SPL transfer_checked. Seed does not call it."
+    },
+    {
+      "path": "programs/nicechunk_core/src/state.rs",
+      "claim": "Defines six NCK decimals and the genesis supply in base units, supporting the unit calculation without proving any player payment."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "The gameplay chain adapter imports Solana and SPL Token primitives and names the Devnet NCK mint; the absence of this machinery from Seed is the relevant contrast."
+    },
+    {
+      "path": "docs/wallet-flow-audit.md",
+      "claim": "Documents browser wallet binding and local-state cleanup as background context; it does not audit Seed signMessage or the central Seed API."
+    }
+  ],
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "Wallet Login and Safety",
+      "summary": "Review why Connect, message approval, and transaction approval are distinct and why no external-wallet secret should be shared."
+    },
+    {
+      "slug": "local-game-wallet-backup-and-risk",
+      "href": "/docs/local-game-wallet-backup-and-risk/",
+      "title": "Local Game Wallet: Backup, Signing, and Recovery",
+      "summary": "Contrast this external-wallet message proof with the separate browser-held Game Wallet private-key model."
+    },
+    {
+      "slug": "marketplace-listings",
+      "href": "/docs/marketplace-listings/",
+      "title": "Marketplace Listing PDAs",
+      "summary": "Inspect a chain path that actually validates payment accounts and invokes token movement."
+    },
+    {
+      "slug": "global-config-genesis",
+      "href": "/docs/global-config-genesis/",
+      "title": "GlobalConfig Genesis",
+      "summary": "See where the accepted NCK mint identity and decimal scale are recorded without confusing them with a player payment."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "CONTINUE THE PLAYER AND WALLET PATH",
+      "title": "Next, turn a local wallet binding into an owner-signed character request",
+      "summary": "This Seed flow proves one exact message to a central campaign service. The next reviewed guide follows the current character page from a non-reserving name check and two fixed models through one Player transaction, browser cache attempts, and an optional second invite transaction."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "local-game-wallet-backup-and-risk",
+        "title": "Local Game Wallet: Backup, Signing, and Recovery",
+        "summary": "Review how the separate built-in Game Wallet stores a full signing secret and why its custody risks differ from this external-wallet message proof."
+      },
+      {
+        "label": "Next reviewed guide",
+        "slug": "character-creation",
+        "title": "Character Creation",
+        "summary": "See what the owner wallet signs, which three public records first creation can create, and which cache, invite, and spawn steps remain separate."
+      }
+    ]
+  }
+}

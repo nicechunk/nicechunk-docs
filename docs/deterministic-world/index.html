@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="deterministic-world" data-docs-static-source="72384bb19f37751d507140ed326b5eb22bc9418e00d2566e57b13d8989b601a3">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/deterministic-world.json" />
+    <meta name="nicechunk:source-sha256" content="72384bb19f37751d507140ed326b5eb22bc9418e00d2566e57b13d8989b601a3" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/deterministic-world/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn how NiceChunk reconstructs untouched terrain from canonical inputs and keeps mined-block state separate from the base world." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="The Deterministic NiceChunk World" />
+    <meta property="og:description" content="Learn how NiceChunk reconstructs untouched terrain from canonical inputs and keeps mined-block state separate from the base world." />
+    <meta property="og:url" content="https://nicechunk.com/docs/deterministic-world/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/deterministic-world-overview-v3.webp" />
+    <meta property="og:image:alt" content="The villager girl places a seed cube into a coordinate compass while the villager boy compares a generated grass block and records a mined coordinate separately; identical terrain echoes appear across the lattice." />
+    <title>The Deterministic NiceChunk World</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/deterministic-world/#article",
+  "url": "https://nicechunk.com/docs/deterministic-world/",
+  "name": "The untouched world is a reproducible answer",
+  "description": "Learn how NiceChunk reconstructs untouched terrain from canonical inputs and keeps mined-block state separate from the base world.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "The untouched world is a reproducible answer",
+  "mainEntityOfPage": "https://nicechunk.com/docs/deterministic-world/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "A coordinate is a question to the world",
+    "Seeded integer arithmetic replaces a hidden dice roll",
+    "The base answer and the player's edit are kept apart",
+    "A tree is one generated structure across many blocks"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/deterministic-world/#coordinate-question",
+      "name": "A coordinate is a question to the world"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/deterministic-world/#seeded-arithmetic",
+      "name": "Seeded integer arithmetic replaces a hidden dice roll"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/deterministic-world/#base-and-deltas",
+      "name": "The base answer and the player's edit are kept apart"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/deterministic-world/#tree-exception",
+      "name": "A tree is one generated structure across many blocks"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/deterministic-world-overview-v3.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Deterministic World</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 01 · WORLD GENERATION</p>
+<h1>The untouched world is a reproducible answer</h1>
+<p class="docs-hero-summary">Give one implementation of the current world algorithm the same canonical seed, bounds, and integer coordinate, and it returns the same base block. Chunk.js draws terrain locally, while the chunk program independently calculates the protocol block it expects when an action needs verification.</p>
+<span class="docs-reading-time">7 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The villager girl places a seed cube into a coordinate compass while the villager boy compares a generated grass block and records a mined coordinate separately; identical terrain echoes appear across the lattice." decoding="async" height="887" loading="eager" src="/docs/media/deterministic-world-overview-v3.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Same question, same answer</strong>
+<p>The generators use integer coordinates and fixed integer-style hashing, so each implementation can recalculate an untouched location without accepting the player's claimed block as fact.</p></article>
+<article class="docs-key-point"><strong>Changes are another layer</strong>
+<p>A mined coordinate is recorded separately. It does not rewrite the formula that defines the original terrain around it.</p></article>
+<article class="docs-key-point"><strong>Trees are spatial structures</strong>
+<p>Trunks and leaves occupy many voxel coordinates, so trees remain part of the canonical spatial generator rather than the one-face decoration table.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#coordinate-question">A coordinate is a question to the world</a></li>
+<li><a href="#seeded-arithmetic">Seeded integer arithmetic replaces a hidden dice roll</a></li>
+<li><a href="#base-and-deltas">The base answer and the player's edit are kept apart</a></li>
+<li><a href="#tree-exception">A tree is one generated structure across many blocks</a></li>
+<li><a href="#technical-details">Reproducibility belongs to one implementation; parity needs a direct test</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="coordinate-question"><p class="docs-eyebrow">THE MENTAL MODEL</p>
+<h2>A coordinate is a question to the world</h2>
+<p class="docs-prose">Imagine asking, “What was originally at x, y, z?” In the browser, Chunk.js normalizes the configured seed into 32 bytes and applies the configured canonical bounds. The current Rust program instead uses its own fixed canonical seed, chunk size, build bounds, terrain limit, and sea level rather than reading terrain parameters from the legacy Core account.</p>
+<p class="docs-prose">Chunk.js builds terrain and fluid arrays for nearby chunks, then generates tree instances separately. Its getBlockAt() query is the complete coordinate answer because it resolves terrain, water, and eligible tree voxels together. The chunk program has an independent Rust implementation that calculates the protocol result used for action checks.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Location unit</span>
+<strong>Integer voxel</strong>
+<p>Mining verification addresses one exact x, y, z block coordinate.</p></article>
+<article class="docs-fact"><span>Current chunk width</span>
+<strong>16 × 16</strong>
+<p>Chunk coordinates and local coordinates are converted back into world coordinates.</p></article>
+<article class="docs-fact"><span>Base result</span>
+<strong>Block ID</strong>
+<p>The program recalculates the expected block type before accepting a mine.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Deterministic does not mean every game state is generated</strong>
+<p>The claim applies to the untouched canonical base world. Mined blocks, backpack contents, foundations, buildings, and other player state use their own records.</p></aside></section>
+<section class="docs-content-section" id="seeded-arithmetic"><p class="docs-eyebrow">HOW IT STAYS REPRODUCIBLE</p>
+<h2>Seeded integer arithmetic replaces a hidden dice roll</h2>
+<p class="docs-prose">The Chunk.js world engine normalizes the seed to bytes, hashes those bytes with coordinate values and purpose-specific salts, and interpolates fixed-range noise values. A salt lets terrain height, moisture, trees, and other layers use distinct repeatable number streams.</p>
+<p class="docs-prose">Chunk.js carries a generationVersion field through its configuration, but the current generator does not select alternate algorithms from it. The existing wide golden suite exercises the legacy browser generator and a JavaScript protocol mirror; it neither imports Chunk.js nor runs Rust. The chunk program independently implements fixed canonical constants and block logic, so JavaScript-to-Rust equality is an intended protocol invariant, not a property the current tests directly prove.</p>
+<ol class="docs-steps"><li><strong>Normalize the world input</strong>
+<p>In the browser, normalize the configured seed into 32 bytes and apply the canonical bounds. On chain, the current Rust program substitutes the fixed canonical seed and bounds instead of reading terrain values from the legacy Core account.</p></li>
+<li><strong>Hash the location</strong>
+<p>Hash the coordinate components needed by each layer. Two-dimensional terrain noise uses x and z with a fixed y component of zero, while ore, tree, and other volume decisions include height where required.</p></li>
+<li><strong>Build the column</strong>
+<p>Use repeatable terrain factors to find surface and water levels, then resolve the block at the requested height.</p></li>
+<li><strong>Check stable fixtures</strong>
+<p>Golden tests sample wide coordinate ranges in the legacy browser generator and a JavaScript protocol mirror. They can expose changes in those paths, but they are not a direct Chunk.js-to-Rust comparison.</p></li></ol></section>
+<section class="docs-content-section" id="base-and-deltas"><p class="docs-eyebrow">STATE LAYERS</p>
+<h2>The base answer and the player's edit are kept apart</h2>
+<p class="docs-prose">When a mine is accepted, the program records a compact coordinate in the ChunkBroken PDA for that chunk. The base generator can still say which block originally belonged there; the delta says that this specific block has already been removed.</p>
+<p class="docs-prose">The play client reads chunk PDAs in batches, decodes their mined-coordinate lists, and applies those deltas over generated terrain. That is why a shared world can preserve player edits without storing a full second copy of every untouched chunk.</p>
+<ul class="docs-bullets"><li>Base terrain answers what originally exists at a coordinate.</li>
+<li>ChunkBroken answers which generated coordinates have been mined.</li>
+<li>The backpack records accepted rewards instead of trusting a local inventory animation.</li>
+<li>Foundation and building systems keep their own state; they are not implied by the terrain formula.</li></ul>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A local cache is not the authority</strong>
+<p>The client may cache decoded chunk snapshots for speed, but it checks account ownership and replaces rendered chain deltas from RPC snapshots.</p></aside></section>
+<section class="docs-content-section" id="tree-exception"><p class="docs-eyebrow">WHY TREES ARE DIFFERENT</p>
+<h2>A tree is one generated structure across many blocks</h2>
+<p class="docs-prose">A tree can cross chunk edges and fill a trunk plus a canopy of leaf voxels. The generator therefore derives the tree candidate, height, type, and occupied volume from its spatial rules, then answers every affected coordinate consistently.</p>
+<p class="docs-prose">Trees are the only natural decoration family resolved by canonical spatial generation. Plants, flowers, shrubs, cactus models, moss, lichen, mushrooms, and pebbles must be resolved from a fetched and valid SurfaceDecorationTable PDA and bound to their supporting terrain face. When no valid table is installed, those non-tree surface decorations remain disabled.</p>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Why the boundary matters</strong>
+<p>Keeping one-face objects out of the core generator lets their distributions change through a PDA rule-table update without adding item-specific recognition branches to the chunk program.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">IMPLEMENTATION BOUNDARY</p>
+<h2>Reproducibility belongs to one implementation; parity needs a direct test</h2>
+<p>The equations separate two claims that are easy to confuse. A fixed implementation can reproduce its own answer, while agreement between Chunk.js and Rust remains a protocol invariant that must be exercised across both implementations.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Determinism inside one implementation</h3>
+<div aria-label="B_impl(p) = G_impl(S, p, C), where p = (x, y, z) in Z^3" class="docs-formula-expression" role="math"><code>B_impl(p) = G_impl(S, p, C), where p = (x, y, z) in Z^3</code></div>
+<p class="docs-technical-explanation">For one fixed implementation, the same 32-byte seed, integer coordinate, and canonical constants produce the same base-block answer. This equation does not by itself prove that two independent implementations agree.</p>
+<dl class="docs-formula-terms"><dt>B_impl(p)</dt>
+<dd>The base block returned by one particular generator implementation at coordinate p.</dd>
+<dt>G_impl</dt>
+<dd>One fixed JavaScript or Rust world-generation implementation.</dd>
+<dt>S</dt>
+<dd>The normalized 32-byte world seed used by that implementation.</dd>
+<dt>p</dt>
+<dd>An integer voxel coordinate in three-dimensional space.</dd>
+<dt>C</dt>
+<dd>The chunk size, build bounds, sea level, terrain limit, and other canonical constants.</dd></dl></article>
+<article class="docs-formula"><h3>Cross-implementation parity requirement</h3>
+<div aria-label="Parity(P) = true iff for every p in P: G_JS(S, p, C) = G_Rust(S, p, C)" class="docs-formula-expression" role="math"><code>Parity(P) = true iff for every p in P: G_JS(S, p, C) = G_Rust(S, p, C)</code></div>
+<p class="docs-technical-explanation">Parity is established only for coordinates exercised by a fixture that runs both implementations with the same canonical inputs. The current golden suite imports neither Chunk.js nor Rust, so this remains a protocol requirement rather than a property those tests directly prove.</p>
+<dl class="docs-formula-terms"><dt>P</dt>
+<dd>The set of coordinates covered by a direct cross-language parity fixture.</dd>
+<dt>G_JS</dt>
+<dd>The Chunk.js coordinate query under canonical inputs.</dd>
+<dt>G_Rust</dt>
+<dd>The chunk program's independent Rust calculation under the corresponding canonical inputs.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js normalizes the coordinate query</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/world/world-generator.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function getBlockAt(worldSeed, worldX, worldY, worldZ, ruleVersion = DEFAULT_GENERATION_VERSION, options = {}) {
+  const config = createWorldGeneratorConfig({ ...options, worldSeed, generationVersion: ruleVersion });
+  const x = Math.trunc(worldX);
+  const y = Math.trunc(worldY);
+  const z = Math.trunc(worldZ);
+  return blockAtConfig(config, x, y, z);
+}</code></pre>
+<p class="docs-technical-explanation">The public query converts every component to an integer and resolves terrain, fluid, and eligible generated-tree voxels through the complete coordinate path. The generationVersion field is carried in the configuration, but the current generator does not use it to select a different algorithm.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Rust rejects a mismatched generated block</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let block_id = generated_block_id_at(global_config_view, &amp;generated_args);
+    if args.expected_block_id != block_id {
+        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());
+    }</code></pre>
+<p class="docs-technical-explanation">The chunk program independently recalculates the block ID and rejects the action when the player's expected block does not match its result.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>chunk.js/world/world-generator.js</code>
+<p>Defines the current seeded chunk generator, canonical defaults, terrain profiles, water, and generated tree instances.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/core/hash.js</code>
+<p>Implements seed normalization, coordinate hashing, and fixed-range noise interpolation used by the shared engine.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Contains the chunk program's canonical block, surface, water, tree, and coordinate calculations plus compact ChunkBroken state.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Recalculates the generated block during mining and records accepted mined coordinates and backpack rewards.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-chunk-deltas.js</code>
+<p>Fetches, validates, decodes, caches, and incrementally applies ChunkBroken PDA snapshots to the rendered world.</p></article>
+<article class="docs-evidence-item"><code>tests/worldgen_golden.ts</code>
+<p>Pins representative and wide-range results from the legacy JavaScript generation paths; it is compatibility evidence, not a direct Chunk.js-to-Rust parity proof.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

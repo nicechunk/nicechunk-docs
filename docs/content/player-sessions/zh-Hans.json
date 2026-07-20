@@ -1,0 +1,2267 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-player-sessions-zh-Hans-97786d6643d100cf",
+    "contentHash": "97786d6643d100cf"
+  },
+  "slug": "player-sessions",
+  "kind": "topic",
+  "shortTitle": "玩家 Session",
+  "seo": {
+    "title": "NiceChunk PlayerSession：临时权限不等于密钥沙箱",
+    "description": "了解一次钱包授权如何创建会到期的 NiceChunk PlayerSession、普通 Session 密钥仍能签署哪些交易、哪些操作会读取这张通行证，以及刷新、注资、退出登录、到期和 Guardian 分别无法保护什么。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包和控制 · 第 11 步",
+    "title": "一次钱包授权可以创建会到期的 NiceChunk 通行证——但它不会把密钥关进沙箱",
+    "summary": "仓库中的生产环境源码入口是 /play/index.html → /play/main.js → play/*，其中 play-chain-adapter.js 会解析链模块。但保留的 2026-07-19 UTC Nginx 快照显示，线上 /play/index.html 引用了带版本号的运行时 bundle；在全局覆盖和 localStorage 覆盖都未生效时，该 bundle 会把一个带版本号的链模块资源列为默认候选，审计又单独获取并计算了它的哈希。真正决定线上行为的是浏览器最终解析到的模块，而不是尚未构建的源码文件。一次钱包授权可以围绕浏览器保存的 Keypair 创建一份会到期的 PlayerSession 记录；但记录到期不会让 Keypair 或其中的 SOL 一起过期，这张通行证也不会把密钥限制在沙箱内。",
+    "readingTime": "阅读时间 56 分钟",
+    "visual": {
+      "src": "/docs/media/player-sessions-overview-v2.webp",
+      "alt": "生成的 NiceChunk 海岸授权驿站中，标准黑发村民男孩在一把独立的铜制 Session 密钥旁使用耐久的 owner 印章，标准橙发村民女孩则查看沙漏和空白石制账册。",
+      "caption": "owner 印章、普通铜钥匙、沙漏、空白记录，以及通往采矿、建造和储物区域的道路，共同表示长期 owner 与会到期的游戏通行证，同时强调这把密钥仍是普通密钥。该生成场景使用标准村民、真实 Chunk.js 海岸和游戏烘焙材质；它没有执行钱包授权、创建 PlayerSession、证明记录已经到期、限制签名者，也没有展示当前链上状态。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "如果一次钱包授权就能让游戏继续替我签名，那么它究竟获准做什么？私钥保存在哪里？谁能花掉 Session authority 地址里的 SOL？我又该怎样真正停止它？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包和控制 · 第 11 步（共 15 步）"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的普通玩家"
+      },
+      {
+        "label": "已审查的仓库源码路径",
+        "value": "仓库中的生产环境 /play/ 路径是 /play/index.html → /play/main.js → play/* → play/play-chain-adapter.js；较旧的 /src/main.js 不属于本项结论。只查看仓库源码不能证明浏览器实际加载了哪些字节；要确认它们，必须检查最终解析到的 URL 并计算响应哈希。"
+      },
+      {
+        "label": "观测到的线上 Nginx 路径",
+        "value": "2026-07-19 UTC 的线上快照归入 2026-07-18 文档审计批次保存：/play/index.html 引用了 /runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js；若没有覆盖项生效，这些运行时字节会把 /assets/nicechunkChain.play-bundle-de6020cca220427a.js 列为默认链模块候选，审计又单独获取了该文件；/play/main.js 与 /play/play-chain-adapter.js 返回的则是 index HTML 回退页。"
+      },
+      {
+        "label": "生产环境静态字节哈希",
+        "value": "2026-07-19 UTC 生产环境快照通过静态 HTTPS GET 固定了这些字节：线上入口 /play/index.html 的 SHA-256 为 9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f；它引用的带版本号运行时 bundle /runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js 的 SHA-256 为 594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6；单独获取的带版本号默认链模块候选 /assets/nicechunkChain.play-bundle-de6020cca220427a.js 的 SHA-256 为 2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4。清单别名 /assets/nicechunkChain.js 与该带版本号候选具有相同 SHA-256，字节也完全一致。静态快照没有观测浏览器最终实际导入了哪一个候选。"
+      },
+      {
+        "label": "回退页与批量采矿候选的字节哈希",
+        "value": "静态 HTTPS GET 探测发现，/play/main.js 和 /play/play-chain-adapter.js 都返回 HTML 回退页，SHA-256 同为 9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f，字节与 /play/index.html 完全一致。带版本号的批量采矿候选 /assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js 返回 HTTP 404，其响应 SHA-256 为 766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07。未带版本号的 /assets/nicechunkBulkMining.js 也以相同 SHA-256 返回 HTTP 404；它只是一个未被选中的边界探针，本运行时并未选择它。"
+      },
+      {
+        "label": "采集方法的证据边界",
+        "value": "这次审计只对固定公开文件执行静态 HTTPS GET 并计算字节哈希，不是浏览器 HAR，也不是经过插桩的浏览器会话。生产环境快照只代表当时的观察，不能保证状态永久不变或未来仍然相同。审计没有调用放置或 Backpack 函数，没有观察浏览器的动态 import，也没有读取、设置或触发任何玩家的全局覆盖项或 localStorage 覆盖项；返回的代码字节只能证明这种覆盖能力存在。"
+      },
+      {
+        "label": "线上功能字节的证据边界",
+        "value": "获取到的带版本号默认链模块候选中，确实含有函数体返回值 chain-placement-disabled，但静态快照没有调用放置函数。线上提供的链模块字节还包含统一 Game Program 的 Backpack 命名空间 1，以及 discardBackpackResourceAt、discardBackpackResourcesAt 两个导出；这项静态 Backpack 证据没有构建或发送任何指令与交易。获取到的默认候选均不包含 recordBulkMineOnChain 导出。"
+      },
+      {
+        "label": "运行时信任边界",
+        "value": "适配器会先检查全局覆盖项和 localStorage 中的 nicechunk.chainModuleUrl，之后才考虑带版本号候选与清单候选，因此这两种覆盖机制都能改变实际运行的模块字节。动态 import 会先执行模块代码，之后才检查导出结构，所以绝不能填写不受信任的 URL。这是对能力边界的警告，不代表审计已经观察到利用行为或安全入侵。"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 18–19 日 · 源码原文摘录、生成图像溯源、离线确定性源码审计、一份只读 Devnet 账户快照，以及一份保留的线上 Nginx 运行时快照"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Owner（所有者）",
+        "meaning": "与 PlayerProfile 绑定的长期玩家公钥。可以把它理解成房契上写明的主人身份，而不是浏览器另外保存的 Session 专用工作密钥。"
+      },
+      {
+        "term": "Session authority（Session 权限密钥）",
+        "meaning": "执行支持 Session 的操作时，作为签名者提交的公钥。使用插件钱包时，它通常属于浏览器另外保存的一组 Keypair；使用 Local Game Wallet 时，它就是 owner 密钥本身。"
+      },
+      {
+        "term": "密钥对（Keypair）",
+        "meaning": "一组 Keypair 包含公开地址与私密签名字节。任何取得私密字节的人都能为该地址生成有效签名；PlayerSession 不会改写或限制这把密钥能签署什么。"
+      },
+      {
+        "term": "PlayerSession",
+        "meaning": "由 NiceChunk Player Program 拥有的一份 184 字节公开账户。授权记录会到期，但独立的 Keypair、地址和 SOL 不会随记录一起到期或消失。"
+      },
+      {
+        "term": "PDA",
+        "meaning": "由种子与程序 ID 确定性派生出的账户地址。PlayerSession 地址使用字面量 session、owner 公钥和 Session authority 公钥作为种子。"
+      },
+      {
+        "term": "签名者",
+        "meaning": "在当前指令中标记为 is_signer 的账户。对本页审查的浏览器直接交易来说，每把不同密钥通常都要提供交易签名；CPI 中由程序派生的签名者则可以通过 invoke_signed 获得授权。如果两个角色使用同一个公钥，一份匹配的签名就能同时满足两项直接设置检查。"
+      },
+      {
+        "term": "操作位",
+        "meaning": "allowedActions 中一个只能取“允许”或“不允许”的二进制位置。位索引 1 的值为 2，名为 BREAK_BLOCK；位索引 2 的值为 4，名为 PLACE_BLOCK。"
+      },
+      {
+        "term": "使用方",
+        "meaning": "在执行自身操作前会读取 PlayerSession 的下游合约处理分支。已审计的能力范围包含 Chunk、Building 和 Backpack 代码，但这不能证明默认 Play 资源已经把每个分支都开放给玩家。"
+      },
+      {
+        "term": "密钥沙箱",
+        "meaning": "如果真有密钥沙箱，它会从技术上阻止密钥签署获准集合之外的内容。当前 PlayerSession 并不具备这种边界；它只能约束那些主动读取该记录的程序。"
+      },
+      {
+        "term": "浏览器存储",
+        "meaning": "同一网站源内的浏览器代码可以访问的数据。插件 Session 的私钥材料以 Base64 保存到按 owner 隔离的键名下；Base64 只是便于存储的编码，不是加密。"
+      },
+      {
+        "term": "刷新",
+        "meaning": "在同一个 PlayerSession PDA 上更新 allowedActions、expiresAt、updatedSlot 与 maxActions，并把 actionCount 重置为零。刷新不等于撤销。"
+      },
+      {
+        "term": "System Program",
+        "meaning": "Solana 用于普通 SOL 转账与账户操作的原生程序。普通 Keypair 可以签署 System Program 转账，全程无需引用 NiceChunk PlayerSession。"
+      },
+      {
+        "term": "Local Game Wallet",
+        "meaning": "一份持久保存在浏览器中的钱包，其 Base58 私钥另行存储。当前 Session 设置会让同一把长期密钥同时充当 owner 与 sessionAuthority。"
+      },
+      {
+        "term": "链上时间",
+        "meaning": "程序内部从 Clock sysvar 读取的时间戳。使用方以这个链上时间判断 Session 是否到期，而不是只看浏览器时钟。"
+      },
+      {
+        "term": "紧凑索引",
+        "meaning": "紧凑 Backpack 数组中的位置。移除一个位置后，后面的每条记录都会向左移动，因此索引表示当前所在位置，并不是永久不变的物品身份。"
+      },
+      {
+        "term": "Guardian",
+        "meaning": "NiceChunk 独立的实时通信与区域系统。它当前的合约、HELLO 消息和运行时客户端都不会签发、验证、刷新或撤销 PlayerSession。"
+      },
+      {
+        "term": "保留快照",
+        "meaning": "从一个 RPC 上下文保存下来的只读观察。它只能证明当时返回了什么，不能证明网络账户数量永久不变、不能代表 Mainnet 状态，也不能证明任何人持有对应私钥。"
+      },
+      {
+        "term": "Lamport 和 SOL",
+        "meaning": "lamport 是 SOL 的最小单位：1 SOL = 1,000,000,000 lamports。浏览器要求的 0.1 SOL 就是 100,000,000 lamports。"
+      },
+      {
+        "term": "rent 账户资金",
+        "meaning": "数据账户为维持已分配空间而持有的 lamports。PlayerSession PDA 的 rent 资金与 Session authority 地址上可自由花费的 SOL 彼此独立；已审查程序也没有关闭 Session 并退还 rent 的流程。"
+      },
+      {
+        "term": "bundle、模块与实际加载资源",
+        "meaning": "bundle 是打包后的浏览器代码；模块是一个 JavaScript 代码单元；实际加载资源则是运行时最终选中的那份响应。仓库源码可以解释设计意图，却不能证明线上浏览器最后解析到哪一份打包字节。"
+      },
+      {
+        "term": "浏览器源与键名前缀",
+        "meaning": "浏览器源由站点协议、主机名和端口共同界定，也是存储隔离边界。前缀是 localStorage 键名的开头；退出登录会扫描多个前缀，却不会把钱包后缀限制为当前钱包。"
+      },
+      {
+        "term": "RPC、slot 与 confirmed",
+        "meaning": "RPC 是读取 Solana 节点的接口；slot 标识账本中的一个位置；confirmed 是获得较强集群支持的确认级别，但不等同于 finalized。"
+      },
+      {
+        "term": "Devnet 和 Mainnet",
+        "meaning": "Devnet 是 Solana 的公共测试网；Mainnet 是承载真实价值的生产网络。绝不能把 Devnet 账户快照说成 Mainnet 的账户总体或余额证据。"
+      },
+      {
+        "term": "PlayerProfile 和 GlobalConfig",
+        "meaning": "PlayerProfile 是玩家的公开身份账户；GlobalConfig 指向共享游戏配置与世界上下文。Session 设置和下游使用方都会核对输入与这些账户之间的指定关系。"
+      },
+      {
+        "term": "Base58 编码",
+        "meaning": "Local Game Wallet 私钥使用的一种可逆文本编码。与 Base64 一样，它只改变表示形式，不会加密或保护私密字节。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "通行证限制的是 NiceChunk 使用方，不是 Keypair",
+      "body": "超过 expiresAt，或请求缺少对应操作位时，支持 Session 的使用方可以拒绝请求。但同一组普通 Session Keypair 仍能签署独立的 System Program 转账；该转账完全不必引用 PlayerSession，也不必调用 Player Program。"
+    },
+    {
+      "title": "设置需要两个签名者角色，即使同一把密钥同时充当两者",
+      "body": "创建或刷新要求 owner 与 sessionAuthority 都是签名者。插件钱包模式下两把不同密钥会产生两份签名；Local Game Wallet 把同一公钥放在两个角色中，因此一份签名即可同时满足两项检查。"
+    },
+    {
+      "title": "链上记录公开，签名私钥留在客户端",
+      "body": "这份 184 字节账户公开公钥、权限 mask、到期时间和计数器。插件模式会把 Session 私密字节编码成 Base64，保存在按 owner 隔离的 localStorage 中；Base64 不是加密，私密字节也绝不应写入公开记录。"
+    },
+    {
+      "title": "BREAK_BLOCK 目前的影响范围比其名称所暗示的要远得多",
+      "body": "15 个已审计的合约 Session 分支都使用位索引 1、数值 2：5 个 Chunk 处理器、Building 的 0–7 共 8 个 tag，以及 2 个采用四账户形状的 Backpack 分支。这个能力数量不能证明默认 Play 资源能够到达全部 15 个分支；保留的线上资源只确认了统一 Game 的 Backpack 路由和已禁用的放置功能，而且没有暴露批量采矿导出。"
+    },
+    {
+      "title": "10,000 只是存储值，并未被强制执行",
+      "body": "仓库中的 Session 构建器把 PlayerSession 请求为只读账户，处理器只借用并检查它；没有使用方调用 Player Program 增加计数，也没有处理器比较 actionCount 与 maxActions。正是这些彼此独立的事实，而不只是元数据自述，说明 10,000 当前只是存储值，并非操作次数上限。"
+    },
+    {
+      "title": "刷新、退出登录和 Guardian 都不等于撤销",
+      "body": "使用同一把密钥会选中同一个 PDA，但只有已存关系与当前 Profile 检查全部通过时才会重写；换一把新密钥会创建另一份锁定 rent 的 PDA，却不会停用旧记录或退还旧记录的 rent。退出登录只会尽力清理本地数据，而且不保证删除成功；它不会改变链上账户或 SOL 余额，Guardian 仍是独立系统。"
+    },
+    {
+      "title": "链上设置与浏览器保存私钥是两次独立提交",
+      "body": "owner 交易可能在新 Session 私钥写入 localStorage 之前就已广播或确认。存储失败、确认结果不明确或页面被关闭，都可能留下已经注资的 Session authority 与 PDA，却没有可持久恢复的浏览器密钥；重试还可能继续创建并注资更多 Session authority。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "one-player-two-keys",
+      "eyebrow": "身份与签名能力",
+      "title": "一名玩家可以使用两把密钥，但工作密钥仍是普通 Solana 签名者",
+      "paragraphs": [
+        "先看一名玩家与两个账户角色。owner 是 PlayerProfile 背后的长期身份；sessionAuthority 则是重复执行操作时交给使用方检查的签名密钥。插件钱包模式通常为两种角色使用不同密钥：钱包保管长期 owner 密钥，浏览器另存一组 Session 专用 Keypair。这不会创建第二名玩家，不会转移 Backpack，也不会让教学图中的女孩获得任何权限；两个角色最终仍指向同一个 owner。",
+        "记录地址是 P_session = PDA(PlayerProgram, [\"session\", owner, sessionAuthority])。字面量 session 与两个公钥按照这个顺序，在 Player Program ID 下共同参与派生。重复使用同一组 owner 与 sessionAuthority 会选中同一个 PDA，但地址相同并不保证刷新一定通过已存关系检查。只更换 Session authority，就会为同一名玩家选中另一个 PDA。",
+        "真正重要的边界在 PDA 之外：Session Keypair 是普通 Solana 签名者，并不是只能用于 NiceChunk 的专用密钥。它可以为一笔独立的 System Program 转账生成新签名，全程无需引用 PlayerSession，也无需调用 Player Program。Session 到期时间、allowedActions、maxActions 与 actionCount 都不是密钥沙箱，无法保护 Session 地址中的 SOL；这些字段只对主动读取它们的代码有效。会到期的是 PlayerSession 记录，不是 Keypair、地址、私密字节或普通签名能力。",
+        "Local Game Wallet 会改变角色组合：同一把长期密钥同时充当 owner 与 sessionAuthority，因此它占据两个账户位置，并派生 PDA(PlayerProgram, [\"session\", owner, owner])。设置成功时，它无需另存 Session 专用签名私钥，也能创建或刷新这份链上 PDA。客户端标记 usesGameplaySession: false 只表示没有独立的游戏 Keypair；单靠这个标记不能证明 PDA 已存在，也不能证明设置成功。"
+      ],
+      "facts": [
+        {
+          "label": "长期身份角色",
+          "value": "owner",
+          "detail": "会与 PlayerProfile 核对的公开身份，并保存在 PlayerSession 的字节偏移 12 处。"
+        },
+        {
+          "label": "工作签名者角色",
+          "value": "sessionAuthority",
+          "detail": "可以是插件模式下浏览器保存的 Keypair；在 Local Game Wallet 模式下，则是同一把长期 owner 密钥。"
+        },
+        {
+          "label": "确定性账户地址",
+          "value": "PDA(PlayerProgram, [\"session\", owner, sessionAuthority])",
+          "detail": "两个公钥都会影响地址；私密字节绝不会作为 PDA 种子。"
+        },
+        {
+          "label": "插件钱包角色组合",
+          "value": "owner ≠ sessionAuthority",
+          "detail": "已审查的仓库插件流程使用长期钱包身份，并另外在浏览器中保存 Session 签名者。"
+        },
+        {
+          "label": "Local Game Wallet 角色组合",
+          "value": "owner = sessionAuthority",
+          "detail": "同一把长期密钥兼任两个角色，并不是另行创建的 Session 专用钱包。"
+        },
+        {
+          "label": "离线转账签名证明",
+          "value": "System Program · 1 lamport · 有效签名 · 0 次广播",
+          "detail": "确定性审计在不输出私钥、不引用 PlayerSession、也不连接网络的情况下，构建并验证了一笔普通转账。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "把 Session 私钥当作已经注资的热钱包密钥保护",
+        "body": "这张通行证可以缩小已审计 NiceChunk 使用方愿意接受的请求范围，却无法阻止同一私钥签署另一条交易消息。旧签名不能直接套用到任意新消息上；真正的风险在于，控制私钥的人可以继续生成新签名。应尽量减少该地址中的 SOL，并保护好浏览器访问权限。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-one-player-two-keys-v1.webp",
+        "alt": "生成的 NiceChunk 海岸储物柜场景中，标准男孩把耐久的 owner 印章锁在一只 Backpack 上方，同时手持另一把铜制工作密钥；标准女孩只指向这名玩家的工作区，没有接过任何密钥。",
+        "caption": "一个储物柜、一只 Backpack、锁好的长期印章和手持铜钥匙，把两份凭证都联系到同一名玩家的工作区。这个生成的实体隐喻不能证明密钥归属，不能派生 PDA、展示私密字节或确定浏览器源，也不能证明任一密钥签署过交易。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "two-signature-setup",
+      "eyebrow": "一次授权交易",
+      "title": "15 字节请求写明权限边界，两个签名者角色都必须批准",
+      "paragraphs": [
+        "Player Program 会把指令 tag 4 分派给 create_or_refresh_player_session。已审查的仓库与 SDK 构建器总共序列化 15 字节：1 字节 tag，加上由 8 字节 expiresAt、2 字节 allowedActions mask 和 4 字节 maxActions 组成的 14 字节载荷。在完整指令数据中，tag 从偏移 0 开始，expiresAt 从偏移 1 开始，allowedActions 从偏移 9 开始，maxActions 从偏移 11 开始。指令同时携带六个账户：owner、sessionAuthority、PlayerProfile、PlayerSession、GlobalConfig 与 System Program。",
+        "owner 必须是可写签名者，Session authority 也必须是签名者。在已审查的浏览器直接交易中，两把不同密钥通常会产生两份交易签名：一份来自钱包 owner，另一份来自浏览器 Keypair。若同一个公钥同时占据两个角色，一份交易签名就能满足两项账户角色检查。合约实际读取的是 AccountInfo.is_signer；CPI 中的 PDA 签名者可能使用不同机制，因此“两把私钥、两份签名”的说明只适用于这条直接客户端流程。",
+        "只有 expiresAt 晚于链上 Clock 时间，也就是 expiresAt > chain Clock time，程序才会接受请求。程序还会拒绝全零 mask、两个已声明操作位以外的任何位，以及 maxActions = 0。已审查的仓库与保留的线上链模块资源都请求 8 小时有效期、allowedActions mask 6（0b0110）和 maxActions 10,000。这些只是客户端默认值；合约没有规定最长只能 8 小时。",
+        "如果规范 PDA 已归 Player Program 所有，tag 4 只有在旧记录中的 owner、authority、playerProfile、globalConfig 都与当前输入一致，并且当前 player-v7 Profile 前置检查通过后，才能刷新它。否则由 owner 出资分配新的规范 PDA。因此，选中同一地址并不保证一定能成功重写。仓库中的 Session 设置构建器会把 PlayerSession 标为可写；之后支持 Session 的使用方则把它请求为只读。"
+      ],
+      "facts": [
+        {
+          "label": "指令选择器",
+          "value": "tag 4",
+          "detail": "第一个字节选择 create_or_refresh_player_session。"
+        },
+        {
+          "label": "生产环境指令数据大小",
+          "value": "15 字节指令数据",
+          "detail": "1 个 tag 字节 + 8 个 expiresAt 字节 + 2 个 allowedActions 字节 + 4 个 maxActions 字节。"
+        },
+        {
+          "label": "指令数据偏移",
+          "value": "tag @ 0 · expiresAt @ 1 · allowedActions @ 9 · maxActions @ 11",
+          "detail": "分派器移除 tag 后，处理器只会收到余下 14 字节。"
+        },
+        {
+          "label": "owner 要求",
+          "value": "owner 必须是可写签名者",
+          "detail": "owner 还要支付设置手续费、可选注资、Profile 创建与 Session 账户分配成本。"
+        },
+        {
+          "label": "Session authority 要求",
+          "value": "sessionAuthority 必须是签名者",
+          "detail": "只有公开地址并不够；没有对应签名就不能创建或刷新该 Session。"
+        },
+        {
+          "label": "两把不同密钥",
+          "value": "两个不同公钥都必须提供签名",
+          "detail": "插件钱包与 Session 专用 Keypair 会共同批准同一笔设置交易。"
+        },
+        {
+          "label": "两个角色使用同一密钥",
+          "value": "一把密钥、一份签名同时满足两个角色",
+          "detail": "在 Local Game Wallet 模式下，两项签名者检查看到的是同一个已签名公钥。"
+        },
+        {
+          "label": "默认权限",
+          "value": "allowedActions = 6 = 0b0110",
+          "detail": "这个 mask 组合了数值 2 的 BREAK_BLOCK 与数值 4 的 PLACE_BLOCK。"
+        },
+        {
+          "label": "默认持续时间",
+          "value": "28,800 秒 · 8 小时",
+          "detail": "这是生产环境浏览器的选择，不是 Player Program 接受的最长有效期。"
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "一次钱包弹窗不代表只有一个签名者",
+        "body": "插件可能只显示一次 owner 授权弹窗，但浏览器还会把 Session 专用 Keypair 的签名加入同一笔交易。程序会独立检查两个签名者角色。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-two-signature-setup-v1.webp",
+        "alt": "生成的 NiceChunk 登记压印机前，标准男孩把长期 owner 印章和独立的铜制 Session 密钥分别放入空白记录两侧的插槽；标准女孩则查看另一套装置，其中同一把密钥横跨两个角色插槽。",
+        "caption": "双插槽压印机表示两个必需的签名者角色；横跨两侧的替代密钥表示同一个公钥同时占据两个账户位置。这些生成装置不会真的收集签名、序列化 tag 4、证明原子执行、创建或刷新账户、把私钥放到链上，也不能证明 Local Game Wallet 交易成功。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "public-record-private-secret",
+      "eyebrow": "184 字节公开记录，私密签名材料留在本地",
+      "title": "链上公开通行证记录，浏览器保存能使用它的私钥",
+      "paragraphs": [
+        "PlayerSession 是一份固定 184 字节的公开记录，以 NCKSES01 开头。任何读取账户的人都能看到公开 owner、Session authority、关联 Profile 与配置、世界、权限 mask、时间戳和已存计数器。公钥用于标识账户，并不是私密签名字节；这份记录无法泄露 Session Keypair 的私钥部分。",
+        "插件钱包模式把私钥部分保存在 localStorage 的 nicechunk.session.v1.<owner> 键下。JSON 包含公钥、以 Base64 编码的 secretKey、expiresAt 与 savedAt。Base64 既不是加密，也不能提供保护，只是一种可逆文本编码。能够读取同一浏览器源存储的页面代码或扩展程序，都可能复制这份私钥。因此，公开账户与本地私钥的可见范围和风险完全不同。",
+        "下表按照 Rust 打包顺序与对应 SDK 解码器排列字段。偏移从第一个字节开始计算：前面依次是 8 字节 magic、2 字节版本、1 字节 bump 和 1 字节 active，因此 owner 从字节 12 开始。Devnet 快照把字节 11 称为 initialized，SDK 则称为 active；当前使用方无论采用哪个名称都不会读取它。多字节整数使用实现中的小端序读写。刷新会改变 mask、到期时间、updatedSlot 与 maxActions，并把 actionCount 重置为零；createdSlot 与 createdAt 仍保留初次创建时的元数据。",
+        "2026-07-18 的只读快照在 Devnet confirmed 上下文 slot 477236696 保留了 10 份 PlayerSession，涉及 8 个不同 owner。对该上下文 slot 调用 RPC getBlockTime 得到 2026-07-18T21:56:51Z；相对于这份保留的区块时间，10 份记录都已到期。快照没有直接读取下游使用方执行时采用的 Clock sysvar。其中 5 份记录满足 owner = sessionAuthority，另 5 份使用不同 authority；还有一个 owner 拥有 3 份 Session。公开字段相等并不能证明它们由哪个客户端创建。",
+        "被引用的 Profile 包括 6 份当前 v7、3 份历史 v2 和 1 份历史 v3。定制的合约直接调用若传入 Session 已保存的历史 Profile，可让匹配的 773 字节 v3 记录通过所选使用方的布局、owner 与配置检查；473 字节 v2 则过不了 773 字节长度门槛。仓库默认构建器派生的是当前 player-v7 Profile，因此这种定制兼容性不能证明默认 Play 路径能够使用历史 Session 指针，更不能证明它能完成后续操作规则。",
+        "Session、Profile 与 GlobalConfig 的程序账户读取共享上下文 slot 477236696。Player Program 与 Player ProgramData 是补充读取，分别位于相邻的 +1 与 +2 slot，并不属于完全相同的共享账户上下文。它们的哈希只绑定所观察到的 Player 部署字节，不覆盖 Chunk、Building、统一 Game、Backpack 或 Guardian；也不能证明这份带未提交改动的源码树能够可复现地编译成该部署。",
+        "这只是一份 confirmed 级别的单次 Devnet 快照，不是 Mainnet 结论、finalized 保证、永久账户总数，也不能证明任何人持有对应私钥。它没有读取 Session authority 余额或浏览器存储。保留的上下文 slot RPC 区块时间支持本页对“已到期”的分类；线上使用方在指令执行时仍会独立读取 Clock.unix_timestamp。"
+      ],
+      "facts": [
+        {
+          "label": "magic 标识",
+          "value": "偏移量 0·8 个字节·NCKSES01",
+          "detail": "使用方读取公开字段前检查的账户类型标识。"
+        },
+        {
+          "label": "版本",
+          "value": "偏移量 8·2 个字节·u16",
+          "detail": "打包值为版本 1，但当前已审计使用方不会读取它。"
+        },
+        {
+          "label": "PDA bump",
+          "value": "偏移量 10·1 个字节·u8",
+          "detail": "设置时保存的规范 PDA bump；当前使用方不会读取它。"
+        },
+        {
+          "label": "active 标记",
+          "value": "偏移量 11 · 1 字节 · u8 布尔值",
+          "detail": "创建时写入 1；当前使用方视图不会检查这个字节。"
+        },
+        {
+          "label": "owner",
+          "value": "偏移量 12 · 32 字节 · 公钥",
+          "detail": "从 Session 解析的持久玩家身份。"
+        },
+        {
+          "label": "sessionAuthority",
+          "value": "偏移量 44 · 32 字节 · 公钥",
+          "detail": "使用方会把这个签名者公钥与传入的 authority 进行比较。"
+        },
+        {
+          "label": "playerProfile",
+          "value": "偏移量 76 · 32 字节 · 公钥",
+          "detail": "当前操作预期使用的 Profile 账户。"
+        },
+        {
+          "label": "globalConfig",
+          "value": "偏移量 108 · 32 字节 · 公钥",
+          "detail": "Chunk 与 Building 会检查它；Backpack 的 Session 视图不会读取它。"
+        },
+        {
+          "label": "worldId",
+          "value": "偏移量 140 · 2 字节 · u16",
+          "detail": "创建时从 GlobalConfig 写入；当前已审计使用方不会读取它。"
+        },
+        {
+          "label": "allowedActions",
+          "value": "偏移量 142 · 2 字节 · u16 mask",
+          "detail": "使用方会检查自己需要的操作位是否存在。"
+        },
+        {
+          "label": "expiresAt",
+          "value": "偏移量 144 · 8 字节 · i64 Unix 秒",
+          "detail": "当该值小于或等于链上时间时，使用方会拒绝记录。"
+        },
+        {
+          "label": "createdSlot",
+          "value": "偏移量 152 · 8 字节 · u64",
+          "detail": "初次创建时的 slot；刷新不会改变它。"
+        },
+        {
+          "label": "updatedSlot",
+          "value": "偏移量 160 · 8 字节 · u64",
+          "detail": "创建时复制 createdSlot；刷新时改为当前 slot。"
+        },
+        {
+          "label": "createdAt",
+          "value": "偏移量 168 · 8 字节 · i64 Unix 秒",
+          "detail": "账户第一次打包时记录的链上时间戳。"
+        },
+        {
+          "label": "maxActions",
+          "value": "偏移量 176 · 4 字节 · u32",
+          "detail": "设置时必须非零，但当前已审计使用方不会读取它。"
+        },
+        {
+          "label": "actionCount",
+          "value": "偏移量 180 · 4 字节 · u32",
+          "detail": "创建和刷新时都写为零，之后当前只读使用方不会改变它。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "公开记录一致，不等于有人持有私钥",
+        "body": "规范地址、匹配的 bump、有效 mask 与尚未到期的时间戳，可以说明公开记录格式正确；但这些观察都不能证明读取者持有或妥善保护了 Session 私钥。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-public-record-private-secret-v1.webp",
+        "alt": "生成的 NiceChunk 档案场景中，标准男孩把铜制 Session 密钥放进一只敞开且未上锁的木抽屉；标准女孩检查另一份公开石制记录，其中贴合字段的凹槽并不包含私钥。",
+        "caption": "敞开的抽屉代表普通浏览器可访问的存储，公开石台则代表只含公开字段、不含私钥的链上账户。这个生成场景不是 localStorage 转储、Base64 解码器、访问控制测试、字节解码器或 PDA 派生过程，也不能证明某份私钥已经被复制或受到保护。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "real-consumer-permission-scope",
+      "eyebrow": "哪些合约分支真的会读取通行证",
+      "title": "15 个已审计合约 Session 分支共用 BREAK_BLOCK；默认 Play 能否到达是另一回事",
+      "paragraphs": [
+        "源码派生的能力矩阵找到了 15 个带 PlayerSession 分支的已审计合约处理器：5 个 Chunk、8 个 Building 和 2 个 Backpack。全部 15 个分支都请求 BREAK_BLOCK 位索引 1，对应数值 2，也就是权限 mask 中的这一位。但“存在 15 个合约分支”并不代表默认 Play bundle 能到达、导出或调用全部处理器；真实可达性取决于运行时最终解析到的资源与调用链。",
+        "5 个 Chunk 处理器分别是 mine_block、mine_block_with_rewards、fell_tree_with_rewards、batch_mine_with_rewards 与 range_mine_with_rewards。当前仓库源码同时定义批量 tag 20 和范围 tag 21 构建器，但默认批量调用指向 range。保留的 2026-07-19 线上默认链模块候选没有导出 recordBulkMineOnChain，也没有出现完全相同的 writeUInt8(20, 0) 或 writeUInt8(21, 0) 字面量；这种精确字符串搜索无法排除变量、十六进制字节或 Buffer 构造器等等价编码。运行时命名的带版本号专用批量候选返回 404；另行探测的未带版本号 URL 也返回 404，但它不是该带版本运行时的默认候选。这些字节观察把“合约具备能力”和“默认线上 Play 能到达”分开，而且结果仍会受覆盖项影响。",
+        "8 个 Building 处理器是 create_build_site、register_build_site_chunks、begin_building_upload、write_building_shard、finalize_building、cancel_building_upload、migrate_legacy_build_site 与 begin_build_site_resize，对应 Building 指令 tag 0–7，而且全部使用 BREAK_BLOCK 操作索引 1。Building tag 8 不是第 9 条 Session 流程；它通过另一条固定发布者路径发布 Guardian 蓝图。cancel_building_upload 可以把 manifest 和 shard 的 rent 退到 sessionAuthority，因此这个操作位不只影响建筑状态，也可能授权一个 SOL 去向。",
+        "Backpack 路由分成两层。仓库默认 gameContext 与保留的线上链模块候选，都把 Backpack 指向统一 Game Program 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7。外层命名空间字节 1 包住内部 Backpack 数据：单项移除为 [1, 2, index]，批量移除以 [1, 4, count, ...] 开头。统一 Game Program 会剥掉命名空间 1，再把余下载荷交给共享 nicechunk_backpack 处理器。",
+        "每个 Backpack 处理器又支持两种账户布局。四账户 Session 分支读取 sessionAuthority、PlayerProfile、PlayerSession 与 Backpack，并请求 BREAK_BLOCK 位 1；两账户 owner 直连分支只使用 owner 签名者与 Backpack，完全绕过 PlayerSession。仓库源码与保留的线上链客户端中的“丢弃资源”构建器，都采用四账户的统一 Game 形式；但合约仍保留 owner 直连形式，所以不能说每次 Backpack 移除都必须经过 Session。",
+        "两种形式移除的都是紧凑打包 Backpack 中的 slot 或引用。remove_resource 会把后面的定长记录向左移动；remove_resources 会拒绝空列表、重复索引和越界索引，再按从高到低的顺序移除有效位置。两者都不检查 slot 的 kind、type 或 category，因此从结构上说，材料/资源、方块、熔炼物、蓝图与锻造装备/物品引用都在范围内。移除只会移动并清空 Backpack 中的打包记录，不会关闭、修改或退还该记录可能引用的底层物品 PDA。",
+        "仓库中支持 Session 的构建器把 15 个 PlayerSession meta 全部设为只读，但只读并不是 actionCount 不变化的唯一原因。处理器只以不可变方式借用或检查 Session 数据，从不读取 actionCount，也不把它与 maxActions 比较；它们不拥有 Player Program 账户，也没有任何 Player Program 递增指令或 CPI。因此 actionCount 当前不会增加或更新，10,000 也不是实际限制；不过另一笔交易仍可能把账户权限合并得更宽。",
+        "至少 6 个控制字段没有被使用：验证器不读取或检查 version、bump、active、worldId、maxActions、actionCount；createdSlot、updatedSlot 与 createdAt 也不会授权操作。Chunk 和 Building 会读取 globalConfig，而 Backpack 的 Session 视图省略它。Chunk 与 Building 要求 sessionAuthority 同时是签名者且可写；Backpack 的 Session 分支只要求签名，不要求可写。所有分支都要求 184 字节、NCKSES01 与 Player Program 所有权，却都没有重新派生规范 PlayerSession PDA。这个纵深防御缺口不能反过来证明攻击者可以随意创建任何归 Player Program 所有的账户。",
+        "历史 Profile 的兼容范围比单纯长度检查更窄。定制直接调用若传入已保存且指针匹配的 773 字节 v3 Profile，可能通过选定的 Session 与 Profile 条件；473 字节 v2 会卡在长度检查。仓库默认构建器派生当前 player-v7，因此观察到历史 Profile 并不代表默认 Play 能到达或使用旧 Session。其他 Profile 字段 version、bump、initialized、worldId 与规范 Profile PDA，也并非每个使用方都会全部强制检查。",
+        "PLACE_BLOCK 是位索引 2、数值 4，但已审计合约使用方数量为零。已审查的仓库方法与保留的线上链模块候选，都会在提交普通放置前返回字面原因 chain-placement-disabled。因此，保存 mask 6 并不会让 PLACE_BLOCK 变成可用的链上放置权限。"
+      ],
+      "facts": [
+        {
+          "label": "Chunk · 5 个使用方",
+          "value": "mine_block · mine_block_with_rewards · fell_tree_with_rewards · batch_mine_with_rewards · range_mine_with_rewards",
+          "detail": "普通采矿、奖励采矿、伐树、批量采矿和范围采矿都会请求操作索引 1。"
+        },
+        {
+          "label": "Building · 8 个使用方",
+          "value": "create_build_site · register_build_site_chunks · begin_building_upload · write_building_shard · finalize_building · cancel_building_upload · migrate_legacy_build_site · begin_build_site_resize",
+          "detail": "所有 Building 标签 0–7 共享 BREAK_BLOCK，而不是专用的构建权限。"
+        },
+        {
+          "label": "Backpack · 2 个使用方",
+          "value": "remove_resource · remove_resources",
+          "detail": "每个四账户 Session 感知分支请求 BREAK_BLOCK；每个处理程序还有一个不读取 Session 的两个账户 owner 直接分支。"
+        },
+        {
+          "label": "使用的权限",
+          "value": "BREAK_BLOCK · 位索引 1 · 值 2",
+          "detail": "15 个已审计使用方全部使用这一位。"
+        },
+        {
+          "label": "权限未使用",
+          "value": "PLACE_BLOCK · 位索引 2 · 值 4 · 0 个使用方",
+          "detail": "当前的普通放置方法报告 chain-placement-disabled。"
+        },
+        {
+          "label": "Session 记录是否被修改",
+          "value": "15 个只读 PlayerSession meta · 0 个可写使用方 meta",
+          "detail": "构建者请求只读，处理程序仅检查 Session；没有人读取计数器或调用 Player Program 来递增它。"
+        },
+        {
+          "label": "突出显示的控制字段没有使用方读取",
+          "value": "version · bump · active · worldId · maxActions · actionCount",
+          "detail": "createdSlot、updatedSlot 与 createdAt 也不是授权输入；这些字段存在，并不表示其中任何一个已经成为实际执行的门槛。"
+        },
+        {
+          "label": "Backpack 删除的类型检查",
+          "value": "无",
+          "detail": "紧凑数组移除会验证 owner 与索引，只移动或清空打包引用；它既不限制 slot 类型，也不关闭物品 PDA。"
+        },
+        {
+          "label": "仓库和保留的实时 Backpack 路由",
+          "value": "Game Program 6Curn… · 命名空间 1 · 内部标签 2 和 4",
+          "detail": "外部形式以 [1, 2, index] 和 [1, 4, count, ...] 开始，然后统一 Game 将剩余的有效负载委托给共享的 Backpack 代码。"
+        },
+        {
+          "label": "实时批量可达性快照",
+          "value": "版本化专用批量候选 404 · 获取的默认链候选中没有批量导出",
+          "detail": "另行获取的未带版本号批量 URL 只是部署边界探针，并不是带版本号运行时选中的默认候选。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "判断能力时看使用方，不要只看权限名称",
+        "body": "操作位名称只描述合约分支；玩家能否到达它，由最终解析到的客户端资源与调用位置决定。位 1 横跨支持 Session 的采矿、Building 与通用紧凑 Backpack 引用移除分支；owner 直连 Backpack 移除会绕过 Session，而位 2 没有任何已审计使用方。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-real-consumer-permission-scope-v1.webp",
+        "alt": "生成的 NiceChunk 庭院中，标准男孩在中央转闸使用一把铜钥匙，闸门通往相连的采石场、建筑区与混合 Backpack 分拣区；标准女孩则查看一个尚未使用的第二放置插槽。",
+        "caption": "相连的采石场、Building 工地与混合紧凑分拣台，表示同一个权限可能覆盖多类工作；被封住的第二插槽则表示尚未接通的路径。这个生成场景不能证明操作位数值，不能列举 15 个处理器、执行 Backpack 删除或演示索引位移，也不能证明 chain-placement-disabled 已在线上被实际调用。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "browser-storage-reuse-and-refresh",
+      "eyebrow": "客户端便利判断与链上权威检查",
+      "title": "浏览器复用只是启发式判断；刷新有前提，保存私钥又是第二次提交",
+      "paragraphs": [
+        "插件钱包模式把 Session 专用 Keypair 保存到 nicechunk.session.v1.<owner wallet>。复用先看浏览器复制的 expiresAt，并要求 localExpiresAt > now + 900 秒，也就是预留 15 分钟偏差。代码会派生该 authority 的 PDA，但对链上 Session 只检查账户数据是否非空；继续执行前，并不解码或验证 Session 长度、magic、已存 owner、authority、Profile 指针、mask 或链上 expiresAt。",
+        "另行派生的规范地址 Profile 会经过几项选定检查：Player Program 所有权、可解码的 773 字节 NCKPLY01 布局、已存 owner 与 GlobalConfig。辅助函数虽会读取 Profile version 与 initialized，却不会强制它们，因此不能把这项检查直接称为“当前 v7 Profile”验证。复用只是浏览器便利判断，不是最终权威门槛；下游使用方仍可能根据真实 Session、Profile、到期时间、权限位或操作规则拒绝密钥。",
+        "复用仍可能要求 owner 钱包签名。该分支会在完整验证链上 Session 之前先检查注资；余额低于 0.1 SOL 时，它会构建 owner 到 authority 的 System 转账并请求钱包批准。只有本地记录足够新、余额也足够的已存密钥，才能避开新的 owner 交易。批准补充余额并不能证明通行证可用，因为 SOL 转账确认后，下游使用方仍可能拒绝 Session。",
+        "相同 owner 与相同 authority 会选中同一个 PDA，但选中地址不代表一定能够重写。刷新要求旧记录保存的 owner、sessionAuthority、playerProfile 与 globalConfig 都匹配 tag 4 输入，还要求旧 authority 签名，并且必须先满足当前 player-v7 Profile PDA 前提。全部通过后，程序才能替换 allowedActions、expiresAt、updatedSlot 与 maxActions，并把 actionCount 重置为零。合约接受任何仍在未来的到期时间，所以正确批准的刷新既能延长，也能缩短有效期；仓库客户端通常请求 now + 8 hours。",
+        "这条指针规则会影响旧账户。仍保存历史 v2 或 v3 Profile 指针的 Session，在 authority 相同时会命中同一个 PDA，却无法就地刷新为程序要求的当前 player-v7 指针。插件模式可以换一个新 authority，创建指向当前 Profile 的新 PDA，但旧 PDA 与 rent 仍会保留。Local Game Wallet 固定 authority = owner，因此同地址的历史指针案例在这条流程中没有自动轮换密钥的出口。这是源码层兼容边界，不是保留快照中已经观察到的失败；快照里 5 份 owner = authority 的记录都指向当前 v7。",
+        "仓库与 SDK 的 tag 4 构建器把已有 PlayerProfile 标为只读。Player Program 的 ensure_player_profile_current 快速路径只检查长度、NCKPLY01 magic、owner 与 GlobalConfig，不强制 version 或 initialized。若一份归 Player Program 所有、已存在且非空的当前 player-v7 PDA 在这些选定检查中任一项失败，修复分支可能补足 rent、realloc 到 773 字节并重新打包；这些操作都需要可写权限。旧布局只有在长度、magic、owner 或 GlobalConfig 的选定检查至少一项失败时，才进入这项条件式修复风险范围。缺失或新建 Profile 会收到可写初始化指令，通常能在交易级别提升权限；已有非空 Profile 则不会。因此，除非另一条指令让它变为可写，自动修复可能失败。审计没有观察到生产环境失败证据；这里记录的是有条件的集成风险，不是“每份旧 Profile 都会失败”的证明。",
+        "轮换不等于撤销。插件存储缺失或损坏会生成新 Keypair 与不同 PDA。创建新 PDA 不会停止、停用、关闭或退还旧 PDA，还会再锁定一份账户 rent。只要旧记录尚未到期且其检查仍通过，持有旧私钥的人仍可能继续使用它。Devnet 中一个 owner 同时出现 3 份 Session，只能证明记录共存，不能证明三份当时都可用。",
+        "链上设置与浏览器保存私钥不是原子操作。客户端会先广播并等待 owner 设置交易，之后才调用 storeGameplaySession；localStorage.setItem 又是一次独立的浏览器写入。RPC 确认结果不明确、页面关闭、存储不可用、配额或权限错误，或 setItem 抛出异常，都可能让已注资 authority 与 PlayerSession 留在链上，却没有持久的本地私钥。之后重试还可能生成另一 authority、再次转入目标余额，并分配另一份由 rent 资金支持的 PDA。具体哪种结果发生并不确定，但这两次提交确实可能让多份余额与 rent 被搁置。",
+        "Local Game Wallet 还有另一条复用捷径。5 分钟内存 ready-cache 可以跳过 RPC，并报告重新计算的 now + 8 hours，而不是记录真实 expiresAt。5 分钟只限制“不访问 RPC”的缓存窗口，并不限制本地到期时间能夸大多少：被缓存的已有 Session 可能刚刚超过 15 分钟新鲜度下限，因此合成本地时间可能明显晚于链上记录。缓存之外，RPC 新鲜度辅助函数会检查 Player 所有权、184 字节 magic、已存 owner 与 authority，以及 expiresAt > now + 900；但不会交叉核对 Session 的 playerProfile、globalConfig、allowedActions、version、active 或 maxActions。最终仍以下游使用方判断为准。",
+        "最后，play-chain-adapter.js 会在常规候选之前，尝试动态 import 全局覆盖项或 localStorage 中的 nicechunk.chainModuleUrl。动态 import 会先执行并求值模块代码，适配器之后才检查预期导出是否存在。绝不要粘贴或配置不受信任的模块 URL；能够访问同源数据的恶意代码可能读取浏览器私钥。这是能力与信任边界警告，不代表已经发生过覆盖项利用或安全入侵。"
+      ],
+      "facts": [
+        {
+          "label": "存储范围",
+          "value": "nicechunk.session.v1.<owner钱包>",
+          "detail": "钱包地址选择一条浏览器记录，但注销后会跨所有者扫描整个前缀。"
+        },
+        {
+          "label": "重用窗口",
+          "value": "localExpiresAt > now + 900 秒",
+          "detail": "当前 15 分钟客户端偏差会在复制的本地到期之前提示刷新。"
+        },
+        {
+          "label": "同一把密钥",
+          "value": "相同 owner + 相同 sessionAuthority → 选中同一 PDA",
+          "detail": "只有两个签名者角色、已存 owner/authority/Profile/Config 关系与当前 Profile 前置条件全部通过后，才会重写原记录。"
+        },
+        {
+          "label": "新密钥",
+          "value": "相同 owner + 新 sessionAuthority → 不同 PDA",
+          "detail": "地址会变化，因为 sessionAuthority 是种子；新账户分配还会锁定另一笔 rent 余额。"
+        },
+        {
+          "label": "旧 Session",
+          "value": "不会被新密钥设置撤销",
+          "detail": "旧 sessionAuthority 在到期前仍可能使用旧记录；创建新密钥不会写入旧账户。"
+        },
+        {
+          "label": "最终决定",
+          "value": "使用方检查仍然具有权威性",
+          "detail": "重用的浏览器密钥仍然可能因链时间到期、丢失位、身份不匹配或操作规则而被拒绝。"
+        },
+        {
+          "label": "插件 Session 存在测试",
+          "value": "账户数据只是非空",
+          "detail": "复用前不会完整解码 Session 的 magic、长度、已存关系、mask 或链上到期时间。"
+        },
+        {
+          "label": "插件 Profile 谓词",
+          "value": "程序 owner · 773 字节 · NCKPLY01 · owner · GlobalConfig",
+          "detail": "规范地址查询不强制解码版本或初始化。"
+        },
+        {
+          "label": "可能的重用提示",
+          "value": "余额低于 0.1 SOL → owner 充值批准",
+          "detail": "注资发生在完整 Session 授权检查之前；注资成功不能证明后续使用一定通过。"
+        },
+        {
+          "label": "两次持久化提交",
+          "value": "先广播并等待确认 · 再把私钥写入 localStorage",
+          "detail": "两步之间一旦失败，链上可能已经留下状态和资金，浏览器中却没有持久保存的私钥副本。"
+        },
+        {
+          "label": "Local Game Wallet 缓存",
+          "value": "5 分钟不访问 RPC 的窗口 · 合成的 now + 8 hours",
+          "detail": "5 分钟只限制跳过 RPC 的时长，并不限制页面显示的本地到期时间可能比真实记录晚多少。"
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "只轮换、不撤销，会留下重叠有效期",
+        "body": "如果攻击者只拿到独立的插件 Session 私钥，旧记录到期会终止它在已审计 NiceChunk 分支中的访问，但不会删除密钥或其中的 SOL。若泄露的是 owner 或 Local Game Wallet 密钥，攻击者还能批准新 Session 或刷新到未来时间，因此到期并不是最终的安全止损。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-browser-storage-reuse-and-refresh-v1.webp",
+        "alt": "生成的 NiceChunk 维护台场景中，标准男孩把同一把铜钥匙从敞开的 owner 储物格放回与它配套的石制记录旁，标准女孩翻转沙漏；旁边另一把密钥与第二份记录并未改变第一份记录。",
+        "caption": "敞开的储物格、两把形状不同的密钥、各自独立的记录台、外部检查托盘与沙漏，分别表现复用、刷新与共存。它们不会真的检查 localStorage、解码链上字段或派生规范 PDA，也不能证明签名、延期、旧记录停用或当前到期状态。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "funding-sol-and-local-wallet",
+      "eyebrow": "手续费、余额与持久本地密钥",
+      "title": "0.1 SOL 只是补充余额的触发线，不是消费上限或密钥限制",
+      "paragraphs": [
+        "独立的 Session 专用 Keypair 需要在普通 sessionAuthority System 账户中持有 SOL，用来支付交易手续费；若操作要创建账户，还要承担 rent 资金。已审查的仓库源码与保留的线上链模块候选，都使用 100,000,000 lamports（0.1 SOL）作为最低值，并把可配置目标限制为至少这个数。余额低于 0.1 SOL 时，系统可能请求 owner 向目标补充；达到或超过门槛后，即使配置目标更高，也不会自动补满。",
+        "这个补充目标不是上限、预算、托管或链上授权规则；PlayerSession 既不保存目标值，也不保存余额。Session 记录会到期，但 Keypair、地址与私密签名字节不会自行到期、清除或撤销。到期时间、allowedActions、maxActions 与 actionCount 都无法保护或限制地址中的 SOL，也阻止不了同一密钥签署一笔完全不查询 Player Program 的普通 SystemProgram.transfer。",
+        "仓库链代码与保留的线上候选，会在受支持的后续调用中把 Session Keypair 设为 fee payer。手续费和账户 rent 会减少它的余额；任何控制私钥的人也能生成另一笔普通转账的签名。离线 1 lamport System Program 证明在没有真实余额、线上 blockhash、广播或资金移动的情况下验证了签名结构，所以它证明的是普通签名能力，不是交易已经成功执行。",
+        "不要把 authority 地址余额与 PlayerSession PDA 的 rent 混为一谈。保留的 Devnet 账户中，每份独立 184 字节 PDA 都持有 2,171,520 lamports，作为当时观察到的 rent-exempt 最低值；快照没有查询 authority 余额。换一个新 authority 会创建另一份 PDA，并再锁定一份 rent。由于已审查 Player Program 没有 Session close 路径，到期、轮换和退出登录都不会退还这笔 rent。",
+        "退出登录也不会转走 sessionAuthority 地址中的 SOL。如果尽力清理恰好成功删除 nicechunk.session.v1.<owner> 的唯一副本，而且没有备份，普通界面流程就不再拥有移动旧地址剩余 SOL 所需的私钥字节；重新连接反而可能创建并注资一把新密钥。损失并非必然发生，因为可能另有副本或删除失败；但系统没有自动恢复，也没有退出前自动清空余额，所以 0.1 SOL 不是保证的最大损失。",
+        "Local Game Wallet 的风险形状不同，而且更大。它满足 owner = sessionAuthority，因此一把持久本地密钥既能满足两个设置角色，之后也继续拥有钱包权限。浏览器把这把长期私钥作为未加密的纯 Base58 字符串，另存在 Local Game Wallet 专用键名下；整份钱包余额都受这把密钥控制，插件 Session 退出登录也不会删除它。usesGameplaySession: false 只表示没有独立的游戏 Keypair，不能证明链上 PDA 已存在。设置成功后，流程可以使用 PDA(PlayerProgram, [\"session\", owner, owner])。",
+        "若只泄露独立的插件 Session 私钥，旧记录链上到期后最终会挡住它访问已审计 NiceChunk 分支。若泄露的是 owner 钱包私钥或 Local Game Wallet 密钥，攻击者可以同时占据两个设置角色，或选择新 authority 并创建、刷新一份未来 Session。因此，Session 到期无法最终遏制 owner 密钥泄露；较短有效期也修复不了长期密钥已经失守的问题。"
+      ],
+      "facts": [
+        {
+          "label": "最低补充余额规则",
+          "value": "100,000,000 lamports · 0.1 SOL",
+          "detail": "该规则存在于已审查仓库与保留的线上链模块字节中，不是 184 字节 Session 的字段。"
+        },
+        {
+          "label": "可配置目标余额",
+          "value": "浏览器范围值，最低会限制为 0.1 SOL",
+          "detail": "只有地址余额低于最低门槛时，才用它计算 owner 转账。"
+        },
+        {
+          "label": "独立 Session PDA 的 rent",
+          "value": "保留的 Devnet 快照中的 2,171,520 lamports",
+          "detail": "每份 184 字节 PlayerSession PDA 都观察到这笔金额；新 authority 会再分配一份 PDA，且已审查流程没有 Session close 来退还它。"
+        },
+        {
+          "label": "后续操作签名者",
+          "value": "Session Keypair 是 fee payer",
+          "detail": "链客户端把 transaction.feePayer 设为 Keypair 公钥，并用该 Keypair 签名。"
+        },
+        {
+          "label": "独立签名能力",
+          "value": "普通 System Program 转账",
+          "detail": "这笔独立交易不需要 PlayerSession 账户，也不调用 Player Program。"
+        },
+        {
+          "label": "插件模式",
+          "value": "owner ≠ sessionAuthority",
+          "detail": "owner 为独立的低余额地址注资，但 PlayerSession 本身不会强制余额上限。"
+        },
+        {
+          "label": "Local Game Wallet模式",
+          "value": "owner = sessionAuthority",
+          "detail": "同一把持久密钥兼任两个角色；状态标记本身不能证明 Session 设置完成或 PDA 已存在。"
+        },
+        {
+          "label": "持久本地私钥",
+          "value": "Base58 · 浏览器中未加密的纯文本存储",
+          "detail": "这份长期 Local Game Wallet 私钥与 nicechunk.session.v1.<owner> 分开保存。"
+        },
+        {
+          "label": "真正会到期的对象",
+          "value": "PlayerSession授权记录",
+          "detail": "Keypair、地址、SOL 控制权与签署另一条消息的能力都不会随记录到期。"
+        },
+        {
+          "label": "插件退出登录成功后的风险",
+          "value": "唯一私钥副本可能在余额转走前消失",
+          "detail": "没有其他副本时，普通界面无法取回旧 authority 的 SOL；PDA rent 也仍被占用。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "注资规则只减少操作摩擦，不会限制密码学权限",
+        "body": "较小余额可以减少暴露金额，但在支持 Session 的使用方之外，普通地址仍只受密钥保管与交易构造控制。到期时间和 mask 不会把 SOL 包进受保护账户；owner 密钥一旦泄露，攻击者还能创建另一份未来 Session。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-funding-sol-and-local-wallet-v1.webp",
+        "alt": "生成的 NiceChunk 注资台场景中，标准男孩把没有文字标记的手续费锭，从 owner 箱子移到连接铜制 Session 密钥的外露盒中；这把钥匙既能打开 Session 转闸，也能打开普通物资锁。标准女孩在同一密钥兼任两个角色的装置旁发出提醒。",
+        "caption": "外露手续费盒、普通铜钥匙、分开的锁、owner 箱子与双角色装置，在不使用真实货币界面的情况下解释注资与签名者范围。这些生成道具不会标识 SOL、测量手续费或 rent、执行转账、证明无限制签名能力、确认损失，也不能验证 Local Game Wallet 关系。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "expiry-logout-revocation-and-guardian",
+      "eyebrow": "权限究竟怎样结束",
+      "title": "到期只会关闭被检查的门；退出登录、换密钥和 Guardian 都不会撤销账户",
+      "paragraphs": [
+        "当 expiresAt <= Clock.unix_timestamp 时，Chunk、Building 或 Backpack 的 Session 分支会拒绝请求。这会关闭旧公开记录对应的检查门，但不会让 Keypair、地址、私密字节或 SOL 到期、消失、撤销或归零。浏览器复制的时间只是一项提示，无法让链上已经到期的记录重新有效。",
+        "已审查 Player Program 没有针对 PlayerSession 的 close、revoke 或 deactivate 指令，也没有只供 owner 使用的紧急终止开关。要刷新一份使用不同旧 authority 的记录，必须由该旧 authority 签名；换成新 authority 只会创建另一份 PDA，不会改变或退款旧记录。因此，owner 无法通过这个接口立刻关闭被盗的独立 Session。",
+        "谈到“到期能保护什么”时，必须先说明泄露的是哪把密钥。若攻击者只有独立的插件 Session 私钥，到期会切断旧记录访问已审计 NiceChunk 分支，但密钥仍能签署普通交易并控制剩余 SOL。若被盗或泄露的是 owner 钱包或 Local Game Wallet 密钥，它可以批准新 authority；当 owner = sessionAuthority 时，还能同时满足两个设置角色，创建或刷新另一份未来 Session。对长期 owner 密钥泄露而言，到期并不是最终或完整的止损。",
+        "退出登录只是尽力清理浏览器数据，并不代表已经验证删除成功。clearWalletSession 会先尝试删除 4 项钱包身份数据，再枚举 localStorage。如果读取 storage.length 或调用 storage.key 时抛错，它会直接返回并跳过运行时前缀扫描。枚举成功后，它会尝试删除所有以 nicechunk.session.v1.、nicechunk.equippedBackpack.v1.、nicechunk.sessionFundingLamports.v1. 或 nicechunk.sessionFundingAcknowledged.v1. 开头的键。每次 removeItem 错误都会被捕获并忽略，辅助函数也不会回读确认是否成功。",
+        "前缀扫描不限于当前连接的钱包。扫描成功时，它可能删除另一个 owner 在本浏览器中的唯一或最后一份插件 Session 私钥；发生错误时，又可能把本应清除的私钥留在原处。因此，退出登录不保证删除成功；跨 owner 扫描是一项风险，不是所有匹配键都已删除的证明。",
+        "退出登录不会改变链上 PlayerSession 状态，不会发送 revoke，也不会关闭或退款 Session PDA；它不会清空、恢复、返还或退还 authority 地址里的 SOL，也不会删除另行保存的 Local Game Wallet 私钥。若唯一插件私钥在余额转走前被成功删除，即便公开 Session 与 rent 仍然存在，普通界面也可能失去对这笔 SOL 的访问。其他地方保存的密钥副本，只要旧记录尚未到期且检查通过，仍可能继续使用它。",
+        "Guardian 与这套生命周期彼此独立。实时 HELLO 发送的是未签名的钱包公钥提示和 nonce，不是持有证明、PlayerSession 或钱包签名。Guardian Program 管理注册表、运营者、端点和蓝图；Guardian 不会签发、验证、刷新或撤销 PlayerSession。Building tag 8 是独立的固定发布者 Guardian 蓝图路径，不属于 Building 的 8 个 Session tag。",
+        "在 Devnet confirmed 上下文 slot 477236696，保留的 2026-07-18 RPC getBlockTime 值把 10 份 Session 全部归类为已到期；这不是直接读取 Clock sysvar。Session、Profile 与 Config 读取共享该 slot；Player Program 与 ProgramData 哈希是相邻 +1、+2 上下文的补充读取，而且只覆盖 Player 部署字节。已到期记录仍然可见，说明账户分配寿命可以超过授权寿命；但这份单次 confirmed Devnet 快照既不代表 Mainnet，也不是持续监控或永久账户总数。"
+      ],
+      "facts": [
+        {
+          "label": "下游使用方的到期规则",
+          "value": "expiresAt <= 链时间 → 拒绝",
+          "detail": "该决策在每个经过审核的使用方中使用 Clock.unix_timestamp。"
+        },
+        {
+          "label": "立即 owner 撤销",
+          "value": "不关闭 · 不撤销 · 不停用指令",
+          "detail": "经过审查的 Player Program 调度公开了创建或刷新，但没有公开 Session 生命周期终止处理程序。"
+        },
+        {
+          "label": "旧密钥刷新",
+          "value": "需要旧的 sessionAuthority 签名",
+          "detail": "只有 owner 同意，不能延长或覆盖另一把旧 sessionAuthority 对应的规范 Session。"
+        },
+        {
+          "label": "注销存储范围",
+          "value": "尽力尝试清理 4 个运行时前缀下、所有 owner 后缀的匹配项",
+          "detail": "枚举失败会跳过前缀扫描；每次 removeItem 错误都会被忽略，也不会回读确认成功。"
+        },
+        {
+          "label": "退出登录对链上状态的影响",
+          "value": "无",
+          "detail": "未发送撤销、Session PDA 关闭或 rent 退款、Session authority SOL 耗尽或其他链上 Session 交易。"
+        },
+        {
+          "label": "注销后 Local Game Wallet",
+          "value": "持久私钥仍然存在",
+          "detail": "插件会话清理不会清除单独的 Base58 密钥。"
+        },
+        {
+          "label": "Guardian 输入",
+          "value": "钱包公钥提示和随机数",
+          "detail": "HELLO 中不会发送 PlayerSession、sessionAuthority、Session 私钥或钱包签名。"
+        },
+        {
+          "label": "保留 Devnet 边界",
+          "value": "2026-07-18 · slot 477,236,696 · 10 条过期记录",
+          "detail": "过期使用 context-slot RPC getBlockTime 而不是直接 Clock sysvar 读取；玩家部署哈希使用附近的 +1/+2 上下文。"
+        },
+        {
+          "label": "跨 owner 清理成功时的风险",
+          "value": "另一个 owner 的唯一浏览器私钥可能被删除",
+          "detail": "该删除仍然不会清除其 SOL、退款其 Session rent 或删除此浏览器来源之外的副本。"
+        },
+        {
+          "label": "长期密钥泄露",
+          "value": "owner 或 Local Game Wallet 密钥可以授权未来的另一个 Session",
+          "detail": "到期只能限制不掌握 owner 密钥的攻击者继续使用旧记录；它不能完成 owner 密钥失陷后的恢复。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "先弄清你要控制的是哪把密钥",
+        "body": "只有独立 Session 私钥泄露时，较短有效期才有帮助；它修复不了 owner 或 Local Game Wallet 密钥失守。两类私钥都要保护，Session 专用地址只放适量余额，条件允许时在退出前先转回资金，并记住：退出登录只会尝试删除它能够枚举到的副本。"
+      },
+      "visual": {
+        "src": "/docs/media/player-sessions-expiry-logout-revocation-and-guardian-v1.webp",
+        "alt": "生成的 NiceChunk 黄昏驿站中，标准男孩从所有敞开的 Session 储物格中清理铜钥匙，但另一处仍留有一份密钥副本和完整石制记录；标准女孩查看已经关闭的到期闸门，远方则矗立着未连接的 Guardian 塔。",
+        "caption": "空沙漏、关闭闸门、完整公开记录、按前缀清理的储物格、未触碰的长期密钥、幸存副本、双插槽刷新压印机与远处高塔，把到期、本地退出、缺少撤销和 Guardian 分别表现出来。这个生成场景不会执行真实检查、删除实际存储、移动 SOL、关闭账户或保存真实私钥，也不能证明 Guardian 的独立性。",
+        "width": 1774,
+        "height": 887
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "核验权限边界",
+    "title": "把账户检查、普通密钥能力与浏览器生命周期分开理解",
+    "summary": "下面的公式把签名者角色、字节布局、权限位、使用方读取、复用、注资与到期规则改写成直观条件。源码原文则明确区分：仓库中的生产环境 /play/ 源码路径、2026-07-19 UTC 保留的运行时解析线上 Nginx 资源、合约能力、SDK 序列化、离线派生，以及 Devnet 账户快照。"
+  },
+  "formulas": [
+    {
+      "title": "两个角色共同描述同一名玩家的 Session",
+      "expression": "roles = { owner: long-lived identity, sessionAuthority: signer presented to consumers }",
+      "ariaLabel": "玩家 Session 为同一玩家命名一个长期 owner 角色和一个 Session authority 签名角色。",
+      "explanation": "插件钱包模式下两个公钥可以不同；Local Game Wallet 模式下则可以相同。账户角色只是逻辑位置，并不保证背后一定有两份不同的私钥材料。",
+      "terms": [
+        {
+          "symbol": "owner",
+          "meaning": "PlayerProfile 检查的持久公钥。"
+        },
+        {
+          "symbol": "sessionAuthority",
+          "meaning": "会读取 Session 的使用方拿来比对的签名者公钥。"
+        }
+      ]
+    },
+    {
+      "title": "规范 PlayerSession 地址",
+      "expression": "P_session = PDA(PlayerProgram, [\"session\", owner, sessionAuthority])",
+      "ariaLabel": "Session PDA 由 Player Program 按顺序使用固定字符串 \"session\"、owner 公钥与 sessionAuthority 公钥派生。",
+      "explanation": "两个公钥都是地址派生输入。保持输入不变会得到同一个 PDA；替换 authority 会得到另一个 PDA，而且不会写入旧账户。",
+      "terms": [
+        {
+          "symbol": "P_session",
+          "meaning": "这份 184 字节公开账户的确定性地址。"
+        },
+        {
+          "symbol": "PlayerProgram",
+          "meaning": "NiceChunk Player Program 的 ID 定义了 PDA 域。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器直接交易所需签名数取决于不同公钥数量",
+      "expression": "setupSigners = { owner, sessionAuthority }; owner != sessionAuthority ⇒ 2 signatures; owner = sessionAuthority ⇒ 1 signature satisfies both roles",
+      "ariaLabel": "owner 与 sessionAuthority 使用不同公钥时需要两份签名；若两个账户角色使用同一公钥，一份签名就能同时满足两项签名者检查。",
+      "explanation": "该公式描述已审查的浏览器直接交易。合约实际会检查两个账户位置的 is_signer；若两个 meta 使用同一公钥，一份交易签名即可满足两者。CPI 中的 PDA 签名者则可能通过 invoke_signed 授权，不使用私钥。",
+      "terms": [
+        {
+          "symbol": "setupSigners",
+          "meaning": "其账户角色必须标记为签名者的公钥。"
+        }
+      ]
+    },
+    {
+      "title": "已审查仓库设置指令的大小",
+      "expression": "setupDataBytes = 1 tag + 8 expiresAt + 2 allowedActions + 4 maxActions = 15 bytes",
+      "ariaLabel": "经过审查的仓库创建或刷新构建器使用 1 个 tag 字节和 14 个字节的有效负载，总共 15 个字节。",
+      "explanation": "tag 4 用来选择处理器。合约把余下 14 字节作为载荷，并从固定偏移读取时间戳、权限 mask 与已存最大值。",
+      "terms": [
+        {
+          "symbol": "tag",
+          "meaning": "当前值为 4 的一字节指令选择器。"
+        }
+      ]
+    },
+    {
+      "title": "创建或刷新的核心接受条件",
+      "expression": "setupCoreOK = ownerSigned AND sessionSigned AND expiresAt > Clock.unix_timestamp AND allowedActions != 0 AND (allowedActions & ~6) = 0 AND maxActions > 0",
+      "ariaLabel": "设置要求两个签名者角色、晚于链上当前时间的 expiresAt、只包含权限位 2 和 4 且非零的 mask，以及非零 maxActions。",
+      "explanation": "程序还会执行 PDA、所有权、Profile、GlobalConfig、System Program 与账户可写性检查。公式只提取玩家最容易看到的签名者与载荷条件。",
+      "terms": [
+        {
+          "symbol": "6",
+          "meaning": "仅有的两个声明的设置权限位的并集。"
+        }
+      ]
+    },
+    {
+      "title": "默认权限 mask",
+      "expression": "defaultAllowedActions = (1 << 1) | (1 << 2) = 2 | 4 = 6 = 0b0110",
+      "ariaLabel": "已审查仓库与保留的线上客户端字节，会把位索引 1 的 BREAK_BLOCK 和位索引 2 的 PLACE_BLOCK 组合成十进制 mask 6。",
+      "explanation": "mask 只记录哪些操作位存在，不证明一定有对应使用方；当前 PLACE_BLOCK 没有已审计使用方。",
+      "terms": [
+        {
+          "symbol": "1 << n",
+          "meaning": "将一位二进制位左移 n 位。"
+        }
+      ]
+    },
+    {
+      "title": "固定记录长度",
+      "expression": "184 = 8 + 2 + 1 + 1 + 32 + 32 + 32 + 32 + 2 + 2 + 8 + 8 + 8 + 8 + 4 + 4 bytes",
+      "ariaLabel": "这 16 个压缩字段加起来正好等于固定的 184 字节 Player Session 记录。",
+      "explanation": "总和严格按照 Rust 写入器与 SDK 解码器的顺序计算。偏移表示这份定长公开账户中的字节位置。",
+      "terms": [
+        {
+          "symbol": "32",
+          "meaning": "每个 Solana 公钥字段的字节长度。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 与 Building 的 Session 门槛",
+      "expression": "gateCB(a,t) = ownedByPlayerProgram AND length=184 AND magic=NCKSES01 AND sessionSignedWritable AND authorityMatch AND profileMatch AND globalConfigMatch AND expiresAt > t AND (allowedActions & (1 << a)) != 0",
+      "ariaLabel": "Chunk 与 Building 要求：一份由 Player Program 拥有、长度为 184 字节且 magic 为 NCKSES01 的记录；已签名且可写的 sessionAuthority；匹配的 Profile 与 GlobalConfig；尚未到期；并包含请求的操作位。",
+      "explanation": "辅助函数随后会验证 owner 对应的 Profile，再进入具体操作规则。公式包含固定长度与 magic 条件，但没有列出全部下游规则；这些使用方不会重新派生规范 Session PDA，也不会读取那 6 个被省略的控制字段。",
+      "terms": [
+        {
+          "symbol": "a",
+          "meaning": "请求的操作位索引，当前在这些使用方中固定为 1。"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Clock.unix_timestamp 在指令期间读取。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 的 Session 门槛",
+      "expression": "gateBackpack(a,t) = ownedByPlayerProgram AND length=184 AND magic=NCKSES01 AND sessionSigned AND authorityMatch AND profileMatch AND expiresAt > t AND (allowedActions & (1 << a)) != 0",
+      "ariaLabel": "Backpack 在修改 owner 对应的 Backpack 前，会检查一份由 Player Program 拥有、长度为 184 字节且 magic 为 NCKSES01 的记录、已签名的 sessionAuthority、匹配的 Profile、尚未到期，以及请求的操作位。",
+      "explanation": "与 Chunk、Building 不同，Backpack 要求 authority 签名，却不要求它可写，而且它的 Session 视图不比较 GlobalConfig。之后还会验证 Profile owner 与 owner 的 Backpack PDA；公式表示共享 Session 门槛，不是全部删除规则。",
+      "terms": [
+        {
+          "symbol": "gateBackpack",
+          "meaning": "任一紧凑数组移除处理器共用的 PlayerSession 检查部分。"
+        }
+      ]
+    },
+    {
+      "title": "所有已审计使用方都省略的重点控制字段",
+      "expression": "unreadControlFields = { version, bump, active, worldId, maxActions, actionCount }; alsoNotConsumed = { createdSlot, updatedSlot, createdAt }",
+      "ariaLabel": "每个经过审核的 Session 视图都会省略六个突出显示的控制字段，其创建和更新元数据也不参与授权。",
+      "explanation": "一个字段即使被保存，只有下游使用方读取并应用它时才会产生强制效果。Backpack 还省略 globalConfig；Chunk 与 Building 则会比较该字段。",
+      "terms": [
+        {
+          "symbol": "unreadControlFields",
+          "meaning": "六个控制字段明确跟踪为被所有三个使用方视图忽略。"
+        },
+        {
+          "symbol": "alsoNotConsumed",
+          "meaning": "创建和更新元数据保留在记录中，但不被使用方门使用。"
+        }
+      ]
+    },
+    {
+      "title": "已审计合约 Session 分支总数",
+      "expression": "auditedSessionBranches = 5 Chunk + 8 Building + 2 Backpack = 15",
+      "ariaLabel": "五个 Chunk 处理程序、八个 Building 处理程序和两个 Backpack 处理程序公开了 15 个经过审计的合约 Session 感知分支。",
+      "explanation": "这是合约与仓库构建器的能力范围，不证明默认 Play 运行时能够到达全部 15 个分支。计入的每个 Session 分支都请求 BREAK_BLOCK；Backpack 另外保留了不计入其中的 owner 直连分支。",
+      "terms": [
+        {
+          "symbol": "auditedSessionBranches",
+          "meaning": "已追踪到 PlayerSession 账户分支的处理器数量；它独立于默认线上客户端是否可达。"
+        }
+      ]
+    },
+    {
+      "title": "权限位的实际使用情况",
+      "expression": "BREAK_BLOCK = 1 << 1 = 2 → 15 audited contract Session branches; PLACE_BLOCK = 1 << 2 = 4 → 0 audited contract consumers",
+      "ariaLabel": "所有 15 个已审计合约 Session 分支都请求 BREAK BLOCK 值二，而没有一个分支请求 PLACE BLOCK 值四。",
+      "explanation": "能力由合约矩阵定义，而不是由友好的权限名称定义。默认运行时能否到达仍取决于最终资源；已审查的普通放置会在提交 Session 使用方前返回 chain-placement-disabled。",
+      "terms": [
+        {
+          "symbol": "→",
+          "meaning": "将存储的位映射到使用它的审核使用方路径的数量。"
+        }
+      ]
+    },
+    {
+      "title": "当前没有真正执行操作次数上限",
+      "expression": "builders request read-only AND handlers only inspect Session AND actionCount is unread AND no Player increment CPI ⇒ actionCountAfter = actionCountBefore; actionCount < maxActions predicate = absent",
+      "ariaLabel": "构建器把账户设为只读、处理器也只读检查，而且没有读取 actionCount、没有调用 Player Program 递增计数；因此 actionCount 不会变化，也没有被强制当作上限。",
+      "explanation": "只读账户 meta 不是唯一原因，因为交易权限可能合并。处理器自身行为、Player 所有权边界、缺失的数值比较与递增指令，共同证明当前并未强制执行次数上限。",
+      "terms": [
+        {
+          "symbol": "absent",
+          "meaning": "审核的授权路径中不存在此类比较。"
+        }
+      ]
+    },
+    {
+      "title": "统一 Game 的 Backpack 外层封装",
+      "expression": "single outer data = [namespace 1, inner tag 2, index]; batch outer data = [namespace 1, inner tag 4, count, indexes...]",
+      "ariaLabel": "默认统一 Game 路由会在 Backpack 单项与批量移除的内部 tag 2 和 4 前，加上值为 1 的命名空间字节。",
+      "explanation": "Game Program 移除第一个命名空间字节，再把余下载荷交给共享 Backpack 代码。这说明外层线上字节与内部 Backpack 处理器 tag 都是在正确描述同一条路由。",
+      "terms": [
+        {
+          "symbol": "namespace 1",
+          "meaning": "Backpack 指令的统一游戏选择器。"
+        }
+      ]
+    },
+    {
+      "title": "保存的 10,000 不是上限",
+      "expression": "stored maxActions = 10,000 != enforced successful-action limit",
+      "ariaLabel": "浏览器将一万写入最大操作数，但当前使用方并不强制执行一万作为成功操作上限。",
+      "explanation": "这个数值公开可见，设置时也必须非零；但没有使用方读取、比较与更新计数器，它就只是描述性存储，不是实际执行的上限。",
+      "terms": [
+        {
+          "symbol": "!=",
+          "meaning": "意味着这两个想法不能被视为等同。"
+        }
+      ]
+    },
+    {
+      "title": "插件模式的浏览器复用判断",
+      "expression": "reuseClient = storedKey AND localExpiresAt > now + 900 AND sessionPdaNonemptyData AND canonicalProfileSelectedGate",
+      "ariaLabel": "插件浏览器会根据复制到本地的到期时间、非空 Session 数据，以及若干规范 Profile 结构与关系检查，决定是否复用已存密钥。",
+      "explanation": "这里不会解码 Session 数据。Profile 条件会检查程序 owner、773 字节、NCKPLY01、已存 owner 与 GlobalConfig，却不强制 version 或 initialized。最终仍以下游使用方判断为准。",
+      "terms": [
+        {
+          "symbol": "900",
+          "meaning": "当前十五分钟的刷新偏差（以秒为单位）。"
+        }
+      ]
+    },
+    {
+      "title": "刷新与轮换对地址的影响",
+      "expression": "same owner + same authority ⇒ same PDA selection; rewrite only if stored owner, authority, Profile, Config and current player-v7 preconditions match; new authority ⇒ different PDA AND old PDA unchanged",
+      "ariaLabel": "相同的密钥组合会选中同一地址，但只有已存关系检查全部通过时才会重写；新的 sessionAuthority 会选中另一个 PDA，旧账户保持不变。",
+      "explanation": "仓库通常请求 now + 8 hours，但任何仍在未来的到期时间都可能缩短或延长有效期。历史 Profile 指针可能让同一 PDA 刷新失败；新 authority 会增加另一份由 rent 资金支持的账户。",
+      "terms": [
+        {
+          "symbol": "unchanged",
+          "meaning": "更换密钥的交易不会把旧账户作为可写账户传入。"
+        }
+      ]
+    },
+    {
+      "title": "链上设置与私钥保存是两次独立提交",
+      "expression": "wallet broadcast/confirmation → PlayerSession and funding may exist; then localStorage.setItem(secret) → browser recovery copy may exist",
+      "ariaLabel": "owner 设置交易可能先上链，随后浏览器才通过另一笔本地写入持久保存新的 Session 私钥。",
+      "explanation": "两个系统之间没有统一的原子回滚。确认结果不明确、页面关闭、存储不可用、配额失败或 setItem 异常，都可能留下链上状态和资金，却没有浏览器私钥副本；重试可能再创建一把密钥与 PDA。",
+      "terms": [
+        {
+          "symbol": "→",
+          "meaning": "执行顺序，不保证后面的步骤成功。"
+        }
+      ]
+    },
+    {
+      "title": "Local Game Wallet 缓存会报告合成到期时间",
+      "expression": "readyCacheAge < 300 seconds ⇒ skip RPC and report expiresAt = now + 28,800; on-chain expiresAt remains unchanged",
+      "ariaLabel": "Local Game Wallet 的 5 分钟 ready cache 命中时会跳过 RPC，并在不读取或修改 Session 记录的情况下，报告合成的“当前时间 + 8 小时”。",
+      "explanation": "5 分钟只限制跳过 RPC 的时长。被缓存的已有记录可能接近 15 分钟新鲜度下限，因此合成报告的到期时间可能比链上真实到期时间晚很多，差距远不止 5 分钟。",
+      "terms": [
+        {
+          "symbol": "300",
+          "meaning": "内存缓存的生命周期，单位为秒；它不是到期时间的误差上限。"
+        }
+      ]
+    },
+    {
+      "title": "当前补充余额规则",
+      "expression": "topUp = balance < 0.1 SOL ? max(0, configuredTarget - balance) : 0",
+      "ariaLabel": "浏览器只在余额低于 0.1 SOL 时补充，并把余额补到配置目标；这个目标不是消费上限。",
+      "explanation": "最低值与目标值都是浏览器策略，不是托管或上限。复用期间，系统可能在完整验证 Session 之前就再次请求 owner 钱包批准补充余额，因此注资成功不能证明 Session 可用。",
+      "terms": [
+        {
+          "symbol": "balance",
+          "meaning": "已确认的单独插件会话地址的 SOL 余额。"
+        }
+      ]
+    },
+    {
+      "title": "普通转账会绕过通行证记录",
+      "expression": "ordinaryTransferSignatureValid = sessionKeySignature AND SystemProgram.transfer; PlayerSessionReferenced = false; PlayerProgramInvoked = false",
+      "ariaLabel": "有效的 Session 密钥签名无需引用 PlayerSession、也无需调用 Player Program，就能授权普通的 System Program 转账。",
+      "explanation": "保留的证明使用合成且未注资的密钥，全程离线，不发送交易，也不暴露私钥。它证明普通签名能力，不证明余额足以执行或真实资金已经移动。",
+      "terms": [
+        {
+          "symbol": "ordinaryTransferSignatureValid",
+          "meaning": "密码学构造与签名验证结果，而不是广播结果。"
+        }
+      ]
+    },
+    {
+      "title": "轮换会再锁定一笔 rent，却不会关闭旧账户",
+      "expression": "new sessionAuthority ⇒ new PlayerSession PDA + another rent allocation; reviewed close/refund instruction = absent",
+      "ariaLabel": "新的 sessionAuthority 会创建另一份由 rent 资金支持的 Session PDA；已审查的 Player Program 没有关闭 Session 或退还 rent 的指令。",
+      "explanation": "保留的 Devnet 观察中，每份 184 字节 Session 的最低 rent 为 2,171,520 lamports。按照已审查生命周期，到期、退出登录与更换密钥都不会取回旧 PDA 中的 lamports。",
+      "terms": [
+        {
+          "symbol": "another rent allocation",
+          "meaning": "这是一笔单独的账户 rent 余额，不是 Session authority 地址的 0.1 SOL 注资目标。"
+        }
+      ]
+    },
+    {
+      "title": "退出登录只是尽力尝试，不保证成功",
+      "expression": "logout = attempt identity removals; if enumeration succeeds, attempt every matching prefix removal; per-key exceptions are swallowed; success is not verified",
+      "ariaLabel": "退出登录会尝试删除身份存储项，以及所有 owner 后缀下匹配前缀的存储项；但枚举或单项删除失败都可能留下记录，之后也没有成功校验。",
+      "explanation": "即使成功删除本地私钥，也不会发送链上指令，不会转走 authority 的 SOL，不会关闭 Session PDA，也不会触碰另行保存的 Local Game Wallet 私钥。",
+      "terms": [
+        {
+          "symbol": "attempt",
+          "meaning": "请求的本地操作，其成功既无法保证也无法验证。"
+        }
+      ]
+    },
+    {
+      "title": "下游使用方的到期规则",
+      "expression": "authorizedAtUse = expiresAt > Clock.unix_timestamp",
+      "ariaLabel": "使用方只有在 expiresAt 严格大于 Clock.unix_timestamp 时，才把 Session 视为未到期。",
+      "explanation": "当 expiresAt 小于或等于链上时间时，被检查的 Session 路径会拒绝请求。权限结束后，公开账户仍可能继续占用空间。",
+      "terms": [
+        {
+          "symbol": "Clock.unix_timestamp",
+          "meaning": "程序内部链提供的 Unix 时间戳。"
+        }
+      ]
+    },
+    {
+      "title": "保留的 Devnet 观察",
+      "expression": "snapshot(2026-07-18, confirmed slot 477236696, RPC getBlockTime) = 10 PlayerSessions, 8 unique owners, 10 expired relative to retained block time",
+      "ariaLabel": "一份 7 月 18 日、confirmed 级别、slot 477236696 的 Devnet 快照，保留了涉及 8 个 owner 的 10 份 Session，且当时都已到期。",
+      "explanation": "RPC getBlockTime 返回 2026-07-18T21:56:51Z；快照没有直接读取 Clock sysvar。Session、Profile 与 Config 共享同一上下文 slot；Player Program 与 ProgramData 哈希使用补充的 +1/+2 slot，而且只覆盖 Player 部署字节。",
+      "terms": [
+        {
+          "symbol": "snapshot",
+          "meaning": "一个共享的 RPC 上下文，其保留的字节可以离线检查。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "仓库中的 Play 源码声明模块入口",
+      "language": "HTML",
+      "source": "play/index.html",
+      "code": "    <script type=\"module\" src=\"./main.js\"></script>",
+      "explanation": "仓库里的这个 <script> 标签声明：生产环境的 /play/ 源码应从 /play/main.js 进入，并继续加载 play/*。它不是快照中保留的线上实际响应字节；2026-07-19 的 Nginx 快照显示，/play/index.html 返回的是带版本号的 bundle。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "以 /play/index.html 为基准，把 main.js 作为 ES 模块加载。"
+        }
+      ]
+    },
+    {
+      "title": "仓库模块入口连接玩家同步、链模块加载与钱包 Session 控制",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "import { createPlayChainPlayerSync } from \"./play-chain-player.js\";\nimport { loadPlayChainModule, mineShouldSavePlayerPosition } from \"./play-chain-adapter.js\";\nimport { createPlayChainSession, WALLET_SESSION_CHANGED_EVENT } from \"./play-chain-session.js\";",
+      "explanation": "仓库工作区入口会导入 PlayerProfile 同步、链模块加载器、采矿位置保存判断与钱包 Session 控制器；旧的 /src/main.js 不属于这条路由。这只能证明源码结构，并非快照中保留的线上实际模块；当时直接请求 /play/main.js 返回的是 index HTML 页面。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "导入该仓库源码路由声明的 PlayerProfile 同步模块；这证明源码结构，不代表当时线上实际返回的字节。"
+        },
+        {
+          "lines": "第 2-3 行",
+          "meaning": "导入仓库中的链模块加载器、采矿位置保存判断与钱包 Session 生命周期模块；快照保留的线上实际字节来自另一个带版本号的 bundle。"
+        }
+      ]
+    },
+    {
+      "title": "玩家状态代码定义 Session 账户族与 PDA 种子",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "pub const PLAYER_SESSION_MAGIC: [u8; 8] = *b\"NCKSES01\";\npub const PLAYER_SESSION_VERSION: u16 = 1;\npub const PLAYER_SESSION_SEED: &[u8] = b\"session\";",
+      "explanation": "这些常量标识固定 184 字节的公开 Session 记录，并给出规范 PDA 使用的第一个固定字符串种子。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "定义账户类型，以及设置时写入的当前打包版本。"
+        },
+        {
+          "lines": "第 3 行",
+          "meaning": "确定放在 owner 与 sessionAuthority 之前的 UTF-8 种子字符串。"
+        }
+      ]
+    },
+    {
+      "title": "Rust 按顺序打包所有 16 个公共字段",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        writer.bytes(&PLAYER_SESSION_MAGIC)?;\n        writer.u16(PLAYER_SESSION_VERSION)?;\n        writer.u8(args.bump)?;\n        writer.u8(1)?;\n        writer.pubkey(args.owner)?;\n        writer.pubkey(args.session_authority)?;\n        writer.pubkey(args.player_profile)?;\n        writer.pubkey(args.global_config)?;\n        writer.u16(args.world_id)?;\n        writer.u16(args.allowed_actions)?;\n        writer.i64(args.expires_at)?;\n        writer.u64(args.created_slot)?;\n        writer.u64(args.created_slot)?;\n        writer.i64(args.created_at)?;\n        writer.u32(args.max_actions)?;\n        writer.u32(0)?;",
+      "explanation": "顺序写入器生成上表所示的偏移布局。updatedSlot 的初始值等于 createdSlot，actionCount 的初始值为 0。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "依次写入 magic、version、bump，以及 initialized/active 字节。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "依次写入 owner、sessionAuthority、Profile 与 GlobalConfig 的四个公钥。"
+        },
+        {
+          "lines": "第 9-16 行",
+          "meaning": "依次写入 worldId、权限 mask、到期时间、slot、创建时间、maxActions，以及初始值为零的 actionCount。"
+        }
+      ]
+    },
+    {
+      "title": "刷新会重置存储的计数器，但不会撤销",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        dst[Self::MAX_ACTIONS_OFFSET..Self::MAX_ACTIONS_OFFSET + 4]\n            .copy_from_slice(&max_actions.to_le_bytes());\n        dst[Self::ACTION_COUNT_OFFSET..Self::ACTION_COUNT_OFFSET + 4]\n            .copy_from_slice(&0_u32.to_le_bytes());\n        Ok(())",
+      "explanation": "刷新会更新 slot 和存储的最大值，并将 actionCount 写回零。此方法中不会出现关闭、撤销或停用行为。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "在同一经过验证的账户上替换 updatedSlot 和 maxActions。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "将 actionCount 重置为零并完成，无需关闭账户。"
+        }
+      ]
+    },
+    {
+      "title": "设置交易要求两个账户角色都满足签名条件",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !owner.is_signer || !owner.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if !session_authority.is_signer {\n        return Err(NicechunkPlayerError::InvalidSessionAuthority.into());\n    }\n    if !player_session.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }",
+      "explanation": "owner 密钥与 Session 密钥不同时，两者都必须签署设置交易；如果两个账户位置使用同一个公钥，同一份交易签名就能同时满足两项签名检查。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "要求 owner 作为设置付款人进行签名并保持可写。"
+        },
+        {
+          "lines": "第 4–6 行",
+          "meaning": "通过 sessionAuthority 的签名，证明调用者掌握对应私钥。"
+        },
+        {
+          "lines": "第 7-9 行",
+          "meaning": "允许创建或刷新写入规范的 Session 账户。"
+        }
+      ]
+    },
+    {
+      "title": "Player Program 限制设置载荷并派生规范 PDA",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let expires_at = read_i64(payload, 0);\n    let allowed_actions = read_u16(payload, 8);\n    let max_actions = read_u32(payload, 10);\n    let allowed_mask = SESSION_ACTION_BREAK_BLOCK | SESSION_ACTION_PLACE_BLOCK;\n    if allowed_actions == 0 || allowed_actions & !allowed_mask != 0 || max_actions == 0 {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }\n\n    let clock = Clock::get()?;\n    if expires_at <= clock.unix_timestamp {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }\n\n    let (expected_player_profile, profile_bump) =\n        Pubkey::find_program_address(&[PLAYER_PROFILE_SEED, owner.key.as_ref()], program_id);\n    require_key_eq(\n        player_profile.key,\n        &expected_player_profile,\n        NicechunkPlayerError::InvalidPlayerProfilePda,\n    )?;\n    let (expected_player_session, bump) = Pubkey::find_program_address(\n        &[\n            PLAYER_SESSION_SEED,\n            owner.key.as_ref(),\n            session_authority.key.as_ref(),\n        ],\n        program_id,\n    );",
+      "explanation": "载荷只能使用已声明的权限位，maxActions 必须非零，到期时间必须仍在未来。随后，PDA 派生会在 Player Program 名下绑定固定种子字符串、owner 与 sessionAuthority。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "解码十四字节有效负载并拒绝零或未知的权限值。"
+        },
+        {
+          "lines": "第 9–12 行",
+          "meaning": "将 expiresAt 与链 Clock 进行比较，而不是与浏览器时钟进行比较。"
+        },
+        {
+          "lines": "第 14-28 行",
+          "meaning": "按照公开种子的固定顺序，派生规范的 Profile 与 Session 地址。"
+        }
+      ]
+    },
+    {
+      "title": "SDK 使用相同的 Session 种子元组",
+      "language": "TypeScript",
+      "source": "sdk/nicechunk-player.ts",
+      "code": "  return PublicKey.findProgramAddressSync(\n    [Buffer.from(PLAYER_SESSION_SEED), owner.toBuffer(), sessionAuthority.toBuffer()],\n    programId,\n  );",
+      "explanation": "独立客户端可以重现 Player Program 的地址，因为 SDK 保持相同的种子顺序。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "用固定字符串 session、owner 字节、sessionAuthority 字节与 Player Program ID 派生唯一的 PDA。"
+        }
+      ]
+    },
+    {
+      "title": "SDK 把 tag 4 序列化为 15 字节指令数据",
+      "language": "TypeScript",
+      "source": "sdk/nicechunk-player.ts",
+      "code": "  const data = Buffer.alloc(15);\n  data.writeUInt8(4, 0);\n  data.writeBigInt64LE(BigInt(expiresAt), 1);\n  data.writeUInt16LE(allowedActions, 9);\n  data.writeUInt32LE(maxActions, 11);",
+      "explanation": "这反映了生产构建器：一个选择器字节位于 Rust 处理程序解析的 14 个字节之前。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "分配 15 字节，并先在第一个字节写入指令 tag 4。"
+        },
+        {
+          "lines": "第 3–5 行",
+          "meaning": "以小端形式写入到期、操作 mask 和最大值。"
+        }
+      ]
+    },
+    {
+      "title": "SDK 解码器遵循相同的字段顺序",
+      "language": "TypeScript",
+      "source": "sdk/nicechunk-player.ts",
+      "code": "  const decoded: DecodedPlayerSession = {\n    magic: bytes(8).toString(\"utf8\"),\n    version: u16(),\n    bump: u8(),\n    active: u8() === 1,\n    owner: pubkey(),\n    sessionAuthority: pubkey(),\n    playerProfile: pubkey(),\n    globalConfig: pubkey(),\n    worldId: u16(),\n    allowedActions: u16(),\n    expiresAt: i64(),\n    createdSlot: u64(),\n    updatedSlot: u64(),\n    createdAt: i64(),\n    maxActions: u32(),\n    actionCount: u32(),\n  };",
+      "explanation": "解码器按 Rust 打包器写入的相同顺序读取 16 个字段。派生审计会验证字段顺序与各字段字节宽度仍然一致。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "在到达世界状态之前解码标头和四个公钥。"
+        },
+        {
+          "lines": "第 10–18 行",
+          "meaning": "解码 mask、时间、槽位、创建时间、最大值和操作计数。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 读取到期和请求的操作位",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "        if read_i64(data, PLAYER_SESSION_EXPIRES_AT_OFFSET) <= now {\n            return Err(NicechunkChunkError::PlayerSessionExpired);\n        }\n        let allowed_actions = read_u16(data, PLAYER_SESSION_ALLOWED_ACTIONS_OFFSET);\n        if action >= 16 || allowed_actions & (1_u16 << action) == 0 {\n            return Err(NicechunkChunkError::SessionActionNotAllowed);\n        }",
+      "explanation": "完成身份关系比较后，如果 expiresAt 已到链上时间，或权限 mask 不含请求的操作位，Chunk 就会拒绝。这里没有读取 maxActions 或 actionCount。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "如果 Session 保存的到期时间不再晚于链上时间，就拒绝它。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "读取 allowedActions，并确认其中包含该使用方请求的操作位。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 调度列出了所有五个经过审核的 Session 使用方",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    match tag {\n        5 => mine_block(program_id, accounts, payload),\n        6 => initialize_chunk_broken(program_id, accounts, payload),\n        7 => initialize_resource_drop_table(program_id, accounts, payload),\n        8 => mine_block_with_rewards(program_id, accounts, payload),\n        9 => fell_tree_with_rewards(program_id, accounts, payload),\n        10 => apply_civilization_resource_drop_receipt(program_id, accounts, payload),\n        11 => initialize_surface_decoration_table(program_id, accounts, payload),\n        12 => verify_surface_decoration(program_id, accounts, payload),\n        13 => apply_civilization_surface_decoration_receipt(program_id, accounts, payload),\n        15 => register_build_site_chunk(program_id, accounts, payload),\n        20 => batch_mine_with_rewards(program_id, accounts, payload),\n        21 => range_mine_with_rewards(program_id, accounts, payload),\n        _ => Err(NicechunkChunkError::InvalidInstruction.into()),\n    }",
+      "explanation": "审计从生产构建器中的 Session 账户参数一路追踪到此调度表的 5 个处理器：tag 5、8、9、20 与 21。",
+      "walkthrough": [
+        {
+          "lines": "第 1–13 行",
+          "meaning": "把 Chunk 指令 tag 映射到处理器，其中包括 5 条会读取 Session 的采矿与伐树路径。"
+        },
+        {
+          "lines": "第 14 行",
+          "meaning": "拒绝此显式调度表之外的任何 tag。"
+        }
+      ]
+    },
+    {
+      "title": "Building 采用同样的到期与权限检查",
+      "language": "Rust",
+      "source": "programs/nicechunk_building/src/state.rs",
+      "code": "        if read_i64(data, PLAYER_SESSION_EXPIRES_AT_OFFSET) <= now {\n            return Err(NicechunkBuildingError::PlayerSessionExpired);\n        }\n        let allowed_actions = read_u16(data, PLAYER_SESSION_ALLOWED_ACTIONS_OFFSET);\n        if action >= 16 || allowed_actions & (1_u16 << action) == 0 {\n            return Err(NicechunkBuildingError::SessionActionNotAllowed);\n        }",
+      "explanation": "Building 也从相同的固定偏移读取 expiresAt 与 allowedActions；目前 tag 0–7 共用的辅助函数都会传入操作位索引 1。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "当公开 Session 记录已达到或超过链上到期时间时拒绝。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "确认 allowedActions 中包含 Building 辅助函数请求的操作位。"
+        }
+      ]
+    },
+    {
+      "title": "Building 调度把 8 条 Session 路径与 Guardian 发布路径分开",
+      "language": "Rust",
+      "source": "programs/nicechunk_building/src/lib.rs",
+      "code": "    match tag {\n        0 => create_build_site(program_id, accounts, payload),\n        1 => register_build_site_chunks(program_id, accounts, payload),\n        2 => begin_building_upload(program_id, accounts, payload),\n        3 => write_building_shard(program_id, accounts, payload),\n        4 => finalize_building(program_id, accounts, payload),\n        5 => cancel_building_upload(program_id, accounts, payload),\n        6 => migrate_legacy_build_site(program_id, accounts, payload),\n        7 => begin_build_site_resize(program_id, accounts, payload),\n        8 => publish_guardian_blueprint(program_id, accounts, payload),\n        _ => Err(NicechunkBuildingError::InvalidInstruction.into()),\n    }",
+      "explanation": "审计矩阵确认 tag 0–7 的 8 个处理器都使用 PlayerSession；tag 8 则是独立的固定发布者 Guardian CPI，不使用 PlayerSession。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "调度 8 个共用操作位索引 1 的建造生命周期处理器。"
+        },
+        {
+          "lines": "第 10–12 行",
+          "meaning": "Guardian 蓝图发布与无效 tag 都不属于这组 Session 使用方。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 单项移除会移动紧凑数组，但不检查物品类型",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "    pub fn remove_resource_at(\n        data: &mut [u8],\n        owner: &Pubkey,\n        index: u8,\n        updated_slot: u64,\n    ) -> ProgramResult {\n        Self::validate_owner(data, owner)?;\n        let item_count = data[Self::ITEM_COUNT_OFFSET];\n        if index >= item_count {\n            return Err(NicechunkBackpackError::InvalidResourceIndex.into());\n        }\n\n        let start = Self::RECORDS_OFFSET + index as usize * BACKPACK_SLOT_RECORD_LEN;\n        let end = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;\n        if start + BACKPACK_SLOT_RECORD_LEN < end {\n            data.copy_within(start + BACKPACK_SLOT_RECORD_LEN..end, start);\n        }\n        let last_start =\n            Self::RECORDS_OFFSET + (item_count - 1) as usize * BACKPACK_SLOT_RECORD_LEN;\n        data[last_start..last_start + BACKPACK_SLOT_RECORD_LEN].fill(0);\n        data[Self::ITEM_COUNT_OFFSET] = item_count.saturating_sub(1);",
+      "explanation": "该方法验证 owner 与索引后，把后续每条定长记录向左移动，清空原来的最后一个 slot，再减少计数；整个过程从未读取 slot 的种类或分类。",
+      "walkthrough": [
+        {
+          "lines": "第 1–11 行",
+          "meaning": "验证 Backpack 归属，并确认紧凑数组中的索引确实存在。"
+        },
+        {
+          "lines": "第 13–17 行",
+          "meaning": "把后面的打包记录依次向左复制，覆盖被选中的记录。"
+        },
+        {
+          "lines": "第 18-21 行",
+          "meaning": "清除末尾留下的重复记录，并减少已打包物品数量。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 的 Session 单项移除要求 BREAK_BLOCK 权限",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let player_session_data = player_session.try_borrow_data()?;\n    let session = PlayerSessionView::validate(\n        &player_session_data,\n        session_authority.key,\n        player_profile.key,\n        SESSION_ACTION_BREAK_BLOCK,\n        clock.unix_timestamp,\n    )?;\n    drop(player_session_data);\n\n    let player_profile_data = player_profile.try_borrow_data()?;\n    PlayerProfileView::validate_owner(&player_profile_data, &session.owner)?;\n    drop(player_profile_data);\n    validate_existing_backpack_pda(program_id, backpack, &session.owner)?;\n\n    let mut backpack_data = backpack.try_borrow_mut_data()?;\n    BackpackAccount::remove_resource_at(&mut backpack_data, &session.owner, index, clock.slot)",
+      "explanation": "Session 单项移除路径只读借用 PlayerSession，检查 BREAK_BLOCK 权限，解析出 owner，然后修改 owner 对应的 Backpack，而不是修改 Session 本身。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "使用 BREAK_BLOCK 权限常量读取并验证 PlayerSession。"
+        },
+        {
+          "lines": "第 11-14 行",
+          "meaning": "将已解析的 owner 绑定到 PlayerProfile 和规范的 Backpack。"
+        },
+        {
+          "lines": "第 16–17 行",
+          "meaning": "只以可写方式借用 Backpack，再按紧凑数组索引执行移除。"
+        }
+      ]
+    },
+    {
+      "title": "仓库浏览器策略设置时间与注资默认值",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "const sessionDurationSeconds = 8 * 60 * 60;\nconst sessionRefreshSkewSeconds = 15 * 60;\nconst lamportsPerSol = 1_000_000_000;\nconst minimumSessionFundingLamports = 100_000_000;",
+      "explanation": "这些仓库源码常量定义有效期、提前刷新窗口、SOL 换算与最低注资额。它们本身不是快照保留的线上实际响应字节；另一个生产环境快照通过哈希固定了线上候选资源，并确认其中存在等值常量。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "设置请求的持续时间和提前刷新窗口（以秒为单位）。"
+        },
+        {
+          "lines": "第 3-4 行",
+          "meaning": "定义 SOL 换算与浏览器最低注资阈值。"
+        }
+      ]
+    },
+    {
+      "title": "插件模式的复用判断依赖本地时间窗口与账户是否存在",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  if (stored && stored.expiresAt > nowSeconds + sessionRefreshSkewSeconds) {\n    const [playerSession] = derivePlayerSessionPda(owner, stored.keypair.publicKey);\n    const [playerProfile] = derivePlayerProfilePda(owner);\n    const [account, sessionAccount, profileAccount] = await conn.getMultipleAccountsInfo(\n      [playerSession, stored.keypair.publicKey, playerProfile],\n      \"confirmed\",\n    );\n    const sessionBalance = accountLamports(sessionAccount);\n    if (account?.data?.length && isCurrentPlayerProfileAccount(profileAccount, owner)) {\n      await fundGameplaySessionIfNeeded(provider, stored.keypair.publicKey, sessionBalance, conn);",
+      "explanation": "这段仓库源码分支使用复制的时间、非空 Session 数据、选定 Profile 检查与注资逻辑；它不是保留的线上实际提供字节。它不会完整解码 Session，而且余额过低时可能在使用方验证之前就请求 owner 补充余额。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "先检查本地保存的到期窗口，再根据已存的 sessionAuthority 派生地址。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "以 confirmed 确认级别一并读取 Session、Session 地址余额与 Profile。"
+        },
+        {
+          "lines": "第 8-10 行",
+          "meaning": "只要 Session 数据非空且所选 Profile 检查通过，就先接受复用；如余额不足，还会给已存的 sessionAuthority 补充 SOL。"
+        }
+      ]
+    },
+    {
+      "title": "Local Game Wallet 将 owner 置于 Session 的两个角色中",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: owner,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));\n\n  await signAndSendKeypairTransaction(keypair, tx, conn);",
+      "explanation": "在仓库源码中，同一把 owner 密钥同时承担 Session 的两个角色，并签署这笔直接交易。这段代码不是快照保留的线上实际资源；真正建立 PDA 的是交易成功执行，而不是 usesGameplaySession:false 这个返回字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "构造 tag 4 指令，并在两个账户角色中都放入 owner 公钥。"
+        },
+        {
+          "lines": "第 9 行",
+          "meaning": "使用一个持久的 Local Game Wallet Keypair 签名并提交。"
+        }
+      ]
+    },
+    {
+      "title": "普通方块放置目前会在提交前被禁用",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function recordBlockPlacementOnChain(_target, _renderType, _toolSlot = 0) {\n  return { submitted: false, reason: \"chain-placement-disabled\" };\n}",
+      "explanation": "这段仓库源码方法会在提交前返回 chain-placement-disabled；它不是保留的线上实际提供字节。另行计算哈希的线上链模块候选，在采集时包含相同的字面行为。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "返回固定的禁用原因字符串，不构建也不发送链上放置交易。"
+        }
+      ]
+    },
+    {
+      "title": "插件模式把 Session 私钥字节编码为 Base64 保存",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function storeGameplaySession(owner, session) {\n  if (!hasLocalStorage()) return;\n  localStorage.setItem(sessionStorageKey(owner), JSON.stringify({\n    publicKey: session.keypair.publicKey.toBase58(),\n    secretKey: bytesToBase64(session.keypair.secretKey),\n    expiresAt: session.expiresAt,\n    savedAt: Date.now(),\n  }));\n}",
+      "explanation": "这段仓库源码会在带 owner 后缀的存储项中保存 Base64 文本，而不是加密后的私钥字节。它不是快照中保留的线上实际字节证据；谁能读取 localStorage，仍属于浏览器侧必须信任的边界。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "确认浏览器存储可用，并选择按 owner 隔离的 Session 记录。"
+        },
+        {
+          "lines": "第 4–8 行",
+          "meaning": "保存公钥、Base64 私密字节、复制的到期时间与保存时间。"
+        },
+        {
+          "lines": "第 9 行",
+          "meaning": "完成仅本地存储助手，无需任何链调用。"
+        }
+      ]
+    },
+    {
+      "title": "Session Keypair 可以成为普通交易的费用支付者",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {\n  transaction.feePayer = signer.publicKey;\n  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n  transaction.recentBlockhash = blockhash;\n  transaction.lastValidBlockHeight = lastValidBlockHeight;\n  transaction.sign(signer);",
+      "explanation": "这段仓库源码把一个普通 Keypair 直接设为交易费用支付者与签名者，并没有套上 PlayerSession 限制。它不是快照保留的线上实际代码；离线审计另行验证了这笔 System Program 转账的指令结构与签名。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "使用提供的 Keypair 的公钥作为交易费用支付者。"
+        },
+        {
+          "lines": "第 3–5 行",
+          "meaning": "获取最近确认的区块哈希及其有效性边界。"
+        },
+        {
+          "lines": "第 6 行",
+          "meaning": "将普通的 Keypair 签名应用于构建的交易。"
+        }
+      ]
+    },
+    {
+      "title": "仓库 Play 适配器将放置转发到已解析的模块中",
+      "language": "JavaScript",
+      "source": "play/play-chain-adapter.js",
+      "code": "  async function submitPlace(pending) {\n    if (!pending) return skipped(\"missing-pending\");\n    if (!isEnabled()) return skipped(\"chain-sync-disabled\");\n    if (!getWalletAddress()) return skipped(\"wallet-unavailable\");\n    const module = await loadPlayChainModule();\n    if (typeof module.recordBlockPlacementOnChain !== \"function\") return skipped(\"record-placement-unavailable\");\n    const renderType = module.renderTypeForBlockId?.(pending.blockId) ?? null;\n    const result = await module.recordBlockPlacementOnChain(blockFromPending(pending), renderType, pending.hotbarSlotIndex ?? 0);\n    return normalizeChainResult(result);\n  }",
+      "explanation": "仓库中的适配器源码会先解析并加载一个模块；只有该模块导出 recordBlockPlacementOnChain 时才调用它。这不是快照保留的线上适配器字节：直接请求 /play/play-chain-adapter.js 当时返回 HTML，真实行为取决于最终解析到的资源或受信任覆盖项。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "需要待处理的放置、启用的适配器和连接的钱包。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "加载运行时最终解析到的模块，并调用其中的普通放置方法；当前仓库源码树不等同于快照保留的线上实际字节。"
+        },
+        {
+          "lines": "第 9–10 行",
+          "meaning": "标准化 Play 控制器的未提交禁用结果。"
+        }
+      ]
+    },
+    {
+      "title": "退出登录会尝试删除所有键名与运行时前缀匹配的存储项",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "export function clearWalletSession(storage = globalThis.localStorage) {\n  for (const key of Object.values(walletSessionKeys)) remove(storage, key);\n  const keys = [];\n  try {\n    for (let index = 0; index < storage.length; index += 1) {\n      const key = storage.key(index);\n      if (key) keys.push(key);\n    }\n  } catch {\n    return;\n  }\n  for (const key of keys) {\n    if (runtimeCachePrefixes.some((prefix) => key.startsWith(prefix))) remove(storage, key);\n  }\n}",
+      "explanation": "该函数不会把运行时缓存限定为当前连接的 owner，而是尝试删除所有前缀匹配项。但枚举失败或单个存储项删除报错都可能留下数据，所以这里只是尽力清理，并不保证成功。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "尝试从此浏览器源中删除四个钱包身份字段。"
+        },
+        {
+          "lines": "第 3-11 行",
+          "meaning": "尝试枚举 localStorage 中的键；一旦这里抛出异常，函数会在扫描运行时前缀之前直接返回。"
+        },
+        {
+          "lines": "第 12–15 行",
+          "meaning": "不区分 owner 后缀，逐个尝试删除所有匹配前缀的存储项；这段代码不会回读验证是否成功。"
+        }
+      ]
+    },
+    {
+      "title": "Play 退出登录会清理本地状态，并尽力断开钱包插件",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "  function disconnectWallet() {\n    const provider = detectWalletProvider();\n    try {\n      if (provider?.disconnect) {\n        Promise.resolve(provider.disconnect()).catch(() => {\n          // The local session is already cleared; plugin disconnect is best effort.\n        });\n      }\n    } catch {\n      // Some wallet plugins throw when already disconnected.\n    }\n    clearWalletSession();\n    state.walletAddress = \"\";\n    state.sessionLamports = getStoredSessionLamports(\"\");\n    resetWalletBalance();\n    dispatchWalletChanged(\"\");",
+      "explanation": "该处理器会尽力断开钱包 provider、清理浏览器数据，再重置内存中的界面状态。它不会发送 System Program 转账，也不会关闭或撤销 PlayerSession、发起退款，而且没有验证浏览器存储是否真的删除成功。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "要求钱包提供商断开连接，但可以容忍拒绝或已断开连接的状态。"
+        },
+        {
+          "lines": "第 11-15 行",
+          "meaning": "调用尽力而为的本地清理，再重置内存中的钱包与余额显示。"
+        },
+        {
+          "lines": "第 16 行",
+          "meaning": "通知 Play 可见钱包地址现在为空。"
+        }
+      ]
+    },
+    {
+      "title": "Local Game Wallet 持久保存 Base58 私钥明文",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "function storeLocalGameWalletKeypair(keypair, source = \"created\") {\n  const address = keypair.publicKey.toBase58();\n  const secretKey = bs58.encode(keypair.secretKey);\n  const createdAt = String(Date.now());\n  if (!hasLocalStorage()) throw new Error(\"Browser local storage is unavailable.\");\n  localStorage.setItem(localGameWalletKeys.address, address);\n  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);",
+      "explanation": "长期 owner 的私钥字节会被转换为未加密的 Base58 明文，保存在 Local Game Wallet 专用存储项中；插件 Session 的退出清理不会处理它。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "准备公开地址、Base58 私钥明文与创建时间。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "要求 localStorage 可用，并同时保存公开地址与未加密私钥字符串。"
+        }
+      ]
+    },
+    {
+      "title": "Guardian HELLO 包含钱包提示和随机数",
+      "language": "JavaScript",
+      "source": "play/play-guardian-client.js",
+      "code": "  encodeHello(position) {\n    const chunk = this.worldToChunk(position?.x ?? 0, position?.z ?? 0);\n    const bytes = new Uint8Array(HELLO_SIZE);\n    const view = new DataView(bytes.buffer);\n    view.setUint8(0, MSG_HELLO);\n    view.setUint8(1, PROTOCOL_VERSION);\n    view.setUint16(2, 0, true);\n    this.writeWalletHint(bytes, 4);\n    view.setInt32(36, chunk.x, true);\n    view.setInt32(40, chunk.z, true);\n    const nonce = randomNonceWords();\n    view.setUint32(44, nonce.low, true);\n    view.setUint32(48, nonce.high, true);\n    return bytes.buffer;\n  }",
+      "explanation": "实时握手消息只写入公开的钱包提示、Chunk 坐标与随机 nonce；其中没有 PlayerSession、sessionAuthority、私钥字节或钱包签名。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "分配 HELLO 帧并写入其消息和协议头。"
+        },
+        {
+          "lines": "第 8-10 行",
+          "meaning": "写入钱包公钥提示与当前 Chunk 坐标。"
+        },
+        {
+          "lines": "第 11-15 行",
+          "meaning": "加入随机 nonce 字段，并返回尚未签名的消息字节。"
+        }
+      ]
+    },
+    {
+      "title": "Guardian 运行时接收 walletAddress 而不是 PlayerSession",
+      "language": "JavaScript",
+      "source": "play/play-guardian.js",
+      "code": "  function createGuardianClient(wallet) {\n    return createNiceChunkGuardianClient({\n      walletAddress: wallet,\n      url: state.guardianUrl,\n      playerName: String(getPlayerName?.() || \"Local Miner\"),\n      chunkSize: chunks?.chunkSize || 16,\n      onReady: (info) => {\n        state.connected = true;",
+      "explanation": "运行时使用钱包公开地址与世界呈现数据构建独立实时客户端，不读取 PlayerSession 输入。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "使用当前钱包地址作为身份提示创建 Guardian 客户端。"
+        },
+        {
+          "lines": "第 4–8 行",
+          "meaning": "传入端点与画面展示上下文，再注册一套独立的 onReady 回调。"
+        }
+      ]
+    },
+    {
+      "title": "Guardian Program 的调度拥有独立生命周期",
+      "language": "Rust",
+      "source": "programs/nicechunk_guardian/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_registry(program_id, accounts),\n        1 => register_genesis_guardian(program_id, accounts, payload),\n        2 => register_guardian(program_id, accounts, payload),\n        5 => update_guardian_endpoint(program_id, accounts, payload),\n        6 => update_guardian_blueprint(program_id, accounts, payload),\n        8 => update_guardian_operator(program_id, accounts, payload),\n        _ => Err(NicechunkGuardianError::InvalidInstruction.into()),\n    }",
+      "explanation": "当前 Guardian 调度负责注册表、登记、端点、蓝图与 operator 状态。完整的已审计合约不引用 PlayerSession，也没有 Session 生命周期处理器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "Guardian 的指令 tag 只会映射到 Guardian 注册表与区域管理处理器。"
+        },
+        {
+          "lines": "第 8–9 行",
+          "meaning": "拒绝不支持的标签而不是接受 Session 撤销操作。"
+        }
+      ]
+    },
+    {
+      "title": "离线审计证明：无需联网，这把密钥也能签署普通转账",
+      "language": "JavaScript",
+      "source": "scripts/derive-player-sessions-audit.mjs",
+      "code": "  const instruction = SystemProgram.transfer({\n    fromPubkey: sessionAuthority.publicKey,\n    toPubkey: recipient,\n    lamports: 1,\n  });\n  const transaction = new Transaction({\n    feePayer: sessionAuthority.publicKey,\n    recentBlockhash: Keypair.generate().publicKey.toBase58(),\n  }).add(instruction);\n  transaction.sign(sessionAuthority);\n  const playerSessionReferenced = instruction.keys.some(({ pubkey }) => pubkey.equals(playerSession));\n  const playerProgramInvoked = instruction.programId.equals(new PublicKey(playerProgramId));\n  const source = instruction.keys[0];\n  const signaturePresent = transaction.signatures.length === 1 && transaction.signatures[0].signature !== null;\n  const signatureValid = transaction.verifySignatures();\n  assert(instruction.programId.equals(SystemProgram.programId), \"Offline transfer did not target System Program.\");\n  assert(source.pubkey.equals(sessionAuthority.publicKey), \"Offline transfer source differs from the session authority.\");\n  assert(source.isSigner && source.isWritable, \"Offline transfer source is not a writable signer.\");\n  assert(instruction.keys.length === 2, \"System transfer account list drifted from two keys.\");\n  assert(!playerSessionReferenced, \"Offline System transfer unexpectedly references PlayerSession.\");\n  assert(!playerProgramInvoked, \"Offline System transfer unexpectedly invokes Player Program.\");\n  assert(signaturePresent && signatureValid, \"Temporary session Keypair could not sign an ordinary System transfer offline.\");",
+      "explanation": "全新的测试密钥会在完全离线的环境中签署一笔不广播的 1 lamport 转账。断言会确认：调用的是 System Program，存在可写签名者，不含 Session 账户与 Player Program，而且签名有效。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "构造一笔 1 lamport 的 System Program 转账，并用新生成的 sessionAuthority Keypair 签名。"
+        },
+        {
+          "lines": "第 11-15 行",
+          "meaning": "检查其中的 Session 引用、被调用程序、签名者账户参数与签名有效性。"
+        },
+        {
+          "lines": "第 16–22 行",
+          "meaning": "如果普通转账开始依赖 PlayerSession，或签名无法验证，就让审计失败。"
+        }
+      ]
+    },
+    {
+      "title": "保留的派生报告记录普通转账的能力边界",
+      "language": "JSON",
+      "source": "docs/audits/player-sessions-derived-2026-07-18.json",
+      "code": "  \"systemTransferProbe\": {\n    \"networkRequests\": 0,\n    \"broadcasts\": 0,\n    \"lamports\": 1,\n    \"instructionProgramId\": \"11111111111111111111111111111111\",\n    \"instructionAccountCount\": 2,\n    \"sourceIsSigner\": true,\n    \"sourceIsWritable\": true,\n    \"playerSessionAccountReferenced\": false,\n    \"playerProgramInvoked\": false,\n    \"signaturePresent\": true,\n    \"signatureValid\": true,\n    \"privateKeyOutput\": false\n  },",
+      "explanation": "保存的输出公开了可验证的结果，无需保留私钥字节，也无需声明广播或真实资金流动。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "记录网络活动为零，并记录原生 System Program 指令结构。"
+        },
+        {
+          "lines": "第 7-10 行",
+          "meaning": "记录签名者要求，并确认指令中没有 PlayerSession 与 Player Program。"
+        },
+        {
+          "lines": "第 11–13 行",
+          "meaning": "记录签名存在且验证成功，同时确认报告没有输出私钥。"
+        }
+      ]
+    },
+    {
+      "title": "Devnet 检查模式会守住快照的隐私边界",
+      "language": "JavaScript",
+      "source": "scripts/capture-player-sessions-devnet.mjs",
+      "code": "  assert(report.privacyBoundary.sessionSigningSecretBytesRetained === false, \"Privacy boundary drifted.\");\n  assert(report.privacyBoundary.walletFilesRead === false, \"Wallet-file boundary drifted.\");\n  assert(report.privacyBoundary.browserStorageRead === false, \"Browser-storage boundary drifted.\");\n  assert(report.reproduction.checkModeUsesNetwork === false, \"Local check unexpectedly claims network use.\");\n  assertNoSecretFields(report);",
+      "explanation": "离线报告检查会明确拒绝保留 Session 私钥、读取钱包文件、读取浏览器存储、使用网络，或输出形似私钥的报告字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "确认采集过程没有接触 Session 私钥、钱包文件或浏览器存储。"
+        },
+        {
+          "lines": "第 4-5 行",
+          "meaning": "让检查模式保持离线，并扫描保留报告中是否出现禁止的私钥类字段。"
+        }
+      ]
+    },
+    {
+      "title": "一份保留的 Devnet 摘要显示过期账户可以保留",
+      "language": "JSON",
+      "source": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "code": "  \"summary\": {\n    \"retainedPlayerSessions\": 10,\n    \"currentAtContextBlockTime\": 0,\n    \"expiredAtContextBlockTime\": 10,\n    \"uniqueOwners\": 8,\n    \"uniqueSessionAuthorities\": 10,\n    \"ownerEqualsAuthoritySessions\": 5,\n    \"distinctAuthoritySessions\": 5,\n    \"ownersWithMultipleSessions\": 1,\n    \"maximumSessionsForOneOwner\": 3,\n    \"sessionsForOwnersWithMultipleSessions\": 3,\n    \"canonicalSessionPdas\": 10,",
+      "explanation": "在 confirmed 上下文 slot 477236696，保留的 10 份公开 Session 记录全部已经到期，其中一个 owner 拥有 3 份记录。账户仍然存在，不代表授权仍然有效。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "按该上下文时间统计：保留 Session 共 10 份，仍有效 0 份，已到期 10 份。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "统计 8 个 owner，并区分 owner 与 sessionAuthority 使用同一公钥或不同公钥的情况。"
+        },
+        {
+          "lines": "第 9–12 行",
+          "meaning": "在这一快照中记录多 Session 共存和规范 PDA 观察结果。"
+        }
+      ]
+    },
+    {
+      "title": "SDK 的 tag 4 构建器把 PlayerProfile 标为只读",
+      "language": "TypeScript",
+      "source": "sdk/nicechunk-player.ts",
+      "code": "  const [globalConfig] = deriveGlobalConfigPda(coreProgramId);\n  const data = Buffer.alloc(15);\n  data.writeUInt8(4, 0);\n  data.writeBigInt64LE(BigInt(expiresAt), 1);\n  data.writeUInt16LE(allowedActions, 9);\n  data.writeUInt32LE(maxActions, 11);\n  return new TransactionInstruction({\n    programId: playerProgramId,\n    keys: [\n      { pubkey: owner, isSigner: true, isWritable: true },\n      { pubkey: sessionAuthority, isSigner: true, isWritable: false },\n      { pubkey: playerProfile, isSigner: false, isWritable: false },\n      { pubkey: playerSession, isSigner: false, isWritable: true },\n      { pubkey: globalConfig, isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n    ],\n    data,\n  });",
+      "explanation": "独立 SDK 会写入 tag 4，把 PlayerProfile 标为只读、PlayerSession 标为可写。这个明确的账户权限布局，正是“Profile 条件修复路径可能无法写入”这一集成风险的证据。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "派生 GlobalConfig，并序列化 15 字节的 tag 4 指令数据。"
+        },
+        {
+          "lines": "第 7–16 行",
+          "meaning": "声明两个签名者角色、只读 PlayerProfile、可写 Session，以及其余只读账户。"
+        },
+        {
+          "lines": "第 17–18 行",
+          "meaning": "附上序列化数据，完成 SDK 指令对象。"
+        }
+      ]
+    },
+    {
+      "title": "仓库 tag-4 构建器还使 PlayerProfile 保持只读状态",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const data = Buffer.alloc(15);\n  data.writeUInt8(4, 0);\n  data.writeBigInt64LE(BigInt(expiresAt), 1);\n  data.writeUInt16LE(sessionAllowedActions, 9);\n  data.writeUInt32LE(sessionMaxActions, 11);\n\n  return new TransactionInstruction({\n    programId: playerProgramId,\n    keys: [\n      { pubkey: owner, isSigner: true, isWritable: true },\n      { pubkey: sessionAuthority, isSigner: true, isWritable: false },\n      { pubkey: playerProfile, isSigner: false, isWritable: false },\n      { pubkey: playerSession, isSigner: false, isWritable: true },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n    ],\n    data,\n  });",
+      "explanation": "这个仓库源码树构建器与 SDK 一样，把 PlayerProfile meta 设为只读、PlayerSession meta 设为可写。它不是保留的线上实际提供字节；生产环境快照另行固定了获取到的链模块候选。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "把仓库默认值序列化为 tag 4 数据；当前源码树不等同于快照保留的线上实际字节。"
+        },
+        {
+          "lines": "第 7–16 行",
+          "meaning": "要求 owner 与 sessionAuthority 都签名；Profile 保持只读，设置过程中只有 PlayerSession 可写。"
+        },
+        {
+          "lines": "第 17–18 行",
+          "meaning": "完成仓库中的指令对象；这本身不能证明浏览器当时实际加载了哪些线上字节。"
+        }
+      ]
+    },
+    {
+      "title": "PlayerProfile 验证失败后可能补足 rent、重新分配空间并重新打包",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    {\n        let data = player_profile.try_borrow_data()?;\n        if PlayerProfile::validate_owner_and_config(&data, owner, global_config.key).is_ok() {\n            return Ok(());\n        }\n    }\n\n    if player_profile.owner == program_id {\n        let rent = Rent::get()?;\n        let lamports = rent.minimum_balance(PlayerProfile::LEN);\n        if player_profile.lamports() < lamports {\n            let transfer = system_instruction::transfer(\n                payer.key,\n                player_profile.key,\n                lamports - player_profile.lamports(),\n            );\n            invoke(\n                &transfer,\n                &[\n                    payer.clone(),\n                    player_profile.clone(),\n                    system_program_account.clone(),\n                ],\n            )?;\n        }\n        if player_profile.data_len() != PlayerProfile::LEN {\n            player_profile.realloc(PlayerProfile::LEN, false)?;\n        }\n    } else {\n        if player_profile.owner != &system_program::ID || player_profile.data_len() != 0 {\n            return Err(NicechunkPlayerError::InvalidSystemAccount.into());\n        }\n        create_or_allocate_player_profile_pda(\n            payer,\n            player_profile,\n            system_program_account,\n            program_id,\n            owner,\n            bump,\n        )?;\n    }\n\n    let mut data = player_profile.try_borrow_mut_data()?;\n    PlayerProfile::pack_default(\n        &mut data,\n        bump,\n        owner,\n        global_config.key,\n        global_config_view.world_id,\n        \"\",\n        clock.slot,\n        clock.unix_timestamp,\n    )",
+      "explanation": "如果现有 Profile 通过 owner 与配置检查，函数会立即返回；否则会进入条件修复路径，可能补转 rent、重新分配 Player Program 拥有的数据，或为一个空的 System Program 账户分配空间，最后重新打包默认 Profile。正因为这些步骤需要写入，把 tag 4 中的 Profile 标为只读才会形成风险。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "所选的现有 Profile 验证成功时直接返回，不修改任何数据。"
+        },
+        {
+          "lines": "第 8-28 行",
+          "meaning": "对于 Player Program 拥有的数据，必要时补足 rent；只有长度不一致时才重新分配空间。"
+        },
+        {
+          "lines": "第 29-41 行",
+          "meaning": "否则只接受由 System Program 拥有的空账户，并为规范 Profile PDA 分配空间。"
+        },
+        {
+          "lines": "第 43-53 行",
+          "meaning": "条件修复完成后，以可写方式借用 Profile 数据，并重新打包当前默认字段。"
+        }
+      ]
+    },
+    {
+      "title": "统一游戏命名空间委托给 Backpack",
+      "language": "Rust",
+      "source": "programs/nicechunk_game/src/lib.rs",
+      "code": "const NS_BACKPACK: u8 = 1;\nconst NS_CHUNK: u8 = 2;\nconst NS_SMELTING: u8 = 3;\nconst NS_MARKET: u8 = 4;\n\npub fn process_instruction(\n    program_id: &solana_program::pubkey::Pubkey,\n    accounts: &[AccountInfo],\n    instruction_data: &[u8],\n) -> ProgramResult {\n    let (tag, payload) = instruction_data\n        .split_first()\n        .ok_or(NicechunkGameError::InvalidInstruction)?;\n\n    match *tag {\n        NS_BACKPACK => nicechunk_backpack::process_instruction(program_id, accounts, payload),\n        NS_CHUNK => nicechunk_chunk::process_instruction(program_id, accounts, payload),\n        NS_SMELTING => nicechunk_smelting::process_instruction(program_id, accounts, payload),\n        NS_MARKET => nicechunk_market::process_instruction(program_id, accounts, payload),\n        _ => Err(NicechunkGameError::InvalidInstruction.into()),\n    }\n}",
+      "explanation": "统一 Game Program 把首字节当作命名空间；当值为 1 时，它去掉这个外层字节，再把余下的内部 tag 与载荷交给共享 Backpack 指令处理器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "把命名空间值 1 分配给 Backpack，其他游戏账户族使用不同的值。"
+        },
+        {
+          "lines": "第 6–13 行",
+          "meaning": "把首字节与余下载荷分开；若指令数据为空则拒绝。"
+        },
+        {
+          "lines": "第 15-22 行",
+          "meaning": "把命名空间 1 的余下载荷交给 nicechunk_backpack，并拒绝未知命名空间。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 的两账户分支由 owner 直接授权",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    if payload.len() != 1 || (accounts.len() != 2 && accounts.len() != 4) {\n        return Err(NicechunkBackpackError::InvalidInstruction.into());\n    }\n\n    let index = payload[0];\n    let account_info_iter = &mut accounts.iter();\n\n    if accounts.len() == 2 {\n        let owner = next_account_info(account_info_iter)?;\n        let backpack = next_account_info(account_info_iter)?;\n\n        if !owner.is_signer || !owner.is_writable {\n            return Err(NicechunkBackpackError::InvalidPayer.into());\n        }\n        if !backpack.is_writable {\n            return Err(NicechunkBackpackError::InvalidWritableAccount.into());\n        }\n        require_key_eq(\n            backpack.owner,\n            program_id,\n            NicechunkBackpackError::InvalidBackpackOwner,\n        )?;\n        validate_existing_backpack_pda(program_id, backpack, owner.key)?;\n\n        let clock = Clock::get()?;\n        let mut backpack_data = backpack.try_borrow_mut_data()?;\n        return BackpackAccount::remove_resource_at(\n            &mut backpack_data,\n            owner.key,\n            index,\n            clock.slot,\n        );\n    }",
+      "explanation": "该处理器明确接受两种账户布局：2 个或 4 个。两账户布局只要求 owner 签名且 Backpack 可写，按紧凑索引直接移除后就返回，全程不读取 PlayerSession。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "要求载荷恰好只含一个索引，并且账户布局只能是两账户或四账户。"
+        },
+        {
+          "lines": "第 8-23 行",
+          "meaning": "在两账户布局中，验证 owner 签名者与规范且可写的 Backpack。"
+        },
+        {
+          "lines": "第 25-33 行",
+          "meaning": "直接修改 owner 的 Backpack，并在进入任何 Session 分支前返回。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 的四账户分支验证 Session",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let session_authority = next_account_info(account_info_iter)?;\n    let player_profile = next_account_info(account_info_iter)?;\n    let player_session = next_account_info(account_info_iter)?;\n    let backpack = next_account_info(account_info_iter)?;\n\n    if !session_authority.is_signer {\n        return Err(NicechunkBackpackError::InvalidSessionAuthority.into());\n    }\n    if !backpack.is_writable {\n        return Err(NicechunkBackpackError::InvalidWritableAccount.into());\n    }\n    require_key_eq(\n        backpack.owner,\n        program_id,\n        NicechunkBackpackError::InvalidBackpackOwner,\n    )?;\n    require_key_eq(\n        player_profile.owner,\n        &NICECHUNK_PLAYER_PROGRAM_ID,\n        NicechunkBackpackError::InvalidPlayerProgram,\n    )?;\n    require_key_eq(\n        player_session.owner,\n        &NICECHUNK_PLAYER_PROGRAM_ID,\n        NicechunkBackpackError::InvalidPlayerProgram,\n    )?;\n\n    let clock = Clock::get()?;\n    let player_session_data = player_session.try_borrow_data()?;\n    let session = PlayerSessionView::validate(\n        &player_session_data,\n        session_authority.key,\n        player_profile.key,\n        SESSION_ACTION_BREAK_BLOCK,\n        clock.unix_timestamp,\n    )?;",
+      "explanation": "两账户分支提前返回后，四账户分支会按顺序读取 sessionAuthority、Profile、Session 与 Backpack。执行移除前，它会检查 authority 签名、Player Program 所有权、链上时间与 BREAK_BLOCK 权限。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "按照合约规定的顺序读取 4 个 Session 分支账户角色。"
+        },
+        {
+          "lines": "第 6-26 行",
+          "meaning": "要求 sessionAuthority 已签名、Backpack 可写，并确认各账户属于预期程序。"
+        },
+        {
+          "lines": "第 28-36 行",
+          "meaning": "读取链上时间，再通过 PlayerSessionView 检查 BREAK_BLOCK 授权。"
+        }
+      ]
+    },
+    {
+      "title": "仓库中的权限 mask 与 maxActions 是两个独立默认常量",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "const sessionAllowedActions = (1 << 1) | (1 << 2);\nconst sessionMaxActions = 10_000;",
+      "explanation": "这两个相邻的仓库源码常量把 BREAK_BLOCK 与 PLACE_BLOCK 合成权限 mask 6，并把 maxActions 设为 10,000。它们不是快照保留的线上实际字节，也不能证明下游使用方真的执行了这两个字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "把位索引 1 与 2 组合成仓库默认的十进制 mask 6。"
+        },
+        {
+          "lines": "第 2 行",
+          "meaning": "源码选择把 10,000 存入 maxActions；这不代表线上使用方会把它强制当作上限。"
+        }
+      ]
+    },
+    {
+      "title": "仓库钱包助手在返回之前等待确认",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function signAndSendWalletTransaction(provider, transaction, conn = getNicechunkConnection(), extraSigners = []) {\n  transaction.feePayer = provider.publicKey;\n\n  if (typeof conn.prepareTransaction === \"function\") {\n    await conn.prepareTransaction(transaction, { commitment: \"confirmed\" });\n  } else {\n    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n    transaction.recentBlockhash = blockhash;\n    transaction.lastValidBlockHeight = lastValidBlockHeight;\n  }\n\n  for (const signer of extraSigners) transaction.partialSign(signer);\n\n  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }\n\n  if (typeof provider.signAndSendTransaction !== \"function\") {\n    throw new Error(\"Wallet does not support transaction signing.\");\n  }\n  const result = await provider.signAndSendTransaction(transaction);\n  const signature = typeof result === \"string\" ? result : result?.signature;\n  if (!signature) throw new Error(\"Wallet did not return a transaction signature.\");\n  await confirmTransactionByHttpPolling(conn, {\n    signature,\n    blockhash: transaction.recentBlockhash,\n    lastValidBlockHeight: transaction.lastValidBlockHeight,\n  }, \"confirmed\");\n  return signature;\n}",
+      "explanation": "仓库中的这个辅助函数会通过两种钱包 API 之一广播交易，并等待 HTTP 轮询达到 confirmed 确认级别后才返回。它不是快照保留的线上实际字节；后续浏览器存储写入也不会因此成为链上交易的一部分。",
+      "walkthrough": [
+        {
+          "lines": "第 1–12 行",
+          "meaning": "准备仓库源码中的交易，并加入所有额外签名者的签名；这些内容不等同于快照保留的线上实际字节。"
+        },
+        {
+          "lines": "第 14-23 行",
+          "meaning": "使用 signTransaction，广播序列化字节并在返回之前等待确认轮询。"
+        },
+        {
+          "lines": "第 25-37 行",
+          "meaning": "对于 signAndSendTransaction，需要签名并同样在返回之前等待确认的轮询。"
+        }
+      ]
+    },
+    {
+      "title": "仓库设置流程会等钱包辅助函数返回后，才保存 Session 私钥",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);\n  const session = { keypair, expiresAt };\n  storeGameplaySession(owner, session);\n  markGameplaySessionReady(owner, keypair.publicKey, targetLamports);",
+      "explanation": "在仓库源码中，设置流程会先等待钱包辅助函数完成广播与确认，然后才调用 storeGameplaySession。它不是快照保留的线上实际字节；后续 localStorage 写入是第二次、非原子的提交，仍然可能失败。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "等待仓库钱包辅助函数在交易达到 confirmed 后返回；这里展示的是源码，不是快照保留的线上实际字节。"
+        },
+        {
+          "lines": "第 2-3 行",
+          "meaning": "只有前一步返回后，才组装本地记录并请求 localStorage 保存私钥。"
+        },
+        {
+          "lines": "第 4 行",
+          "meaning": "独立的持久化调用完成后，才在内存中把就绪缓存标记为有效。"
+        }
+      ]
+    },
+    {
+      "title": "仓库就绪缓存的 TTL 为五分钟",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "const chunkDeltaCacheTtlMs = 60_000;\nconst gameplaySessionStatusCacheTtlMs = 60_000;\nconst gameplaySessionReadyCacheTtlMs = 5 * 60_000;\nconst resourceDropTableCacheTtlMs = 10 * 60_000;\nconst chunkDeltaCache = new Map();\nconst initializedChunkBrokenCache = new Set();\nconst gameplaySessionStatusCache = new Map();\nconst gameplaySessionReadyCache = new Map();",
+      "explanation": "仓库源码中的 ready cache 使用独立 Map，TTL 为 5 分钟。它不是快照保留的线上实际字节；这 5 分钟限制的只是缓存寿命，不是 Session 记录的到期时间，也不能限制合成到期时间可能高估多少。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "声明彼此独立的仓库缓存生命周期，其中游戏就绪缓存的生命周期为 5 分钟。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "创建彼此独立的缓存集合；这些声明来自仓库源码，不属于快照中保留的线上实际字节。"
+        }
+      ]
+    },
+    {
+      "title": "Local Game Wallet 命中缓存时，会在读取 RPC 前返回合成的“当前时间 + 有效期”",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const nowSeconds = Math.floor(Date.now() / 1000);\n  const expiresAt = nowSeconds + sessionDurationSeconds;\n  if (isGameplaySessionReadyCached(owner, owner)) {\n    return { keypair, expiresAt, localGameWallet: true };\n  }\n\n  const conn = getNicechunkConnection();\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, owner);",
+      "explanation": "仓库源码中的 Local Game Wallet 分支会计算“当前时间 + 8 小时 sessionDurationSeconds”。如果 ready cache 命中，它会在创建 RPC 连接前直接返回这个值。它不是快照保留的线上实际字节，而且此 expiresAt 是合成值，不是链上已确认记录中的真实值。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "在浏览器本地新算一个“当前时间 + 8 小时”的候选值，而不是读取链上到期时间。"
+        },
+        {
+          "lines": "第 3–5 行",
+          "meaning": "5 分钟 ready cache 仍匹配时，立即返回这个合成到期时间。"
+        },
+        {
+          "lines": "第 7-9 行",
+          "meaning": "只有缓存未命中时，代码才会创建 RPC 连接并继续 PDA 设置与后续 RPC 检查；这里展示的是仓库源码，不是快照保留的线上实际字节。"
+        }
+      ]
+    },
+    {
+      "title": "退出登录逐键删除时会忽略存储异常",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "function remove(storage, key) {\n  try {\n    storage?.removeItem?.(key);\n  } catch {\n    // Logout still redirects even when browser storage is unavailable.\n  }\n}",
+      "explanation": "每个身份或前缀删除都使用此帮助器。 removeItem 异常被捕获并忽略，因此调用者会继续，而无需证明浏览器实际上删除了该键。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "尝试对提供的存储密钥进行一次可选的 removeItem 调用。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "忽略异常，让退出和跳转继续，但不保证删除成功。"
+        }
+      ]
+    },
+    {
+      "title": "Devnet 捕获根据上下文 slot 区块时间对到期进行分类",
+      "language": "JavaScript",
+      "source": "scripts/capture-player-sessions-devnet.mjs",
+      "code": "  const [blockTimeUnix, rentMinimumLamports, playerProgram] = await Promise.all([\n    connection.getBlockTime(snapshot.contextSlot),\n    connection.getMinimumBalanceForRentExemption(lengths.playerSession, commitment),\n    inspectUpgradeableProgram(connection, ids.playerProgram, snapshot.contextSlot),\n  ]);\n  if (blockTimeUnix === null) {\n    throw new Error(`No block time is available for confirmed context slot ${snapshot.contextSlot}.`);\n  }",
+      "explanation": "采集脚本会对共享的 confirmed 上下文 slot 请求 RPC getBlockTime；如果拿不到时间，就拒绝判断记录是否到期。这并不是直接读取链上使用方执行时采用的 Clock sysvar。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "读取上下文 slot 的区块时间，同时读取 rent 与 Player 部署的补充信息。"
+        },
+        {
+          "lines": "第 6–8 行",
+          "meaning": "如果 RPC 无法为已确认的上下文 slot 提供时间戳，则停止捕获。"
+        }
+      ]
+    },
+    {
+      "title": "Devnet 报告分别记录共享和补充上下文",
+      "language": "JavaScript",
+      "source": "scripts/capture-player-sessions-devnet.mjs",
+      "code": "    capture: {\n      endpoint: redactEndpoint(endpoint),\n      endpointSource: process.env.NICECHUNK_DEVNET_RPC ? \"NICECHUNK_DEVNET_RPC\" : \"runtime-public-default\",\n      endpointFingerprintSha256: sha256(Buffer.from(redactEndpoint(endpoint), \"utf8\")),\n      endpointCredentialMaterialRetained: false,\n      commitment,\n      rpcVersion,\n      genesisHash,\n      minimumRequestedSlot: snapshot.minimumSlot,\n      programAccountsContextSlot: snapshot.contextSlot,\n      allProgramAccountQueriesShareOneContext: true,\n      contextSlots: snapshot.contexts,\n      contextBlockTimeUnix: blockTimeUnix,\n      contextBlockTime: new Date(blockTimeUnix * 1_000).toISOString(),\n      sharedContextAttempt: snapshot.attempt,\n      supplementalAccountContextSlots: {\n        playerProgram: playerProgram.contextSlot,\n        playerProgramData: playerProgram.programData.contextSlot,\n      },\n      maximumSupplementalContextSlotDelta: Math.max(\n        playerProgram.contextSlot,\n        playerProgram.programData.contextSlot,\n      ) - snapshot.contextSlot,",
+      "explanation": "脚本会把多个程序账户共用的上下文 slot，与 Player Program、ProgramData 的补充 slot 分开记录。保留报告中后两者分别是 +1 与 +2，因此它们的哈希只代表相邻时刻观察到的部署字节，并不属于完全相同的 Session/Profile/Config 共享上下文。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "保留已脱敏的端点元数据、确认级别与共享程序账户上下文 slot。"
+        },
+        {
+          "lines": "第 11-15 行",
+          "meaning": "记录各程序账户查询共享同一上下文，并附上该 slot 的 RPC 区块时间。"
+        },
+        {
+          "lines": "第 16-23 行",
+          "meaning": "把 Player Program 与 ProgramData 的补充 slot 及最大偏差单独记录，不与共享上下文混为一谈。"
+        }
+      ]
+    },
+    {
+      "title": "保留生产报告说明其日期和静态隐私边界",
+      "language": "JSON",
+      "source": "docs/audits/player-sessions-production-2026-07-18.json",
+      "code": "  \"schemaVersion\": 1,\n  \"kind\": \"nicechunk-player-sessions-production-runtime-snapshot\",\n  \"auditDate\": \"2026-07-18\",\n  \"snapshotDate\": \"2026-07-19\",\n  \"captureStartedAt\": \"2026-07-19T00:44:27.337Z\",\n  \"capturedAt\": \"2026-07-19T00:44:32.257Z\",\n  \"productionOrigin\": \"https://nicechunk.com\",\n  \"scope\": {\n    \"statement\": \"A byte-pinned snapshot of the public NiceChunk production entry, runtime bundle, and runtime-resolved chain-module candidates.\",\n    \"productionSnapshotNotPermanentFact\": true,\n    \"repositorySourceUsedAsProductionEvidence\": false,\n    \"rawResponseBodiesRetained\": false,\n    \"retainedInstead\": \"Full response SHA-256/length/status metadata plus byte offsets and hashed short literal contexts.\",\n    \"dateSemantics\": \"auditDate names the documentation audit batch and output filename; snapshotDate is the real UTC date of the HTTPS observation.\"\n  },\n  \"privacyAndNetworkBoundary\": {\n    \"transport\": \"TLS HTTPS only\",\n    \"requestMethod\": \"GET\",\n    \"fixedPublicHost\": \"nicechunk.com\",\n    \"requestsMade\": 10,\n    \"requestBodiesSent\": 0,\n    \"authorizationHeadersSent\": false,\n    \"cookiesSent\": false,\n    \"queryCredentialsSent\": false,\n    \"browserStorageRead\": false,\n    \"walletKeyMaterialRead\": false,\n    \"rpcMethodsCalled\": [],\n    \"transactionsConstructed\": 0,\n    \"transactionsSent\": 0,\n    \"note\": \"Static JavaScript contains storage-key and secretKey field names; this capture reads code bytes only and never reads any player's stored values.\"\n  },",
+      "explanation": "这份保留报告把 2026-07-18 作为文档审计批次日期，把 2026-07-19 作为实际进行 UTC HTTPS 观察的日期。它记录的是固定公共 GET 响应字节审计，不是浏览器 HAR；过程中没有读取浏览器存储、钱包密钥、RPC 账户或玩家覆盖配置。",
+      "walkthrough": [
+        {
+          "lines": "第 1–15 行",
+          "meaning": "将 auditDate 与 snapshotDate 分开，并声明时间点字节快照不是永久的。"
+        },
+        {
+          "lines": "第 16–24 行",
+          "meaning": "记录 TLS GET 传输不含请求体、授权信息、cookie 或查询凭据。"
+        },
+        {
+          "lines": "第 25-31 行",
+          "meaning": "记录采集过程没有访问浏览器存储、密钥、RPC 或交易；只检查静态代码字节。"
+        }
+      ]
+    },
+    {
+      "title": "保留的生产环境入口记录把线上路径绑定到响应正文哈希",
+      "language": "JSON",
+      "source": "docs/audits/player-sessions-production-2026-07-18.json",
+      "code": "    {\n      \"id\": \"playIndex\",\n      \"requestUrl\": \"https://nicechunk.com/play/index.html\",\n      \"finalUrl\": \"https://nicechunk.com/play/index.html\",\n      \"redirected\": false,\n      \"status\": 200,\n      \"ok\": true,\n      \"contentType\": \"text/html\",\n      \"contentEncoding\": null,\n      \"contentLengthHeader\": 55636,\n      \"bodyLength\": 55636,\n      \"contentLengthHeaderMatchesBody\": true,\n      \"sha256\": \"9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f\",\n      \"etag\": \"\\\"6a5ba988-d954\\\"\",\n      \"lastModified\": \"Sat, 18 Jul 2026 16:27:52 GMT\",\n      \"cacheControl\": \"no-store, no-cache, must-revalidate\",\n      \"hashBoundary\": \"sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity.\"\n    },",
+      "explanation": "保留的线上入口记录包含路径、200 HTML 状态、响应正文长度与 SHA-256。哈希覆盖解码后的 HTTP 实体正文，因此可以复核这份静态响应，但不声称浏览器实际执行过它。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "确定所提供的生产索引 URL、最终 URL、HTTP 状态和内容类型。"
+        },
+        {
+          "lines": "第 9-18 行",
+          "meaning": "把解码后的响应正文长度与 SHA-256，绑定到明确的 identity 内容编码哈希边界。"
+        }
+      ]
+    },
+    {
+      "title": "保留的运行时与默认链模块候选分别拥有不同的字节哈希锚点",
+      "language": "JSON",
+      "source": "docs/audits/player-sessions-production-2026-07-18.json",
+      "code": "    {\n      \"id\": \"versionedRuntime\",\n      \"requestUrl\": \"https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js\",\n      \"finalUrl\": \"https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js\",\n      \"redirected\": false,\n      \"status\": 200,\n      \"ok\": true,\n      \"contentType\": \"application/javascript\",\n      \"contentEncoding\": null,\n      \"contentLengthHeader\": 989679,\n      \"bodyLength\": 989679,\n      \"contentLengthHeaderMatchesBody\": true,\n      \"sha256\": \"594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6\",\n      \"etag\": \"\\\"6a5ba404-f19ef\\\"\",\n      \"lastModified\": \"Sat, 18 Jul 2026 16:04:20 GMT\",\n      \"cacheControl\": \"max-age=31536000, public, max-age=31536000, immutable\",\n      \"hashBoundary\": \"sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity.\"\n    },\n    {\n      \"id\": \"versionedChain\",\n      \"requestUrl\": \"https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js\",\n      \"finalUrl\": \"https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js\",\n      \"redirected\": false,\n      \"status\": 200,\n      \"ok\": true,\n      \"contentType\": \"application/javascript\",\n      \"contentEncoding\": null,\n      \"contentLengthHeader\": 112446,\n      \"bodyLength\": 112446,\n      \"contentLengthHeaderMatchesBody\": true,\n      \"sha256\": \"2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4\",\n      \"etag\": \"\\\"6a5ba455-1b73e\\\"\",\n      \"lastModified\": \"Sat, 18 Jul 2026 16:05:41 GMT\",\n      \"cacheControl\": \"max-age=31536000, public, immutable\",\n      \"hashBoundary\": \"sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity.\"\n    },",
+      "explanation": "运行时 bundle 与另行获取的默认链模块候选是两份不同的线上资源，各自拥有不同哈希。静态请求只能证明当时观察到的字节，不能证明某个具体浏览器在解析覆盖项后实际导入了哪一个候选模块。",
+      "walkthrough": [
+        {
+          "lines": "第 1–18 行",
+          "meaning": "固定线上带版本号运行时的 URL、JavaScript 响应、长度与解码后响应正文哈希。"
+        },
+        {
+          "lines": "第 19-36 行",
+          "meaning": "固定另一个带版本号的默认链模块候选 URL、响应元数据与哈希边界。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境快照检查器分别固定入口、运行时与链模块角色",
+      "language": "JavaScript",
+      "source": "scripts/capture-player-sessions-production.mjs",
+      "code": "const expectedBuildVersion = \"play-bundle-de6020cca220427a\";\nconst expectedRuntimePath = \"/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js\";\nconst expectedChainPath = \"/assets/nicechunkChain.play-bundle-de6020cca220427a.js\";\n\nconst expectedResources = Object.freeze({\n  playIndex: {\n    requestUrl: \"https://nicechunk.com/play/index.html\",\n    status: 200,\n    contentType: \"text/html\",\n    bodyLength: 55_636,\n    sha256: \"9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f\",\n  },\n  playMainFallback: {\n    requestUrl: \"https://nicechunk.com/play/main.js\",\n    status: 200,\n    contentType: \"text/html\",\n    bodyLength: 55_636,\n    sha256: \"9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f\",\n  },\n  playAdapterFallback: {\n    requestUrl: \"https://nicechunk.com/play/play-chain-adapter.js\",\n    status: 200,\n    contentType: \"text/html\",\n    bodyLength: 55_636,\n    sha256: \"9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f\",\n  },\n  versionedRuntime: {\n    requestUrl: `https://nicechunk.com${expectedRuntimePath}`,\n    status: 200,\n    contentType: \"application/javascript\",\n    bodyLength: 989_679,\n    sha256: \"594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6\",\n  },\n  versionedChain: {\n    requestUrl: `https://nicechunk.com${expectedChainPath}`,\n    status: 200,\n    contentType: \"application/javascript\",\n    bodyLength: 112_446,\n    sha256: \"2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4\",\n  },",
+      "explanation": "快照检查器为线上入口、两个 HTML 回退响应、带版本号的运行时和带版本号的链模块候选分配不同资源 ID，再逐一固定路径、响应形态、长度与 SHA-256。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "固定构建标签以及不同的运行时和默认链候选路径。"
+        },
+        {
+          "lines": "第 6-25 行",
+          "meaning": "固定线上 index，以及直接请求两个仓库模块 URL 时得到的 HTML 回退响应。"
+        },
+        {
+          "lines": "第 26–40 行",
+          "meaning": "固定版本化运行时并单独获取版本化链候选字节。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境快照记录仅限静态 GET 的审计边界",
+      "language": "JavaScript",
+      "source": "scripts/capture-player-sessions-production.mjs",
+      "code": "  const unsignedReport = {\n    schemaVersion: 1,\n    kind: \"nicechunk-player-sessions-production-runtime-snapshot\",\n    auditDate,\n    snapshotDate: captureStartedAt.slice(0, 10),\n    captureStartedAt,\n    capturedAt: new Date().toISOString(),\n    productionOrigin,\n    scope: {\n      statement: \"A byte-pinned snapshot of the public NiceChunk production entry, runtime bundle, and runtime-resolved chain-module candidates.\",\n      productionSnapshotNotPermanentFact: true,\n      repositorySourceUsedAsProductionEvidence: false,\n      rawResponseBodiesRetained: false,\n      retainedInstead: \"Full response SHA-256/length/status metadata plus byte offsets and hashed short literal contexts.\",\n      dateSemantics: \"auditDate names the documentation audit batch and output filename; snapshotDate is the real UTC date of the HTTPS observation.\",\n    },\n    privacyAndNetworkBoundary: {\n      transport: \"TLS HTTPS only\",\n      requestMethod: \"GET\",\n      fixedPublicHost: \"nicechunk.com\",\n      requestsMade: resources.length,\n      requestBodiesSent: 0,\n      authorizationHeadersSent: false,\n      cookiesSent: false,\n      queryCredentialsSent: false,\n      browserStorageRead: false,\n      walletKeyMaterialRead: false,\n      rpcMethodsCalled: [],\n      transactionsConstructed: 0,\n      transactionsSent: 0,\n      note: \"Static JavaScript contains storage-key and secretKey field names; this capture reads code bytes only and never reads any player's stored values.\",\n    },",
+      "explanation": "采集脚本把仓库源码标为非生产环境证据，只记录发往固定主机的 TLS GET；它不会访问浏览器存储、钱包密钥、RPC 或交易。这是一份静态字节快照，不是 HAR、覆盖配置读取或执行轨迹。",
+      "walkthrough": [
+        {
+          "lines": "第 1–16 行",
+          "meaning": "记录时间点字节范围、日期语义以及仓库与提供的证据边界。"
+        },
+        {
+          "lines": "第 17–25 行",
+          "meaning": "记录只向固定主机发送 TLS GET，且不含请求体、凭据或 cookie。"
+        },
+        {
+          "lines": "第 26-32 行",
+          "meaning": "记录采集过程没有读取浏览器值或钱包密钥，没有调用 RPC，也没有构造或发送交易。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/index.html",
+      "claim": "把 ./main.js 作为 /play/ 的生产模块入口加载，并包含当前面向玩家的 Session 注资说明。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "导入生产路由使用的模块化 Play 链适配器、钱包 Session 控制器、玩家同步、方块放置、采矿与 Guardian 运行时。"
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "将普通放置转发至 recordBlockPlacementOnChain 并标准化其当前未提交结果。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "实现玩家可见的钱包生命周期、余额展示、尽力断开 provider、本地清理调用与登录跳转。"
+    },
+    {
+      "path": "play/play-auth-session.js",
+      "claim": "定义 4 个钱包身份存储项、4 个运行时缓存前缀，以及覆盖所有 owner 后缀的前缀级退出扫描。"
+    },
+    {
+      "path": "play/play-guardian-client.js",
+      "claim": "Guardian HELLO 编码了公开钱包提示、Chunk 坐标与随机 nonce，但不包含 PlayerSession 或钱包签名。"
+    },
+    {
+      "path": "play/play-guardian.js",
+      "claim": "根据 walletAddress 与呈现上下文创建 Guardian 实时客户端，不接收 PlayerSession 输入。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "实现当前 8 小时有效期、15 分钟偏差、mask 6、已存最大值 10,000、0.1 SOL 规则、按 owner 隔离的私钥存储、复用、设置、禁用放置与普通 Keypair 签名。"
+    },
+    {
+      "path": "src/localGameWallet.js",
+      "claim": "把长期 Local Game Wallet 私钥以 Base58 明文保存在浏览器中，并提供同时承担 owner 与 sessionAuthority 两个角色的 Keypair。"
+    },
+    {
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "提供与合约一致的 Session 常量、PDA 派生、15 字节 tag 4 指令构建器、签名者账户参数，以及完整的定长布局解码器。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义 Session magic、version、种子、权限位、184 字节打包顺序、刷新写入、计数器重置与已存关系检查。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "调度 tag 4，要求两个账户角色都满足签名条件，检查载荷并确认 expiresAt 晚于链上时间，再派生规范 PDA；同时没有提供关闭、撤销或停用 Session 的处理器。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "定义 Chunk 只读取部分字段的 PlayerSession 视图；它会验证 sessionAuthority、Profile、GlobalConfig、到期时间与操作位，但不会读取另外 6 个已存字段。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "调度 5 个已审计、会读取 Session 的采矿与伐树处理器，并通过共享的只读 Session 验证路径传入操作位索引 1。"
+    },
+    {
+      "path": "programs/nicechunk_building/src/state.rs",
+      "claim": "定义 Building 只读取部分字段的 PlayerSession 视图，并执行同样的 sessionAuthority、Profile、GlobalConfig、到期时间与操作位检查。"
+    },
+    {
+      "path": "programs/nicechunk_building/src/lib.rs",
+      "claim": "通过共享 action-index-1 路径调度所有 Building 标签 0–7，而 tag 8 通过单独的固定发布者 CPI 发布 Guardian 蓝图状态。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "定义 Backpack 的 Session 视图，以及在紧凑数组中移动记录的单项与批量移除；这些移除不会检查 slot 的种类、类型或分类。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "用 BREAK_BLOCK 权限调度会读取 Session 的 remove_resource 与 remove_resources；它修改 owner 对应的 Backpack，而 PlayerSession 始终只读。"
+    },
+    {
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "定义统一 Game 的命名空间字节 1，并把余下的指令载荷交给共享 NiceChunk Backpack 处理器。"
+    },
+    {
+      "path": "programs/nicechunk_guardian/src/lib.rs",
+      "claim": "实现 Guardian 注册表、端点、蓝图与操作员处理器；其中不引用 PlayerSession，也不提供任何 Session 生命周期操作。"
+    },
+    {
+      "path": "scripts/derive-player-sessions-audit.mjs",
+      "claim": "以确定性方式派生字节布局、设置默认值、使用方实际读取字段、15 个处理器矩阵、生命周期边界、Guardian 独立性，以及普通 System Program 转账的离线证明。"
+    },
+    {
+      "path": "docs/audits/player-sessions-derived-2026-07-18.json",
+      "claim": "保留零网络派生结果、源码哈希、15 个只读使用方、不存在已实现的操作次数上限、缺失的 PLACE 使用方、缺失的撤销路径，以及有效的普通转账签名。"
+    },
+    {
+      "path": "scripts/capture-player-sessions-devnet.mjs",
+      "claim": "在共享上下文中只读采集 Devnet 程序账户，并检查保留字节、PDA、分布统计、隐私边界与离线复验结果。"
+    },
+    {
+      "path": "docs/audits/player-sessions-devnet-2026-07-18.json",
+      "claim": "在上下文 slot 477236696 中保留一份已确认的 Devnet 快照，其中包含 8 个所有者的 10 条规范 Session 记录，这些记录均在该链时间过期。"
+    },
+    {
+      "path": "scripts/capture-player-sessions-production.mjs",
+      "claim": "采集固定的 NiceChunk 公共 HTTPS 资源，对解码后的响应正文计算哈希，并离线检查保留的入口、运行时、回退响应、候选模块与隐私边界。"
+    },
+    {
+      "path": "docs/audits/player-sessions-production-2026-07-18.json",
+      "claim": "在 2026-07-18 文档审计批次中保留 2026-07-19 UTC 的生产环境静态观察，包括路径、响应、哈希、字面量，以及“未执行代码”的证据边界。"
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "把当前运行时链集群配置为 Devnet，并记录采集使用的 Player、Chunk、Building、Backpack 与 Core Program ID。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "固定 Player Program 在 owner 与配置验证中预期使用的 Core 和 Backpack Program ID。"
+    },
+    {
+      "path": "programs/nicechunk_core/src/state.rs",
+      "claim": "定义规范的 GlobalConfig 布局，以及设置流程把 worldId 与 GlobalConfig 写入 PlayerSession 前会读取的世界字段。"
+    },
+    {
+      "path": "src/rpcConfig.js",
+      "claim": "解析生产环境链客户端与已保留 Devnet 快照所使用的 Solana 集群和端点配置。"
+    },
+    {
+      "path": "play/tests/play-auth-session.test.mjs",
+      "claim": "测试钱包退出清理行为，包括删除指定范围的运行时缓存，同时保留无关的浏览器存储。"
+    },
+    {
+      "path": "tests/nicechunk_player_chunk.ts",
+      "claim": "检查 PlayerSession PDA 派生、序列化后的 mask 与到期时间、账户顺序，以及会读取 Session 的 Chunk 采矿指令行为。"
+    },
+    {
+      "path": "play/placement-controller.js",
+      "claim": "围绕当前禁用的链放置结果协调本地放置预测、链适配器提交、确认和回滚。"
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "协调玩家发起的采矿操作；该操作最终可能调用某条会读取 Session 的 Chunk 使用方路径。"
+    },
+    {
+      "path": "play/play-chain-backpack.js",
+      "claim": "同步 Play 中可见、属于 owner 的 Backpack；已审计的 Backpack 移除处理器会改变其中的紧凑记录。"
+    },
+    {
+      "path": "play/tests/play-chain-adapter.test.mjs",
+      "claim": "测试生产环境适配器如何统一处理已提交或已跳过的链上操作结果，其中包括方块放置委托。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "连接共享一个地址，而不是其背后的秘密",
+      "summary": "在批准 Session 设置之前，请检查钱包连接揭示的内容、签名证明的内容以及值得怀疑的提示。"
+    },
+    {
+      "slug": "local-game-wallet-backup-and-risk",
+      "href": "/docs/local-game-wallet-backup-and-risk/",
+      "title": "游戏钱包是该浏览器中的密钥，而不是加密的保险库",
+      "summary": "深入了解同时承担 owner 与 sessionAuthority 两个角色、长期保存在浏览器中的 Local Game Wallet 私钥。"
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "屏幕首先响应；检查后共享状态提交",
+      "summary": "沿着一次已授权请求，越过签名者检查，继续查看规范操作验证、确认与回滚。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "从权限边界转向注资与到期决策",
+      "summary": "本指南把公开通行证与普通签名密钥区分开，并说明目前缺少哪些保护机制。下一篇指南会把这些边界转化为关于 SOL、刷新时机、到期、恢复与更换密钥的实际选择。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "skills-xp-and-progress",
+        "title": "技能、XP 与进度：一次操作如何变成等级",
+        "summary": "在授予临时签名密钥请求更多操作的权限之前，先分清哪些进度只存在于浏览器，哪些保存在公开程序账户中。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "session-funding-and-expiry",
+        "title": "会话注资与到期：目标不是余额，浏览器时间也不是链上时间",
+        "summary": "把浏览器中的 0.1 SOL 目标值，与 owner、sessionAuthority 以及 PlayerSession 租金余额分开；再对照浏览器策略时间窗口和 Solana Clock，判断何时应补款、复用、刷新、更换或恢复密钥。"
+      }
+    ]
+  }
+}

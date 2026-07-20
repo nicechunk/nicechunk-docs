@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "fr",
+    "label": "French",
+    "version": "docs-locale-fr-55f1ed689945f97d",
+    "contentHash": "55f1ed689945f97d"
+  },
+  "common": {
+    "language": "Langue",
+    "comingSoon": "Bientôt disponible",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "Accueil NiceChunk",
+    "primaryNavigationAria": "Navigation principale",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "routes": {
+      "home": "Accueil",
+      "roadbook": "Route",
+      "worldRules": "Règles",
+      "resources": "Ressources",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "Éléments",
+      "fairness": "Équité",
+      "proofOfFrontier": "Preuve",
+      "seed": "Graine",
+      "guardians": "Gardiens",
+      "contracts": "Contrats",
+      "civilization": "Civilisation",
+      "trust": "Confiance",
+      "docs": "Docs",
+      "enterWorld": "Entrer dans le monde"
+    }
+  },
+  "meta": {
+    "title": "Guide de terrain NiceChunk",
+    "description": "Documentation NiceChunk destinée aux joueurs, fondée sur le jeu actif, les règles publiques et le comportement des programmes déployés."
+  },
+  "accessibility": {
+    "skipContent": "Aller au contenu"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "GUIDE DE TERRAIN",
+    "homeAria": "Accueil NiceChunk"
+  },
+  "navigation": {
+    "aria": "Navigation de la documentation",
+    "guide": "Guide",
+    "worldRules": "Règles du monde",
+    "programs": "Programmes",
+    "enterWorld": "Entrer dans le monde"
+  },
+  "status": {
+    "loading": "Chargement du guide de terrain",
+    "loadingDetail": "Récupération d'un document dans la langue sélectionnée.",
+    "failed": "Cette page du guide n'a pas pu être chargée.",
+    "failedDetail": "Vérifiez la connexion ou revenez à l'index du guide."
+  },
+  "actions": {
+    "backToIndex": "Retour à l'index du guide",
+    "guideIndex": "Guide de terrain",
+    "openGuide": "Ouvrir le guide →"
+  },
+  "footer": {
+    "statement": "Élaboré à partir des règles et du code de programme actifs. Les affirmations sont limitées à ce que l'implémentation peut prouver.",
+    "fairness": "Équité",
+    "trust": "Confiance",
+    "roadmap": "Feuille de route"
+  },
+  "translation": {
+    "fallbackTitle": "Source anglaise affichée",
+    "fallbackBody": "Ce sujet possède son propre fichier de langue, mais la traduction révisée n'est pas encore prête. La source anglaise est affichée sans affirmations techniques traduites automatiquement."
+  },
+  "labels": {
+    "guideMetrics": "Couverture du guide de terrain",
+    "breadcrumb": "Fil d'Ariane",
+    "keyPoints": "Points clés",
+    "onThisPage": "Sur cette page",
+    "evidenceEyebrow": "PREUVES D'IMPLÉMENTATION",
+    "evidenceTitle": "Origine de ces affirmations",
+    "evidenceIntro": "Chaque affirmation est volontairement rattachée à un chemin d'implémentation concret. Ces références servent à vérifier, pas à décorer."
+  },
+  "statusLabels": {
+    "ready": "Révisé",
+    "preview": "En révision",
+    "planned": "Planifié"
+  },
+  "calloutLabels": {
+    "note": "Comment lire ceci",
+    "boundary": "Limite d'implémentation",
+    "verified": "Ce que le code garantit"
+  }
+}

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="forging-system" data-docs-static-source="d79d41ca6749e7952d9bcce4bdc3dec3c2bf4f0fffb95fd21d35ac16084cfd99">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/forging-system.json" />
+    <meta name="nicechunk:source-sha256" content="d79d41ca6749e7952d9bcce4bdc3dec3c2bf4f0fffb95fd21d35ac16084cfd99" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/forging-system/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Explore NiceChunk&#39;s Chunk.js workbench, material inheritance, compact NCF1 designs, cloth motion, and exact on-chain material checks." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Material-Aware Forging" />
+    <meta property="og:description" content="Explore NiceChunk&#39;s Chunk.js workbench, material inheritance, compact NCF1 designs, cloth motion, and exact on-chain material checks." />
+    <meta property="og:url" content="https://nicechunk.com/docs/forging-system/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/forging-system-overview-v1.webp" />
+    <meta property="og:image:alt" content="The canonical villager boy hammers a selected side face of a supported multi-material assembly while the villager girl paints a cotton-cloth panel; real forge tools, an XYZ material gizmo, backpack resources, two abstract capacity gates, and a gently waving finished item form one game-anime quest scene." />
+    <title>NiceChunk Material-Aware Forging</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/forging-system/#article",
+  "url": "https://nicechunk.com/docs/forging-system/",
+  "name": "Shape locally, inherit real materials, verify the inputs",
+  "description": "Explore NiceChunk's Chunk.js workbench, material inheritance, compact NCF1 designs, cloth motion, and exact on-chain material checks.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Shape locally, inherit real materials, verify the inputs",
+  "mainEntityOfPage": "https://nicechunk.com/docs/forging-system/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Editing is a deterministic material operation, not a loose model import",
+    "Used material mass carries properties into the design",
+    "NCF1 is a compact reconstruction recipe",
+    "The verifier asks two material questions",
+    "Geometry has identity, but it is not the material gate",
+    "Recipes create materials; the forge edits what already exists"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#shared-workbench",
+      "name": "Editing is a deterministic material operation, not a loose model import"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#material-inheritance",
+      "name": "Used material mass carries properties into the design"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#compact-ncf1",
+      "name": "NCF1 is a compact reconstruction recipe"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#chain-boundary",
+      "name": "The verifier asks two material questions"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#geometry-boundary",
+      "name": "Geometry has identity, but it is not the material gate"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/forging-system/#cloth-and-recipes",
+      "name": "Recipes create materials; the forge edits what already exists"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/forging-system-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Forging System</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 04 · PLAYER-MADE EQUIPMENT</p>
+<h1>Shape locally, inherit real materials, verify the inputs</h1>
+<p class="docs-hero-summary">The forge is an editable 3D workbench powered by Chunk.js. Players move material pieces, work specific faces with visible tools, combine connected parts, paint cloth, and export a compact NCF1 design. On chain, the backpack program checks the selected material slots and two authoritative capacity totals—not the animation or every triangle.</p>
+<span class="docs-reading-time">10 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The canonical villager boy hammers a selected side face of a supported multi-material assembly while the villager girl paints a cotton-cloth panel; real forge tools, an XYZ material gizmo, backpack resources, two abstract capacity gates, and a gently waving finished item form one game-anime quest scene." decoding="async" height="887" loading="eager" src="/docs/media/forging-system-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>The material is not just a color</strong>
+<p>The live workbench draft binds structural components to backpack material records and uses their volume, density, heat, surface preview, and twelve equipment scores. Slot durability and quality remain chain-capacity inputs rather than inherited design scores.</p></article>
+<article class="docs-key-point"><strong>The design travels as NCF1</strong>
+<p>Chunk.js canonically encodes equipment statistics and component or baked-surface geometry into at most 640 raw bytes, then rebuilds a render mesh from that code.</p></article>
+<article class="docs-key-point"><strong>On-chain scope is deliberately narrow</strong>
+<p>The program verifies valid material records inside the signer's PDA-validated backpack and checks that total volume and effective durability are each greater than or equal to the design requirements. Surplus is allowed.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#shared-workbench">Editing is a deterministic material operation, not a loose model import</a></li>
+<li><a href="#material-inheritance">Used material mass carries properties into the design</a></li>
+<li><a href="#compact-ncf1">NCF1 is a compact reconstruction recipe</a></li>
+<li><a href="#chain-boundary">The verifier asks two material questions</a></li>
+<li><a href="#geometry-boundary">Geometry has identity, but it is not the material gate</a></li>
+<li><a href="#cloth-and-recipes">Recipes create materials; the forge edits what already exists</a></li>
+<li><a href="#technical-details">One compact header sets the requirement; selected slots supply capacity</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="shared-workbench"><p class="docs-eyebrow">CHUNK.JS WORKBENCH</p>
+<h2>Editing is a deterministic material operation, not a loose model import</h2>
+<p class="docs-prose">A forge component owns a fixed 14 × 10 × 14 occupancy grid, quantized dimensions and position, one of six NCF1 resource classes, RGB444 color, optional grip, paint surfaces, and workbench-only machining history. Exact backpack slot, item, and recipe-material binding lives beside the component in the live draft. Hammer, saw, hand drill, taper, grip, paint, rotation, and translation operations resolve against the shared grid.</p>
+<p class="docs-prose">The renderer and transform share hit-to-face snapping inputs—axis, side, plane, and center—so the crosshair and precision coordinates identify the selected construction location. They do not display the full affected-cell mask. Floor and occupied-voxel collision always apply, swept translation prevents tunneling, and deterministic settling is active only in Surface mode with a non-glove construction tool; glove or Object mode keeps pieces where the player positions them.</p>
+<p class="docs-prose">Machining history preserves holes and kerfs across admissible hammer or normalize deformation and rejects a deformation when the fixed grid can no longer preserve its physical footprint or cell budget. Casting requires positive-area shared occupied-voxel faces, then locks and moves the connected assembly as a group; it does not boolean-union the component masks.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Component grid</span>
+<strong>14 × 10 × 14</strong>
+<p>Cutting, drilling, deformation, meshing, occupied bounds, and collision share one finite lattice.</p></article>
+<article class="docs-fact"><span>Workbench inputs</span>
+<strong>Up to 24 components</strong>
+<p>The editor permits 24 structural components, while the chain instruction permits 24 total unique slots including every distinct used dye.</p></article>
+<article class="docs-fact"><span>Edit scopes</span>
+<strong>Inspect · Object · Surface</strong>
+<p>Selection and movement are separated from face-specific construction tools.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>One snapped construction target</strong>
+<p>The renderer and workbench transform agree on the selected face, plane, side, and center. The visible reticle marks that target without claiming to preview every cell the tool may modify.</p></aside></section>
+<section class="docs-content-section" id="material-inheritance"><p class="docs-eyebrow">WHAT MATERIALS CONTRIBUTE</p>
+<h2>Used material mass carries properties into the design</h2>
+<p class="docs-prose">The forge maps live smelted material records into workbench profiles. A particular smelt's attributes take priority over the recipe's base profile when available. As cutting and drilling remove occupied cells, the workbench recalculates how much of each input volume remains used. This exact slot and item binding belongs to the draft; NCF1 retains the resource class, RGB444 appearance, geometry, grip, and paint rather than the original recipe-material identity.</p>
+<p class="docs-prose">The design's twelve equipment scores are inherited with used-volume and density mass weighting. Mass, volume, material breakdown, heat, center-of-mass advice, and grip-torque advice are derived from the same edited components. Current and maximum slot durability plus quality basis points are chain capacity and output inputs, not direct inheritance weights for those twelve scores.</p>
+<ul class="docs-bullets"><li>Hardness, durability, toughness, ductility, brittleness, and density describe structural character.</li>
+<li>Heat resistance, corrosion resistance, conductivity, thermal conductivity, magnetism, and workability complete the twelve-score equipment profile.</li>
+<li>Stable slot and item identity prevents a stale draft from rebinding during client refresh. The transaction commits only slot indexes, so this identity match is client-side preflight rather than an on-chain item-identity assertion.</li>
+<li>Unused input volume is reported separately; the program later consumes the selected material items as whole backpack slots.</li></ul>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Twelve equipment scores are not twelve chain capacity fields</strong>
+<p>All twelve remain design statistics. Six structural scores directly feed the effective-durability requirement, and none is a separate capacity gate. The verifier compares only volume and effective durability totals.</p></aside></section>
+<section class="docs-content-section" id="compact-ncf1"><p class="docs-eyebrow">THE DESIGN ENVELOPE</p>
+<h2>NCF1 is a compact reconstruction recipe</h2>
+<p class="docs-prose">NCF1 version 14 starts with integer equipment data—mass, volume, and twelve compact scores—then carries either editable components or a baked appearance surface. Chunk.js canonical encoding makes equivalent accepted client input resolve to one normalized byte representation. The deployed program later hashes submitted bytes into a compact 32-bit check value; that value is not a collision-resistant content identity.</p>
+<p class="docs-prose">Before export, the local workbench draft remains the editable source. At submission, Chunk.js can rasterize components into a 24 × 24 × 24 appearance grid and chooses that representation only when it is strictly smaller. If appearance mode wins, the emitted code is appearance-only and cannot reconstruct the original components. Automatic selection keeps any component-cloth design component encoded so its component identity can drive motion; a manually imported appearance-mode cloth design is legal but static.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Format prefix</span>
+<strong>NCF1.</strong>
+<p>The readable prefix wraps a base64url representation of canonical raw bytes.</p></article>
+<article class="docs-fact"><span>Raw byte ceiling</span>
+<strong>640 bytes</strong>
+<p>The codec, transaction builder, SDK, and program share the raw ceiling. Full canonical geometry validation happens in the forge page, not in the SDK or on-chain parser.</p></article>
+<article class="docs-fact"><span>Runtime cache budget</span>
+<strong>24 entries · 8 MiB</strong>
+<p>The shared default cache avoids decoding and rebuilding the same forged mesh every frame or appearance refresh.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Compact does not mean opaque</strong>
+<p>The format has a public decoder, canonical validator, material summary, design hash, bounds, and deterministic mesh builder in Chunk.js.</p></aside></section>
+<section class="docs-content-section" id="chain-boundary"><p class="docs-eyebrow">EXACT ON-CHAIN CHECKS</p>
+<h2>The verifier asks two material questions</h2>
+<p class="docs-prose">Before submission, the client refreshes the equipped backpack and matches every selected source by slot, item identity, and mutable record fields. The client sends the canonicalized NCF1 bytes plus unique material slot indexes; the identity snapshot itself is not included in the instruction. The program validates the signer, player profile relationships, backpack owner and PDA, selected indexes, and that every indexed record is a live material item with valid metadata and nonzero durability.</p>
+<p class="docs-prose">From the NCF1 equipment header, the program derives required volume and required effective durability. From the selected backpack records, it sums material volume and effective durability, where each slot contributes its current durability capped by its maximum and scaled by quality basis points. Both capacities must be greater than or equal to the requirements.</p>
+<ol class="docs-steps"><li><strong>Question 1: Are these materials in this backpack?</strong>
+<p>Every unique index must exist in the validated owner backpack and point to a valid material-category record. Structural inputs and one whole slot for every distinct used dye share the same 24-index limit.</p></li>
+<li><strong>Question 2: Are both capacities sufficient?</strong>
+<p>totalVolumeMm3 ≥ requiredVolumeMm3 and totalEffectiveDurability ≥ requiredEffectiveDurability.</p></li>
+<li><strong>Consume and append</strong>
+<p>After both checks pass, the program removes the selected material slots and appends one forged backpack record. Its volume is the selected slots' full raw volume; durability, grade, item level, and volume-weighted quality come from the selected materials and forging level.</p></li></ol>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>More is valid; less is rejected</strong>
+<p>The comparison is greater than or equal for both fields. A surplus does not fail the forge, but a deficit in either field rejects it before selected slots are consumed.</p></aside></section>
+<section class="docs-content-section" id="geometry-boundary"><p class="docs-eyebrow">WHAT CONSENSUS DOES NOT REPLAY</p>
+<h2>Geometry has identity, but it is not the material gate</h2>
+<p class="docs-prose">The backpack program parses only the first 108 bits—a 4-bit NCF1 version plus a 104-bit equipment header—derives the two requirements, enforces the 640-byte envelope, and hashes all submitted bytes. It does not decode the remaining component or baked-surface geometry, enforce canonical encoding, replay hammer swings, re-run mesh generation, or judge a silhouette.</p>
+<p class="docs-prose">The forged backpack record stores a 32-bit FNV-1a check value of the raw NCF1 plus item code 8, an item ID, the selected slots' total raw volume, and material-derived durability, grade, item level, and volume-weighted quality. It stores neither the NCF1 bytes, the geometry, requirements, nor material composition. Reconstructing the visible item requires the exact off-chain or locally stored NCF1 code; the check value alone cannot rebuild geometry and is not collision-resistant proof of unique content.</p>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A precise, auditable claim</strong>
+<p>NiceChunk verifies ownership and sufficient material parameters on chain. It does not claim that every workbench edit or rendered vertex is executed by the program.</p></aside></section>
+<section class="docs-content-section" id="cloth-and-recipes"><p class="docs-eyebrow">MATERIAL LIFE CYCLE</p>
+<h2>Recipes create materials; the forge edits what already exists</h2>
+<p class="docs-prose">Smelting rules are a separate bounded system that turns recipe inputs into material backpack items. The current cotton-cloth recipe uses four cotton blocks and one dry-grass block. The forge consumes the resulting cloth material; it does not independently invent cloth from raw plants.</p>
+<p class="docs-prose">Paint can color exposed grid faces of any component with the supported white, yellow, red, blue, or pink palette. One whole live dye slot for every distinct used color joins the structural slots, counts toward the 24-input limit, contributes to capacity and outcome totals, and is consumed. NCF1 stores RGB444 paint quads rather than dye identity.</p>
+<p class="docs-prose">Component-encoded cloth keeps the identity needed for motion. The workbench shader applies a bounded analytic wind displacement, while the avatar renderer updates deployed cloth vertices on the CPU when the item has a grip for attachment. This is not a full cloth solver with self-collision. Reduced-motion settings lower the animation rather than changing the stored design.</p>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Motion is reconstructed, not stored frame by frame</strong>
+<p>A component design stores cloth identity and geometry. Chunk.js derives deformation from time and bounds, keeping files compact while a grip-bound deployed item remains visibly alive.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">MATERIAL CAPACITY MATH</p>
+<h2>One compact header sets the requirement; selected slots supply capacity</h2>
+<p>The first equation is the exact integer-style requirement derived from the NCF1 equipment prefix. The second mirrors the two aggregate comparisons performed before the selected material slots are consumed.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Header-derived volume and effective-durability requirements</h3>
+<div aria-label="V_req = 1000 * volume_cm3; D_req = max(1, ceil(3 * mass_g / 20) + 18 * isqrt(volume_cm3) + ceil(126 * material_score / 25))" class="docs-formula-expression" role="math"><code>V_req = 1000 * volume_cm3; D_req = max(1, ceil(3 * mass_g / 20) + 18 * isqrt(volume_cm3) + ceil(126 * material_score / 25))</code></div>
+<p class="docs-technical-explanation">The parser reads mass5g, volumeCm3, and twelve compact scores from the first 108 bits. mass_g equals 5 * mass5g. material_score directly uses six structural scores: durability, toughness, hardness, workability, ductility, and a brittleness penalty.</p>
+<dl class="docs-formula-terms"><dt>V_req</dt>
+<dd>Required material volume in cubic millimeters.</dd>
+<dt>D_req</dt>
+<dd>Required aggregate effective durability.</dd>
+<dt>isqrt</dt>
+<dd>Integer square root, matching the program's bounded arithmetic.</dd>
+<dt>material_score</dt>
+<dd>The integer structural score derived from six of the twelve compact design attributes.</dd></dl></article>
+<article class="docs-formula"><h3>Selected-slot capacity and acceptance</h3>
+<div aria-label="V_cap = sum_i(volume_mm3_i); D_cap = sum_i(floor(min(dur_cur_i, dur_max_i) * clamp(quality_bps_i, 1, 10000) / 10000)); accept iff V_cap &gt;= V_req AND D_cap &gt;= D_req" class="docs-formula-expression" role="math"><code>V_cap = sum_i(volume_mm3_i); D_cap = sum_i(floor(min(dur_cur_i, dur_max_i) * clamp(quality_bps_i, 1, 10000) / 10000)); accept iff V_cap &gt;= V_req AND D_cap &gt;= D_req</code></div>
+<p class="docs-technical-explanation">Each unique selected slot contributes once; quantity is not a multiplier. Effective durability is rounded down per slot before summation. Structural materials and every distinct used dye slot all enter the same totals and are consumed as whole slots after both comparisons pass.</p>
+<dl class="docs-formula-terms"><dt>V_cap</dt>
+<dd>Sum of raw volumeMm3 across selected live material records.</dd>
+<dt>D_cap</dt>
+<dd>Sum of quality-scaled, current-capped durability across selected records.</dd>
+<dt>quality_bps_i</dt>
+<dd>The selected slot's quality in basis points, clamped to 1 through 10,000.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The forge page performs full canonical validation before submission</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">forging/forging.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function verifyChainCode(code) {
+  const normalizedCode = String(code ?? "").trim();
+  const design = decodeNcf1(normalizedCode, { requireCanonical: true });
+  const bytes = encodeNcf1Bytes(design);
+  if (bytes.length &gt; NCF1_MAX_RAW_BYTES) throw new RangeError("Forge code exceeds the chain transaction budget.");
+  return {
+    code: normalizedCode,
+    design,
+    proof: { ...forgeMaterialRequirements(bytes), byteLength: bytes.length },
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The browser page fully decodes, canonicalizes, and re-encodes the design. The transaction builder, SDK, and program share the 640-byte raw ceiling but do not replay this full geometry validation.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Capacity is checked before whole selected slots are removed</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        if let Some(required) = requirements {
+            let capacity = forge_material_capacity(&amp;materials);
+            if !capacity.satisfies(&amp;required) {
+                return Err(NicechunkBackpackError::InsufficientForgeMaterialParameters.into());
+            }
+        }
+
+        let outcome = calculate_forge_outcome(&amp;materials, forging_level);
+        Self::remove_resources_at(data, owner, indexes, updated_slot)?;</code></pre>
+<p class="docs-technical-explanation">A deficit aborts before consumption. Passing capacity produces material-derived outcome fields, then removes every selected structural or dye slot as a whole record.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>forging/forging.js</code>
+<p>Owns live draft bindings, editing modes, conditional settling, connected assembly casting, dye-slot collection, strict-smaller export selection, and full canonical preflight.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/forge/forge-workbench.js</code>
+<p>Defines material profiles, component grids, face tools, machining state, collision, gravity, connectivity, inheritance, statistics, and physical advisories.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/forge/forge-core.js</code>
+<p>Defines canonical NCF1 v14, component and appearance encodings, compact selection, design hashes, the two material requirements, and the 640-byte ceiling.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/forge/forge-mesher.js</code>
+<p>Builds packed render meshes and pick bounds from canonical design geometry.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/forge/forge-runtime-cache.js</code>
+<p>Restores canonical designs into read-only runtime assets with bounded entry and memory budgets.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/forge-workbench-renderer.js</code>
+<p>Renders the workbench, material surfaces, tools, axis gizmos, construction reticles, collision-aware dragging, and procedural cloth wind.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/forge-tool-visuals.js</code>
+<p>Provides compact 3D tool models and preview/action poses for hammer, saw, drill, grip, axe, and paint brush.</p></article>
+<article class="docs-evidence-item"><code>forging/chain-adapter.js</code>
+<p>Maps live backpack materials, preserves stable slot identity, rejects retired or duplicate inputs, and submits canonical material-verifying forge requests.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Derives requirements from the NCF1 prefix, sums the two selected-material capacities, uses greater-than-or-equal checks, consumes whole slots, and creates the forged backpack record with a 32-bit raw-code check value.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Disables the legacy unverified forge instruction and routes tag 8 through verified design and material processing.</p></article>
+<article class="docs-evidence-item"><code>src/data/smeltingRules.js</code>
+<p>Defines the forge-ready material catalog, attribute profiles, dyes, and the separate cotton-cloth recipe.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/avatar-mesh.js</code>
+<p>Restores exact off-chain forged designs on avatars, attaches grip-bound equipment, and updates component-cloth vertices over time with reduced-motion support.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

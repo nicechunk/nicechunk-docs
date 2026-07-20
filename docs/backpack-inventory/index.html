@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="backpack-inventory" data-docs-static-source="6a76ef9da321105c021f93bb8bfcd6ccc066170c3040681bf32a5b1a172dcf8b">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/backpack-inventory.json" />
+    <meta name="nicechunk:source-sha256" content="6a76ef9da321105c021f93bb8bfcd6ccc066170c3040681bf32a5b1a172dcf8b" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/backpack-inventory/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Understand NiceChunk Backpack PDA derivation, public account bytes, 50-slot creation limits, 99-record layout, trusted append authorities, dense deletion, Packed-Y block identity, and Chunk.js inventory reconstruction." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Backpack PDAs: Owned Slots, Trusted Producers, and Chunk.js Reconstruction" />
+    <meta property="og:description" content="Understand NiceChunk Backpack PDA derivation, public account bytes, 50-slot creation limits, 99-record layout, trusted append authorities, dense deletion, Packed-Y block identity, and Chunk.js inventory reconstruction." />
+    <meta property="og:url" content="https://nicechunk.com/docs/backpack-inventory/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/backpack-inventory-overview-v1.webp" />
+    <meta property="og:image:alt" content="In one game-anime coastal depot scene, the canonical black-haired villager boy carries a basket of stone and cotton toward an open compartmented backpack while the canonical orange-haired villager girl sorts rolled cloth and metal into its dense rows; a second resource basket, forge, cart, baked terrain, flowers, and flat blue water complete the working world." />
+    <title>Backpack PDAs: Owned Slots, Trusted Producers, and Chunk.js Reconstruction</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/backpack-inventory/#article",
+  "url": "https://nicechunk.com/docs/backpack-inventory/",
+  "name": "Backpack PDAs: Owned Slots, Trusted Producers, and Chunk.js Reconstruction",
+  "description": "Understand NiceChunk Backpack PDA derivation, public account bytes, 50-slot creation limits, 99-record layout, trusted append authorities, dense deletion, Packed-Y block identity, and Chunk.js inventory reconstruction.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Backpack PDAs: Owned Slots, Trusted Producers, and Chunk.js Reconstruction",
+  "mainEntityOfPage": "https://nicechunk.com/docs/backpack-inventory/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One owner can derive several backpacks, and every account remains publicly readable",
+    "The account reserves ninety-nine records, while current creation exposes no more than fifty",
+    "Records enter through trusted producer PDAs, and capacity failure depends on the path",
+    "Removal shifts every later slot, and a break-block session can delete any record kind",
+    "Packed-Y carries current block identity only inside the signed decoder envelope",
+    "Chunk.js reconstructs the inventory view, while ordinary block placement remains local-only"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#public-owned-pda",
+      "name": "One owner can derive several backpacks, and every account remains publicly readable"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#layout-and-quantity",
+      "name": "The account reserves ninety-nine records, while current creation exposes no more than fifty"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#trusted-producers",
+      "name": "Records enter through trusted producer PDAs, and capacity failure depends on the path"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#dense-removal-and-sessions",
+      "name": "Removal shifts every later slot, and a break-block session can delete any record kind"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#packed-block-identity",
+      "name": "Packed-Y carries current block identity only inside the signed decoder envelope"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/backpack-inventory/#chunkjs-reconstruction",
+      "name": "Chunk.js reconstructs the inventory view, while ordinary block placement remains local-only"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/backpack-inventory-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Backpack PDAs</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">INVENTORY 12 · OWNED STATE AND EXPLICIT AUTHORITY</p>
+<h1>Backpack PDAs: Owned Slots, Trusted Producers, and Chunk.js Reconstruction</h1>
+<p class="docs-hero-summary">A NiceChunk backpack is an owner-derived, publicly readable Solana account whose dense records are written only through bounded owner actions or trusted program authorities. Current creation exposes at most fifty active slots even though the version-3 layout reserves ninety-nine. Block identity is compacted into the stored Y field, indexes shift after every removal, and Chunk.js rebuilds baked icons and item models from authoritative record parameters. The equipped-backpack field selects a default for clients; it is not an exclusive protocol gate, a privacy layer, or proof that an ordinary block was placed on chain.</p>
+<span class="docs-reading-time">14 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In one game-anime coastal depot scene, the canonical black-haired villager boy carries a basket of stone and cotton toward an open compartmented backpack while the canonical orange-haired villager girl sorts rolled cloth and metal into its dense rows; a second resource basket, forge, cart, baked terrain, flowers, and flat blue water complete the working world." decoding="async" height="887" loading="eager" src="/docs/media/backpack-inventory-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Ownership controls writes, not visibility</strong>
+<p>The PDA binds an owner and backpack ID, but its owner key, packed resource coordinates, item identifiers, quantities, material parameters, metadata, and update slot are public account bytes. Anyone who knows the address can read them without the owner's signature.</p></article>
+<article class="docs-key-point"><strong>Capacity counts dense records, not displayed quantity</strong>
+<p>Current initialization clamps capacity to fifty while the fixed layout reserves ninety-nine 80-byte records. Active records occupy one dense prefix; quantity is a nonzero field inside one record, and current removal, smelting, market, and forging paths do not provide generic partial-stack decrement semantics.</p></article>
+<article class="docs-key-point"><strong>The chain stores identity and parameters; Chunk.js supplies appearance</strong>
+<p>Mined records carry compact block identity, coordinates, volume, and optional decoration metadata. Item records carry codes, PDAs, durability, quality, and metadata. Chunk.js maps those values to baked texture tiles, resource models, material previews, or restored forge geometry; no mesh or thumbnail is stored in the Backpack account.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#public-owned-pda">One owner can derive several backpacks, and every account remains publicly readable</a></li>
+<li><a href="#layout-and-quantity">The account reserves ninety-nine records, while current creation exposes no more than fifty</a></li>
+<li><a href="#trusted-producers">Records enter through trusted producer PDAs, and capacity failure depends on the path</a></li>
+<li><a href="#dense-removal-and-sessions">Removal shifts every later slot, and a break-block session can delete any record kind</a></li>
+<li><a href="#packed-block-identity">Packed-Y carries current block identity only inside the signed decoder envelope</a></li>
+<li><a href="#chunkjs-reconstruction">Chunk.js reconstructs the inventory view, while ordinary block placement remains local-only</a></li>
+<li><a href="#technical-details">Five equations separate stable ownership from transient slots and reconstructed pixels</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="public-owned-pda"><p class="docs-eyebrow">DERIVED OWNERSHIP, PUBLIC BYTES</p>
+<h2>One owner can derive several backpacks, and every account remains publicly readable</h2>
+<p class="docs-prose">A version-3 Backpack address is derived from the literal backpack seed, the owner's public key, and one little-endian 64-bit backpack ID. Initialization also requires the owner's PlayerProfile, then stores the owner and ID in the 128-byte header. Every later Backpack write validates the stored owner and re-derives the account address, so substituting another address or owner fails even when its bytes look structurally valid.</p>
+<p class="docs-prose">That ownership boundary controls mutation, not observation. Solana account bytes are public and unencrypted. A reader with the address can fetch owner, capacity, item count, update slot, packed block coordinates and identity, item codes and PDAs, quantity, volume, durability, grade, quality, and metadata without an owner signature. Separating inventory from PlayerProfile keeps the profile smaller and lets clients load the account on demand; it does not create private storage.</p>
+<p class="docs-prose">PlayerProfile exposes one equippedBackpack public key. Setting it requires the owner signature and a validated owner-derived Backpack PDA, but the value is a replaceable client default. Mining, Backpack removal, Market, Smelting, and forge paths validate the Backpack explicitly supplied to that instruction; they do not require it to equal the equipped pointer.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>PDA seed tuple</span>
+<strong>backpack + owner + u64 ID</strong>
+<p>Changing the ID derives another address for the same owner.</p></article>
+<article class="docs-fact"><span>Read access</span>
+<strong>Public RPC account bytes</strong>
+<p>No wallet signature, encryption key, or read ACL is part of the format.</p></article>
+<article class="docs-fact"><span>Equipped pointer</span>
+<strong>Default selection, not protocol exclusivity</strong>
+<p>Consumers authorize the Backpack account passed to them rather than comparing this field.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Owned does not mean private</strong>
+<p>The program rejects unauthorized writes, but it cannot hide public account data. Do not place secrets, private notes, or confidential provenance in Backpack metadata or item identifiers.</p></aside></section>
+<section class="docs-content-section" id="layout-and-quantity"><p class="docs-eyebrow">8048 BYTES, TWO SLOT KINDS</p>
+<h2>The account reserves ninety-nine records, while current creation exposes no more than fifty</h2>
+<p class="docs-prose">The account always allocates a 128-byte header followed by ninety-nine 80-byte records. Capacity and itemCount are one-byte header fields, and validation requires itemCount not to exceed capacity. The general layout accepts capacity one through ninety-nine, but initialize clamps the requested value to one through fifty. No current instruction expands an initialized account, so ninety-nine is a format reserve rather than a capacity a new player can request today.</p>
+<p class="docs-prose">Header state is currently carried, flags are zero, and the placed X, Y, and Z fields initialize to zero. The Backpack Program has no instruction that updates those placement fields or changes the carried state. Their presence in the layout must not be presented as a deployed placeable-backpack feature.</p>
+<p class="docs-prose">A block record stores kind one, quantity one, a world X/Z pair, Packed-Y, volume, and optional metadata. An item record stores kind two plus category, itemCode, itemId, itemPda, volume, current and maximum durability, grade, level, quality, and metadata. Quantity must be nonzero, but capacity counts records rather than units. Current append logic does not merge equal records; block constructors and forged outputs write quantity one, recipes require distinct indexes, forge capacity sums record parameters without multiplying quantity, and removal deletes the whole selected record.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Current active ceiling</span>
+<strong>50 records</strong>
+<p>The only initialize path clamps every new capacity request to at most fifty.</p></article>
+<article class="docs-fact"><span>Reserved layout</span>
+<strong>99 × 80-byte records</strong>
+<p>All accounts still allocate the full version-3 8,048-byte length.</p></article>
+<article class="docs-fact"><span>Quantity</span>
+<strong>A field inside one slot</strong>
+<p>It is not a generic promise of splitting, merging, or partial recipe consumption.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>A displayed count is not four interchangeable recipe inputs</strong>
+<p>The current recipe matcher selects one distinct record index per required occurrence and does not multiply an input by slot.quantity. Any future stack feature needs explicit decrement, split, merge, and consumer rules rather than a UI-only count.</p></aside></section>
+<section class="docs-content-section" id="trusted-producers"><p class="docs-eyebrow">PROGRAM-DERIVED APPEND AUTHORITY</p>
+<h2>Records enter through trusted producer PDAs, and capacity failure depends on the path</h2>
+<p class="docs-prose">The owner does not have a generic sign-and-append instruction. Mined block records arrive from a ChunkBroken PDA that signs a cross-program invocation. The Backpack Program checks that signer is owned by the configured Chunk Program, re-derives it from global config and chunk coordinates, validates its magic, version, and bump, binds PlayerProfile to the same global config, and finally validates the destination owner-derived Backpack PDA.</p>
+<p class="docs-prose">Market and Smelting item appends use the same pattern with narrower authority accounts. The signer must equal the Market Program's market-authority PDA or the Smelting Program's smelting-authority PDA. Backpack validates the incoming slot envelope and destination ownership, while the producer program remains responsible for sale or recipe rules. Exact PDA plus signer status is the trust boundary: an ordinary wallet cannot sign as those program-derived addresses.</p>
+<p class="docs-prose">The required mined base block, Market item, and Smelting item all use strict append functions and return BackpackFull when no record remains. A failed cross-program append rolls back its Solana transaction. Only the mining secondary batch is lossy: it returns success on a full account and writes the ordered prefix when capacity is partial. Surface decoration precedes the exploration extra, so ordering determines which optional record survives.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Mining producer</span>
+<strong>Signed ChunkBroken PDA</strong>
+<p>Bound to global config and the chunk containing every supplied reward coordinate.</p></article>
+<article class="docs-fact"><span>Item producers</span>
+<strong>Market and Smelting authority PDAs</strong>
+<p>Only their owning programs can invoke Backpack with the required PDA signature.</p></article>
+<article class="docs-fact"><span>Capacity modes</span>
+<strong>Strict base and items · lossy extras</strong>
+<p>A successful mining transaction can still omit an optional record that did not fit.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Trusted producer is not the same as self-verifying every upstream rule</strong>
+<p>Backpack authenticates which program path produced the record and validates its slot shape. The Chunk, Market, and Smelting programs remain responsible for their own world, sale, and recipe decisions before signing the append CPI.</p></aside></section>
+<section class="docs-content-section" id="dense-removal-and-sessions"><p class="docs-eyebrow">TRANSIENT INDEXES, BROAD DELETE BIT</p>
+<h2>Removal shifts every later slot, and a break-block session can delete any record kind</h2>
+<p class="docs-prose">Active records occupy the dense prefix from zero through itemCount minus one. Single removal copies the complete trailing byte range left by eighty bytes, clears the old last record, decrements itemCount, and updates the slot timestamp. Batch removal first rejects duplicates and out-of-range indexes, then deletes from high to low so every submitted index still refers to the original snapshot.</p>
+<p class="docs-prose">The direct path accepts the owner signature. The session path instead checks a signer against a live PlayerSession, binds that session to PlayerProfile, requires expiry in the future, requires the break-block action bit, derives the owner from the session, and validates the Backpack PDA for that owner. The deletion routine sees only an index after authorization; it does not restrict kind or category. A session allowed to break blocks can therefore discard block, material, or forged records.</p>
+<p class="docs-prose">PlayerProfile.equippedBackpack does not prevent that operation and is not consulted. Likewise, an item's chain index is not a persistent identity: every lower deletion changes it. Clients should key durable item restoration by itemId, itemPda, design hash, or another stored identity where applicable, and reload authoritative slots after removal, recipe execution, listing, purchase, or forging. Current Player instructions refresh sessions but do not close them; clearing browser storage removes the local key only, while the on-chain session remains valid until expiry.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Index lifetime</span>
+<strong>Until the next lower removal</strong>
+<p>Dense compaction changes all later chainIndex values.</p></article>
+<article class="docs-fact"><span>Session delete bit</span>
+<strong>BREAK_BLOCK</strong>
+<p>No slot-kind filter narrows deletion after the session passes validation.</p></article>
+<article class="docs-fact"><span>Close support</span>
+<strong>No Backpack or PlayerSession close tag</strong>
+<p>The session expires on chain; local logout alone does not revoke it.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Never submit a stale index</strong>
+<p>An index captured before another mutation can identify a different record afterward. Refresh the account, re-match the intended identity and parameters, and only then construct a destructive instruction.</p></aside></section>
+<section class="docs-content-section" id="packed-block-identity"><p class="docs-eyebrow">ONE SIGNED FIELD, TWO VALUES</p>
+<h2>Packed-Y carries current block identity only inside the signed decoder envelope</h2>
+<p class="docs-prose">BackpackResourceRecord is an older ten-byte coordinate shape: i32 X, i16 Y, and i32 Z. Current mining preserves that size by placing a nine-bit offset from canonical minBuildY in the low bits of Y and block ID in the upper bits. Block slots leave itemCode zero, so this packed field is the authoritative block identity that recipe, fuel, inventory, and rendering consumers need to recover.</p>
+<p class="docs-prose">The Rust encoder accepts height offsets zero through 511 and block IDs one through 127, falling back to raw world Y outside that envelope. Current canonical height is minus thirty-two through 320, so its offset reaches only 352. Current Chunk.js registers block IDs zero through fifty-three. Those values produce nonnegative signed i16 results and round-trip through the production decoder.</p>
+<p class="docs-prose">The nominal seven-bit ID range is not fully interoperable. An ID of sixty-four or more sets the sign bit. The JavaScript decoder treats negative i16 values as legacy raw height, and the Smelting decoder returns block ID zero for a negative value. The current effective cross-consumer ceiling is therefore sixty-three. Adding a future ID above it requires a coordinated codec or field migration. The standalone TypeScript Backpack SDK also exposes this field as raw signed worldY; consumers needing actual height and block identity must apply the production Packed-Y codec rather than treating that raw number as a coordinate.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Height payload</span>
+<strong>9 bits · offsets 0–511</strong>
+<p>Current world offsets use only zero through 352.</p></article>
+<article class="docs-fact"><span>Encoder ID envelope</span>
+<strong>1–127</strong>
+<p>This nominal range exceeds what current signed consumers can reconstruct.</p></article>
+<article class="docs-fact"><span>Current safe identity</span>
+<strong>IDs 1–53 within ceiling 63</strong>
+<p>No current registered block crosses the sign boundary.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not allocate block ID 64 without changing consumers</strong>
+<p>The encoder would accept it, but current inventory and Smelting decoding would lose its identity. Registry growth, Rust packing, JavaScript decoding, SDK decoding, and recipe parsing must be versioned together.</p></aside></section>
+<section class="docs-content-section" id="chunkjs-reconstruction"><p class="docs-eyebrow">AUTHORITATIVE RECORD, CLIENT-BUILT APPEARANCE</p>
+<h2>Chunk.js reconstructs the inventory view, while ordinary block placement remains local-only</h2>
+<p class="docs-prose">The production client fetches the public Backpack account, validates its program owner and version, decodes only the dense readable prefix, and turns each record into an application slot. Packed block identity selects the canonical Chunk.js block definition and resource class. Decoration metadata can select the matching surface model. Item categories select material or forged-item paths, while volume, durability, quality, item ID, item PDA, and design hash remain available for verification and detail views.</p>
+<p class="docs-prose">The inventory icon system does not download a thumbnail from the chain. Ordinary solid blocks reuse face-specific material IDs and deterministically baked TextureArray tiles. Plants and special drops reuse low-cost Chunk.js resource geometry; smelted materials use their material preview models; restored NCF1 equipment can rebuild its encoded geometry through the forge cache. These are client reconstruction products, so a different renderer may present the same authoritative record differently without changing ownership.</p>
+<p class="docs-prose">Equipping a Backpack record to the hotbar is a local shortcut. The ordinary placement controller captures a local slot snapshot and applies a pending client delta. It does not decrement the chain-backed slot in local game state; rollback removes the world delta, while the current restoreBackpackSlotSnapshot hook is a no-op. recordBlockPlacementOnChain currently returns chain-placement-disabled, and Backpack header placement coordinates have no writer. This guide therefore makes no claim that moving a mined resource into the world is an accepted on-chain placement or that the Backpack PDA records a deployed container position. On-chain foundations and NCM3 buildings are separate systems with their own accounts and validators.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Authoritative layer</span>
+<strong>PDA bytes and producer-checked mutations</strong>
+<p>Ownership, slot parameters, identity, and ordering come from the chain account.</p></article>
+<article class="docs-fact"><span>Reconstruction layer</span>
+<strong>Chunk.js baked tiles and geometry</strong>
+<p>Icons and meshes are derived locally and are not stored in the Backpack account.</p></article>
+<article class="docs-fact"><span>Ordinary block placement</span>
+<strong>Current chain adapter disabled</strong>
+<p>Local pending and confirmation UI is not proof of a chain placement instruction.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Verify bytes before trusting pixels</strong>
+<p>A correct icon begins with a current program-owned Backpack, valid dense records, a compatible Packed-Y identity, and the matching Chunk.js registry. The rendered canvas is an explanation of those bytes, not a second ownership record.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">ADDRESS, CAPACITY, PACKING, AND INDEX MATH</p>
+<h2>Five equations separate stable ownership from transient slots and reconstructed pixels</h2>
+<p>The derivation fixes which account belongs to an owner and ID. The layout equation distinguishes current creation policy from reserved format space. Append and removal equations expose prefix truncation and index shifts. Packed-Y then shows exactly where current block identity fits—and where a future codec change would be required.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Owner-and-ID Backpack PDA</h3>
+<div aria-label="P = findProgramAddress([UTF8(&quot;backpack&quot;), owner_32, LE64(backpackId)], backpackProgramId)" class="docs-formula-expression" role="math"><code>P = findProgramAddress([UTF8("backpack"), owner_32, LE64(backpackId)], backpackProgramId)</code></div>
+<p class="docs-technical-explanation">The owner may derive more than one Backpack PDA by choosing different 64-bit IDs. Every current write path reloads the stored owner and ID and checks this derivation. PlayerProfile.equippedBackpack may point to one validated account for client discovery, but changing that public pointer does not change P and other Backpack consumers do not compare against it as an exclusive authorization gate.</p>
+<dl class="docs-formula-terms"><dt>P</dt>
+<dd>Program-derived Backpack account address and bump under the active Backpack or unified game program.</dd>
+<dt>owner_32</dt>
+<dd>The owner's 32-byte public key, also stored in the Backpack header.</dd>
+<dt>LE64(backpackId)</dt>
+<dd>The selected unsigned 64-bit backpack ID encoded little-endian.</dd></dl></article>
+<article class="docs-formula"><h3>Fixed layout versus current creation capacity</h3>
+<div aria-label="L = H + S_layout*R = 128 + 99*80 = 8048 bytes; c_init = min(50,max(1,c_request)); 0 &lt;= n &lt;= c_init &lt;= 50; c_format &lt;= 99; occupiedRecords = n, not sum_i(q_i)" class="docs-formula-expression" role="math"><code>L = H + S_layout*R = 128 + 99*80 = 8048 bytes; c_init = min(50,max(1,c_request)); 0 &lt;= n &lt;= c_init &lt;= 50; c_format &lt;= 99; occupiedRecords = n, not sum_i(q_i)</code></div>
+<p class="docs-technical-explanation">Version 3 always allocates the full 8,048-byte account. Its validator accepts capacities from one through ninety-nine, but the only current initialize instruction clamps new accounts to one through fifty and there is no expansion instruction. n counts occupied record positions. A record with quantity four still occupies one position; the account does not derive occupancy from the sum of quantities.</p>
+<dl class="docs-formula-terms"><dt>H, R</dt>
+<dd>The 128-byte header and one 80-byte slot record.</dd>
+<dt>S_layout, c_init, c_format</dt>
+<dd>Reserved record count, current initialized capacity, and format-level capacity ceiling.</dd>
+<dt>n, q_i</dt>
+<dd>Dense active record count and the nonzero quantity field stored inside record i.</dd></dl></article>
+<article class="docs-formula"><h3>Strict one-record append versus ordered lossy batch</h3>
+<div aria-label="a_strict = 1 if n&lt;c, otherwise error(BackpackFull); a_lossy = min(m,c-n); lossyWrites = records[0:a_lossy]; n_after = n+a" class="docs-formula-expression" role="math"><code>a_strict = 1 if n&lt;c, otherwise error(BackpackFull); a_lossy = min(m,c-n); lossyWrites = records[0:a_lossy]; n_after = n+a</code></div>
+<p class="docs-technical-explanation">The required mined block, Market output, and Smelting output use strict appends, so lack of one slot fails their transaction. The mining secondary batch instead writes only the ordered prefix that fits and returns success even when it writes none. Quantity does not multiply a: each accepted input becomes one new record, and a full lossy no-op does not create a deferred claim.</p>
+<dl class="docs-formula-terms"><dt>c, n</dt>
+<dd>The account's active capacity and occupied record count before append.</dd>
+<dt>m</dt>
+<dd>Number of ordered secondary reward records offered to the lossy batch.</dd>
+<dt>a</dt>
+<dd>Number of records actually appended by the selected strict or lossy path.</dd></dl></article>
+<article class="docs-formula"><h3>Dense deletion and session authorization</h3>
+<div aria-label="R subseteq {0,...,n-1}; n_after=n-|R|; newIndex(i)=i-|{r in R | r&lt;i}| for i notin R; removeAllowed = ownerSigned OR (sessionSigned AND expiresAt&gt;now AND BREAK_BLOCK_bit=1 AND owner/profile/PDA match)" class="docs-formula-expression" role="math"><code>R subseteq {0,...,n-1}; n_after=n-|R|; newIndex(i)=i-|{r in R | r&lt;i}| for i notin R; removeAllowed = ownerSigned OR (sessionSigned AND expiresAt&gt;now AND BREAK_BLOCK_bit=1 AND owner/profile/PDA match)</code></div>
+<p class="docs-technical-explanation">Single deletion copies every later 80-byte record one position left. Batch deletion validates distinct original indexes, then removes from high to low. The session branch reuses the break-block action bit and does not filter slot kind, so a valid session with that permission can delete block, material, or forged records. It cannot close the Backpack account or revoke its own PlayerSession; the current Player Program has no session-close instruction, so a locally forgotten session remains governed by its on-chain expiry.</p>
+<dl class="docs-formula-terms"><dt>R</dt>
+<dd>Set of distinct, valid record indexes selected for removal.</dd>
+<dt>newIndex(i)</dt>
+<dd>New dense position of a surviving record after every lower removed index is counted.</dd>
+<dt>BREAK_BLOCK_bit</dt>
+<dd>The PlayerSession action permission currently reused by Backpack tag 2 and tag 4 deletion.</dd></dl></article>
+<article class="docs-formula"><h3>Packed-Y block identity and the signed decoder boundary</h3>
+<div aria-label="o=y-y_min; p=(b&lt;&lt;9)|o for 0&lt;=o&lt;=511 and 1&lt;=b&lt;=127 in the Rust encoder; b=p&gt;&gt;9 and y=y_min+(p&amp;511); current signed-i16 decode additionally requires p&gt;=0, therefore b&lt;=63; today y_min=-32, y&lt;=320, b&lt;=53" class="docs-formula-expression" role="math"><code>o=y-y_min; p=(b&lt;&lt;9)|o for 0&lt;=o&lt;=511 and 1&lt;=b&lt;=127 in the Rust encoder; b=p&gt;&gt;9 and y=y_min+(p&amp;511); current signed-i16 decode additionally requires p&gt;=0, therefore b&lt;=63; today y_min=-32, y&lt;=320, b&lt;=53</code></div>
+<p class="docs-technical-explanation">Nine low bits carry height offset and the remaining seven encoder bits carry block ID. The canonical height span uses offsets zero through 352, and every currently registered block ID is at most fifty-three, so present rewards round-trip. IDs sixty-four through 127 would set the i16 sign bit; the current JavaScript and Smelting decoders treat a negative value as legacy raw Y and lose block identity. Extending the registry beyond sixty-three therefore requires an explicit storage or decoder revision, not only a new block definition.</p>
+<dl class="docs-formula-terms"><dt>y, y_min, o</dt>
+<dd>World height, canonical minimum build height, and its nine-bit nonnegative offset.</dd>
+<dt>b</dt>
+<dd>Canonical block ID stored in the high bits; current registered values are zero through fifty-three.</dd>
+<dt>p</dt>
+<dd>The bit pattern written into BackpackResourceRecord.world_y as a signed 16-bit field.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>A known Backpack address is readable without an owner signature</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function fetchBackpack(backpackAddress) {
+  if (!backpackAddress) return null;
+  const publicKey = typeof backpackAddress === "string" ? new PublicKey(backpackAddress) : backpackAddress;
+  const account = await getNicechunkConnection().getAccountInfo(publicKey, "confirmed");
+  if (!account?.data?.length) return null;
+  if (!account.owner.equals(gameProgramId)) return null;
+  const decoded = decodeBackpack(account.data);
+  return {
+    ...decoded,
+    publicKey: publicKey.toBase58(),
+    programId: account.owner.toBase58(),
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The read path needs an address, not the owner's wallet signature. Program ownership and binary decoding protect type integrity; they do not make account contents private. The UI may discover the address through the public PlayerProfile pointer or a validated local cache.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The secondary mining batch keeps only the ordered prefix that fits</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn append_resources_lossy_with_volumes_and_metadata(
+        data: &amp;mut [u8],
+        owner: &amp;Pubkey,
+        records: &amp;[BackpackResourceRecord],
+        volumes_mm3: &amp;[u32],
+        metadata: &amp;[u32],
+        updated_slot: u64,
+    ) -&gt; ProgramResult {
+        Self::validate_owner(data, owner)?;
+        let capacity = data[Self::CAPACITY_OFFSET];
+        let mut item_count = data[Self::ITEM_COUNT_OFFSET];
+        if records.is_empty() || item_count &gt;= capacity {
+            return Ok(());
+        }
+
+        for (index, record) in records.iter().enumerate() {
+            if item_count &gt;= capacity {
+                break;
+            }
+            let offset = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;
+            BackpackSlotRecord::from_block_resource_with_volume_and_metadata(
+                *record,
+                volumes_mm3.get(index).copied().unwrap_or(0),
+                metadata.get(index).copied().unwrap_or(0),
+            )
+            .pack(&amp;mut data[offset..offset + BACKPACK_SLOT_RECORD_LEN])?;
+            item_count = item_count.saturating_add(1);
+        }
+        data[Self::ITEM_COUNT_OFFSET] = item_count;
+        data[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]
+            .copy_from_slice(&amp;updated_slot.to_le_bytes());
+        Ok(())
+    }</code></pre>
+<p class="docs-technical-explanation">Owner validation still applies, but capacity exhaustion is not an error for this function. It never merges records or increments a quantity field. The Chunk Program deliberately orders a visible surface decoration before an exploration extra when it constructs this batch.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Deleting one record shifts the dense tail left</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn remove_resource_at(
+        data: &amp;mut [u8],
+        owner: &amp;Pubkey,
+        index: u8,
+        updated_slot: u64,
+    ) -&gt; ProgramResult {
+        Self::validate_owner(data, owner)?;
+        let item_count = data[Self::ITEM_COUNT_OFFSET];
+        if index &gt;= item_count {
+            return Err(NicechunkBackpackError::InvalidResourceIndex.into());
+        }
+
+        let start = Self::RECORDS_OFFSET + index as usize * BACKPACK_SLOT_RECORD_LEN;
+        let end = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;
+        if start + BACKPACK_SLOT_RECORD_LEN &lt; end {
+            data.copy_within(start + BACKPACK_SLOT_RECORD_LEN..end, start);
+        }
+        let last_start =
+            Self::RECORDS_OFFSET + (item_count - 1) as usize * BACKPACK_SLOT_RECORD_LEN;
+        data[last_start..last_start + BACKPACK_SLOT_RECORD_LEN].fill(0);
+        data[Self::ITEM_COUNT_OFFSET] = item_count.saturating_sub(1);
+        data[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]
+            .copy_from_slice(&amp;updated_slot.to_le_bytes());
+        Ok(())
+    }</code></pre>
+<p class="docs-technical-explanation">A chain index is a current position, not a permanent item identifier. Any client retaining indexes for discard, smelting, market, or forge input must reload after mutation instead of assuming later records kept their old positions.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Chunk Program packs block ID above a nine-bit height offset</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn pack_backpack_resource_y(world_y: i16, block_id: u16, min_y: i16) -&gt; i16 {
+    let y_offset = world_y as i32 - min_y as i32;
+    if (0..=BACKPACK_PACKED_Y_MASK).contains(&amp;y_offset)
+        &amp;&amp; block_id &gt; 0
+        &amp;&amp; block_id &lt; (1_u16 &lt;&lt; (16 - BACKPACK_PACKED_Y_BITS))
+    {
+        ((block_id as i32) &lt;&lt; BACKPACK_PACKED_Y_BITS | y_offset) as i16
+    } else {
+        world_y
+    }
+}</code></pre>
+<p class="docs-technical-explanation">This encoder exposes the nominal 1-through-127 ID range and raw-Y fallback. The current consumers add a stricter signed-value condition, making sixty-three the actual end-to-end ceiling. Present IDs stop at fifty-three, so current data remains inside both envelopes.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js paints ordinary block icons from the same baked material system</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/renderer/item-preview.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  if (blockId !== null &amp;&amp; blockId &gt; BLOCK_ID.air) {
+    const bakedFaces = createBakedVoxelCubeFaces(blockId, {
+      textureSeed: options.textureSeed,
+      textureTileSize: options.textureTileSize,
+    });
+    const renderVoxelYaw = (yaw = 0) =&gt; {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+      drawBakedVoxelCube(ctx, size, bakedFaces, yaw);
+    };
+    renderVoxelYaw(options.yaw);
+    Object.defineProperty(canvas, "renderVoxelYaw", {
+      value: renderVoxelYaw,
+      configurable: true,
+    });
+    return canvas;
+  }</code></pre>
+<p class="docs-technical-explanation">Once the account decoder recovers a block ID, the icon path asks the registry for its face materials and deterministically bakes their tiles. Special resource drops, surface decorations, smelted materials, and forged items take model-specific reconstruction branches instead of storing raster images in the PDA.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines the 8,048-byte Backpack v3 layout, one-through-ninety-nine format capacity, 80-byte block and item records, nonzero quantity validation, strict and lossy appends, dense deletion, whole-slot forge consumption, and session validation view.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Clamps current initialization to fifty, dispatches the only Backpack instructions, authenticates ChunkBroken, Market, and Smelting PDA producers, validates owner-derived Backpack accounts, and exposes owner or break-block-session deletion paths.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-backpack.ts</code>
+<p>Mirrors PDA seeds, version, 50/99 constants, account length, record offsets, and generic TypeScript encoding and decoding, including its raw signed worldY boundary.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines the public PlayerProfile equippedBackpack field and writes it as a public key rather than embedding inventory contents in the profile.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Validates owner, PlayerProfile PDA, Backpack program owner, and Backpack owner-derived PDA before replacing the equipped pointer; its dispatch has no PlayerSession close instruction.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines the nine-bit Packed-Y offset, current canonical height envelope, current world block constants used by canonical mining, and the nominal one-through-127 Rust packing condition.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Shows strict base-block CPI followed by ordered lossy decoration and exploration rewards, all signed through the validated ChunkBroken PDA.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/state.rs</code>
+<p>Reads block identity from Packed-Y, treats negative values as no packed block, requires distinct recipe indexes, and matches records without multiplying occurrences by slot quantity.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/lib.rs</code>
+<p>Moves complete 80-byte source slots through the Market authority flow rather than providing a generic Backpack partial-stack mutation.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Fetches public Backpack accounts without a read signature, decodes dense slots and Packed-Y for production use, treats equippedBackpack as the default loader pointer, submits session-key deletion, and explicitly disables ordinary chain placement.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-backpack.js</code>
+<p>Refreshes the selected public PDA, maps decoded block and item records into application slots, preserves authoritative chain indexes, and reloads after mutations.</p></article>
+<article class="docs-evidence-item"><code>play/game-state.js</code>
+<p>Treats PDA slot order as non-reorderable locally and uses Backpack-backed hotbar entries as client shortcuts rather than additional ownership records.</p></article>
+<article class="docs-evidence-item"><code>play/placement-controller.js</code>
+<p>Captures a local slot snapshot, applies and rolls back pending world deltas, and calls a currently no-op Backpack restoration hook without supplying an on-chain placement validator.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/world/block-registry.js</code>
+<p>Defines the current zero-through-fifty-three block identities, material mapping, resource classes, flags, and face-specific grass material rule used after Packed-Y decoding.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/item-preview.js</code>
+<p>Reconstructs Backpack-facing icons from baked block faces, surface decorations, resource models, smelted-material models, and equipment models rather than chain-stored images.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/texture-array-manager.js</code>
+<p>Deterministically bakes material tiles from code, seed, and schema with a bounded cache, providing the same material language used by inventory block previews.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

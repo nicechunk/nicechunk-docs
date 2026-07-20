@@ -1,0 +1,1630 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-player-sessions-devnet-audit",
+  "capturedAt": "2026-07-18T21:56:53.379Z",
+  "cluster": "devnet",
+  "sourceRuntimeConfig": {
+    "path": "public/mainnet.json",
+    "appNetwork": "mainnet",
+    "configuredCluster": "devnet",
+    "configuredProgramIds": {
+      "coreProgram": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu",
+      "playerProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+    }
+  },
+  "protocolConstants": {
+    "playerSessionDataLength": 184,
+    "playerSessionMagic": "NCKSES01",
+    "playerSessionVersion": 1,
+    "sessionSeedLiteralUtf8": "session",
+    "playerProfileDataLength": 773,
+    "playerProfileMagic": "NCKPLY01",
+    "playerProfileVersion": 7,
+    "playerProfileSeedLiteralUtf8": "player-v7",
+    "globalConfigDataLength": 293,
+    "globalConfigMagic": "NCKCFG01",
+    "globalConfigVersion": 1,
+    "globalConfigSeedLiteralUtf8": "global-config",
+    "actionBits": {
+      "breakBlock": 2,
+      "placeBlock": 4
+    },
+    "protocolAllowedMask": 6,
+    "protocolAllowedMaskBinary": "0b0000000000000110",
+    "playerSessionLayout": {
+      "magic": {
+        "offset": 0,
+        "length": 8,
+        "encoding": "utf8"
+      },
+      "version": {
+        "offset": 8,
+        "length": 2,
+        "encoding": "u16-le"
+      },
+      "bump": {
+        "offset": 10,
+        "length": 1,
+        "encoding": "u8"
+      },
+      "initialized": {
+        "offset": 11,
+        "length": 1,
+        "encoding": "u8-bool"
+      },
+      "owner": {
+        "offset": 12,
+        "length": 32,
+        "encoding": "public-key"
+      },
+      "sessionAuthority": {
+        "offset": 44,
+        "length": 32,
+        "encoding": "public-key"
+      },
+      "playerProfile": {
+        "offset": 76,
+        "length": 32,
+        "encoding": "public-key"
+      },
+      "globalConfig": {
+        "offset": 108,
+        "length": 32,
+        "encoding": "public-key"
+      },
+      "worldId": {
+        "offset": 140,
+        "length": 2,
+        "encoding": "u16-le"
+      },
+      "allowedActions": {
+        "offset": 142,
+        "length": 2,
+        "encoding": "u16-le-bitmask"
+      },
+      "expiresAt": {
+        "offset": 144,
+        "length": 8,
+        "encoding": "i64-le-unix-seconds"
+      },
+      "createdSlot": {
+        "offset": 152,
+        "length": 8,
+        "encoding": "u64-le"
+      },
+      "updatedSlot": {
+        "offset": 160,
+        "length": 8,
+        "encoding": "u64-le"
+      },
+      "createdAt": {
+        "offset": 168,
+        "length": 8,
+        "encoding": "i64-le-unix-seconds"
+      },
+      "maxActions": {
+        "offset": 176,
+        "length": 4,
+        "encoding": "u32-le"
+      },
+      "actionCount": {
+        "offset": 180,
+        "length": 4,
+        "encoding": "u32-le"
+      }
+    }
+  },
+  "capture": {
+    "endpoint": "https://api.devnet.solana.com/",
+    "endpointSource": "NICECHUNK_DEVNET_RPC",
+    "endpointFingerprintSha256": "bc95b598fcf3836ad74ab0151571f8305e869eea1112ab41a89d6e66116bacfe",
+    "endpointCredentialMaterialRetained": false,
+    "commitment": "confirmed",
+    "rpcVersion": {
+      "feature-set": 4119855713,
+      "solana-core": "4.2.0-beta.1"
+    },
+    "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "minimumRequestedSlot": 477236695,
+    "programAccountsContextSlot": 477236696,
+    "allProgramAccountQueriesShareOneContext": true,
+    "contextSlots": {
+      "playerSessions": 477236696,
+      "currentLengthProfiles": 477236696,
+      "legacyLengthProfiles": 477236696,
+      "globalConfigs": 477236696
+    },
+    "contextBlockTimeUnix": 1784411811,
+    "contextBlockTime": "2026-07-18T21:56:51.000Z",
+    "sharedContextAttempt": 1,
+    "supplementalAccountContextSlots": {
+      "playerProgram": 477236697,
+      "playerProgramData": 477236698
+    },
+    "maximumSupplementalContextSlotDelta": 2,
+    "accountSelection": {
+      "playerProgram184ByteCandidates": 10,
+      "retainedNckses01Sessions": 10,
+      "discarded184ByteNonSessionCandidates": 0,
+      "knownProfileLengthPlayerProgramAccountsScanned": 19,
+      "scannedPlayerProgramAccountDataLengthDistribution": {
+        "473": 4,
+        "773": 15
+      },
+      "playerProgram773ByteAccounts": 15,
+      "playerProgram473ByteAccounts": 4,
+      "retainedReferencedProfiles": 10,
+      "coreProgram293ByteCandidates": 1,
+      "retainedCanonicalGlobalConfigs": 1
+    },
+    "methods": [
+      "getVersion",
+      "getGenesisHash",
+      "getSlot",
+      "getProgramAccounts",
+      "getAccountInfo",
+      "getBlockTime",
+      "getMinimumBalanceForRentExemption"
+    ],
+    "mutatingRpcMethods": [],
+    "transactionsSent": 0,
+    "walletKeyMaterialLoaded": false
+  },
+  "playerProgram": {
+    "address": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+    "contextSlot": 477236697,
+    "programOwner": "BPFLoaderUpgradeab1e11111111111111111111111",
+    "executable": true,
+    "lamports": 1141440,
+    "dataLength": 36,
+    "dataSha256": "6a0b30c349724947999f468be103079f9a82713eb02bd41ae8b067309bacef02",
+    "dataHashBoundary": "dataSha256 covers Program account data bytes in [0, dataLength).",
+    "dataBase64": "AgAAAD2McepuRZEt6ePnpo/rOwijHVYJvLnPuXhEhegkrWjR",
+    "programData": {
+      "address": "59G5dWb4mmpLdYtRUpH4oM1gDeunVQZ29zLB9wKDzqtU",
+      "contextSlot": 477236698,
+      "programOwner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "executable": false,
+      "lamports": 1204448880,
+      "dataLength": 172925,
+      "dataSha256": "9ea56e9feac33008724db9f5a3c4fe324af53860eb5a519382d437872a8b3266",
+      "dataHashBoundary": "dataSha256 covers ProgramData account bytes in [0, dataLength).",
+      "loaderMetadataLength": 45,
+      "loaderMetadataBase64": "AwAAAGP/RRwAAAAAAX7In2OqLxzeDb+t63T2LqFNnbPJWdkb7g3v9pUZ7MxM",
+      "loaderMetadataSha256": "a5e481ec2193ac080b535bca9c03f17b6560cd534f6bf679eec32809667f2717",
+      "deploymentSlot": "474349411",
+      "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+      "elfAllocationOffset": 45,
+      "elfAllocationLength": 172880,
+      "elfAllocationSha256": "9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a",
+      "hashBoundary": "elfAllocationSha256 covers ProgramData bytes in [elfAllocationOffset, dataLength), including allocated trailing bytes."
+    }
+  },
+  "globalConfig": {
+    "address": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+    "programOwner": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu",
+    "lamports": 2930160,
+    "executable": false,
+    "dataLength": 293,
+    "dataSha256": "ce91a041f2bffe884f847f5b73c6d1511a6f911adc8e42d5a9d248b6d8829b5c",
+    "headerAndWorldIdLength": 87,
+    "headerAndWorldIdBase64": "TkNLQ0ZHMDEBAP0B9FX2ecgnEJz7hSsPRKfz6UUM0TnaoBcUgxZOUyF8a5YGAIDGpH6NAwCwmpl0rlnPqYTNqln/X0pTK87YgGvIbD+6LaJnicC3ZAEA",
+    "magic": "NCKCFG01",
+    "version": 1,
+    "bump": 253,
+    "initialized": true,
+    "worldId": 1,
+    "canonicalPda": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+    "canonicalBump": 253,
+    "addressMatchesCanonicalPda": true,
+    "storedBumpMatchesCanonicalBump": true,
+    "pdaSeedInputs": {
+      "literalUtf8": "global-config",
+      "derivingProgram": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu"
+    }
+  },
+  "rentObservation": {
+    "dataLength": 184,
+    "minimumBalanceLamports": 2171520,
+    "sessionsAtExactMinimum": 10,
+    "sessionsAboveMinimum": 0,
+    "sessionsBelowMinimum": 0,
+    "everySessionAtLeastMinimum": true
+  },
+  "summary": {
+    "retainedPlayerSessions": 10,
+    "currentAtContextBlockTime": 0,
+    "expiredAtContextBlockTime": 10,
+    "uniqueOwners": 8,
+    "uniqueSessionAuthorities": 10,
+    "ownerEqualsAuthoritySessions": 5,
+    "distinctAuthoritySessions": 5,
+    "ownersWithMultipleSessions": 1,
+    "maximumSessionsForOneOwner": 3,
+    "sessionsForOwnersWithMultipleSessions": 3,
+    "canonicalSessionPdas": 10,
+    "sessionsWithValidCurrentAllowedMask": 10,
+    "sessionsWithNonzeroMaxActions": 10,
+    "sessionsWithNonzeroActionCount": 0,
+    "sessionsWithReferencedProfileAccount": 10,
+    "sessionsPointingToCanonicalCurrentV7Profile": 6,
+    "sessionsPointingToHistoricalProfile": 4,
+    "sessionsWhoseProfileChecksPass": 6,
+    "sessionsWhoseGlobalConfigChecksPass": 10,
+    "sessionsWhoseAllStoredAndCrossAccountChecksPass": 6,
+    "sessionsAtExactRentMinimum": 10,
+    "sessionsAboveRentMinimum": 0,
+    "sessionsBelowRentMinimum": 0,
+    "totalSessionAccountLamports": 21715200
+  },
+  "consistencyChecks": {
+    "configuredPlayerProgramMatchesInspectedProgram": true,
+    "allSessionAccountsOwnedByConfiguredPlayerProgram": true,
+    "allSessionPdasAndStoredBumpsCanonical": true,
+    "allSessionGlobalConfigPointersCanonical": true,
+    "allSessionWorldIdsMatchCanonicalGlobalConfig": true,
+    "allAllowedMasksNonzeroAndWithinProtocolMask": true,
+    "allAllowedMasksExactlyCurrentBrowserMask": true,
+    "uniqueObservedWorldIds": [
+      1
+    ],
+    "uniqueObservedAllowedMasks": [
+      6
+    ]
+  },
+  "fieldDistributions": {
+    "magic": [
+      {
+        "value": "NCKSES01",
+        "count": 10
+      }
+    ],
+    "version": [
+      {
+        "value": 1,
+        "count": 10
+      }
+    ],
+    "bump": [
+      {
+        "value": 252,
+        "count": 1
+      },
+      {
+        "value": 253,
+        "count": 1
+      },
+      {
+        "value": 254,
+        "count": 3
+      },
+      {
+        "value": 255,
+        "count": 5
+      }
+    ],
+    "initialized": [
+      {
+        "value": true,
+        "count": 10
+      }
+    ],
+    "accountProgramOwner": [
+      {
+        "value": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+        "count": 10
+      }
+    ],
+    "worldId": [
+      {
+        "value": 1,
+        "count": 10
+      }
+    ],
+    "globalConfig": [
+      {
+        "value": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+        "count": 10
+      }
+    ],
+    "allowedActions": [
+      {
+        "value": {
+          "value": 6,
+          "binary": "0b0000000000000110",
+          "names": [
+            "break-block",
+            "place-block"
+          ]
+        },
+        "count": 10
+      }
+    ],
+    "maxActions": [
+      {
+        "value": 10000,
+        "count": 10
+      }
+    ],
+    "actionCount": [
+      {
+        "value": 0,
+        "count": 10
+      }
+    ],
+    "ownerEqualsSessionAuthority": [
+      {
+        "value": false,
+        "count": 5
+      },
+      {
+        "value": true,
+        "count": 5
+      }
+    ],
+    "statusAtContextBlockTime": [
+      {
+        "value": "expired",
+        "count": 10
+      }
+    ],
+    "lamports": [
+      {
+        "value": 2171520,
+        "count": 10
+      }
+    ],
+    "rentRelation": [
+      {
+        "value": "exact-minimum",
+        "count": 10
+      }
+    ],
+    "createdEqualsUpdatedSlot": [
+      {
+        "value": false,
+        "count": 7
+      },
+      {
+        "value": true,
+        "count": 3
+      }
+    ]
+  },
+  "fieldRanges": {
+    "createdSlot": {
+      "minimum": "473425490",
+      "maximum": "476437217",
+      "uniqueValues": 10
+    },
+    "updatedSlot": {
+      "minimum": "473425490",
+      "maximum": "476935768",
+      "uniqueValues": 10
+    },
+    "createdAt": {
+      "minimum": "1782981138",
+      "maximum": "1784118969",
+      "uniqueValues": 10
+    },
+    "expiresAt": {
+      "minimum": "1783009929",
+      "maximum": "1784330452",
+      "uniqueValues": 10
+    },
+    "authorizedDurationSeconds": {
+      "minimum": "3631",
+      "maximum": "526405",
+      "uniqueValues": 10
+    },
+    "secondsFromContextUntilExpiry": {
+      "minimum": "-1401882",
+      "maximum": "-81359",
+      "uniqueValues": 10
+    }
+  },
+  "ownerSessionCounts": [
+    {
+      "owner": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "E4GduAi47vKGmu4gSPycH1t4jVVGkp94sZaqRUh6hEBz"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "46Qw2BQg4rTFJ1AG54iyYcDvGahGurv3bhzPqhSb8d3A"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "sessionCount": 3,
+      "sessionAddresses": [
+        "22o2StbS5WB7e4wmvcvsEU4nD8yAiMb449e3Mi5wY7kh",
+        "FupuV3wXZHmAAYCrr6kpZ2A8qFRLx12yfZMBfzQrVmpt",
+        "Hk171qRTCdJfpjQRX2qATU3Zq5sUydCkEQahQ8XGQUBD"
+      ],
+      "current": 0,
+      "expired": 3
+    },
+    {
+      "owner": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "6AdEJzx7FXjMftf5NR548YBv7y7qSUhR4RXSD4KXBhY"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "BYcvbJLy66h5TrkYkfaRo8QHv5KAcHMT8nXcYvUj8TFV"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "EFpRVmvqyhNRaF6eiarGhUJz14BiJPZauYz42BYHbJk9",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "7U7Ge1mPZA3yxAapgDhoEdcW8KNCygM7HtcNrnuf5kfU"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "FsbK2VAjE3hENLFRRyE3gAYHhGkUB65be1hMV9ZQ9yXY",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "ApXCyKs2wPkNigEopWkKB7u3tfvoBYFTFZqPyKAENKNR"
+      ],
+      "current": 0,
+      "expired": 1
+    },
+    {
+      "owner": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+      "sessionCount": 1,
+      "sessionAddresses": [
+        "537ceAVwXC1j1UsVNnrEY5i82S7CygvjqxmJgceLLnPE"
+      ],
+      "current": 0,
+      "expired": 1
+    }
+  ],
+  "profiles": [
+    {
+      "address": "2KFZBNcmNGTX5K9DbLwoV4DGo14hGfpGtRYFUmJnV2rQ",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 4182960,
+      "executable": false,
+      "dataLength": 473,
+      "dataSha256": "8bef859522041c7b9da9e0823a2bf59f44c04b39fc7c934e3f2b87d623ed38be",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDECAP8BsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2QuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 2,
+      "bump": 255,
+      "initialized": true,
+      "storedOwner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": false,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "3qCedE8JNFRowitmrBJWz21krKDert2Mw3jfm7G6qQfL",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "c0ecb620a8a9b75c75db27ee4bc52cd6a4e431586eb25b151029c06de063a5c1",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP8BUCbwBSLFf05Bfxu+sW9oNubI5c1CxiZM++acMlorWBAuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 255,
+      "initialized": true,
+      "storedOwner": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "3qCedE8JNFRowitmrBJWz21krKDert2Mw3jfm7G6qQfL",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "4Lt9qZfSUmzLVrGQSZCFYbeYp1gHGfPbRSnuSS1UuC3P",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "d31f6a3a32ef76526c08f304115791f3e99a3862a434afc7d00a59da56947b0b",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP8BsZw1/ntBX1AyfjRXYGRfJPGc9uP86tecAtRMDihpfd4uAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 255,
+      "initialized": true,
+      "storedOwner": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "4Lt9qZfSUmzLVrGQSZCFYbeYp1gHGfPbRSnuSS1UuC3P",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "69iVPJQxJs1RVMWtn8Cx3czgEoH8JcDxgorLqQB4FnVz",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "773eada65cf362aad5426fe41cb08e8dae03315bc6ec5ee05d1d3d23c3cac737",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP4B2EBZdhoCo3PF4yiPY3a+VDwtVVYNikAWP0obxxpG3C8uAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 254,
+      "initialized": true,
+      "storedOwner": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "69iVPJQxJs1RVMWtn8Cx3czgEoH8JcDxgorLqQB4FnVz",
+      "canonicalBump": 254,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "83a4yUFfBNhU2XpSSmtmZS2eyUkgEAq1Wnffa8RbmpHb",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 4182960,
+      "executable": false,
+      "dataLength": 473,
+      "dataSha256": "b9b1563acb9c68e711eb2a922e6282c4c4f92e888c798f4ef2c58be9722ae34c",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDECAPsB3Plz55hycwj0dZnPll3WJgsCdDq6Hge8GeLGp8kBHHsuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 2,
+      "bump": 251,
+      "initialized": true,
+      "storedOwner": "FsbK2VAjE3hENLFRRyE3gAYHhGkUB65be1hMV9ZQ9yXY",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "9ra8JC7CRKE9E6ffG1TXGNbcaosuUq9wmaVyc1tzvHbu",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": false,
+      "storedBumpMatchesCanonicalBump": false
+    },
+    {
+      "address": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "2537bb9bea07280661498c8e1497fb80fd1ae999ca6a362bda6ed95506ea781c",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP8BsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2QuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 255,
+      "initialized": true,
+      "storedOwner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "BKmPBUxSefRNGJwEwvEPa81jM4n7KnBBG3Rmd7JAWiVA",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "742bb451b6cf2c6ea629a60976e95bb633707189b6f045ae306fd28cd572bdf6",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEDAPsBsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2QuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 3,
+      "bump": 251,
+      "initialized": true,
+      "storedOwner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": false,
+      "storedBumpMatchesCanonicalBump": false
+    },
+    {
+      "address": "EB842C4EREQ7Hopp1n6YFfKSC6eVNTa7HTQ2BhtWJN9s",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 4182960,
+      "executable": false,
+      "dataLength": 473,
+      "dataSha256": "87b59f393cb6040378143c5bd0abf823f318047ee4623f763bc98caf2c2a7ece",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDECAPkBxPOulsWs1RajrmCtZEmfLm4KPFwwjnKIcxro9x+gs9ouAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 2,
+      "bump": 249,
+      "initialized": true,
+      "storedOwner": "EFpRVmvqyhNRaF6eiarGhUJz14BiJPZauYz42BYHbJk9",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "8oVceJcvvYLU6VV6Ha9JRYU8Jwrtu1FFz5BycjvdHr3D",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": false,
+      "storedBumpMatchesCanonicalBump": false
+    },
+    {
+      "address": "EoF1AWvkQSU3c1hysJFGNLbDZHE8VNX9UUcR96GjCdRJ",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "5ae7834db52d7c000772d31855908c7f61287966d77dc392f0b8a450e6a9b54f",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP0BfsifY6ovHN4Nv63rdPYuoU2ds8lZ2RvuDe/2lRnszEwuAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 253,
+      "initialized": true,
+      "storedOwner": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "EoF1AWvkQSU3c1hysJFGNLbDZHE8VNX9UUcR96GjCdRJ",
+      "canonicalBump": 253,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    },
+    {
+      "address": "Fg3uciieVCdbUxd48teicxedirwo4sZwuzwwLDTA7tF9",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 6270960,
+      "executable": false,
+      "dataLength": 773,
+      "dataSha256": "9616a2cc975039f4a23fe1bacad84d91be36788609a3f42c4d8d97af3a2f11b7",
+      "authorizationPrefixLength": 78,
+      "authorizationPrefixBase64": "TkNLUExZMDEHAP4BxFMYVtbIjuG0V3L/jGZti4511vSt79cbNUimi+sL7+8uAev4D5wqpDxNt0Wvr8rAy/lsMTmKhi3qBBN9K99+8gEA",
+      "magic": "NCKPLY01",
+      "version": 7,
+      "bump": 254,
+      "initialized": true,
+      "storedOwner": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+      "storedGlobalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "canonicalPda": "Fg3uciieVCdbUxd48teicxedirwo4sZwuzwwLDTA7tF9",
+      "canonicalBump": 254,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true
+    }
+  ],
+  "sessions": [
+    {
+      "address": "22o2StbS5WB7e4wmvcvsEU4nD8yAiMb449e3Mi5wY7kh",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "a8ccd225dde56ec00670032a926f3a9e49bb05e61af6e0bfa8b8e05323457223",
+      "dataBase64": "TkNLU0VTMDEBAP4BsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2TkkKPVxXOge3aIKrI9BJdDZbd6eQmXfILqHU42FeSoMxOImUH8JqRYJqIMXwokln9SH7CD+eSi1OtZkwHpuDqlLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYA9KdHagAAAAAT6DccAAAAAKbCOhwAAAAAvCJGagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 254,
+      "initialized": true,
+      "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "sessionAuthority": "GPDsmvGvbwuy9VsS1PNg2BoGMt61gPwpKw1U2PMJx4xi",
+      "ownerEqualsSessionAuthority": false,
+      "playerProfile": "2KFZBNcmNGTX5K9DbLwoV4DGo14hGfpGtRYFUmJnV2rQ",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783080948",
+      "expiresAtIso": "2026-07-03T12:15:48.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-1330863",
+      "createdSlot": "473425939",
+      "updatedSlot": "473612966",
+      "createdAt": "1782981308",
+      "createdAtIso": "2026-07-02T08:35:08.000Z",
+      "authorizedDurationSeconds": "99640",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "22o2StbS5WB7e4wmvcvsEU4nD8yAiMb449e3Mi5wY7kh",
+      "canonicalBump": 254,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+        "sessionAuthority": "GPDsmvGvbwuy9VsS1PNg2BoGMt61gPwpKw1U2PMJx4xi",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": false,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": false,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": false
+    },
+    {
+      "address": "46Qw2BQg4rTFJ1AG54iyYcDvGahGurv3bhzPqhSb8d3A",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "f5d32e1488e8233d37fbc7bd58657e699bd033641f435296b67784f39d158cec",
+      "dataBase64": "TkNLU0VTMDEBAP0BfsifY6ovHN4Nv63rdPYuoU2ds8lZ2RvuDe/2lRnszEx+yJ9jqi8c3g2/ret09i6hTZ2zyVnZG+4N7/aVGezMTM0AevWHzluUsz5GAibYR84/6r0APJDKJ8tJA9qvLgSJLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAaVZSagAAAAAw/FccAAAAAIT8VxwAAAAAOkhSagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 253,
+      "initialized": true,
+      "owner": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+      "sessionAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+      "ownerEqualsSessionAuthority": true,
+      "playerProfile": "EoF1AWvkQSU3c1hysJFGNLbDZHE8VNX9UUcR96GjCdRJ",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783780969",
+      "expiresAtIso": "2026-07-11T14:42:49.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-630842",
+      "createdSlot": "475528240",
+      "updatedSlot": "475528324",
+      "createdAt": "1783777338",
+      "createdAtIso": "2026-07-11T13:42:18.000Z",
+      "authorizedDurationSeconds": "3631",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "46Qw2BQg4rTFJ1AG54iyYcDvGahGurv3bhzPqhSb8d3A",
+      "canonicalBump": 253,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "sessionAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    },
+    {
+      "address": "537ceAVwXC1j1UsVNnrEY5i82S7CygvjqxmJgceLLnPE",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "2110b98e0206ba55901251a32454d3eb7ab161250d7420dc8703abbf4e720896",
+      "dataBase64": "TkNLU0VTMDEBAP4B2EBZdhoCo3PF4yiPY3a+VDwtVVYNikAWP0obxxpG3C/YQFl2GgKjc8XjKI9jdr5UPC1VVg2KQBY/ShvHGkbcL0yF/kk1uED0aheimmEfoF2YUZfURpmiLgs+oDCoX5hFLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAp55TagAAAACKT0YcAAAAALhbWhwAAAAAYpZLagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 254,
+      "initialized": true,
+      "owner": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+      "sessionAuthority": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+      "ownerEqualsSessionAuthority": true,
+      "playerProfile": "69iVPJQxJs1RVMWtn8Cx3czgEoH8JcDxgorLqQB4FnVz",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783864999",
+      "expiresAtIso": "2026-07-12T14:03:19.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-546812",
+      "createdSlot": "474369930",
+      "updatedSlot": "475683768",
+      "createdAt": "1783338594",
+      "createdAtIso": "2026-07-06T11:49:54.000Z",
+      "authorizedDurationSeconds": "526405",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "537ceAVwXC1j1UsVNnrEY5i82S7CygvjqxmJgceLLnPE",
+      "canonicalBump": 254,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+        "sessionAuthority": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    },
+    {
+      "address": "6AdEJzx7FXjMftf5NR548YBv7y7qSUhR4RXSD4KXBhY",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "3963a9eb484dae9d9644b139d4b626e268b88af575f52343cd123825693234f5",
+      "dataBase64": "TkNLU0VTMDEBAPwBsZw1/ntBX1AyfjRXYGRfJPGc9uP86tecAtRMDihpfd6xnDX+e0FfUDJ+NFdgZF8k8Zz24/zq15wC1EwOKGl93jGq7y9tVjUJ5VnpY762Y7vKcYCEW3kFBb9PDzZvHc6mLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAwCJOagAAAACMkEUcAAAAAC3hSxwAAAAAGU5LagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 252,
+      "initialized": true,
+      "owner": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+      "sessionAuthority": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+      "ownerEqualsSessionAuthority": true,
+      "playerProfile": "4Lt9qZfSUmzLVrGQSZCFYbeYp1gHGfPbRSnuSS1UuC3P",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783505600",
+      "expiresAtIso": "2026-07-08T10:13:20.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-906211",
+      "createdSlot": "474321036",
+      "updatedSlot": "474734893",
+      "createdAt": "1783320089",
+      "createdAtIso": "2026-07-06T06:41:29.000Z",
+      "authorizedDurationSeconds": "185511",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "6AdEJzx7FXjMftf5NR548YBv7y7qSUhR4RXSD4KXBhY",
+      "canonicalBump": 252,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+        "sessionAuthority": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    },
+    {
+      "address": "7U7Ge1mPZA3yxAapgDhoEdcW8KNCygM7HtcNrnuf5kfU",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "357675877653e7dc6a5fa92007303075f8f629f39811142d5c7d8beb593f489d",
+      "dataBase64": "TkNLU0VTMDEBAP8BxPOulsWs1RajrmCtZEmfLm4KPFwwjnKIcxro9x+gs9rbCSiodawGDfIc/hmoxVg6/Z72IblMjQEJFZQWReqILcO/tkHski9VSsxrNi+pgg0ufYBQXDtTLKCRA6MI+15OLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYA1PhGagAAAAAw9DgcAAAAADD0OBwAAAAAYohGagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 255,
+      "initialized": true,
+      "owner": "EFpRVmvqyhNRaF6eiarGhUJz14BiJPZauYz42BYHbJk9",
+      "sessionAuthority": "Fk2PPE31iLwqqzCDSaSUUhHAgY9cfhKnzUCgSndXVKKJ",
+      "ownerEqualsSessionAuthority": false,
+      "playerProfile": "EB842C4EREQ7Hopp1n6YFfKSC6eVNTa7HTQ2BhtWJN9s",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783036116",
+      "expiresAtIso": "2026-07-02T23:48:36.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-1375695",
+      "createdSlot": "473494576",
+      "updatedSlot": "473494576",
+      "createdAt": "1783007330",
+      "createdAtIso": "2026-07-02T15:48:50.000Z",
+      "authorizedDurationSeconds": "28786",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "7U7Ge1mPZA3yxAapgDhoEdcW8KNCygM7HtcNrnuf5kfU",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "EFpRVmvqyhNRaF6eiarGhUJz14BiJPZauYz42BYHbJk9",
+        "sessionAuthority": "Fk2PPE31iLwqqzCDSaSUUhHAgY9cfhKnzUCgSndXVKKJ",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": false,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": false,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": false
+    },
+    {
+      "address": "ApXCyKs2wPkNigEopWkKB7u3tfvoBYFTFZqPyKAENKNR",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "2bebd9352f93d7f7272decd7daf1f6c7dabd82763d2f1f73bc015958d0089a94",
+      "dataBase64": "TkNLU0VTMDEBAP8B3Plz55hycwj0dZnPll3WJgsCdDq6Hge8GeLGp8kBHHvoULIbSIIUvK3j0987UQyoQJCQdKxPaRqKIQxkQkQD7miqXFyGjDkkq1wJaIPeJfhSEKoWt+hQ3rBRx/muz5OeLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAiZJGagAAAABS5jccAAAAAFLmNxwAAAAAEiJGagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 255,
+      "initialized": true,
+      "owner": "FsbK2VAjE3hENLFRRyE3gAYHhGkUB65be1hMV9ZQ9yXY",
+      "sessionAuthority": "GdrxJtHqNKaXB1obm6Aq6nBGJjXizaq34uHZGeeJziry",
+      "ownerEqualsSessionAuthority": false,
+      "playerProfile": "83a4yUFfBNhU2XpSSmtmZS2eyUkgEAq1Wnffa8RbmpHb",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783009929",
+      "expiresAtIso": "2026-07-02T16:32:09.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-1401882",
+      "createdSlot": "473425490",
+      "updatedSlot": "473425490",
+      "createdAt": "1782981138",
+      "createdAtIso": "2026-07-02T08:32:18.000Z",
+      "authorizedDurationSeconds": "28791",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "ApXCyKs2wPkNigEopWkKB7u3tfvoBYFTFZqPyKAENKNR",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "FsbK2VAjE3hENLFRRyE3gAYHhGkUB65be1hMV9ZQ9yXY",
+        "sessionAuthority": "GdrxJtHqNKaXB1obm6Aq6nBGJjXizaq34uHZGeeJziry",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": false,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": false,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": false
+    },
+    {
+      "address": "BYcvbJLy66h5TrkYkfaRo8QHv5KAcHMT8nXcYvUj8TFV",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "eac3a70f590be539241100831d7c9b496bda822625b1fafa4778b56600559275",
+      "dataBase64": "TkNLU0VTMDEBAP8BxFMYVtbIjuG0V3L/jGZti4511vSt79cbNUimi+sL7+/EUxhW1siO4bRXcv+MZm2LjnXW9K3v1xs1SKaL6wvv79oEjkBn50gcDEkdej9oIzvcjHv2qe9mWGTqpnwfBy6gLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAwuJYagAAAADp9FYcAAAAALpzaBwAAAAArORRagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 255,
+      "initialized": true,
+      "owner": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+      "sessionAuthority": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+      "ownerEqualsSessionAuthority": true,
+      "playerProfile": "Fg3uciieVCdbUxd48teicxedirwo4sZwuzwwLDTA7tF9",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1784210114",
+      "expiresAtIso": "2026-07-16T13:55:14.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-201697",
+      "createdSlot": "475460841",
+      "updatedSlot": "476607418",
+      "createdAt": "1783751852",
+      "createdAtIso": "2026-07-11T06:37:32.000Z",
+      "authorizedDurationSeconds": "458262",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "BYcvbJLy66h5TrkYkfaRo8QHv5KAcHMT8nXcYvUj8TFV",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+        "sessionAuthority": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    },
+    {
+      "address": "E4GduAi47vKGmu4gSPycH1t4jVVGkp94sZaqRUh6hEBz",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "326800000ea8232aeb14858b5d468ac6d840f423a9fba98b538d177901c02b76",
+      "dataBase64": "TkNLU0VTMDEBAP8BUCbwBSLFf05Bfxu+sW9oNubI5c1CxiZM++acMlorWBBQJvAFIsV/TkF/G76xb2g25sjlzULGJkz75pwyWitYECoQbIW1PhHNPpiDmkQgauefPl+6RbHoxfDRJxzPjJmbLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYA1LhaagAAAADh2mUcAAAAAFh2bRwAAAAAuX5XagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 255,
+      "initialized": true,
+      "owner": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+      "sessionAuthority": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+      "ownerEqualsSessionAuthority": true,
+      "playerProfile": "3qCedE8JNFRowitmrBJWz21krKDert2Mw3jfm7G6qQfL",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1784330452",
+      "expiresAtIso": "2026-07-17T23:20:52.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-81359",
+      "createdSlot": "476437217",
+      "updatedSlot": "476935768",
+      "createdAt": "1784118969",
+      "createdAtIso": "2026-07-15T12:36:09.000Z",
+      "authorizedDurationSeconds": "211483",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "E4GduAi47vKGmu4gSPycH1t4jVVGkp94sZaqRUh6hEBz",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+        "sessionAuthority": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    },
+    {
+      "address": "FupuV3wXZHmAAYCrr6kpZ2A8qFRLx12yfZMBfzQrVmpt",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "5e7e6ae9a1f774b7fc7106ebd8c8e4ae7b8ba0c87d0ea7b14581a1aab4eae33a",
+      "dataBase64": "TkNLU0VTMDEBAP8BsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2TKo03ca1hxUcmS/ppVpxLo6/ZJhM1kTxB5nIc20jWOr5ljgdedG0ReJIZyhQ07i+7c+AKTGabSwTK83sYeENhdLgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAJuRHagAAAACbYTscAAAAAJthOxwAAAAAqnNHagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 255,
+      "initialized": true,
+      "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "sessionAuthority": "Ee1nMWzZTdgbX5jqByDxj5cdZkSQA9DXf5JJ4zLPUDSW",
+      "ownerEqualsSessionAuthority": false,
+      "playerProfile": "BKmPBUxSefRNGJwEwvEPa81jM4n7KnBBG3Rmd7JAWiVA",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783096358",
+      "expiresAtIso": "2026-07-03T16:32:38.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-1315453",
+      "createdSlot": "473653659",
+      "updatedSlot": "473653659",
+      "createdAt": "1783067562",
+      "createdAtIso": "2026-07-03T08:32:42.000Z",
+      "authorizedDurationSeconds": "28796",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "FupuV3wXZHmAAYCrr6kpZ2A8qFRLx12yfZMBfzQrVmpt",
+      "canonicalBump": 255,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+        "sessionAuthority": "Ee1nMWzZTdgbX5jqByDxj5cdZkSQA9DXf5JJ4zLPUDSW",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": false,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": false,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": false
+    },
+    {
+      "address": "Hk171qRTCdJfpjQRX2qATU3Zq5sUydCkEQahQ8XGQUBD",
+      "programOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "lamports": 2171520,
+      "executable": false,
+      "dataLength": 184,
+      "dataSha256": "54224133c1823e09741c00b74f2e8c4a6fd9a59c5c6d77b94fabcff7251f6cd0",
+      "dataBase64": "TkNLU0VTMDEBAP4BsJqZdK5Zz6mEzapZ/19KUyvO2IBryGw/ui2iZ4nAt2RPLc69tgi78IBBldxC+vyOS6p/7y/rS0Eh32Ee4Q2lbYyXre89WRQwtJPJMRMIAiLGX6uz5B7db0DoJM2+blK7LgHr+A+cKqQ8TbdFr6/KwMv5bDE5ioYt6gQTfSvffvIBAAYAaFRSagAAAACpm1McAAAAAATzVhwAAAAAHqBQagAAAAAQJwAAAAAAAA==",
+      "magic": "NCKSES01",
+      "version": 1,
+      "bump": 254,
+      "initialized": true,
+      "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "sessionAuthority": "6L5io32D7ujrxMEuFWMiU6XLdJVMFpbfrvgqkjiA9ASG",
+      "ownerEqualsSessionAuthority": false,
+      "playerProfile": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+      "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "worldId": 1,
+      "allowedActions": 6,
+      "allowedActionsBinary": "0b0000000000000110",
+      "allowedActionNames": [
+        "break-block",
+        "place-block"
+      ],
+      "hasOnlyProtocolAllowedActionBits": true,
+      "isNonzeroAllowedActions": true,
+      "expiresAt": "1783780456",
+      "expiresAtIso": "2026-07-11T14:34:16.000Z",
+      "statusAtContextBlockTime": "expired",
+      "secondsFromContextUntilExpiry": "-631355",
+      "createdSlot": "475241385",
+      "updatedSlot": "475460356",
+      "createdAt": "1783668766",
+      "createdAtIso": "2026-07-10T07:32:46.000Z",
+      "authorizedDurationSeconds": "111690",
+      "maxActions": 10000,
+      "actionCount": 0,
+      "canonicalPda": "Hk171qRTCdJfpjQRX2qATU3Zq5sUydCkEQahQ8XGQUBD",
+      "canonicalBump": 254,
+      "addressMatchesCanonicalPda": true,
+      "storedBumpMatchesCanonicalBump": true,
+      "pdaSeedInputs": {
+        "literalUtf8": "session",
+        "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+        "sessionAuthority": "6L5io32D7ujrxMEuFWMiU6XLdJVMFpbfrvgqkjiA9ASG",
+        "derivingProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB"
+      },
+      "rentMinimumLamports": 2171520,
+      "rentDeltaLamports": 0,
+      "rentExemptAtObservedMinimum": true,
+      "sessionRecordChecks": {
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatches": true,
+        "magicMatches": true,
+        "versionMatches": true,
+        "initialized": true,
+        "addressAndBumpCanonical": true,
+        "allowedActionsValid": true,
+        "maxActionsNonzero": true
+      },
+      "profileChecks": {
+        "accountFound": true,
+        "addressMatchesSessionPointer": true,
+        "programOwnerMatchesPlayerProgram": true,
+        "accountNotExecutable": true,
+        "dataLengthMatchesRecognizedProfileFamily": true,
+        "magicMatchesProfileFamily": true,
+        "versionMatchesCurrentProfile": true,
+        "initialized": true,
+        "canonicalCurrentProfilePdaForSessionOwner": true,
+        "storedOwnerMatchesSessionOwner": true,
+        "storedGlobalConfigMatchesSession": true,
+        "worldIdMatchesSession": true
+      },
+      "globalConfigChecks": {
+        "sessionPointerMatchesCanonicalGlobalConfig": true,
+        "accountProgramOwnerMatchesCoreProgram": true,
+        "accountNotExecutable": true,
+        "accountDataLengthMatches": true,
+        "accountMagicMatches": true,
+        "accountVersionMatches": true,
+        "accountInitialized": true,
+        "accountAddressAndBumpCanonical": true,
+        "sessionWorldIdMatchesGlobalConfig": true
+      },
+      "allStoredAndCrossAccountChecksPass": true
+    }
+  ],
+  "privacyBoundary": {
+    "publicKeysAreAccountIdentifiersNotSigningSecrets": true,
+    "fullRetainedPlayerOwnedStateAccountDataIsLimitedTo184ByteNckses01Sessions": true,
+    "profileEvidenceRetainsOnlyThe78ByteAuthorizationPrefix": true,
+    "sessionSigningSecretBytesRetained": false,
+    "walletFilesRead": false,
+    "browserStorageRead": false
+  },
+  "interpretationBoundaries": [
+    "This is one confirmed Devnet RPC context. It is not a permanent population total, a finalized-state guarantee, or a Mainnet Beta claim.",
+    "Current means expiresAt is strictly greater than the context block time; expired means expiresAt is less than or equal to that chain timestamp.",
+    "A canonical PDA and matching stored fields prove internal consistency of public account bytes, not possession of the corresponding session signing secret.",
+    "The allowed-actions mask records authorization scope. maxActions and actionCount are reported as stored fields; this snapshot alone does not prove that downstream programs enforce a count limit.",
+    "Program and ProgramData hashes bind the deployed account bytes observed at their recorded read contexts. They do not prove reproducible compilation from the current dirty working tree.",
+    "Rent values are point-in-time RPC observations. Lamports above the observed exemption minimum are not an application spending budget.",
+    "Only referenced profile authorization prefixes are retained; profile names, appearance, equipment, inventory, browser storage, wallet files, and session signing secrets are outside this capture.",
+    "Generated teaching artwork is not evidence for these addresses, balances, timestamps, masks, account bytes, or deployment hashes."
+  ],
+  "reproduction": {
+    "captureCommand": "NICECHUNK_DEVNET_RPC=https://api.devnet.solana.com/ node scripts/capture-player-sessions-devnet.mjs --output docs/audits/player-sessions-devnet-2026-07-18.json",
+    "localCheckCommand": "node scripts/capture-player-sessions-devnet.mjs --check",
+    "rpcOverrideEnvironmentVariable": "NICECHUNK_DEVNET_RPC",
+    "checkModeUsesNetwork": false,
+    "localCheckScope": "Recomputes retained Session hashes, decoding, PDAs, cross-account fields, distributions, and loader metadata. Full ProgramData and profile hashes remain capture-time evidence because those full account bytes are intentionally not retained.",
+    "sourceFiles": [
+      "programs/nicechunk_player/src/state.rs",
+      "programs/nicechunk_player/src/lib.rs",
+      "programs/nicechunk_player/src/cluster_config.rs",
+      "programs/nicechunk_core/src/state.rs",
+      "src/chain/nicechunkChain.js",
+      "src/rpcConfig.js",
+      "public/mainnet.json"
+    ]
+  }
+}

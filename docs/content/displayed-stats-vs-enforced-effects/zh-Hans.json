@@ -1,0 +1,1329 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-displayed-stats-vs-enforced-effects-zh-Hans-ebf65041d6a56314",
+    "contentHash": "ebf65041d6a56314"
+  },
+  "slug": "displayed-stats-vs-enforced-effects",
+  "kind": "topic",
+  "shortTitle": "显示属性与实际生效效果",
+  "seo": {
+    "title": "显示属性与实际生效效果：哪些数值真正改变 NiceChunk",
+    "description": "了解 NiceChunk 中哪些 Profile 字段和技能只是被存储，哪些数值由浏览器派生，哪些效果在生产环境中有真正的使用方，以及合约会在哪里重新计算采矿、熔炼、锻造与探索的结果。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 · 第 9 步",
+    "title": "显示属性与实际生效效果：数值必须有使用方",
+    "summary": "NiceChunk 可以存储一个数值、据此计算界面卡片，还可以描述未来效果，却并不一定会在游戏规则中使用这个数值。当前生产环境的 /play/ 会把“敏捷”直接用于本地移动；Chunk 会独立重新计算“精准采集”和“探索”，Smelting 会独立重新计算熔炼产出，Backpack 会独立重新计算锻造结果。“负重”“工艺”“耐力”“力量”和“鉴定”目前没有生产环境使用方。Profile 的六项基础属性也仍是固定默认值，尚未接入生存、战斗、负重、采矿能力或建造能力循环。本指南沿着 /play/index.html → /play/main.js → play/* 审核，不把较旧的 src/main.js 当作当前生产路径的证据，并用一份带日期的 confirmed Devnet 快照核对这些源码边界。",
+    "readingTime": "阅读约 42 分钟",
+    "visual": {
+      "src": "/docs/media/displayed-stats-vs-enforced-effects-overview-v1.webp",
+      "alt": "生成的体素山坡工坊：标准村民男孩在机械跑步机上行走，标准村民女孩则检查静止仪表与压机旁的储物柜。",
+      "caption": "储物柜与静止仪表代表被存储或显示的数值，运转的跑步机则代表数值真正到达实际使用方。这幅教学图使用标准村民、真实 Chunk.js 场景和烘焙材质作为参考；道具、摆放、动作与光照都只是比喻，不是已解码属性、合约执行过程、界面截图，也不能证明图中每种效果都已实现。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "生命值、能量、力量、技能与等级等数值中，哪些真的会改变一次操作，哪些目前只是被存储或显示？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 15 步中的第 9 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的普通玩家"
+      },
+      {
+        "label": "已审核的生产入口",
+        "value": "/play/index.html → /play/main.js → play/*；较旧的 /src/main.js 会单独标注"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 18 日 · 源码原文摘录、使用方检索、专项检查、生成图来源记录，以及 confirmed Devnet slot 477,044,477"
+      }
+    ],
+    "terms": [
+      {
+        "term": "已存储字段",
+        "meaning": "写入链上账户或浏览器数据的数值。存储只能证明它存在，并不能证明某个操作会读取它。"
+      },
+      {
+        "term": "显示数值",
+        "meaning": "为界面计算出的文字或卡片。它作为显示信息可能有用且准确，但仍可能完全不影响交易、合约结果或游戏规则。"
+      },
+      {
+        "term": "使用方",
+        "meaning": "在生产环境中读取某个数值，并用它改变移动距离、回收体积、额外掉落概率、熔炼产出或锻造耐久度等结果的具体代码。"
+      },
+      {
+        "term": "浏览器本地效果",
+        "meaning": "只在当前浏览器运行实例中真实生效的效果，例如“敏捷”改变本地移动控制器。Guardian 或 Solana 程序不会因此自动检查或强制执行它。"
+      },
+      {
+        "term": "合约强制执行的效果",
+        "meaning": "程序读取权威账户数据并自行计算最终接受的结果，而不是相信浏览器提供的数值。"
+      },
+      {
+        "term": "派生数值",
+        "meaning": "根据其他记录或计数器计算出的数值。当前 Profile 页面中的六张属性卡、两个不同的 Level 标签和“声望”都是例子。"
+      },
+      {
+        "term": "有效技能 XP",
+        "meaning": "浏览器会针对每项技能，在本地行为计数器、浏览器保存的技能 XP 与传入的链上 XP 对象之间取最大值，再用浏览器阈值表把该 XP 换算成等级。"
+      },
+      {
+        "term": "旧版等级对象",
+        "meaning": "较旧的浏览器对象 nicechunk.playerSkills.<wallet>。它仍可作为回退来源，但正常 XP 路径会提供每个技能键，即使值为零也会提供，因此通常会采用由 XP 派生的等级。"
+      },
+      {
+        "term": "PlayerProfile 基础属性",
+        "meaning": "六个 u16 字段：health、energy、stamina、miningPower、buildPower 和 defense。它们与浏览器中的十张技能卡并不是同一组数据。"
+      },
+      {
+        "term": "进度 PDA",
+        "meaning": "在某一个程序域内，为一名 owner 与一个 GlobalConfig 保存技能进度的程序派生公开账户。同样的 seed 文本放在不同程序 ID 下，会派生出不同地址。"
+      },
+      {
+        "term": "基点（bps）",
+        "meaning": "一种以 10,000 表示 100% 的整数比例单位。合约使用基点，就不需要处理浮点百分比。"
+      },
+      {
+        "term": "待确认预测",
+        "meaning": "链上接受交易之前，浏览器立即给出的估算。它有助于快速展示，但权威结果仍由提交的指令与程序计算决定。"
+      },
+      {
+        "term": "Guardian",
+        "meaning": "负责中继姿态、身份、装备外观、聊天和挖掘提示的实时区域服务。它当前的移动协议不携带 Profile 属性、技能等级或 XP。"
+      },
+      {
+        "term": "带日期的快照",
+        "meaning": "通过 RPC 在一个 confirmed context slot 观察到的账户字节。它只能证明这些账户在当时包含什么，不能证明永久总量，也不能据此复现已部署的程序二进制。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "标签不等于规则",
+      "body": "要问清楚：生产环境中的哪个使用方读取了这个数值，最终接受的结果又改变了什么。一个字段可以一直被保存，卡片也可以正确更新，但两者仍可能完全不影响移动、采矿、负重、制作、战斗或结算。"
+    },
+    {
+      "title": "六项 Profile 默认值并不构成生存系统",
+      "body": "链上初始化时会写入 health 100、energy 100、stamina 100、miningPower 1、buildPower 1 和 defense 0；但当前 Player 指令不会修改它们，生产环境 /play/ 也没有读取它们的游戏规则使用方。"
+    },
+    {
+      "title": "只有一项浏览器技能会直接改变普通本地控制",
+      "body": "“敏捷”会乘到本地控制器使用的基础移动速度上。Guardian 和 Player 程序都不读取其等级，也不强制执行由技能限定的速度，因此这是实际存在的浏览器行为，而不是链上强制执行的竞速状态。"
+    },
+    {
+      "title": "采矿、探索、熔炼与锻造结果会由程序重新计算",
+      "body": "浏览器可以预览结果，但 Chunk 会读取 Chunk 进度，Smelting 会读取 Smelting 进度，Backpack 则会先读取 PlayerProfile forging_xp，再应用自己的阈值与规则。因此，“精准采集”“探索”“熔炼”和“锻造”都有合约使用方；下文还会说明界面与合约之间的重要差异。"
+    },
+    {
+      "title": "同一组 seed 名称可能对应两份独立技能历史",
+      "body": "Chunk 与 Game/Smelting 都使用 [player-progress, GlobalConfig, owner] 派生地址，但两者的程序 ID 不同。当前 Profile 获取路径读取 Chunk 账户，真正执行熔炼时使用的则是 Game/Smelting 账户。"
+    },
+    {
+      "title": "“当前”只代表当前版本",
+      "body": "目前没有使用方的字段，以后仍可能接入游戏规则。本页记录的是已审核的当前生产路径和一份带日期的 Devnet 快照，并不承诺未来版本会一直保持这些边界。"
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现",
+    "title": "十个公式与二十二段源码原文，逐一确认每个数值是否能到达使用方",
+    "summary": "这些公式把已存储默认值、浏览器派生、本地移动与程序负责的结算分开。每段源码原文都是已审核仓库中的连续片段。线上观测保留了同一个 confirmed Devnet context 下的原始账户字节，同时严格区分源码行为与已部署程序证据的适用范围。"
+  },
+  "sections": [
+    {
+      "id": "number-needs-a-consumer",
+      "eyebrow": "存储、显示与执行",
+      "title": "只有被实际使用方读取，数值才会成为规则",
+      "paragraphs": [
+        "假设角色表上写着“力量 20”，这可能对应三件不同的事：数值被保存了；界面把它显示出来了；举重、工具、伤害或负重系统读取了它。只有第三种情况才能说明“力量”改变了游戏玩法。NiceChunk 目前同时存在这三个阶段的例子，因此只说某项属性“已启用”仍不够准确，必须说清楚它的使用方。",
+        "可以用四个问题判断：数值从哪里来？生产环境中的哪个函数读取它？该函数是否改变了可见动作、提交的指令或程序结果？另一个权威层能否在不信任浏览器的情况下重新计算结果？这套方法能避免两种相反的误判：把所有卡片都说成假的，或把每个显示公式都说成强制规则。",
+        "“敏捷”展示了真实的浏览器本地使用方：生产环境主模块把乘数写入 controls.speed，移动逻辑随后使用这个速度。“精准采集”展示了“本地预览 + 独立合约使用方”：浏览器估算待确认体积，却不会提交这个估算，Chunk 会根据自己的进度账户重新计算体积。“负重”则展示了只有显示、没有使用方的情况：Profile 页面会显示可负重公斤数，但当前没有库存总重量、超重状态或移动规则读取它。",
+        "生产入口边界非常重要。/play/index.html 加载 /play/main.js，后者再导入本页审核的 play/* 模块。较旧的 /src/main.js 虽然包含相关的历史或替代逻辑，却没有被这个 /play/ 入口导入，因此不能用来证明当前存在某个使用方。"
+      ],
+      "facts": [
+        {
+          "label": "已存储",
+          "value": "数值存在于字节中",
+          "detail": "这只能证明它被持久化或初始化。"
+        },
+        {
+          "label": "已显示",
+          "value": "浏览器会计算或显示它",
+          "detail": "这只能证明界面路径存在，不能证明游戏效果已被接受。"
+        },
+        {
+          "label": "已使用",
+          "value": "生产环境结果发生变化",
+          "detail": "必须指出确切的浏览器、Guardian 或程序使用方。"
+        },
+        {
+          "label": "已重新计算",
+          "value": "接受操作的程序自行得出结果",
+          "detail": "客户端预览无法覆盖程序计算。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-number-needs-consumer-v1.webp",
+        "alt": "生成的体素训练工坊：标准女孩从储物柜取出一个彩色方块，标准男孩则转动连接输送带与压机的手摇曲柄。",
+        "caption": "储存的方块与未连接的展示台代表可以存在或被显示的数值，手摇输送带与压机则代表数值真正到达使用方。这幅单场景教学图使用标准村民以及真实 Chunk.js 场景和材质作为参考；它不标识代码路径、不对应字段数量、不能证明交易，也不表示每个储存方块都对应一项尚未实现的技能。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "不要只看属性卡片",
+        "body": "当指南声称某项属性“有效”时，它应当能把这句话说完整：生产环境代码在这里读取了这个确切数值，并改变了这个确切结果。"
+      }
+    },
+    {
+      "id": "six-defaults-not-survival",
+      "eyebrow": "六个已存储的默认值",
+      "title": "health、energy、stamina、miningPower、buildPower 与 defense 是预留状态，不是当前游戏循环",
+      "paragraphs": [
+        "PlayerProfile 初始化会按固定顺序写入六个值：health 100、energy 100、stamina 100、miningPower 1、buildPower 1 和 defense 0。它们是真实的公开账户字节，但并不是当前 Profile 概览中显示的六张卡片；角色创建页面也不会为男孩和女孩模型分配不同的基础属性。",
+        "当前 Player 指令路由可以初始化玩家、更新位置、选择装备、修改 Backpack 样式或指针、管理 session、增加锻造 XP、改名、写入或关闭 Appearance，并维护邀请页。完成初始化或迁移后，其中没有更新这六项基础属性的指令。对生产环境 /play/ 路径的仓库级检索也没有发现任何操作会读取它们来决定伤害、疲劳、速度、采矿产出、建筑强度、负重或防御。",
+        "两个名为 Stamina 的概念尤其容易被误认为一回事。Profile.stamina 是初始化为 100 的链上字段；“耐力”Lv.0–10 则是浏览器技能，其效果对象会计算疲劳乘数。当前代码没有把这个字段与技能连接起来，也没有疲劳系统读取其中任何一个值。",
+        "保留的 Devnet 快照在 confirmed context slot 477,044,477 查询了三个相关程序，共返回 15 个 773 字节的 Profile 候选账户，其中 11 个是当前规范的 version-7 Profile PDA。这 11 个账户都恰好保存了六项默认值，没有任何一个规范 Profile 出现非默认基础属性。这只能证明这些账户在 2026 年 7 月 18 日的状态，不能证明所有历史或未来 Profile 都必须相同。"
+      ],
+      "facts": [
+        {
+          "label": "health",
+          "value": "100 · 保存的默认值",
+          "detail": "当前没有伤害、治疗、失败或重生使用方。"
+        },
+        {
+          "label": "energy",
+          "value": "100 · 保存的默认值",
+          "detail": "当前没有冲刺、飞行、采矿或工作消耗使用方。"
+        },
+        {
+          "label": "stamina",
+          "value": "100 · 保存的默认值",
+          "detail": "它与“耐力”技能卡彼此独立，两者都没有接入疲劳循环。"
+        },
+        {
+          "label": "miningPower",
+          "value": "1 · 保存的默认值",
+          "detail": "当前采矿会在三次有效的工具物理接触后结算。"
+        },
+        {
+          "label": "buildPower",
+          "value": "1 · 保存的默认值",
+          "detail": "当前没有放置、支撑或建造能力使用方。"
+        },
+        {
+          "label": "defense",
+          "value": "0 · 保存的默认值",
+          "detail": "当前没有敌人、承受伤害、护甲或战斗使用方。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-six-defaults-v1.webp",
+        "alt": "生成的体素档案工坊：标准村民查看装有密封彩色方块的开放托盘，旁边放着类似盾牌的装置与尚未使用的工具。",
+        "caption": "本节讨论的恰好是当前六项基础 Profile 字段。重复的密封方块与档案抽屉代表已初始化并保留、但尚未接入生存、战斗、采矿能力或建造能力循环的状态；道具数量、大小和排列仅作示意。这幅生成场景使用标准村民和真实 Chunk.js 参考，不编码字段偏移、数值或账户新鲜度，也不表示未来不能增加使用方。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "预留不等于无用",
+        "body": "保留稳定的账户字段可以支持未来系统。就当前而言，准确说法是：已审核的生产路径目前不会读取这些字段。"
+      }
+    },
+    {
+      "id": "browser-derived-stats",
+      "eyebrow": "Profile 页面中的数值来源",
+      "title": "六张可见属性卡、两个 Level 标签与声望都由浏览器派生",
+      "paragraphs": [
+        "Profile 概览不会直接显示六项基础 Profile 属性，而是把有效浏览器技能等级换算成“采集、负重、熔炼、速度、力量、制作”六张卡片。因此，浏览器 XP 改变时卡片可以随之变化，即使链上的 health、energy、Profile stamina、miningPower、buildPower 与 defense 完全没有改变。",
+        "对于十项技能中的每一项，buildProfileSkillState 会收集三类 XP：由本地操作计数器派生的 XP、保存在 nicechunk.playerSkillXp.<wallet> 下的 XP，以及传给页面的链上 XP 对象。mergeSkillXp 会为每项技能保留最大值，而不是把来源相加。较旧的 nicechunk.playerSkills.<wallet> 等级对象仍会读取，并以未限定钱包的 nicechunk.playerSkills 作为回退；但 deriveProfileSkillXp 会提供每个技能键，即使值为零也不例外，因此 profileSkillEffectiveLevel 通常会走 XP 派生分支，而不是采用旧版手动等级。",
+        "Level 这个词还标记了两套互相独立的计算。顶部小 HUD 的 Level 等于 1 加上本地已确认采矿次数除以 25 后向下取整；Profile 概览的 Level 等于 1 加上十项有效技能等级之和除以 10 后向下取整。两者不同并不代表数据损坏。声望也是本地公式：已确认采矿次数乘 5，加已确认放置次数乘 3，再加已熔炼材料数乘 4。",
+        "这些数值仍可作为有用的进度摘要，但准确说法应是“浏览器派生”，而不是“PlayerProfile 属性”，也不代表自动由链上强制执行。如果浏览器存储被清除、修改，或在另一台设备上恢复，本地派生部分可能会不同，直到权威数据读取与新操作把它们重新建立起来。"
+      ],
+      "facts": [
+        {
+          "label": "Profile 卡片",
+          "value": "由技能等级计算的六个公式",
+          "detail": "采集、负重、熔炼、速度、力量与制作。"
+        },
+        {
+          "label": "XP 合并",
+          "value": "每项技能取最大值，绝不相加",
+          "detail": "行为 XP、浏览器存储 XP 与传入的链上 XP 会分别比较。"
+        },
+        {
+          "label": "顶部 HUD Level",
+          "value": "1 + floor(confirmedMines / 25)，即向下取整",
+          "detail": "使用本地已确认采矿次数计数器。"
+        },
+        {
+          "label": "Profile 等级",
+          "value": "1 + floor（十项等级之和 / 10）",
+          "detail": "使用有效浏览器技能等级。"
+        },
+        {
+          "label": "声望",
+          "value": "5M + 3P + 4S",
+          "detail": "M 表示已确认采矿次数，P 表示已确认放置次数，S 表示已熔炼材料数。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-browser-derived-panel-v1.webp",
+        "alt": "生成的体素记录棚：标准女孩拿着量尺站在三根高度不同的金色柱体旁，标准男孩则站在普通齿轮与天平之间。",
+        "caption": "三根不同高度的柱体与一把量尺，用来表示比较多个来源并为每项技能选择最大值，而不是把它们相加；旁边的齿轮与天平代表浏览器还会继续派生其他数值。这幅生成场景使用标准村民与真实 Chunk.js 参考；柱体不编码确切 XP 数量、存储位置、链上确认或技能数量，也不是实际 Profile 界面。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "同一个词，来源可能不同",
+        "body": "Profile stamina 与“耐力”技能彼此独立；顶部 HUD Level 与 Profile Level 彼此独立；可见的“力量”公斤数由力量技能派生，并不能证明存在举重使用方。"
+      }
+    },
+    {
+      "id": "ten-skill-consumer-matrix",
+      "eyebrow": "十项技能，十个问题",
+      "title": "使用方矩阵明确展示哪些技能效果真正进入生产环境行为",
+      "paragraphs": [
+        "createProfileSkillEffects 会返回十个便于使用的字段，但返回字段不等于真正使用字段。本次审核沿着生产环境 /play/、Guardian 与相关程序追踪每个字段，再为每条路径标注证据能够支持的最强结论。",
+        "四项技能有程序侧使用方：Chunk 执行“精准采集”和“探索”，Smelting 执行“熔炼”，Backpack 执行“锻造”。一项技能有直接的普通浏览器控制使用方：“敏捷”。另外五个字段——“负重、工艺、耐力、力量、鉴定”——目前只到计算或显示为止。",
+        "当前 Profile 页面并没有准确呈现全部四项合约支持技能。“精准采集”先做本地预览，再由合约重新计算；已审核的 Smelting 源码路径会派生独立进度账户，而当前 Profile 获取路径读取的却是 Chunk 进度账户；“锻造”的浏览器阈值与简单 +5% 描述和 Backpack 合约不一致；“探索”的浏览器效果字段虽未使用，Chunk 却会直接读取探索 XP。",
+        "这张矩阵有意采用保守标准。代码注释、提示文字、规划中的属性或名称相似的字段都不算使用方。只有当结果真正进入移动、已接受的库存产出、已接受的掉落概率、已接受的锻造结果或其他具体生产环境行为时，才能算生效。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集",
+          "value": "Chunk 合约重新计算",
+          "detail": "浏览器会预测待确认产出；提交的方块数据不包含这项预测；Chunk 读取自己的 XP 并决定最终回收体积。"
+        },
+        {
+          "label": "负重",
+          "value": "仅显示",
+          "detail": "safeCarryKg 当前没有库存总重量、超重门槛、速度惩罚或库存使用方。"
+        },
+        {
+          "label": "熔炼",
+          "value": "Smelting 合约重新计算",
+          "detail": "程序读取自己的进度 PDA 并应用技能产出；当前 Profile 获取路径却可能显示 Chunk 一侧的 smeltingXp。"
+        },
+        {
+          "label": "锻造",
+          "value": "Backpack 合约重新计算",
+          "detail": "真实公式会使用材料、品级上限、技能等级、物品等级、品质与耐久度上限；浏览器中的固定 +5% 字段没有生产环境使用方。"
+        },
+        {
+          "label": "工艺",
+          "value": "仅显示",
+          "detail": "craftsmanshipTier 当前没有配方、放置、蓝图、品质或其他生产环境使用方。"
+        },
+        {
+          "label": "敏捷",
+          "value": "浏览器移动使用方",
+          "detail": "movementSpeedMultiplier 会改变本地 controls.speed；Guardian 与 Player 都不会强制检查该技能等级。"
+        },
+        {
+          "label": "探索",
+          "value": "Chunk 合约重新计算",
+          "detail": "Chunk 使用链上探索 XP 提高有序额外掉落规则的概率；浏览器中的 rareRollWeightBps 目前未被使用，也没有生产环境使用方。"
+        },
+        {
+          "label": "耐力",
+          "value": "仅计算",
+          "detail": "fatigueCostMultiplier 没有疲劳条或操作消耗使用方，并且与 Profile.stamina 相互独立。"
+        },
+        {
+          "label": "力量",
+          "value": "仅显示",
+          "detail": "oneHandLiftKg 不会改变负重、采矿接触次数、工具权限、放置或移动。"
+        },
+        {
+          "label": "鉴定",
+          "value": "仅计算",
+          "detail": "visibleMaterialTraits 当前没有信息门槛使用方；材料信息显示不会由这个数值解锁。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-ten-skill-consumers-v1.webp",
+        "alt": "生成的体素训练大厅：标准村民站在少数正在工作的制作台与多件排列整齐但没有运行的训练器具之间。",
+        "caption": "正在工作的制作台与闲置器具，用来表示十项技能效果中有的已接入使用方、有的尚未接入；每件道具并不对应某一项确切技能。这幅生成场景使用标准村民和真实 Chunk.js 材质参考；道具数量、工作状态、距离与光照都不编码矩阵、不能保证效果，也不能代替上方有源码依据的表格。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "有合约支持，不代表界面就是权威来源",
+        "body": "“精准采集、熔炼、锻造、探索”都有真实的程序使用方，但每项结果都必须从正确的程序计算与进度域读取。"
+      }
+    },
+    {
+      "id": "mining-prediction-and-settlement",
+      "eyebrow": "精准采集与探索",
+      "title": "浏览器先估算采矿结果，Chunk 再计算可接受的奖励",
+      "paragraphs": [
+        "第三次有效工具物理接触后，采矿控制器会根据 precisionGatheringBps 计算待确认产出。这项估算用于构建本地奖励组并立即展示。链适配器的中间对象 blockFromPending 会保留整数坐标、blockId、resourceId 与本地 key，但不包含 gatheringYieldBps 或 resourceVolumeMilliLiters。后续普通 Chunk 指令从这条路径中只编码 x、y、z 与 expectedBlockId。",
+        "Chunk 会验证或创建自己的 player-progress PDA，读取 precision_gathering_xp，通过合约阈值表换算等级，再根据规范的 1,000,000 mm³ 资源方块计算回收体积。随后，程序把算出的体积写入 Backpack 产出。因此，修改浏览器预览并不能直接要求 Chunk 记入更大体积。",
+        "“探索”遵循同一权威原则，但改变的是另一种结果。Chunk 从同一个 Chunk 进度账户读取 exploration_xp 并换算成等级，再把符合条件的额外掉落规则概率乘以“100% + 每级 10%”，上限为 10,000 bps。指令提交的并不是浏览器中的 rareRollWeightBps 字段。",
+        "“精准采集”和“探索”是真实的合约效果，但这不代表每个采矿输入都具有权威性。浏览器仍控制本地挥动表现、待确认状态与工具碰撞采样；Guardian 提供实时提示；最终由 Chunk 指令和程序检查决定哪些方块与奖励变更可以接受。“力量”、miningPower、Profile stamina 与“耐力”技能都不会改变当前三次接触规则。"
+      ],
+      "facts": [
+        {
+          "label": "本地接触规则",
+          "value": "三次有效的工具物理接触",
+          "detail": "硬度决定目标是否可采，而不是由“力量”或 miningPower 决定击打次数。"
+        },
+        {
+          "label": "待确认估算",
+          "value": "使用浏览器“精准采集”效果",
+          "detail": "用于立即显示本地奖励。"
+        },
+        {
+          "label": "Chunk 指令 payload",
+          "value": "x、y、z、expectedBlockId",
+          "detail": "中间对象中的 resourceId 与 key，以及预览 bps 和预览体积，都不会被编码进普通 Chunk payload。"
+        },
+        {
+          "label": "接受的体积",
+          "value": "Chunk 进度 XP → 合约等级 → mm³",
+          "detail": "写入 Backpack 前由 Chunk 重新计算。"
+        },
+        {
+          "label": "额外掉落概率",
+          "value": "Chunk 探索 XP",
+          "detail": "程序把等级乘数应用到符合条件的有序规则。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-mining-recomputed-v1.webp",
+        "alt": "生成的体素海岸采石场：标准男孩拿着矿物容器站在侧桌旁，标准女孩则站在另一组压机、木桶与产出箱附近。",
+        "caption": "男孩手中的容器与侧桌代表本地待确认估算，独立的压机与产出箱则代表程序自行计算的可接受结果。花朵与紫色晶体只是额外掉落的可能示意，并非保证获得。这幅生成场景使用标准村民、真实 Chunk.js 海岸与烘焙材质参考；它不是分割时间线，不编码体积或 XP，也不能证明某笔具体交易或 Backpack 入账。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "预览值不是交易参数",
+        "body": "浏览器可以估算回收体积，但普通 Chunk 指令 payload 不包含预览产出。Chunk 会读取 Chunk 自己拥有的进度，并重新计算可接受的奖励。"
+      }
+    },
+    {
+      "id": "smelting-and-forging-recompute",
+      "eyebrow": "两个进度域，两套公式",
+      "title": "熔炼使用另一份进度 PDA，锻造不会采用浏览器中的简单加成",
+      "paragraphs": [
+        "Chunk 与 Game/Smelting 都使用 seed 元组 [\"player-progress\", GlobalConfig, owner]。但 PDA 派生还包含程序 ID，因此即使钱包与 GlobalConfig 相同，GnVKn…13wbj 下的 Chunk 地址和 6Curn…2UP7 下的 Smelting 地址仍是两个不同账户。",
+        "当前 fetchPlayerProgress 通过 context.chunkProgramId 派生地址，并且只接受由该 Chunk 程序拥有的账户。它会公开 Chunk 格式账户中的 smeltingXp 字节。已审核的 createExecuteSmeltingInstruction 源码则调用 deriveSmeltingPlayerProgressPdaForContext，在 context.smeltingProgramId 下派生地址，并把该独立账户提供给 Smelting。因此，Profile 页面可能把错误的熔炼 XP 送入自己的有效 XP 计算，却不会改变这段指令构建器实际提供哪一个进度 PDA。",
+        "Smelting 会读取自己的 progress.smelting_xp，将其换算为 skill_output_bps，检查配方输入并移除资源，再根据配方声明体积、实际输入体积、批次数量、配方产出率和技能产出计算结果。浏览器也会在 selectedRecipeView 中计算 skillOutputBps，但该值只存在于本地视图返回值中：当前进度状态不会显示它，Smelting 指令也不会包含它。",
+        "锻造还存在一处更大的差异。浏览器技能定义采用 xpBase 140 和全局乘数 10，因此浏览器中的锻造 Lv.1 从 1,400 XP 开始，卡片描述为每级 +5% 耐久度；Backpack 合约表的 Lv.1 却从 250 XP 开始。合约结果会综合材料体积、由“当前耐久度 × 品质”累积得到的有效耐久度、最大耐久度、加权品级、弱材料上限、物品等级、技能品级与上限、候选系数和材料耐久度上限。浏览器中的简单加成字段不是合约输入。",
+        "confirmed Devnet 快照发现 4 个规范 Chunk 进度账户和 9 个规范 Game/Smelting 进度账户，其中 4 名 owner 同时拥有两类账户。对这些 owner 来说，seed 文本与 GlobalConfig 关系相同，但两个程序 ID 会产生不同地址与相互独立的 XP 历史。"
+      ],
+      "facts": [
+        {
+          "label": "Chunk 程序",
+          "value": "GnVKn442…13wbj",
+          "detail": "拥有采矿使用的“精准采集”和“探索”进度。"
+        },
+        {
+          "label": "Game / Smelting 程序",
+          "value": "6Curnvne…2UP7",
+          "detail": "拥有当前熔炼执行所使用的进度账户。"
+        },
+        {
+          "label": "当前 Profile 获取",
+          "value": "读取 Chunk 进度",
+          "detail": "其中的 smeltingXp 字段不是 Game/Smelting 账户的值。"
+        },
+        {
+          "label": "熔炼执行",
+          "value": "读取 Game/Smelting 进度",
+          "detail": "即使 Profile 页面读取了另一个账户，已审核的指令与程序源码仍会使用这个账户。"
+        },
+        {
+          "label": "锻造 Lv.1",
+          "value": "浏览器 1,400 XP · 合约 250 XP",
+          "detail": "不能把两套阈值系统说成同一个等级。"
+        },
+        {
+          "label": "锻造物品耐久度",
+          "value": "受多项输入约束的计算",
+          "detail": "它不是浏览器中的 forgingDurabilityBonusBps，也不保证每级固定 +5%。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-smelting-forging-recomputed-v1.webp",
+        "alt": "生成的体素山坡制作场：标准女孩在熔炉旁搬运材料，标准男孩则在与熔炉物理分离的锻压机前工作，四周摆着材料箱与测量装置。",
+        "caption": "彼此分开的熔炉与锻造工位代表按程序域划分的计算；材料箱、压机与测量装置则代表使用多项输入重新计算。这幅生成场景使用标准村民和真实 Chunk.js 参考；道具不是 PDA 地址、XP 数值或公式项，不能证明账户所有权，也不能说明 Smelting 功能本身已经失效。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "判断执行结果前，先修正界面的数据来源",
+        "body": "已审核的 Smelting 构建器与程序源码会使用 Smelting 域账户；Backpack 则读取 PlayerProfile 锻造 XP，并应用自己的规则。Profile 一侧的熔炼数据来源与浏览器锻造描述即使有误，也不会因此成为这些计算的输入。"
+      }
+    },
+    {
+      "id": "swiftness-is-local-only",
+      "eyebrow": "真实的本地移动",
+      "title": "敏捷确实会改变本地行走速度，但没有权威层强制执行技能限速竞赛",
+      "paragraphs": [
+        "生产环境 /play/ 把基础速度定义为 14.8。Profile 技能效果刷新时，movementSpeedMultiplier 变为（100 + 3 × 敏捷等级）/ 100，主模块再把基础速度乘以该系数写入 controls.speed。随后 Chunk.js 控制更新会用 controls.speed 计算当前帧的水平移动。这是真正的生产环境使用方，不只是一张卡片。",
+        "边界同样重要。按住 Shift 会把当前控制速度乘以 sprintMultiplier，当前配置值为 5。飞行也会使用同一个当前速度计算水平与垂直移动。这些路径都不会扣除 health、energy、Profile stamina，也不会使用“耐力”技能的疲劳乘数。",
+        "Player 位置指令会在保存位置前检查签名、Profile 关系和世界 Y 轴边界；它既不接收敏捷 XP，也不验证“距离 ÷ 时间”。Guardian 的 MOVE 处理函数会解码姿态、应用消息速率限制、把本地 chunk 映射到全局 chunk、检查 Guardian 服务范围并更新姿态；它同样不接收技能等级，也不执行技能速度检查。",
+        "因此，敏捷会影响普通本地控制，但它不是反作弊证明、竞技竞速属性，也不能证明远端观察到的移动一定合法。未来若加入竞速或权威移动系统，还需要独立的计时、路径、碰撞、session 与技能检查。"
+      ],
+      "facts": [
+        {
+          "label": "本地基础速度",
+          "value": "14.8",
+          "detail": "生产环境主模块当前的控制基准。"
+        },
+        {
+          "label": "敏捷",
+          "value": "每个浏览器等级 +3%",
+          "detail": "直接应用到 controls.speed。"
+        },
+        {
+          "label": "Shift 冲刺",
+          "value": "当前速度 × 5",
+          "detail": "这是独立的固定输入乘数，不是耐力消耗。"
+        },
+        {
+          "label": "飞行",
+          "value": "使用当前 controls.speed",
+          "detail": "不会消耗 health、energy 或任何一种 stamina 数值。"
+        },
+        {
+          "label": "Player 与 Guardian",
+          "value": "没有敏捷或速度上限输入",
+          "detail": "它们不会把浏览器乘数变成链上强制执行的移动规则。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-swiftness-local-v1.webp",
+        "alt": "生成的体素山坡训练场：标准男孩在机械跑步机上行走，标准女孩站在普通配重装置与开放道路旁观察。",
+        "caption": "行走中的跑步机代表真实的本地控制使用方；观察者、未连接装置与远处道路则避免暗示已经发生竞速结算或权威批准。这幅生成场景使用标准村民与真实 Chunk.js 山坡参考；它不编码速度、等级、冲刺、能量消耗或 Guardian 验证，也不是链上位置证明。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "在一层中真实生效，不等于每一层都会强制执行",
+        "body": "敏捷是真实的生产环境浏览器效果，但 Guardian 中继与 Player 位置存储仍不会验证移动是否符合该技能。"
+      }
+    },
+    {
+      "id": "guardian-and-missing-loops",
+      "eyebrow": "哪些内容尚未进入循环",
+      "title": "Guardian 携带姿态与外观信息，不包含隐藏的战斗、负重或疲劳系统",
+      "paragraphs": [
+        "浏览器 MOVE 数据包包含本地 chunk 坐标、紧凑偏移、Y、yaw、pitch 与客户端 tick。装备数据包包含序号、右手物品种类与变体、flags、设计哈希和可选 payload 字节；Player 身份携带名称。这些数据包都不携带 health、energy、Profile stamina、miningPower、buildPower、defense、十项技能等级或技能 XP。",
+        "Guardian 会检查数据包形状、连接状态、速率限制、序列行为、服务范围，以及实时姿态或外观所需字段。装备消息帮助远程客户端重建右手物品，但它不是钱包签名，也不能证明 Profile 属性。挖掘路径会验证区域协议规则并发布提示；可接受的资源结算仍由相关 Solana 程序负责。",
+        "当前生产环境 /play/ 没有敌人、攻击、承受伤害、治疗、死亡、护甲或防御循环。“战斗”只作为库存分类出现，并不是正在工作的属性使用方。当前也没有库存总质量、超重状态、疲劳条、操作能量消耗、力量门槛、鉴定信息门槛或工艺配方等级。普通采矿目标仍会在三次有效的工具物理接触后结算。",
+        "记录这些缺失时，也不能假装字段永远没有意义。未来功能可以增加使用方，并明确由谁负责结果，从而接入某个已存储字段。在那之前，面向玩家的文案应把五项未使用技能效果标为预览、规划中或仅供参考，不应承诺生存、负重、制作或战斗收益。",
+        "这份带日期的快照只加强“已存储状态”这一项结论：confirmed slot 477,044,477 上的 11 个规范 version-7 Profile 都保留六项默认值，而且两类进度账户明显彼此独立。它不能证明已部署程序二进制与当前含未提交改动的工作树逐字节一致，因此线上账户证据与源码使用方证据仍是两个不同的事实层。"
+      ],
+      "facts": [
+        {
+          "label": "MOVE 携带",
+          "value": "姿态与客户端 tick",
+          "detail": "不包含 Profile 属性、技能等级、XP 或允许速度字段。"
+        },
+        {
+          "label": "装备消息携带",
+          "value": "右手物品外观",
+          "detail": "包含 kind、variant、flags、设计哈希和可选 payload，但不具备属性权威性。"
+        },
+        {
+          "label": "当前战斗",
+          "value": "没有游戏循环",
+          "detail": "没有敌人伤害、HP 扣减、治疗、死亡、护甲或防御结算。"
+        },
+        {
+          "label": "当前负重",
+          "value": "没有质量循环",
+          "detail": "没有总公斤数、安全容量门槛、超重状态或负重减速。"
+        },
+        {
+          "label": "当前疲劳",
+          "value": "没有消耗循环",
+          "detail": "冲刺、飞行、采矿与建造都不会消耗 health、energy 或任何一种 stamina 数值。"
+        },
+        {
+          "label": "当前力量与制作门槛",
+          "value": "没有使用方",
+          "detail": "力量、工艺与鉴定不会解锁操作或信息。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/displayed-stats-vs-enforced-effects-guardian-no-stats-v1.webp",
+        "alt": "生成的体素户外训练棚：标准村民站在未使用的人体模型、天平、木轮、储物架和静止工作台装置之间。",
+        "caption": "排列整齐却处于闲置状态的训练与工作装置，代表尚未接入当前生产循环的效果字段。这幅生成场景使用标准村民与真实 Chunk.js 材质参考；道具不能证明数据包内容、字段不存在、确切采矿接触次数、未来规划或某个正在运行的 Guardian session。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "清晰的未来合约应从明确使用方开始",
+        "body": "若要安全启用这些字段之一，必须定义权威来源、读取它的操作、确切公式、签名者或 session 规则、可接受结果，以及界面如何区分预览与结算。"
+      }
+    }
+  ],
+  "formulas": [
+    {
+      "title": "使用方测试",
+      "expression": "Effect(v, a) = changed outcome only if a production consumer for action a reads value v; storage(v) or display(v) alone does not imply Effect",
+      "ariaLabel": "只有生产环境代码读取某个数值并改变结果时，它才会影响操作；仅仅存储或显示不构成效果。",
+      "explanation": "这是一条判断规则，不是可执行语法。只有先指出具体的浏览器、Guardian 或合约函数，以及被改变的实际结果，才能说某项属性已经生效。",
+      "terms": [
+        {
+          "symbol": "v",
+          "meaning": "正在检查的已存储或派生数值。"
+        },
+        {
+          "symbol": "a",
+          "meaning": "移动、产出、权限或结算结果可能发生变化的操作。"
+        },
+        {
+          "symbol": "consumer",
+          "meaning": "生产环境中可达、并在操作 a 的结果计算里使用 v 的代码。"
+        }
+      ]
+    },
+    {
+      "title": "Profile 初始化的六项属性",
+      "expression": "(health, energy, stamina, miningPower, buildPower, defense) = (100, 100, 100, 1, 1, 0)",
+      "ariaLabel": "PlayerProfile 会把 health、energy 与 stamina 初始化为 100，把 miningPower 与 buildPower 初始化为 1，把 defense 初始化为 0。",
+      "explanation": "这些是 Profile 初始化时写入的确切 u16 数值。已审核的指令集没有更新它们的指令，当前生产环境 Play 也没有读取它们的游戏规则使用方。",
+      "terms": [
+        {
+          "symbol": "stamina",
+          "meaning": "这里指 Profile 字段，不是独立的浏览器“耐力”技能。"
+        },
+        {
+          "symbol": "u16",
+          "meaning": "保存在公开账户字节中的 16 位无符号整数。"
+        }
+      ]
+    },
+    {
+      "title": "有效浏览器 XP 是每项技能的最大值",
+      "expression": "EffectiveXP_s = max(BehaviorXP_s, StoredBrowserXP_s, ChainXP_s); EffectiveLevel_s = BrowserThreshold_s(EffectiveXP_s)",
+      "ariaLabel": "对每项技能而言，有效 XP 是行为派生 XP、浏览器存储 XP 与传入链上 XP 中的最大值，随后由浏览器阈值换算成等级。",
+      "explanation": "三个来源不会相加。在正常的全技能 XP 路径中，旧版手动等级对象只是回退来源，并不是参与取最大值的第四个数值。",
+      "terms": [
+        {
+          "symbol": "s",
+          "meaning": "十个技能 ID 之一。"
+        },
+        {
+          "symbol": "BehaviorXP",
+          "meaning": "根据本地采矿、放置、资源、熔炼与材料计数器派生的 XP。"
+        },
+        {
+          "symbol": "ChainXP",
+          "meaning": "传给浏览器状态的链上 XP 对象；仍须确认它属于哪个程序域。"
+        }
+      ]
+    },
+    {
+      "title": "六张可见的 Profile 卡片",
+      "expression": "Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(100,70+3M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)",
+      "ariaLabel": "六张 Profile 卡片会根据六项浏览器技能等级，派生采集、负重、熔炼、速度、力量与制作数值。",
+      "explanation": "P、B、M、W、S、C 分别是精准采集、负重、熔炼、敏捷、力量与工艺的有效浏览器等级。这些公式不会解码六项基础 Profile 属性。",
+      "terms": [
+        {
+          "symbol": "P, B, M",
+          "meaning": "精准采集、负重与熔炼等级。"
+        },
+        {
+          "symbol": "W, S, C",
+          "meaning": "敏捷、力量与工艺等级。"
+        }
+      ]
+    },
+    {
+      "title": "两种 Level 与一个声望",
+      "expression": "HUDLevel=1+floor(confirmedMines/25); ProfileLevel=1+floor(sum(ten effective skill levels)/10); Reputation=5M+3P+4S",
+      "ariaLabel": "HUD Level 使用已确认采矿次数；Profile Level 取十项有效技能等级的平均；声望则对三个本地计数器加权。",
+      "explanation": "M 表示已确认采矿次数，P 表示已确认放置次数，S 表示已熔炼材料数。这三个标签都不是六项基础 Profile 属性。",
+      "terms": [
+        {
+          "symbol": "HUDLevel",
+          "meaning": "账户名称旁显示的小号等级。"
+        },
+        {
+          "symbol": "ProfileLevel",
+          "meaning": "Profile 概览中的数值。"
+        },
+        {
+          "symbol": "声望",
+          "meaning": "本地活动的加权摘要。"
+        }
+      ]
+    },
+    {
+      "title": "精准采集预览与 Chunk 结算",
+      "expression": "PreviewVolume=1,000,000×precisionGatheringBps/10,000 mm³; ChunkVolume=1,000,000×(10+10×ChunkPrecisionLevel)/100 mm³",
+      "ariaLabel": "浏览器根据自己的精准采集基点预览体积，而 Chunk 会根据 Chunk 进度等级独立计算体积。",
+      "explanation": "两套公式目前都呈现“每级 10%”的形式，但权威来源仍不同。blockFromPending 不包含预览基点或体积，因此可接受的 Backpack 产出由 Chunk 自己的 XP 换算结果控制。",
+      "terms": [
+        {
+          "symbol": "1,000,000 mm³",
+          "meaning": "规范的一升资源方块体积。"
+        },
+        {
+          "symbol": "ChunkPrecisionLevel",
+          "meaning": "Chunk 程序根据 Chunk 所拥有进度 XP 派生的等级。"
+        }
+      ]
+    },
+    {
+      "title": "探索会改变程序的额外掉落概率",
+      "expression": "WeightedChanceBps = min(10,000, floor(BaseChanceBps × (100 + 10 × ChunkExplorationLevel) / 100))",
+      "ariaLabel": "每提升一级探索，Chunk 会把符合条件的基础额外掉落概率提高该概率自身的 10%，最高不超过 100%。",
+      "explanation": "Rust 整数除法会把加权结果向下取整。这里是乘以已配置概率，并不是每级直接加 1,000 bps。规则顺序、适用条件、奖励优先级与 Backpack 可用容量共同决定结果，因此概率提高并不保证奖励一定会被存入。",
+      "terms": [
+        {
+          "symbol": "BaseChanceBps",
+          "meaning": "符合条件的 ResourceDrop 规则中保存的概率。"
+        },
+        {
+          "symbol": "ChunkExplorationLevel",
+          "meaning": "根据 Chunk 进度中的 exploration_xp 派生的合约等级。"
+        }
+      ]
+    },
+    {
+      "title": "相同进度 seed，不同程序域",
+      "expression": "ChunkProgress(o)=PDA_Chunk([\"player-progress\",GlobalConfig,o]) ≠ SmeltingProgress(o)=PDA_Game([\"player-progress\",GlobalConfig,o])",
+      "ariaLabel": "同一组玩家进度 seed 元组，在 Chunk 程序与 Game 程序下会产生不同地址。",
+      "explanation": "PDA 派生包含程序 ID。即使 seed 文本、owner 与 GlobalConfig 相同，也不会把不同程序的 XP 合并。",
+      "terms": [
+        {
+          "symbol": "o",
+          "meaning": "玩家钱包公钥。"
+        },
+        {
+          "symbol": "PDA_Chunk, PDA_Game",
+          "meaning": "两个不同程序域中的程序派生地址。"
+        }
+      ]
+    },
+    {
+      "title": "熔炼与锻造都由程序计算",
+      "expression": "B=max(1,batchMultiplier); E=RecipeInputPerBatch×B; R=RecipeOutputPerBatch×B; SmeltOut=max(1,floor(floor(floor(R×ActualInput/E)×RecipeYieldBps/10,000)×SmeltingSkillBps/10,000)); ForgeDurability=min(Candidate(materials,grade,itemLevel,forgingLevel),MaterialCap(materials,forgingLevel))",
+      "ariaLabel": "熔炼会先按批次数量扩展预期输入与配方产出，再根据实际输入、配方产出率与熔炼技能进行缩放；锻造则用材料耐久度上限约束由多项输入算出的候选结果。",
+      "explanation": "在应用实际输入比例之前，B 会同时扩展整批预期输入与配方产出。嵌套的 floor 表示整数除法；这个简写表达式仍省略了验证、饱和处理与 u32 上限。两项可接受结果都不会相信浏览器中只供查看的熔炼 bps 或简单锻造加成字段。",
+      "terms": [
+        {
+          "symbol": "B, E, R",
+          "meaning": "规范化后的批次乘数、整批预期输入体积与整批配方产出体积。"
+        },
+        {
+          "symbol": "SmeltingSkillBps",
+          "meaning": "由 Smelting 程序根据自己的进度账户派生。"
+        },
+        {
+          "symbol": "Candidate",
+          "meaning": "有效材料耐久度乘以品级、技能与物品等级系数。"
+        },
+        {
+          "symbol": "MaterialCap",
+          "meaning": "根据原始材料耐久度与锻造等级派生的合约上限。"
+        }
+      ]
+    },
+    {
+      "title": "敏捷会改变本地控制速度",
+      "expression": "LocalSpeed = 14.8 × (100 + 3 × SwiftnessLevel) / 100; ShiftSpeed = LocalSpeed × 5",
+      "ariaLabel": "本地行走速度以 14.8 为基础，每级敏捷增加 3%，Shift 再单独应用 5 倍乘数。",
+      "explanation": "这是实际存在的生产环境浏览器效果。当前不会扣除 health、energy 或 stamina，Player 与 Guardian 也都不会验证由技能派生的速度。",
+      "terms": [
+        {
+          "symbol": "14.8",
+          "meaning": "生产环境 Play 当前的 BASE_PLAYER_SPEED。"
+        },
+        {
+          "symbol": "ShiftSpeed",
+          "meaning": "在敏捷之后另行应用的冲刺输入乘数。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "生产环境 Play 加载 play/main.js",
+      "language": "HTML",
+      "source": "play/index.html",
+      "code": "    <script type=\"module\" src=\"./main.js\"></script>",
+      "explanation": "这是当前 /play/ 入口。关于生产环境使用方的结论从 play/main.js 及其 play/* 导入开始；较旧的 src/main.js 不会在这里加载。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "相对于 /play/index.html 加载生产环境模块。"
+        }
+      ]
+    },
+    {
+      "title": "PlayerProfile 声明六项固定默认值",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "pub const DEFAULT_HEALTH: u16 = 100;\npub const DEFAULT_ENERGY: u16 = 100;\npub const DEFAULT_STAMINA: u16 = 100;\npub const DEFAULT_MINING_POWER: u16 = 1;\npub const DEFAULT_BUILD_POWER: u16 = 1;\npub const DEFAULT_DEFENSE: u16 = 0;",
+      "explanation": "这些常量定义了确切的初始化数值。常量只能决定写入什么，并不会因此创建生命、疲劳、采矿能力、建造或防御使用方。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "把 health、energy 与 Profile stamina 设为 100。"
+        },
+        {
+          "lines": "第 4–6 行",
+          "meaning": "把采矿能力与建造能力设为 1，把 defense 设为 0。"
+        }
+      ]
+    },
+    {
+      "title": "Profile 初始化会按顺序写入这些默认值",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        writer.u16(DEFAULT_HEALTH)?;\n        writer.u16(DEFAULT_ENERGY)?;\n        writer.u16(DEFAULT_STAMINA)?;\n        writer.u16(DEFAULT_MINING_POWER)?;\n        writer.u16(DEFAULT_BUILD_POWER)?;\n        writer.u16(DEFAULT_DEFENSE)?;",
+      "explanation": "六个 u16 数值确实占用公开 Profile 字节。当前完整 Player 指令路由中没有对应的属性更新指令。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "把六项默认值全部序列化到新的 Profile 账户中。"
+        }
+      ]
+    },
+    {
+      "title": "Profile Level 与声望来自浏览器状态",
+      "language": "JavaScript",
+      "source": "play/play-profile-ui.js",
+      "code": "    const levels = effectiveSkillLevels(skillState);\n    const totalSkillLevels = Object.values(levels).reduce((sum, value) => sum + value, 0);\n    const level = Math.max(1, 1 + Math.floor(totalSkillLevels / Math.max(1, PLAYER_SKILL_DEFINITIONS.length)));\n    const reputation = Math.max(0,\n      Number(profile.confirmedMines || 0) * 5\n      + Number(profile.confirmedPlacements || 0) * 3\n      + Number(profile.materialsSmelted || 0) * 4,\n    );",
+      "explanation": "Profile Level 会对十项有效浏览器技能等级取平均；声望会对三个本地活动计数器加权。两套表达式都不读取 health、energy、Profile stamina、miningPower、buildPower 或 defense。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "把十项有效等级相加，除以技能数量，向下取整后再加 1。"
+        },
+        {
+          "lines": "第 4–8 行",
+          "meaning": "对已确认采矿、已确认放置与已熔炼材料计数器加权。"
+        }
+      ]
+    },
+    {
+      "title": "六张 Profile 卡片来自技能公式",
+      "language": "JavaScript",
+      "source": "play/play-profile-ui.js",
+      "code": "    const levels = effectiveSkillLevels(skillState);\n    const stats = [\n      { id: \"gathering\", label: ui(\"main.profile.statGathering\", \"Gathering\"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },\n      { id: \"carry\", label: ui(\"main.profile.statCarry\", \"Carry\"), value: `${30 + levels.burden * 10} kg` },\n      { id: \"smelting\", label: ui(\"main.profile.statSmelting\", \"Smelting\"), value: `${Math.min(100, 70 + levels.smelting * 3)}%` },\n      { id: \"speed\", label: ui(\"main.profile.statSpeed\", \"Speed\"), value: `${100 + levels.swiftness * 3}%` },\n      { id: \"strength\", label: ui(\"main.profile.statStrength\", \"Strength\"), value: `${8 + levels.strength * 4} kg` },\n      { id: \"crafting\", label: ui(\"main.profile.statCrafting\", \"Crafting\"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },\n    ];",
+      "explanation": "每张可见卡片都由浏览器技能等级派生。名称相似的“力量”和“熔炼”卡片，并不是直接解码 PlayerProfile 基础属性。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "先解析有效浏览器技能等级。"
+        },
+        {
+          "lines": "第 2–9 行",
+          "meaning": "用其中六项等级计算六张显示卡片。"
+        }
+      ]
+    },
+    {
+      "title": "XP 来源按每项技能取最大值合并",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "function mergeSkillXp(...sources) {\n  const result = {};\n  for (const source of sources) {\n    if (!source || typeof source !== \"object\") continue;\n    for (const [key, value] of Object.entries(source)) {\n      const numeric = Math.max(0, Math.round(Number(value) || 0));\n      result[key] = Math.max(result[key] || 0, numeric);\n    }\n  }\n  return result;\n}",
+      "explanation": "buildProfileSkillState 会把行为派生 XP、浏览器存储 XP 与传入的链上 XP 交给这个 helper。每项技能只保留规范化后的最大数值，绝不会把这些值相加。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "遍历每个可用的 XP 来源对象。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "规范化每项技能数值，并保留目前见过的较大值。"
+        },
+        {
+          "lines": "第 9–11 行",
+          "meaning": "返回一个按技能合并的 XP 对象。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器会创建十个效果字段",
+      "language": "JavaScript",
+      "source": "play/play-skill-effects.js",
+      "code": "  const levels = Object.fromEntries(PLAYER_SKILL_DEFINITIONS.map((skill) => [skill.id, level(skill.id)]));\n  return {\n    levels,\n    precisionGatheringBps: Math.min(10000, 1000 + levels.precisionGathering * 1000),\n    safeCarryKg: 30 + levels.burden * 10,\n    smeltingOutputBps: smeltingSkillOutputBpsForLevel(levels.smelting),\n    forgingDurabilityBonusBps: levels.forging * 500,\n    craftsmanshipTier: 1 + Math.floor(levels.craftsmanship / 2),\n    movementSpeedMultiplier: (100 + levels.swiftness * 3) / 100,\n    rareRollWeightBps: levels.exploration * 1000,\n    fatigueCostMultiplier: Math.max(0.6, (100 - levels.stamina * 4) / 100),\n    oneHandLiftKg: 8 + levels.strength * 4,\n    visibleMaterialTraits: 2 + levels.appraisal,\n  };",
+      "explanation": "这个对象是一份便于使用的预期效果目录。后续使用方检索表明：敏捷会到达普通本地移动；四项技能有独立合约使用方；另五个字段只到计算或显示为止。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "解析全部十项有效浏览器等级。"
+        },
+        {
+          "lines": "第 2–14 行",
+          "meaning": "返回十个具名效果数值；只返回字段并不等于执行效果。"
+        }
+      ]
+    },
+    {
+      "title": "采矿会构建本地精准采集预测",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "    const resourceId = Number.isFinite(hit.resourceId) ? hit.resourceId : def.resourceId;\n    const txId = `local-pending-${txSerial++}`;\n    const skillEffects = getSkillEffects?.() ?? {};\n    const yieldBps = Math.max(1, Math.min(10000, Math.trunc(skillEffects.precisionGatheringBps || 1000)));\n    const volumeMilliLiters = Math.max(1, Math.floor(1000 * yieldBps / 10000));\n    const planBlocks = currentPlanBlocks(swing, hit);\n    const plannedRewardBlocks = swing.miningPlan?.rewardBlocks?.length ? swing.miningPlan.rewardBlocks : planBlocks;\n    const rewardGroups = rewardGroupsForBlocks(uniqueMiningBlocks([hit, ...plannedRewardBlocks]), {\n      yieldBps,\n      volumeMilliLiters,\n    });",
+      "explanation": "完成有效接触后，浏览器会估算待确认产出并构建本地奖励组。这是用于即时反馈的展示数据，还不是 Backpack 已接受的数量。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "读取本地精准采集效果，把它的 bps 换算为预测体积。"
+        },
+        {
+          "lines": "第 6–11 行",
+          "meaning": "把估算附加到本地奖励规划。"
+        }
+      ]
+    },
+    {
+      "title": "链适配器会省略预览产出与体积",
+      "language": "JavaScript",
+      "source": "play/play-chain-adapter.js",
+      "code": "function blockFromPending(pending) {\n  return {\n    x: Math.trunc(pending.worldX),\n    y: Math.trunc(pending.worldY),\n    z: Math.trunc(pending.worldZ),\n    blockId: Math.trunc(pending.blockId),\n    resourceId: Math.trunc(pending.resourceId ?? 0),\n    key: `${Math.trunc(pending.worldX)},${Math.trunc(pending.worldY)},${Math.trunc(pending.worldZ)}`,\n  };\n}",
+      "explanation": "发送给普通链上采矿路径的对象只包含坐标与预期方块标识。它不含 gatheringYieldBps 或 resourceVolumeMilliLiters，因此客户端预测无法直接指定合约入账量。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "构建并返回只包含位置、方块、资源与本地 key 的中间对象，其中没有任何预测产出或体积字段。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 加载自己的进度并重新计算采矿数值",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let data = player_progress.try_borrow_data()?;\n    let progress = PlayerProgressState::validate(&data, &context.owner, global_config.key)?;\n    Ok((\n        PlayerProgressState::precision_gathering_volume_mm3_from_xp(\n            progress.precision_gathering_xp,\n        ),\n        progress.exploration_xp,\n    ))",
+      "explanation": "程序验证由 Chunk 拥有的进度 PDA 后，会根据 precision_gathering_xp 派生可接受回收体积，并另行返回 exploration_xp 供额外掉落逻辑使用。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "借用并验证由程序拥有的进度账户。"
+        },
+        {
+          "lines": "第 3–8 行",
+          "meaning": "返回合约计算的体积与权威探索 XP。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 定义精准采集体积与探索权重",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "    pub fn precision_gathering_volume_mm3_from_xp(xp: u64) -> u32 {\n        let level = Self::precision_gathering_level_from_xp(xp) as u32;\n        RESOURCE_BLOCK_VOLUME_MM3.saturating_mul(10 + level.saturating_mul(10)) / 100\n    }\n\n    pub fn exploration_level_from_xp(xp: u64) -> u8 {\n        let mut level = 0_u8;\n        for (index, required_total) in EXPLORATION_TOTAL_XP_BY_LEVEL.iter().enumerate() {\n            if xp >= *required_total {\n                level = index as u8;\n            }\n        }\n        level.min(10)\n    }\n\n    pub fn exploration_chance_bps(chance_bps: u16, exploration_xp: u64) -> u16 {\n        let level = Self::exploration_level_from_xp(exploration_xp) as u32;\n        let weighted = (chance_bps as u32)\n            .saturating_mul(100_u32.saturating_add(level.saturating_mul(10)))\n            / 100;\n        weighted.min(RESOURCE_DROP_CHANCE_DENOMINATOR) as u16\n    }",
+      "explanation": "精准采集控制规范资源体积中可回收的比例。探索会把符合条件规则的基础概率乘以“100% + 每个合约等级 10%”，并把结果限制在分母以内。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "把 Chunk 精准采集 XP 换算为等级，再把等级换算为回收体积。"
+        },
+        {
+          "lines": "第 6–14 行",
+          "meaning": "通过合约阈值表换算 Chunk 探索 XP。"
+        },
+        {
+          "lines": "第 16–22 行",
+          "meaning": "为符合条件的额外掉落概率加权并设置上限。"
+        }
+      ]
+    },
+    {
+      "title": "当前 Profile 进度获取属于 Chunk 域",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchPlayerProgress(ownerAddress) {\n  if (!ownerAddress) return null;\n  const owner = typeof ownerAddress === \"string\" ? new PublicKey(ownerAddress) : ownerAddress;\n  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);\n  const account = await getNicechunkConnection().getAccountInfo(playerProgress, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      publicKey: playerProgress.toBase58(),\n      owner: owner.toBase58(),\n      precisionGatheringXp: 0,\n      smeltingXp: 0,\n      explorationXp: 0,\n    };\n  }\n  if (!account.owner.equals(gameContext.chunkProgramId)) return null;\n  const data = account.data;\n  if (data.length !== playerProgressLength || data.subarray(0, 8).toString(\"utf8\") !== playerProgressMagic) return null;\n  return {\n    publicKey: playerProgress.toBase58(),\n    owner: owner.toBase58(),\n    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),\n    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),\n    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),\n    programId: account.owner.toBase58(),\n  };\n}",
+      "explanation": "derivePlayerProgressPdaForContext 使用 context.chunkProgramId，owner 检查也会强制限定该程序域。因此，解码得到的 smeltingXp 来自 Chunk 账户布局，而不是独立的 Game/Smelting 进度 PDA。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "派生并获取 Chunk 域的进度地址。"
+        },
+        {
+          "lines": "第 6–14 行",
+          "meaning": "该账户不存在时，返回全部为零的 Chunk 字段。"
+        },
+        {
+          "lines": "第 15–26 行",
+          "meaning": "要求账户由 Chunk 拥有，并从中解码三个偏移位置。"
+        }
+      ]
+    },
+    {
+      "title": "真正的熔炼会派生 Smelting 域的进度 PDA",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const [smeltingAuthority] = deriveSmeltingAuthorityPdaForContext(context);\n  const [playerProgress] = deriveSmeltingPlayerProgressPdaForContext(owner, context);\n  const globalConfig = deriveGlobalConfigPda();\n  const inputs = normalizeBackpackIndexes(inputIndexes);\n  const fuels = normalizeBackpackIndexes(fuelIndexes);\n  const multiplier = Math.max(1, Math.min(0xffff, Math.floor(Number(batchMultiplier) || 1)));\n  const data = Buffer.alloc(13 + inputs.length + fuels.length);\n  data.writeUInt8(2, 0);\n  data.writeBigUInt64LE(BigInt(recipeId), 1);\n  data.writeUInt8(inputs.length, 9);\n  data.writeUInt8(fuels.length, 10);\n  data.writeUInt16LE(multiplier, 11);\n  inputs.forEach((index, offset) => data.writeUInt8(index, 13 + offset));\n  fuels.forEach((index, offset) => data.writeUInt8(index, 13 + inputs.length + offset));\n  return new TransactionInstruction({\n    programId: context.smeltingProgramId,\n    keys: [\n      { pubkey: owner, isSigner: true, isWritable: true },\n      { pubkey: recipeTable, isSigner: false, isWritable: false },\n      { pubkey: backpack, isSigner: false, isWritable: true },\n      { pubkey: playerProgress, isSigner: false, isWritable: true },\n      { pubkey: globalConfig, isSigner: false, isWritable: false },\n      { pubkey: smeltingAuthority, isSigner: false, isWritable: false },\n      { pubkey: context.backpackProgramId, isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n    ],\n    data: contextInstructionData(context, gameNamespaceSmelting, data),\n  });",
+      "explanation": "交易使用 context.smeltingProgramId 与单独派生的 Smelting 进度账户；指令数据中没有浏览器 skillOutputBps 字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "派生 Smelting authority 与 Smelting 域玩家进度，再规范化批次。"
+        },
+        {
+          "lines": "第 7–14 行",
+          "meaning": "只编码配方标识、数量、乘数与 Backpack 索引。"
+        },
+        {
+          "lines": "第 15–28 行",
+          "meaning": "把独立的进度账户提交给 Smelting 程序。"
+        }
+      ]
+    },
+    {
+      "title": "Smelting 读取 XP 并计算可接受产出",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    let skill_output_bps = {\n        let progress_data = player_progress.try_borrow_data()?;\n        let progress = PlayerProgressState::validate(&progress_data, owner.key, global_config.key)?;\n        PlayerProgressState::smelting_output_bps_from_xp(progress.smelting_xp)\n    };\n\n    let input_volume_mm3 = {\n        let backpack_data = backpack.try_borrow_data()?;\n        BackpackAccountView::validate_recipe_inputs(\n            &backpack_data,\n            owner.key,\n            indexes,\n            fuel_indexes,\n            &recipe,\n            multiplier,\n        )?\n    };\n\n    remove_backpack_resources(owner, backpack, backpack_program, indexes, fuel_indexes)?;\n    let recipe_input_volume_mm3 = recipe_input_volume_mm3(&recipe);\n    for output_index in 0..recipe.output_count as usize {\n        let output = &recipe.outputs[output_index];\n        let output_volume_mm3 = smelting_output_volume_mm3(\n            output.volume_mm3,\n            input_volume_mm3,\n            recipe_input_volume_mm3,\n            multiplier,\n            recipe.yield_bps,\n            skill_output_bps,\n        );",
+      "explanation": "合约根据已验证进度账户派生技能产出，验证并消耗实际 Backpack 输入，再把全部规则输入送入整数产出计算。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "读取权威熔炼 XP，并换算为产出基点。"
+        },
+        {
+          "lines": "第 7–17 行",
+          "meaning": "按配方验证实际输入与燃料记录。"
+        },
+        {
+          "lines": "第 19–30 行",
+          "meaning": "消耗输入，并根据程序所拥有的数值计算每项产出。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器锻造卡片宣称每级固定增加 5%",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "    id: \"forging\",\n    name: \"Forging\",\n    tone: \"steel\",\n    xpBase: 140,\n    xpGrowth: 1.6,\n    description: \"Improves forged equipment durability and future tool quality calculations.\",\n    xpSource: \"Gains XP from forging-ready material output and future forged equipment actions.\",\n    metrics(level) {\n      const bonus = level * 5;\n      const nextBonus = Math.min(PROFILE_SKILL_MAX_LEVEL, level + 1) * 5;\n      return {\n        current: `+${bonus}% forged item durability`,\n        next: `Next level: +${nextBonus}% durability`,\n        max: \"Max: +50% durability\",\n        formula: \"Durability bonus = Lv x 5%\",\n      };\n    },",
+      "explanation": "这项定义提供 xpBase 140 和简单的 +5% 卡片描述。生成的 forgingDurabilityBonusBps 字段没有生产环境使用方，也不会传给 Backpack 合约。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "定义浏览器技能标识、XP 基数与说明文案。"
+        },
+        {
+          "lines": "第 8–17 行",
+          "meaning": "显示“每级固定增加 5% 耐久度”的说法。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器把锻造 XP 基数换算为首级需要 1,400 XP",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "export function profileSkillExperienceRequirement(skill, level) {\n  if (level >= PROFILE_SKILL_MAX_LEVEL) return 0;\n  const nextLevel = Math.max(1, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.trunc(level) + 1));\n  return Math.round((skill?.xpBase ?? 100) * PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER * Math.pow(nextLevel, skill?.xpGrowth ?? 1.55));\n}",
+      "explanation": "PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER 为 10。因此在等级 0 时，浏览器中的锻造 Lv.1 需要 140 × 10 × 1^1.6 = 1,400 XP。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "在 0–10 范围内确定下一个浏览器等级。"
+        },
+        {
+          "lines": "第 4 行",
+          "meaning": "把 xpBase 乘以全局乘数 10 和等级增长项。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 锻造会综合品级、技能、物品等级与耐久度上限",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "    let material_grade = if total_volume > 0 {\n        ((weighted_grade + total_volume / 2) / total_volume) as u8\n    } else {\n        1\n    }\n    .max(1)\n    .min(10);\n    let quality_bps = (((weighted_quality + total_volume / 2) / total_volume) as u16)\n        .max(1)\n        .min(DURABILITY_BPS_DENOMINATOR as u16);\n    let material_level =\n        material_item_level_from_durability(total_effective_durability, total_volume);\n    let item_level = material_level.max(1);\n    let item_level_grade = 1_u8.saturating_add((item_level.saturating_sub(1) / 10).min(9));\n    let skill_grade = 1_u8.saturating_add(forging_level.min(9));\n    let skill_cap = 3_u8.saturating_add(forging_level.min(7)).min(10);\n    let blended_grade =\n        ((material_grade as u16 * 2 + item_level_grade as u16 + skill_grade as u16 + 2) / 4) as u8;\n    let grade = blended_grade\n        .max(1)\n        .min(10)\n        .min(skill_cap)\n        .min(material_grade.saturating_add(1).min(10))\n        .min(weak_grade_cap);\n\n    let skill_factor = 90_u64\n        .saturating_add(grade as u64 * 5)\n        .saturating_add(forging_level.min(10) as u64 * 3);\n    let level_factor = 100_u64.saturating_add(item_level as u64 / 2);\n    let candidate = total_effective_durability\n        .saturating_mul(skill_factor)\n        .saturating_mul(level_factor)\n        / 10_000;\n    let material_cap = total_raw_durability\n        .saturating_mul(105_u64.saturating_add(forging_level.min(10) as u64))\n        / 100;\n    let durability_max = candidate\n        .max(1)\n        .min(material_cap.max(1))\n        .min(u32::MAX as u64) as u32;\n    let gained_xp = (grade as u64)\n        .saturating_mul(grade as u64)\n        .saturating_mul(25);",
+      "explanation": "合约会综合材料品级与品质、物品等级、锻造技能品级与上限、弱材料限制、有效耐久度、等级系数和材料上限。这与浏览器中的固定 +5% 字段并不是同一公式。",
+      "walkthrough": [
+        {
+          "lines": "第 1–24 行",
+          "meaning": "根据材料、物品等级、锻造等级与弱材料限制，派生受边界约束的产出品级。"
+        },
+        {
+          "lines": "第 26–40 行",
+          "meaning": "计算候选耐久度，再用原始材料耐久度限制上限。"
+        },
+        {
+          "lines": "第 41–43 行",
+          "meaning": "根据已接受品级的平方计算潜在所得 XP；后续处理器会把该结果发送给 Player。"
+        }
+      ]
+    },
+    {
+      "title": "合约锻造表从 250 XP 开始计算 Lv.1",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "pub fn forging_level_from_xp(xp: u64) -> u8 {\n    let mut level = 0_u8;\n    for (index, required_total) in FORGING_TOTAL_XP_BY_LEVEL.iter().enumerate() {\n        if xp >= *required_total {\n            level = index as u8;\n        }\n    }\n    level.min(10)\n}\n\nconst FORGING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 250, 900, 2_100, 4_000, 6_800, 10_700, 16_000, 23_000, 32_000, 45_000,\n];",
+      "explanation": "Backpack 使用从 250 XP 开始的固定合约表，而不是从 1,400 XP 开始的浏览器曲线。拥有 250 XP 的玩家在合约中是 Lv.1，在浏览器中却仍是 Lv.0。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "选择不超过当前 XP 的最高合约阈值。"
+        },
+        {
+          "lines": "第 11–13 行",
+          "meaning": "列出等级 0 到等级 10 的确切累计 XP。"
+        }
+      ]
+    },
+    {
+      "title": "敏捷会应用到生产环境 controls.speed",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "function refreshProfileSkillEffects() {\n  const snapshot = chainSnapshot?.() ?? {};\n  profileSkillEffects = createProfileSkillEffects({\n    owner: snapshot.walletAddress || gameState.playerProfile?.name || \"guest\",\n    profile: gameState.playerProfile,\n    chainXp: snapshot.playerSkillXp || snapshot.skillXp || null,\n  });\n  if (controls) controls.speed = BASE_PLAYER_SPEED * (profileSkillEffects.movementSpeedMultiplier || 1);\n  return profileSkillEffects;\n}",
+      "explanation": "这就是直接的生产环境使用方。BASE_PLAYER_SPEED 为 14.8，由敏捷派生的乘数会改变本地控制器的实际速度值。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "根据本地 profile 与传入的链上快照刷新有效技能状态。"
+        },
+        {
+          "lines": "第 8 行",
+          "meaning": "把基础控制速度乘以敏捷系数。"
+        },
+        {
+          "lines": "第 9–10 行",
+          "meaning": "返回效果对象，供其他使用方与显示路径使用。"
+        }
+      ]
+    },
+    {
+      "title": "移动逻辑使用速度，并另行叠加 Shift 乘数",
+      "language": "JavaScript",
+      "source": "chunk.js/input/controls.js",
+      "code": "    const speed = this.speed * (this.keys.has(\"ShiftLeft\") || this.keys.has(\"ShiftRight\") ? this.sprintMultiplier : 1);\n    this.move.x = moveX;\n    this.move.z = moveZ;\n    this.move.dx = moveX * speed * dt;\n    this.move.dz = moveZ * speed * dt;\n    this.move.yaw = Math.atan2(-moveX, -moveZ);",
+      "explanation": "控制器先使用已经被敏捷修改的 this.speed，再应用独立的 sprintMultiplier。它不会读取 health、energy、Profile stamina 或 fatigueCostMultiplier。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "选择普通当前速度，或选择乘过 Shift 系数的当前速度。"
+        },
+        {
+          "lines": "第 2–6 行",
+          "meaning": "把该速度换算为当前帧的水平位移与朝向。"
+        }
+      ]
+    },
+    {
+      "title": "Guardian MOVE 携带姿态，不携带属性",
+      "language": "JavaScript",
+      "source": "play/play-guardian-client.js",
+      "code": "  encodeMove({ x, y, z, yaw, pitch }) {\n    const chunk = this.worldToChunk(x, z);\n    const local = this.globalToLocalChunk(chunk.x, chunk.z);\n    const offsetX = x - chunk.x * this.chunkSize;\n    const offsetZ = z - chunk.z * this.chunkSize;\n    const bytes = new Uint8Array(MOVE_SIZE);\n    const view = new DataView(bytes.buffer);\n    view.setUint8(0, MSG_MOVE);\n    view.setUint8(1, clampByte(local.x));\n    view.setUint8(2, clampByte(local.z));\n    view.setUint16(3, clampU16(Math.round(offsetX * this.positionPrecision)), true);\n    view.setUint16(5, clampU16(Math.round(y * this.positionPrecision)), true);\n    view.setUint16(7, clampU16(Math.round(offsetZ * this.positionPrecision)), true);\n    view.setUint8(9, encodeYaw(yaw));\n    view.setInt8(10, encodePitch(pitch));\n    view.setUint16(11, ++this.clientTick & 0xffff, true);\n    return bytes;\n  }",
+      "explanation": "紧凑数据包携带本地 chunk 坐标、偏移、Y、视角与 tick。其中没有允许速度、敏捷、health、energy、stamina、力量、等级或 XP 字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "把世界姿态换算为紧凑的 Guardian 本地坐标。"
+        },
+        {
+          "lines": "第 7–16 行",
+          "meaning": "只写入消息类型、姿态、角度与客户端 tick。"
+        },
+        {
+          "lines": "第 17–18 行",
+          "meaning": "返回二进制姿态数据包。"
+        }
+      ]
+    },
+    {
+      "title": "Guardian 检查速率与服务范围，不检查技能速度",
+      "language": "C++",
+      "source": "Guardian/src/app.cpp",
+      "code": "void handle_move(Ws<SSL> *ws, GuardianState &state, std::string_view message) {\n  Player *player = ws->getUserData()->player;\n  if (!player || !player->connected || !state.is_active_player(player)) {\n    close_with_error(ws, ERROR_NOT_HELLO);\n    return;\n  }\n  Move move;\n  if (!decode_move(message, move)) {\n    close_with_error(ws, ERROR_BAD_PAYLOAD_LENGTH);\n    return;\n  }\n  uint64_t t = now_ms();\n  if (!rate_limit_allow(t, player->move_window_ms, player->move_count, state.config().client_move_rate_limit_per_sec)) {\n    send_error(ws, ERROR_RATE_LIMIT);\n    return;\n  }\n  int32_t new_chunk_x = 0;\n  int32_t new_chunk_z = 0;\n  if (!state.local_to_global(move.local_chunk_x, move.local_chunk_z, new_chunk_x, new_chunk_z)) {\n    state.add_log(\"Player #\" + std::to_string(player->local_player_id) + \" moved out of Guardian range\");\n    close_with_error(ws, ERROR_OUT_OF_RANGE);\n    return;\n  }",
+      "explanation": "处理函数要求连接处于活动状态，解码固定数据包，应用消息速率限制，并把姿态映射到 Guardian 服务范围。它没有 Profile 或技能输入，因此无法强制检查敏捷。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "要求玩家已注册、处于活动状态并接入实时服务。"
+        },
+        {
+          "lines": "第 7–11 行",
+          "meaning": "解码固定的 MOVE payload。"
+        },
+        {
+          "lines": "第 12–16 行",
+          "meaning": "应用消息速率限制。"
+        },
+        {
+          "lines": "第 17–23 行",
+          "meaning": "拒绝移出 Guardian 所服务 chunk 范围的移动。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/index.html",
+      "claim": "把 ./main.js 作为 /play/ 的生产环境模块入口加载。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "导入生产环境 play/* 模块，定义 BASE_PLAYER_SPEED，构建技能效果，并把敏捷应用到 controls.speed。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义并写入六项 Profile 默认值、Profile 布局、装备字段、锻造历史、名称、位置与其他公开状态。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "路由当前完整 Player 指令集，可见其中没有六项基础属性更新器；位置检查也不会接收速度技能。"
+    },
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "提交名称、模型选择、称号与模型代码，不会为两个标准村民分配不同基础属性。"
+    },
+    {
+      "path": "play/play-profile-ui.js",
+      "claim": "根据浏览器状态与有效技能等级计算 Profile Level、声望与六张可见属性卡片。"
+    },
+    {
+      "path": "play/play-profile-skills.js",
+      "claim": "定义十项浏览器技能及其说明与 XP 曲线、本地行为 XP、浏览器存储 key、按技能取最大值的合并方式和有效等级。"
+    },
+    {
+      "path": "play/play-skill-effects.js",
+      "claim": "构建十个便于使用的效果字段，其中包括一个生产环境本地移动乘数，以及多个当前尚无使用方的字段。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "根据本地 confirmedMines 计数器计算顶部 HUD Level。"
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "持久化用于派生浏览器 XP、Level 与声望的本地操作计数器。"
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "要求三次有效接触，创建本地精准采集预测，并把待确认奖励显示与链上接受分开。"
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "调用链模块前，把普通待确认采矿数据缩减为坐标、blockId、resourceId 与一个 key。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "派生按程序域区分的进度 PDA，通过 Chunk 获取 Profile 进度，并为执行熔炼派生独立的 Game/Smelting 进度账户。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "定义精准采集与探索 XP 阈值，以及回收体积和加权额外掉落概率的合约计算。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "加载 Chunk 所拥有的进度，计算可接受采矿奖励，把回收体积写入 Backpack，并应用探索额外掉落。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "在 Smelting 程序域内定义熔炼进度 seed、等级阈值与技能产出 bps。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "读取 Smelting 进度，验证并消耗输入，计算可接受产出，写入 Backpack 结果并增加熔炼 XP。"
+    },
+    {
+      "path": "play/play-smelting.js",
+      "claim": "计算本地 skillOutputBps 视图字段；当前进度状态不会显示它，指令参数也不会提交它。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "定义合约锻造阈值，以及综合多项输入的品级、物品等级、品质、耐久度、上限与所得 XP 计算。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "在已接受的锻造执行中读取 Profile 锻造等级，并把它传入 Backpack 结果计算。"
+    },
+    {
+      "path": "chunk.js/input/controls.js",
+      "claim": "使用 controls.speed 计算水平移动，并应用独立的 Shift 冲刺乘数。"
+    },
+    {
+      "path": "play/player-motion-controller.js",
+      "claim": "飞行时使用同一个当前控制速度，不消耗 health、energy 或任何一种 stamina 数值。"
+    },
+    {
+      "path": "play/play-input-actions.js",
+      "claim": "启用当前输入与飞行动作，不设疲劳或能量门槛。"
+    },
+    {
+      "path": "play/play-guardian.js",
+      "claim": "同步实时名称与右手物品外观，不向 Guardian 提供 Profile 属性或技能 XP。"
+    },
+    {
+      "path": "play/play-guardian-client.js",
+      "claim": "定义紧凑的 MOVE、DIG、装备与身份数据包，其中不含 health、energy、stamina、力量、技能等级或 XP 字段。"
+    },
+    {
+      "path": "Guardian/src/app.cpp",
+      "claim": "检查 Guardian 数据包、速率、序列与服务范围边界，但不执行 Profile 技能移动或战斗结算。"
+    },
+    {
+      "path": "Guardian/src/protocol.h",
+      "claim": "定义姿态、挖掘、装备与身份的实时协议记录，其中不含 PlayerProfile 属性字段。"
+    },
+    {
+      "path": "docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json",
+      "claim": "保留 shared-context confirmed slot 477,044,477 的 Profile 与双程序进度快照、原始字节、哈希、PDA 派生和解释边界。"
+    },
+    {
+      "path": "scripts/capture-displayed-stats-devnet.mjs",
+      "claim": "复现带日期的 Devnet 账户采集，并验证规范 Profile 与按程序域区分的进度地址。"
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "固定网站当前 Devnet Player、Chunk 与统一 Game 程序 ID；审核和浏览器上下文都会使用这些 ID。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+      "summary": "返回紧凑的 Profile 布局，了解哪些公开字段、按程序域区分的进度账户与浏览器派生卡片仍彼此独立。"
+    },
+    {
+      "slug": "equipment-and-custody",
+      "href": "/docs/equipment-and-custody/",
+      "title": "装备与托管：装备只是选中记录，挂牌才会移动记录",
+      "summary": "回顾 Profile 引用、Backpack 记录、本地快捷栏、重建网格与 Market 托管如何分别回答不同的装备问题。"
+    },
+    {
+      "slug": "resource-drop-rules",
+      "href": "/docs/resource-drop-rules/",
+      "title": "ResourceDropTable PDA：有序的探索额外掉落",
+      "summary": "沿着空间适用条件、有序规则选择、确定性随机判定与有损的 Backpack 交付，追踪探索权重的完整路径。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "把可见进度与临时权限分开",
+      "summary": "本指南先确认哪些显示数值确实有使用方。下一篇会完整追踪技能、XP、等级与恢复的生命周期，然后这条学习路径才会继续讲解临时权限。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "equipment-and-custody",
+        "title": "装备与托管：装备只是选中记录，挂牌才会移动记录",
+        "summary": "在判断装备或技能数值能够强制执行什么之前，先回顾完整锻造记录存放在哪里，以及屏幕显示为何与 Profile 引用不同。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "skills-xp-and-progress",
+        "title": "技能、XP 与进度：一次操作如何变成等级",
+        "summary": "沿着一次操作，了解本地计数器、浏览器与链上 XP、阈值换算、刷新和跨设备恢复。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "ko",
+    "label": "Korean",
+    "version": "docs-locale-ko-f212a5dfd0647da5",
+    "contentHash": "f212a5dfd0647da5"
+  },
+  "common": {
+    "language": "언어",
+    "comingSoon": "곧 공개",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "NiceChunk 홈",
+    "primaryNavigationAria": "기본 탐색",
+    "openMenu": "메뉴 열기",
+    "closeMenu": "메뉴 닫기",
+    "routes": {
+      "home": "홈",
+      "roadbook": "로드북",
+      "worldRules": "월드 규칙",
+      "resources": "자원",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "원소",
+      "fairness": "공정성",
+      "proofOfFrontier": "증명",
+      "seed": "시드",
+      "guardians": "가디언",
+      "contracts": "컨트랙트",
+      "civilization": "문명",
+      "trust": "신뢰",
+      "docs": "문서",
+      "enterWorld": "월드 입장"
+    }
+  },
+  "meta": {
+    "title": "NiceChunk 필드 가이드",
+    "description": "실행 중인 게임, 공개 규칙, 배포된 프로그램 동작을 근거로 작성한 플레이어용 NiceChunk 문서입니다."
+  },
+  "accessibility": {
+    "skipContent": "본문으로 건너뛰기"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "필드 가이드",
+    "homeAria": "NiceChunk 홈"
+  },
+  "navigation": {
+    "aria": "문서 탐색",
+    "guide": "가이드",
+    "worldRules": "월드 규칙",
+    "programs": "프로그램",
+    "enterWorld": "월드 입장"
+  },
+  "status": {
+    "loading": "필드 가이드 불러오는 중",
+    "loadingDetail": "선택한 언어의 문서 하나를 가져오고 있습니다.",
+    "failed": "이 가이드 페이지를 불러오지 못했습니다.",
+    "failedDetail": "연결을 확인하거나 가이드 목차로 돌아가세요."
+  },
+  "actions": {
+    "backToIndex": "가이드 목차로 돌아가기",
+    "guideIndex": "필드 가이드",
+    "openGuide": "가이드 열기 →"
+  },
+  "footer": {
+    "statement": "실행 중인 규칙과 프로그램 코드를 바탕으로 작성했습니다. 주장은 구현으로 증명할 수 있는 범위로 제한합니다.",
+    "fairness": "공정성",
+    "trust": "신뢰",
+    "roadmap": "로드북"
+  },
+  "translation": {
+    "fallbackTitle": "영문 원문 표시 중",
+    "fallbackBody": "이 주제에는 별도 언어 파일이 있지만 검토된 번역은 아직 준비되지 않았습니다. 기술적 주장을 기계 번역하지 않고 영문 원문을 표시합니다."
+  },
+  "labels": {
+    "guideMetrics": "필드 가이드 범위",
+    "breadcrumb": "이동 경로",
+    "keyPoints": "핵심 사항",
+    "onThisPage": "이 페이지의 내용",
+    "evidenceEyebrow": "구현 근거",
+    "evidenceTitle": "이 주장의 근거",
+    "evidenceIntro": "각 주장은 구체적인 구현 경로가 증명하는 범위로 제한했습니다. 이 참조는 장식이 아니라 검증을 위한 것입니다."
+  },
+  "statusLabels": {
+    "ready": "검토 완료",
+    "preview": "검토 중",
+    "planned": "계획됨"
+  },
+  "calloutLabels": {
+    "note": "읽는 방법",
+    "boundary": "구현 경계",
+    "verified": "코드가 보장하는 것"
+  }
+}

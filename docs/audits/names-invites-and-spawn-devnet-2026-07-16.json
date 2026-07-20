@@ -1,0 +1,240 @@
+{
+  "slug": "names-invites-and-spawn",
+  "auditType": "read-only-devnet-and-current-runtime-boundary",
+  "capturedAt": "2026-07-16T08:58:34Z/2026-07-16T15:03:35Z",
+  "sourceRevision": "662ea5a88dc155c42b09b5dc968b97b3a7f29818",
+  "dirtyWorkingTree": true,
+  "readOnly": true,
+  "transactionSubmitted": false,
+  "walletOrPrivateKeyUsed": false,
+  "scope": [
+    "Player Program and ProgramData identity",
+    "deployed ELF and retained local artifact comparison",
+    "current rent-exempt minima for UsernameIndex and InviteIndex lengths",
+    "full finalized InviteIndex account scan",
+    "derived page continuity checks for the observed inviter",
+    "InviteIndex entry and current PlayerProfile observations",
+    "current Play entry and invite-spawn consumer boundary",
+    "real production Play Genesis-scene capture"
+  ],
+  "network": {
+    "productWorldLabel": "nicechunk-mainnet-001",
+    "solanaCluster": "devnet",
+    "rpcUrl": "https://explorer-api.devnet.solana.com",
+    "commitment": "finalized",
+    "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "getVersion": {
+      "solanaCore": "4.2.0-beta.1",
+      "featureSet": 4119855713
+    },
+    "primaryScanSlot": 476637685,
+    "independentRecheck": {
+      "slot": 476641756,
+      "inviteAccountContextSlot": 476641758,
+      "capturedAt": "2026-07-16T09:40:33Z"
+    },
+    "rpcVersionBoundary": "getVersion and getMultipleAccounts reported 4.2.0-beta.1 while getProgramAccounts context metadata reported 3.1.8. The audit records each method rather than treating them as one backend version."
+  },
+  "playerProgram": {
+    "programId": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+    "programContextSlot": 476637409,
+    "programOwner": "BPFLoaderUpgradeab1e11111111111111111111111",
+    "programAccountLength": 36,
+    "programAccountSha256": "6a0b30c349724947999f468be103079f9a82713eb02bd41ae8b067309bacef02",
+    "programDataAddress": "59G5dWb4mmpLdYtRUpH4oM1gDeunVQZ29zLB9wKDzqtU",
+    "programDataContextSlot": 476637410,
+    "programDataLength": 172925,
+    "programDataSha256": "9ea56e9feac33008724db9f5a3c4fe324af53860eb5a519382d437872a8b3266",
+    "lastDeploySlot": 474349411,
+    "lastDeployUtc": null,
+    "lastDeployUtcBoundary": "The RPC node had cleaned the historical block, so getBlockTime could not recover a reliable UTC timestamp.",
+    "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+    "upgradeAuthorityOption": 1,
+    "isUpgradeable": true,
+    "elfOffset": 45,
+    "elfLength": 172880,
+    "deployedElfSha256": "9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a",
+    "localArtifactPath": "target/deploy/nicechunk_player.so",
+    "localArtifactSha256": "9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a",
+    "localArtifactMatchesDeployedElf": true,
+    "artifactBoundary": "The retained local artifact matches the deployed ELF bytes. Modified source files postdate or differ from that artifact and are not thereby proven to reproduce it."
+  },
+  "rent": {
+    "queryCommitment": "finalized",
+    "slotBefore": 476637411,
+    "slotAfter": 476637412,
+    "usernameIndex": {
+      "bytes": 256,
+      "lamports": 2672640,
+      "sol": "0.002672640"
+    },
+    "inviteIndex": {
+      "bytes": 2688,
+      "lamports": 19599360,
+      "sol": "0.019599360"
+    },
+    "boundary": "These are point-in-time rent-exempt minima, not transaction fees, refundable deposits, or proof that the current program exposes a close instruction."
+  },
+  "playerProgramAccountInventory": {
+    "contextSlot": 476637685,
+    "total": 47,
+    "profileGenerationsCombined": 19,
+    "appearances": 10,
+    "usernameIndexes": 7,
+    "playerSessions": 10,
+    "inviteIndexes": 1,
+    "driftFromOlderPlayerProfileCopy": "The older page recorded 46 total accounts and 9 PlayerSessions. The InviteIndex count stayed at one; the extra current account is a PlayerSession."
+  },
+  "inviteIndexScan": {
+    "methods": [
+      "getProgramAccounts with dataSize 2688",
+      "getMultipleAccounts for the discovered inviter's derived page indexes 0 through 63",
+      "getProgramAccounts prefix inventory for the complete Player Program"
+    ],
+    "fullScanContextSlot": 476637566,
+    "derivedPageCheckContextSlot": 476637566,
+    "profileCheckContextSlot": 476637567,
+    "observedPageCount": 1,
+    "continuousPages": [
+      0
+    ],
+    "firstMissingPage": 1,
+    "checkedAdditionalMissingPages": "2 through 63",
+    "gapObserved": false,
+    "scopeBoundary": "The derived check is deeper than the current browser's sixteen-page scan but covers only the inviter discovered from the finalized program-account evidence."
+  },
+  "observedInviteIndex": {
+    "address": "HMbG3jiBpBfFEQmggb5gGyvXhsQzTuCy3zttNSXCpiX",
+    "solanaAccountOwner": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+    "inviter": "CxKKLnvucRE1cs4CJE7WssDWAq6i8bqsW3ec11CUyDJ5",
+    "magic": "NCKINV01",
+    "version": 1,
+    "initialized": 1,
+    "bump": 252,
+    "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+    "page": 0,
+    "count": 2,
+    "capacity": 64,
+    "createdSlot": 474351478,
+    "updatedSlot": 474523752,
+    "lamports": 19599360,
+    "dataLength": 2688,
+    "dataSha256": "4e4b59f2c63081114efea29fb05af3ae544ec9310b62ce6f548a20898b6a0d4e",
+    "reservedHeaderBytesAllZero": true,
+    "unusedRecordBytesAllZero": true,
+    "entries": [
+      {
+        "index": 0,
+        "invitedWallet": "4BEZt4gm6YrtK3Ve1H8CotKpyFPtY2aDMhKrUnZA4Jf7",
+        "registrationSlot": 474523519,
+        "currentPlayerProfile": {
+          "address": "9XmjnByXLWsFsLTWujJGuuoSpdZwFU3HpnFms71XMePy",
+          "length": 773,
+          "magic": "NCKPLY01",
+          "version": 7,
+          "name": "kio",
+          "createdSlot": 474354103,
+          "embeddedOwnerMatchesWallet": true
+        }
+      },
+      {
+        "index": 1,
+        "invitedWallet": "7KKPkapVUBAFwYBXgg3JZnrmYjuTsHzELceUrrAsko7i",
+        "registrationSlot": 474523752,
+        "currentPlayerProfile": {
+          "address": "3qLVDUnGDLtZkYkbxCJzWLVdApQQz8BbK7Wt2oLbQdYg",
+          "length": 773,
+          "magic": "NCKPLY01",
+          "version": 7,
+          "name": "timo",
+          "createdSlot": 474523744,
+          "embeddedOwnerMatchesWallet": true
+        }
+      }
+    ],
+    "uniqueInvitedWallets": 2,
+    "duplicateEntriesObserved": false,
+    "duplicateBoundary": "No duplicate was observed in this two-entry snapshot. The current contract append routine does not scan for duplicates, so the snapshot is not evidence of protocol-level uniqueness.",
+    "profileBoundary": "Both observed wallets happened to have current PlayerProfiles at the recorded slot. InviteIndex stores no Profile or name and the append instruction does not require either."
+  },
+  "currentRuntime": {
+    "productionPage": "https://nicechunk.com/play/",
+    "runtimeModule": "https://nicechunk.com/runtime/debug-6a9f70f92bb1d886/play/main.js",
+    "runtimeModuleSha256": "b0acd62b1ec2ea79b981c857b469166eac02c45790e44e99a5f21e4e0741045a",
+    "localPlayMainSha256": "b0acd62b1ec2ea79b981c857b469166eac02c45790e44e99a5f21e4e0741045a",
+    "runtimeMatchesLocalPlayMain": true,
+    "runtimeRecheckedAt": "2026-07-16T15:03:35Z",
+    "runtimeModuleHttpStatus": 200,
+    "pendingSpawnConsumerImported": false,
+    "invitePanelPresent": false,
+    "probeResult": "At 2026-07-16T15:03:35Z, a fresh unsigned-browser recheck returned HTTP 200, retained the wallet-scoped pending-spawn sentinel after current Play startup, contained neither profileInviteOpen nor profileInvitePanel, exposed three canvases, and produced no console or page error.",
+    "alternateConsumerPath": "src/main.js imports and consumes the draft, but that module is not the current Play entry.",
+    "boundary": "Current Play starts from query pose, wallet-agnostic saved local position, or the Genesis default and later reads chain Profile data asynchronously without teleporting to it."
+  },
+  "worldCapture": {
+    "path": "docs/visual-sources/names-invites-and-spawn/world-genesis-play-2026-07-16.png",
+    "sha256": "7690d479315f21a2c220fd663bc361402e19e5cade95d7d939f20fee8ccbd8ae",
+    "capturedAt": "2026-07-16T09:00:00Z",
+    "source": "https://nicechunk.com/play/?x=800&z=800&view=5&fly=1&loadLog=0",
+    "runtimeModuleSha256": "c29f5431f6bdbed68f26e2ebeb7f7c034be443984bc124164f9afcac9a9c0a36",
+    "worldSeed": "nicechunk-mainnet-001",
+    "coordinates": {
+      "x": 800,
+      "surfaceY": 133,
+      "z": 800
+    },
+    "camera": {
+      "controlYaw": 0.7853981633974483,
+      "cameraPitch": -0.42,
+      "viewDistance": 5,
+      "flight": true
+    },
+    "dimensions": {
+      "width": 1774,
+      "height": 887
+    },
+    "captureMethod": "Headless Chromium with WebGL2 SwiftShader; a public non-signing placeholder session passed the route guard; UI siblings were hidden before the selected canvas capture.",
+    "boundary": "This is a dated real Play scene capture. It does not prove invitation, pending-spawn persistence, chain position, or that the current runtime applied an invite Region."
+  },
+  "sourceHashes": {
+    "src/player/inviteSpawn.js": "7f9a4d32ce9c950a5f7a0b828d743449270072602b723c8fb0bfcca5bd951323",
+    "player_creat/player_creat.js": "85b53d1dba7b39311af7d063c32bcfc022084ecaa342b42d9820b91424fb1514",
+    "login/login.js": "4cbdd5646e97be62dd7b361f714206ca39241ee28feb3f26911d9f2db631a444",
+    "src/chain/nicechunkChain.js": "3afefcab0f78d42d4717b00d5f0d7296d2a1d39019550d18a30ff58b6d3670c4",
+    "src/play/features/profile/invitePanel.js": "f8e6fbfdaf72ec507d1a37608c70075b243e1cb5904b615b399f5fc9d2fbef6d",
+    "play/index.html": "9d9ad3d366fc59d3acfbe34540133c76cec919668f457abf6f7236578b58e480",
+    "play/main.js": "b0acd62b1ec2ea79b981c857b469166eac02c45790e44e99a5f21e4e0741045a",
+    "play/position-persistence.js": "9aeab00fb2aab2b13c54da4338c2830fbbc80c069ec444bb015117af4667af46",
+    "src/main.js": "05e9d6a2cc94444c6a7f043d5f4cd3c876e43ab346d9021e0250f5716336d88f",
+    "programs/nicechunk_player/src/lib.rs": "35c6871c7af753ca4ca8377bccc880340d97710394780000b6699e9b68e751be",
+    "programs/nicechunk_player/src/state.rs": "f8489f285912fe81c911501566f24667211c86e12002740748045422ae45074b",
+    "programs/nicechunk_player/src/errors.rs": "a4d3b5737ad87fd738a2f8d50ca950e7f33648c1269c489b3d0d7b32f8801e0f",
+    "programs/nicechunk_player/src/cluster_config.rs": "07dba1f18aae7a3ec19a14ec3b8b265fd8c7ac4b4b941c81df3047c10a6eff04"
+  },
+  "focusedTests": {
+    "path": "play/tests/names-invites-and-spawn.test.mjs",
+    "command": "node --loader ts-node/esm --test play/tests/names-invites-and-spawn.test.mjs",
+    "result": "7 passing",
+    "scope": [
+      "empty-query Genesis fallback",
+      "Region parsing priority",
+      "canonical query serialization",
+      "Region-center spawn math",
+      "wallet-scoped pending storage",
+      "single consumption and malformed draft removal",
+      "current cleanup rethrow when storage read and removal both fail"
+    ],
+    "boundary": "These local tests document the current source behavior. They do not prove a deployed invitation transaction, browser persistence, or current Play consumption."
+  },
+  "interpretationLimits": [
+    "A URL referrer, Guardian ID, or Region is editable public text and is not a credential or inviter signature.",
+    "An accepted UsernameIndex proves program-validated name ownership under its stored fields; it does not reserve a missing account during a prior read and does not automatically prove the current Profile display name.",
+    "An InviteIndex entry proves that the invited wallet signed an append transaction for that inviter address. The inviter does not sign each append.",
+    "The current contract does not deduplicate wallets and permits high pages to be pre-created without checking the previous page. Normal contiguous paging is therefore a client convention, not a complete contract invariant.",
+    "The current browser scans sixteen pages and can display at most 1024 entries. It can append to page index 16 but cannot display it, and a full page index 16 prevents its current rollover logic from reaching index 17.",
+    "The invite page contains no display name, Guardian, Region, spawn coordinates, reward entitlement, token transfer, or local receipt.",
+    "The pending spawn draft has no expiry check and the current production Play entry does not consume it.",
+    "No current instruction closes UsernameIndex or InviteIndex, so rent funding must not be described as an automatically refundable deposit.",
+    "This audit sent no transaction and proves no fresh name claim, invitation registration, reward, or applied spawn."
+  ]
+}

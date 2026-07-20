@@ -1,0 +1,433 @@
+{
+  "_meta": {
+    "language": "ko",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-chunkjs-performance-ko-bcbd6be984f9e999",
+    "contentHash": "bcbd6be984f9e999"
+  },
+  "kind": "topic",
+  "slug": "chunkjs-performance",
+  "shortTitle": "Chunk.js Performance",
+  "seo": {
+    "title": "NiceChunk Chunk.js Streaming, Meshing, and WebGL2 Performance",
+    "description": "See how NiceChunk production play uses compact Chunk profiles, dirty rebuilds, Workers, packed meshes, texture arrays, visibility filters, and frame budgets without turning performance targets into unmeasured promises."
+  },
+  "hero": {
+    "eyebrow": "ENGINE 07 · RENDERING PERFORMANCE",
+    "title": "Spend work only where the world changed",
+    "summary": "Chunk.js keeps canonical world answers separate from presentation, then carries those answers as compact column profiles and sparse deltas. Dirty mesh revisions select local rebuilds, Workers prepare packed opaque and visual geometry, and the WebGL2 loop admits only a measured number of upload jobs per frame. This is inspectable scheduling and data movement, not a promised frame rate across every browser, GPU, view distance, or thermal state.",
+    "readingTime": "12 min read",
+    "visual": {
+      "src": "/docs/media/chunkjs-performance-overview-v2.webp",
+      "alt": "The canonical villager boy repairs only a short damaged stretch of a baked stone road while the villager girl surveys the intact coastal route ahead through a brass spyglass; a wooden cart groups reusable grass, stone, and wood blocks beside detailed Chunk.js terrain, cotton, flowers, and reflective water.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "Production play loads a narrow engine surface",
+      "body": "NGINX serves the play shell and Chunk.js modules directly. The game imports an explicit play entry instead of the general barrel, so the terrain runtime does not evaluate the forge path merely to start the world."
+    },
+    {
+      "title": "One changed coordinate does not restart the world",
+      "body": "Base state, chain deltas, pending deltas, dirty versions, completed meshes, and GPU uploads are tracked separately. A changed Chunk and only the boundary neighbors that can expose a face become rebuild candidates."
+    },
+    {
+      "title": "Budgets limit work, not outcomes",
+      "body": "Compact typed arrays, Worker scheduling, visibility filters, DPR caps, and adaptive uploads reduce avoidable work. They do not create a universal memory ceiling or prove a particular FPS on hardware that has not been measured."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "STATE, STREAMING, AND GPU MATH",
+    "title": "Count bytes and jobs before making a performance claim",
+    "summary": "These equations measure the core column profile, the production streaming window, packed mesh buffers, and the frame's upload and pixel workload. JavaScript objects, tree instances, driver metadata, and unrelated render passes are deliberately excluded where the implementation cannot count them exactly."
+  },
+  "formulas": [
+    {
+      "title": "Dense voxel storage versus the column profile",
+      "expression": "B_dense = 2*C^2*H; B_profile = C^2*(2+2+2) = 6*C^2; C=16, H=353 => B_dense=180736 B and B_profile=1536 B",
+      "explanation": "A dense Uint16 base copy would retain every voxel in the full vertical envelope. The normal profile retains one Int16 surface height, one Int16 water height, and one Uint16 surface block per horizontal column, then regenerates subsurface answers as needed. The approximately 118-to-1 comparison covers only those core typed arrays; trees, sparse deltas, maps, caches, and JavaScript overhead remain additional state.",
+      "terms": [
+        {
+          "symbol": "C",
+          "meaning": "Chunk width and depth in voxels; the current default is sixteen."
+        },
+        {
+          "symbol": "H",
+          "meaning": "Vertical envelope in voxels; the current default is 353 from minimum Y minus 32."
+        },
+        {
+          "symbol": "B_profile",
+          "meaning": "Byte length of the three transferable column arrays, excluding every non-array object."
+        }
+      ]
+    },
+    {
+      "title": "Production streaming squares",
+      "expression": "N_load = (2*(r+p)+1)^2; N_visible <= (2*r+1)^2; N_keep <= (2*(r+p+2)+1)^2; r=7, p=2 => 361, 225, 529",
+      "explanation": "The production game initially ensures a square through view distance r plus preload margin p. The visible square is an upper bound before the horizontal camera-cone filter. Distance eviction allows a two-Chunk linger band, so the retained bound can exceed the newly ensured square while the player moves. These are geometric bounds, not a promise that every position already has a complete mesh or GPU buffer.",
+      "terms": [
+        {
+          "symbol": "r",
+          "meaning": "Production play view distance in Chunks; seven by default and selectable from two through twenty."
+        },
+        {
+          "symbol": "p",
+          "meaning": "Production preload margin; currently two Chunks."
+        },
+        {
+          "symbol": "N_keep",
+          "meaning": "Maximum square implied by distance retention, not a fixed allocation target."
+        }
+      ]
+    },
+    {
+      "title": "Packed mesh buffer bytes",
+      "expression": "B_mesh = 20*V + s_i*I; s_i=2 when V<=65535, otherwise 4; B_chunk = B_opaque + B_visual",
+      "explanation": "Each packed vertex occupies twenty bytes. Index buffers stay Uint16 until a mesh exceeds 65,535 vertices, then become Uint32. Opaque and visual passes own separate buffers, so a Chunk's exact transferable mesh payload is their sum. This excludes temporary meshing arrays, region-combine staging, VAO metadata, and driver allocation overhead.",
+      "terms": [
+        {
+          "symbol": "V, I",
+          "meaning": "Vertex and index counts for one packed opaque or visual mesh."
+        },
+        {
+          "symbol": "s_i",
+          "meaning": "Index element width in bytes selected from the final vertex count."
+        },
+        {
+          "symbol": "B_chunk",
+          "meaning": "Combined typed-array mesh bytes for both terrain passes of one Chunk."
+        }
+      ]
+    },
+    {
+      "title": "Upload admission and display density",
+      "expression": "U_frame = min(b_frame, |J_changed intersect J_candidate|); P_canvas = W_css*H_css*d^2; d = min(devicePixelRatio, d_cap) by default",
+      "explanation": "Only changed upload jobs inside the current filtered render-candidate set can consume the frame allowance. A job may be one individual Chunk or one combined region. Canvas pixels grow with the square of effective DPR, which is why the default path caps coarse-pointer devices at 1.25 and other devices at 1.75. An explicit renderer DPR override follows a separate path and is not covered by those default caps.",
+      "terms": [
+        {
+          "symbol": "b_frame",
+          "meaning": "Adaptive upload allowance for the current frame."
+        },
+        {
+          "symbol": "J_changed, J_candidate",
+          "meaning": "Version-stale upload jobs and jobs admitted by the current render candidate filters."
+        },
+        {
+          "symbol": "d",
+          "meaning": "Effective canvas device-pixel ratio on the default renderer path."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The normal base payload is three arrays per horizontal column",
+      "language": "JavaScript",
+      "source": "chunk.js/world/world-generator.js",
+      "code": "export function generateBaseChunkProfileFromConfig(config, chunkX, chunkZ, { cacheTreeCandidates = false } = {}) {\n  const size = config.chunkSize;\n  const cells = size * size;\n  const surfaceY = new Int16Array(cells);\n  const waterY = new Int16Array(cells);\n  const surfaceBlock = new Uint16Array(cells);\n  const treeCandidates = cacheTreeCandidates ? new Array(cells) : null;\n  const noWater = Math.max(-32768, Math.min(32767, config.minY - 1));\n  waterY.fill(noWater);\n\n  for (let localZ = 0; localZ < size; localZ += 1) {\n    for (let localX = 0; localX < size; localX += 1) {\n      const { worldX, worldZ } = chunkToWorld(chunkX, chunkZ, localX, 0, localZ, size);\n      const column = localX + localZ * size;\n      const surface = terrainSurfaceHeight(config, worldX, worldZ);\n      const water = waterLevelAt(config, worldX, worldZ, surface);\n      surfaceY[column] = surface;\n      waterY[column] = water ?? noWater;\n      surfaceBlock[column] = surfaceBlockAt(config, worldX, worldZ, surface);\n      const tree = treeCandidates\n        ? (canGrowTree(config, worldX, worldZ, surface) ? treeAt(config, worldX, worldZ, surface, surfaceBlock[column]) : null)\n        : undefined;\n      if (treeCandidates) treeCandidates[column] = tree;\n    }\n  }\n\n  const profile = {\n    chunkX: Math.trunc(chunkX),\n    chunkZ: Math.trunc(chunkZ),\n    chunkSize: size,\n    minY: config.minY,\n    height: config.height,\n    generationVersion: config.generationVersion,\n    surfaceY,\n    waterY,\n    surfaceBlock,\n    noWater,\n  };\n  if (treeCandidates) Object.defineProperty(profile, \"treeCandidates\", { value: treeCandidates, configurable: true });\n  return profile;",
+      "explanation": "The profile measures every XZ column once and retains the surface, water, and top material in compact typed arrays. The deterministic block resolver reconstructs deeper answers instead of making this profile a second dense copy of the world."
+    },
+    {
+      "title": "Only eligible dirty Chunks enter the rebuild loop",
+      "language": "JavaScript",
+      "source": "chunk.js/chunk/chunk-manager.js",
+      "code": "  rebuildDirtyChunks(budgetMs = DEFAULT_MESH_BUDGET_MS) {\n    const start = performance.now();\n    const rebuilt = this.drainCompletedBuilds();\n    const dirty = Array.from(this.chunks.values())\n      .filter((chunk) => chunk.dirty && chunk.buildState !== \"queued\" && chunk.buildState !== \"building\")\n      .sort((a, b) => Math.max(Math.abs(a.chunkX - this.centerChunkX), Math.abs(a.chunkZ - this.centerChunkZ)) - Math.max(Math.abs(b.chunkX - this.centerChunkX), Math.abs(b.chunkZ - this.centerChunkZ)));\n    for (const chunk of dirty) {\n      if (this.useWorkers) {\n        if (chunk.buildState === \"error\" && !this.prepareWorkerBuildRetry(chunk, start)) continue;\n        if (chunk.baseBlocksReady) this.enqueueRemesh(chunk);\n        else this.enqueueBuild(chunk);\n        if (performance.now() - start >= budgetMs) break;\n        continue;\n      }\n      if (!chunk.baseBlocksReady) this.ensureChunkBaseSync(chunk);\n      const access = {\n        getBlockAtWorld: (x, y, z) => this.getBlockAtWorld(x, y, z),\n        getDeltaAtWorld: (x, y, z) => this.getDeltaAtWorld(x, y, z),\n        getColumnTopAtWorld: (x, z) => this.getOpaqueColumnTopAtWorld(x, z),\n        getWaterLevelAtWorld: (x, z, surface = terrainSurfaceHeight(this.config, x, z)) => waterLevelAt(this.config, x, z, surface),\n        treeDeltaCandidateCount: this.treeDeltaCandidateCountForChunk(chunk.chunkX, chunk.chunkZ),\n      };\n      const meshStartedAt = performance.now();\n      const mesh = meshChunkOpaqueFast(chunk, access);\n      const opaqueMeshMs = performance.now() - meshStartedAt;\n      const visualStartedAt = performance.now();\n      const visualMesh = meshChunkVisual(chunk, access);\n      const visualMeshMs = performance.now() - visualStartedAt;\n      chunk.setMeshes(mesh, visualMesh);\n      this.logRenderEvent(\"chunk-build-sync\", {\n        chunkId: chunk.id,\n        chunkX: chunk.chunkX,\n        chunkZ: chunk.chunkZ,\n        elapsedMs: opaqueMeshMs + visualMeshMs,\n        opaqueMeshMs,\n        visualMeshMs,\n        triangles: (mesh?.triangleCount || 0) + (visualMesh?.triangleCount || 0),\n        bytes: (mesh?.vertices?.byteLength || 0) + (mesh?.indices?.byteLength || 0) + (visualMesh?.vertices?.byteLength || 0) + (visualMesh?.indices?.byteLength || 0),\n      });\n      rebuilt.push(chunk);\n      if (performance.now() - start >= budgetMs) break;\n    }\n    this.lastRebuildMs = performance.now() - start;\n    this.dispatchBuilds();\n    return rebuilt;\n  }",
+      "explanation": "Worker mode spends the loop budget draining results and scheduling dirty work; Worker CPU time itself is outside that main-thread timer. In fallback mode one synchronous opaque-plus-visual job runs before the elapsed check, so the five-millisecond default is a stopping policy, not a hard preemption deadline."
+    },
+    {
+      "title": "Completed buffers transfer back without cloning their payloads",
+      "language": "JavaScript",
+      "source": "chunk.js/chunk/chunk-build-worker.js",
+      "code": "function transferablesForBuild(message) {\n  const transfer = [message.mesh.vertices.buffer, message.mesh.indices.buffer];\n  if (message.visualMesh) transfer.push(message.visualMesh.vertices.buffer, message.visualMesh.indices.buffer);\n  const profile = message.baseProfile;\n  if (profile) {\n    for (const field of [\"surfaceY\", \"waterY\", \"surfaceBlock\"]) {\n      if (profile[field]?.buffer) transfer.push(profile[field].buffer);\n    }\n  }\n  return transfer;\n}",
+      "explanation": "Opaque, visual, and base-profile ArrayBuffers move through the Worker transfer list. Sparse final and neighbor deltas travel the other direction as transferred Int32 quadruples, keeping large typed payloads out of structured-clone copies."
+    },
+    {
+      "title": "One deterministic texture array serves every terrain layer",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/texture-array-manager.js",
+      "code": "  createTextureArray(materialTextures = null) {\n    const gl = this.gl;\n    this.texture = gl.createTexture();\n    gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.texture);\n    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, this.tileSize, this.tileSize, this.layerCount);\n    const blank = new Uint8Array(this.tileSize * this.tileSize * 4);\n    for (let layer = 0; layer < this.layerCount; layer += 1) {\n      const material = this.materials.find((entry) => entry.textureLayer === layer);\n      const pixels = materialTextures?.[layer] ?? (material ? this.generateMaterialTile(material) : blank);\n      gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, this.tileSize, this.tileSize, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);\n    }\n    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.NEAREST);\n    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);\n    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT);\n    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT);\n    gl.bindTexture(gl.TEXTURE_2D_ARRAY, null);\n    return this.texture;",
+      "explanation": "Renderer initialization allocates one one-level RGBA8 array and uploads every deterministic material tile into its layer. This reduces runtime material rebinding; it does not mean zero texture uploads or one draw call for the entire scene."
+    }
+  ],
+  "sections": [
+    {
+      "id": "compact-runtime-input",
+      "eyebrow": "NATIVE MODULE ENTRY AND COLUMN STATE",
+      "title": "Production loads a narrow engine surface, then carries a compact world",
+      "paragraphs": [
+        "NGINX serves /play/ and /chunk.js/ from the production project as native ES modules. The play shell imports one explicit /chunk.js/play.js surface whose export list is intentionally narrower than the general Chunk.js barrel. That keeps the game-engine startup path from evaluating forge modules just because the player entered the world. Chain adapters may still load their own built asset, so this boundary describes the play renderer and world engine rather than every script on the page.",
+        "The manager's normal base state is a 16 by 16 column profile across a 353-voxel vertical envelope. Three two-byte arrays retain surface height, water height, and surface block. Sparse chain and pending deltas remain separate maps, and tree instances remain separate generated objects. The deterministic-world guide explains what those layers mean; this section measures how the renderer carries them without storing a default dense Uint16 copy of every base voxel."
+      ],
+      "facts": [
+        {
+          "label": "Production engine entry",
+          "value": "/chunk.js/play.js",
+          "detail": "An explicit native-ESM export surface imported directly by play/main.js."
+        },
+        {
+          "label": "Default world envelope",
+          "value": "16 x 16 x 353",
+          "detail": "Ninety thousand three hundred sixty-eight possible voxel positions per base Chunk."
+        },
+        {
+          "label": "Core profile arrays",
+          "value": "1,536 bytes",
+          "detail": "Three two-byte arrays across 256 columns, before trees, deltas, maps, and caches."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Compact input is not a global memory cap",
+        "body": "World Chunks, completed CPU meshes, generated-column caches, material tiles, and GPU buffers have different lifetimes. The terrain runtime uses distance eviction and periodic GPU pruning, but it does not enforce one universal byte ceiling across all of them."
+      }
+    },
+    {
+      "id": "dirty-rebuild-scope",
+      "eyebrow": "VERSIONED INVALIDATION",
+      "title": "A changed coordinate invalidates local work; it does not restart the world",
+      "paragraphs": [
+        "ChunkState advances its state version when a visible block answer changes. The last committed opaque and visual mesh versions advance only when a complete replacement arrives. Rebuild selection filters for dirty Chunks that are neither already queued nor building, then orders them nearest to the player's center. A boundary edit also dirties only the loaded neighbors that could expose a face or tree proxy across that edge.",
+        "Worker results carry the task version and material version that produced them. If state moves again before a result arrives, the manager can keep any useful base profile, reject the stale mesh replacement, and leave the Chunk dirty for another build. The prior complete GPU mesh can remain drawable until its replacement upload succeeds, avoiding a blank region while the world catches up."
+      ],
+      "facts": [
+        {
+          "label": "Rebuild candidate set",
+          "value": "Dirty only",
+          "detail": "Queued and in-flight Chunks are excluded from a second simultaneous build."
+        },
+        {
+          "label": "Dispatch order",
+          "value": "Nearest first",
+          "detail": "Remesh jobs receive an additional priority before distance and movement direction are considered."
+        },
+        {
+          "label": "Stale result guard",
+          "value": "Task and material versions",
+          "detail": "A completed job cannot overwrite newer world or material state merely because it finished later."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Rendering invalidation follows accepted inputs; it does not accept them",
+        "body": "Pending and chain deltas can both make a Chunk dirty, but the renderer does not decide whether a mining action is legal, whether a resource belongs to a player, or whether a transaction is final. Those authority checks stay in the chain and action layers."
+      }
+    },
+    {
+      "id": "worker-frame-budget",
+      "eyebrow": "WORKER-PREFERRED MESHING",
+      "title": "Workers prepare geometry while the frame keeps its own lane",
+      "paragraphs": [
+        "Production computes the world-build pool as max(1,min(3,cores-1)) on a coarse-pointer device and max(1,min(6,cores-2)) otherwise. Before the first nearby terrain is visible, only one lane runs. After that, a large streaming backlog can use the full reserved pool; smaller workloads adapt to sampled FPS, motion, and sprinting. The initial queue is capped at the greater of 768 jobs or the full preload square.",
+        "Each Worker deterministically builds the base profile, tree instances, opaque mesh, and visual mesh. Final and neighbor deltas are packed as Int32 coordinate-and-block quadruples and transferred in; typed mesh and profile buffers are transferred out. Failed build jobs back off from 180 milliseconds up to five seconds. If Worker construction fails or all Workers die, the manager changes to synchronous generation and meshing on later rebuild calls.",
+        "The default mesh-loop budget is five milliseconds, with production query overrides clamped from two through fourteen. In Worker mode that timer bounds main-thread result draining and dispatch work, not CPU time already running inside Workers. In synchronous fallback the elapsed check happens after a complete Chunk job, so one expensive job can cross the requested budget."
+      ],
+      "facts": [
+        {
+          "label": "Reserved Worker ceiling",
+          "value": "3 coarse · 6 other",
+          "detail": "Actual count also depends on reported hardware concurrency and never falls below one when Workers are available."
+        },
+        {
+          "label": "Default mesh-loop budget",
+          "value": "5 ms",
+          "detail": "A scheduling stop condition rather than a preemptive deadline for Worker or synchronous CPU work."
+        },
+        {
+          "label": "Retry delay",
+          "value": "180 ms to 5 s",
+          "detail": "Per-Chunk exponential backoff after a Worker build failure."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Worker-preferred does not mean main-thread-free",
+        "body": "The main thread still updates state, prioritizes and dispatches jobs, commits results, combines optional regions, uploads WebGL buffers, and issues draws. The fallback path also meshes synchronously when Worker support is unavailable."
+      }
+    },
+    {
+      "id": "packed-mesh-materials",
+      "eyebrow": "VISIBLE SURFACES AND SHARED MATERIALS",
+      "title": "Exposed faces become packed quads and one material array",
+      "paragraphs": [
+        "The opaque fast path starts from the column profile, finds exposed tops and cliffs, accounts for sparse deltas, and groups face cells by orientation, plane, texture layer, block identity, and quantized shade. Greedy meshing expands each run into the largest available rectangle, so a uniform surface becomes one quad instead of one quad per block face. Water, cutout vegetation, projected shadows, and other visual geometry remain in a separate pass because they need different blending and depth behavior.",
+        "Every final vertex is packed into twenty bytes containing fixed-point position and scale, normalized signed-byte normal, shade, unsigned-short UVs, texture layer, and flags. Indices use two bytes until the packed mesh crosses the 65,535-vertex boundary. Those arrays go straight into STATIC_DRAW WebGL buffers with the same layout; collision queries do not retain a duplicate world collision mesh and instead resolve canonical terrain, deltas, tree trunks, and supplemental building collision separately.",
+        "Material tiles are generated deterministically from the material registry and texture seed. The current registry contains eighty-three materials with a highest layer index of 101, so the one-level 32 by 32 RGBA8 array allocates 102 layers, including nineteen gaps. Its raw texel payload is 417,792 bytes, or 408 KiB, before driver overhead. The shared array reduces texture switching, but opaque, visual, sky, avatar, shadow, particle, overlay, and building passes still create more than one draw call."
+      ],
+      "facts": [
+        {
+          "label": "Packed vertex stride",
+          "value": "20 bytes",
+          "detail": "The position, normal, shade, UV, layer, scale, and flags share one fixed layout."
+        },
+        {
+          "label": "Current texture array",
+          "value": "102 x 32 x 32 RGBA8",
+          "detail": "One mip level with nearest filtering and repeat wrapping."
+        },
+        {
+          "label": "Raw array texels",
+          "value": "417,792 bytes",
+          "detail": "Exact uploaded pixel payload for the current layer count, excluding WebGL driver metadata."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "One texture array is not one world draw",
+        "body": "Four-by-four terrain region batching can combine populated Chunks per opaque or visual pass, but buildings are excluded and every other render layer keeps its own work. Draw-call reduction must be measured from an actual scene rather than inferred from the material binding strategy."
+      }
+    },
+    {
+      "id": "visibility-upload-budget",
+      "eyebrow": "CAMERA AND GPU ADMISSION",
+      "title": "The camera limits candidates before the GPU receives them",
+      "paragraphs": [
+        "The production default view distance is seven Chunks with a two-Chunk preload margin. Player movement updates the loading center on a seventy-millisecond cadence when needed. ChunkManager first limits terrain by horizontal distance and a conservative camera cone, then preserves recently visible terrain for twelve frames to avoid edge flicker. The renderer applies its render-radius and cached frustum filter to the current candidate list before scanning for stale GPU versions.",
+        "A mesh is uploaded only when no GPU entry exists, its committed version changed, or its uploaded flag was cleared. Production then applies an adaptive job allowance: sampled FPS below 36 admits one upload, motion admits two through five depending on FPS and sprinting, and idle frames can admit more. Moving or an active build backlog postpones region rebatching, while a 650-millisecond pruning cadence deletes buffers for CPU Chunks that are no longer live.",
+        "The WebGL2 context disables multisample antialiasing and preserved drawing buffers and supplies the browser a high-performance preference. That preference is a hint, not a hardware guarantee. By default, canvas DPR is bounded from 0.75 through a 1.25 coarse-pointer cap or 1.75 other-device cap, reducing dense-display fragment work without changing world coordinates, chain inputs, or deterministic generation."
+      ],
+      "facts": [
+        {
+          "label": "Production view setup",
+          "value": "7 visible · 2 preload",
+          "detail": "The player can select a view distance from two through twenty."
+        },
+        {
+          "label": "Low-FPS upload allowance",
+          "value": "1 job per frame",
+          "detail": "Applied when the sampled FPS falls below 36; a job may represent an individual Chunk or region."
+        },
+        {
+          "label": "Default DPR caps",
+          "value": "1.25 coarse · 1.75 other",
+          "detail": "Upper bounds on the normal devicePixelRatio path, not fixed render scales for every device."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Visible, loaded, uploaded, and drawn are different sets",
+        "body": "The preload square prepares future movement, the camera narrows render candidates, the upload budget may defer a visible replacement, and the last complete GPU buffer may remain drawable. Treating those four sets as identical produces misleading memory and latency estimates."
+      }
+    },
+    {
+      "id": "measurement-authority",
+      "eyebrow": "MEASUREMENT AND AUTHORITY BOUNDARY",
+      "title": "A performance result needs a device, a window, and a trace",
+      "paragraphs": [
+        "Chunk.js exposes sampled FPS, visible Chunk counts, draw calls, triangles, upload queues, build timings, and buffer bytes for the handles drawn in a frame. Its frame probe can identify long main-thread segments, and render logging records CPU-side time around WebGL calls. Neither mechanism is a GPU timer query, and the per-frame buffer statistic is not guaranteed to equal all resident driver memory.",
+        "A reproducible benchmark must state the production URL, browser and version, operating system, CPU and GPU, viewport, effective DPR, view distance, movement pattern, world position, warm-up, sample duration, and thermal state. Headless browser results can catch regressions in scheduling and page behavior, but they cannot prove target mobile GPU throughput, battery cost, or a universal frame rate.",
+        "The performance architecture intentionally ends at rendering inputs. Chunk.js can reconstruct deterministic base terrain and present pending or accepted deltas, but resource ownership, mining legality, backpack capacity, recipe matching, and chain finality are verified by their programs and adapters. Faster meshing cannot turn a locally invented block into authoritative state."
+      ],
+      "facts": [
+        {
+          "label": "Frame-rate sample window",
+          "value": "500 ms default",
+          "detail": "A rolling application signal used for adaptive scheduling, not a lab benchmark by itself."
+        },
+        {
+          "label": "Render call timing",
+          "value": "CPU-side",
+          "detail": "Time around JavaScript and WebGL calls, without a GPU timestamp query."
+        },
+        {
+          "label": "Performance promise",
+          "value": "None without a target device",
+          "detail": "The implementation exposes controls and evidence; measured outcomes still depend on the environment."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Optimization does not weaken the proof boundary",
+        "body": "Compact profiles, sparse deltas, Worker meshes, shared textures, and deferred uploads change how accepted inputs become pixels. They do not replace the deterministic rules or program checks that decide what those inputs are allowed to mean."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "nginx.site.conf",
+      "claim": "Serves production /play/ and /chunk.js/ directly from the project with explicit native-module routes."
+    },
+    {
+      "path": "play/index.html",
+      "claim": "Loads the production game through the native ./main.js module entry."
+    },
+    {
+      "path": "chunk.js/play.js",
+      "claim": "Defines the explicit play-only Chunk.js export surface and avoids evaluating the general barrel's forge path during startup."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Wires the production view distance, preload margin, Worker pool, mesh budget, WebGL2 renderer, visibility pass, upload budget, and periodic GPU pruning."
+    },
+    {
+      "path": "play/play-render-budget.js",
+      "claim": "Selects adaptive Worker concurrency, queue size, per-frame upload jobs, loading cadence, region deferral, and GPU pruning cadence."
+    },
+    {
+      "path": "chunk.js/world/world-generator.js",
+      "claim": "Builds compact surface, water, and surface-material column profiles and deterministic base answers."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-state.js",
+      "claim": "Separates base profiles, sparse chain and pending deltas, state versions, committed mesh versions, build state, and upload flags."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-manager.js",
+      "claim": "Owns streaming squares, distance eviction, camera-cone visibility, dirty selection, boundary invalidation, queue priority, Worker retries, fallback, and packed delta transfer."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-build-worker.js",
+      "claim": "Generates base profiles, tree instances, opaque and visual meshes in a Worker and returns typed arrays through transfer lists."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-mesher.js",
+      "claim": "Implements profile-aware opaque meshing, visual geometry, greedy rectangles, twenty-byte packed vertices, and adaptive index width."
+    },
+    {
+      "path": "chunk.js/renderer/texture-array-manager.js",
+      "claim": "Bakes deterministic material tiles into one RGBA8 Texture2DArray with a bounded generated-tile cache."
+    },
+    {
+      "path": "chunk.js/renderer/buffer-manager.js",
+      "claim": "Uploads the packed vertex layout and selected index type into WebGL2 buffers and disposes replaced handles."
+    },
+    {
+      "path": "chunk.js/renderer/webgl2-renderer.js",
+      "claim": "Configures WebGL2, DPR caps, texture-array initialization, version-aware uploads, region batching, frustum filtering, draw passes, and GPU buffer disposal."
+    },
+    {
+      "path": "chunk.js/renderer/frustum.js",
+      "claim": "Defines the conservative camera-frustum filter used before render candidate uploads and draws."
+    },
+    {
+      "path": "chunk.js/debug/stats.js",
+      "claim": "Samples frame rate for runtime status and adaptive scheduling."
+    },
+    {
+      "path": "play/play-frame-probe.js",
+      "claim": "Measures long main-thread frame segments and throttles diagnostic reports."
+    }
+  ],
+  "related": [
+    {
+      "slug": "deterministic-world",
+      "href": "/docs/deterministic-world/",
+      "title": "The Deterministic World",
+      "summary": "Learn what canonical base generation and separate player deltas mean before measuring how Chunk.js carries them."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "See how pending visual feedback becomes accepted or rolled-back state before rendering invalidation begins."
+    },
+    {
+      "slug": "verifiable-buildings",
+      "href": "/docs/verifiable-buildings/",
+      "title": "Protected Foundations and Verifiable Buildings",
+      "summary": "Compare terrain streaming with the separate Worker, cache, collision mask, and exact-scale path used for verified buildings."
+    }
+  ]
+}

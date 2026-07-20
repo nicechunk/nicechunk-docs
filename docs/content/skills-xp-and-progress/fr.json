@@ -1,0 +1,1331 @@
+{
+  "_meta": {
+    "language": "fr",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-skills-xp-and-progress-fr-e632cf609103cd8f",
+    "contentHash": "e632cf609103cd8f"
+  },
+  "slug": "skills-xp-and-progress",
+  "kind": "topic",
+  "shortTitle": "Skills, XP, and Progress",
+  "seo": {
+    "title": "Skills, XP, and Progress: How One Action Becomes a Level",
+    "description": "Follow one NiceChunk action through local counters, browser XP, program-scoped chain progress, per-skill maximum selection, level thresholds, progress bars, refresh, and cross-device recovery."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL · STEP 10",
+    "title": "Skills, XP, and Progress: How One Action Becomes a Level",
+    "summary": "One accepted action does not update one universal XP bar. Production /play/ first records device-local behavior counters. The Profile screen derives ten browser XP values, reads optional browser-saved XP and selected chain records, keeps the largest value for each skill, and then converts that XP through a browser level curve. Chunk, Game/Smelting, and Backpack/Player separately award four chain-backed XP families under their own program rules. This guide follows /play/index.html → /play/main.js → play/* and the programs those modules call. It explains what refresh or another device can recover, why the three XP sources are never added, and why one Forging XP total can produce two different levels.",
+    "readingTime": "48 min read",
+    "visual": {
+      "src": "/docs/media/skills-xp-and-progress-overview-v1.webp",
+      "alt": "NiceChunk coastal XP workshop where the canonical black-haired villager boy finishes one mining action while the canonical orange-haired villager girl compares separate local trays, wooden browser storage, stone public archives, and a ten-step training stair.",
+      "caption": "One action can leave several separate progress stories. The local tray, private cupboard, two public archives, and training stair are physical teaching metaphors for browser counters, browser-held data, program-scoped accounts, and derived levels. This generated single scene uses the canonical villagers, a real Chunk.js coast, and baked game materials; no prop count proves an XP amount, account address, transaction, synchronization rule, or level threshold.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "When I mine, place, smelt, or forge, where does my XP come from, why can two Level labels disagree, and what survives a refresh or another device?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 10 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Production entry reviewed",
+        "value": "/play/index.html → /play/main.js → play/*; older /src/main.js is outside this production claim"
+      },
+      {
+        "label": "Reviewed",
+        "value": "18 July 2026 · literal source excerpts, focused checks, visual review evidence, a no-network derived audit, and confirmed Devnet source snapshot slot 477,044,477"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Action counter",
+        "meaning": "A device-local number such as minedBlocks, confirmedMines, resourcesCollected, or placedBlocks. It describes browser-observed behavior and is not automatically a public chain record."
+      },
+      {
+        "term": "Pending",
+        "meaning": "The immediate local stage after the browser predicts an action but before it knows whether the submitted action will be accepted. Pending counters can later be confirmed or reversed."
+      },
+      {
+        "term": "Derived XP",
+        "meaning": "XP recalculated from the local action counters whenever the Profile skill state is built. It is a formula result, not a separate account or transaction."
+      },
+      {
+        "term": "Browser-stored XP",
+        "meaning": "An optional localStorage object named for one owner, with an older global fallback. Current production Play reads these objects but does not write them."
+      },
+      {
+        "term": "Chain XP",
+        "meaning": "XP decoded from a public program-owned account. Precision and Exploration use Chunk Progress, Smelting uses a different Game/Smelting Progress, and Forging uses PlayerProfile."
+      },
+      {
+        "term": "Effective XP",
+        "meaning": "For one skill, the largest of derived XP, browser-stored XP, and supplied chain XP. The browser chooses a maximum; it does not add the three sources."
+      },
+      {
+        "term": "Scoped storage",
+        "meaning": "Browser data whose key ends with one wallet owner, so two wallets on the same browser can keep separate local records. Behavior counters use guest when no owner is available."
+      },
+      {
+        "term": "Legacy fallback",
+        "meaning": "An older unscoped browser key read only when the current owner-scoped key is empty. The two objects are selected with OR, not merged field by field."
+      },
+      {
+        "term": "Tier XP",
+        "meaning": "The additional XP needed to cross one level step. The Profile panel's Upgrade XP tiers list shows these per-step amounts."
+      },
+      {
+        "term": "Cumulative threshold",
+        "meaning": "The total XP needed from the beginning to reach a level. It is the sum of all earlier tier amounts and is what level selection compares against."
+      },
+      {
+        "term": "Progress PDA",
+        "meaning": "A deterministic public account for one owner and GlobalConfig inside one program domain. Identical seed words under different program IDs produce different addresses."
+      },
+      {
+        "term": "Program domain",
+        "meaning": "The address and ownership namespace created by one Solana program ID. Chunk Progress and Game/Smelting Progress are separate even though both use the words player-progress."
+      },
+      {
+        "term": "Atomic transaction",
+        "meaning": "All instructions in one Solana transaction succeed together or their state changes are rolled back together. A later Forging XP failure cannot leave the earlier tentative item append behind."
+      },
+      {
+        "term": "Safe integer boundary",
+        "meaning": "JavaScript Number cannot exactly represent every integer above 9,007,199,254,740,991. A chain u64 can be larger, so converting it directly to Number eventually loses exactness."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "One action can touch several ledgers",
+      "body": "A browser pending counter, a confirmed local resource count, and a program-awarded XP increment are different observations. They can use different units and timing without one being a copy of another."
+    },
+    {
+      "title": "Ten local formulas share seven behavior counters",
+      "body": "Mining, confirmed mining, collected resources, placement, confirmed placement, Smelting runs, and processed materials feed ten browser skills with different coefficients. Rollback counters are saved but do not enter these formulas."
+    },
+    {
+      "title": "Three XP sources compete; they do not accumulate",
+      "body": "For each skill the browser takes max(derived, browser-stored, chain). A value of 100 in each source still produces effective XP 100, not 300."
+    },
+    {
+      "title": "A level step and total threshold are different numbers",
+      "body": "The Upgrade XP tiers list shows the cost of each next step. The level calculation sums those costs and compares XP with cumulative totals."
+    },
+    {
+      "title": "Only four skill families currently receive chain XP",
+      "body": "Chunk awards Precision and Exploration, Game/Smelting awards Smelting, and Backpack invokes Player to award Forging. The other six skills currently depend on browser-side data."
+    },
+    {
+      "title": "Recovery is program-specific",
+      "body": "The current Profile refresh can restore Chunk Precision and Exploration plus Profile Forging. Smelting is written on chain, but the refresh reads Chunk's similarly shaped account instead of the Game/Smelting account."
+    }
+  ],
+  "sections": [
+    {
+      "id": "one-action-many-progress-stories",
+      "eyebrow": "PENDING, CONFIRMED, ACCEPTED",
+      "title": "One action can create several progress stories at different moments",
+      "paragraphs": [
+        "Suppose the boy mines one ordinary resource block. As soon as the local mining plan becomes pending, the browser increases minedBlocks. That makes movement-related, Stamina, and Strength formulas react immediately. This is useful feedback, but it is still a device-local prediction and can be reversed.",
+        "After the submitted action succeeds, the browser confirms the pending delta, increases confirmedMines, and adds the actual confirmed reward-group item count to resourcesCollected. If submission fails, rollback increases rolledBackMines and removes the planned block count from minedBlocks. rolledBackMines remains useful history, but none of the ten current XP formulas reads it.",
+        "The accepting Chunk program keeps a different ledger. For ordinary mining it adds one Precision XP for the accepted block and one Exploration XP only when an extra drop actually exists. Those contract increments are not intended to copy the browser's larger teaching coefficients. A worked example makes the difference visible: if one confirmed mine adds exactly one collected resource item, local Precision rises by 1 × 90 + 1 × 25 = 115 XP, while that ordinary accepted block adds 1 chain Precision XP.",
+        "Do not call these numbers synchronized. The browser later compares the local-derived and chain totals and keeps the larger value. It does not add 115 and 1. Also keep four moments separate: pending local prediction, browser confirmation, browser rollback, and program acceptance. One real attempt cannot both confirm and roll back, although an illustration may show an earlier accepted example beside the current pending attempt."
+      ],
+      "facts": [
+        {
+          "label": "Pending mine",
+          "value": "minedBlocks += planned block count",
+          "detail": "Saved immediately on this browser before final acceptance is known."
+        },
+        {
+          "label": "Confirmed mine",
+          "value": "confirmedMines += block count",
+          "detail": "resourcesCollected also increases by the confirmed reward-group item count."
+        },
+        {
+          "label": "Rolled-back mine",
+          "value": "rolledBackMines += 1",
+          "detail": "minedBlocks is reduced again and local tool damage can be restored."
+        },
+        {
+          "label": "Accepted ordinary block",
+          "value": "+1 Chunk Precision XP",
+          "detail": "Exploration receives another +1 only for an actual extra drop."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-one-action-many-progress-stories-v1.webp",
+        "alt": "NiceChunk ore terrace where the canonical boy works at one current stone block while the canonical girl inspects an earlier accepted resource in an open Backpack, a separate public archive marker, a local pending tray, and an empty rollback cradle.",
+        "caption": "The local pending tray, earlier confirmed Backpack resource, separate public recess, and empty return cradle help distinguish stages without claiming that the same attempt both succeeded and rolled back. Marker quantity is illustrative and does not encode 115 browser XP, 1 chain XP, timing, reward count, or transaction status.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "The same action name does not mean the same unit",
+        "body": "A local behavior formula may award tens of derived XP while a program awards one chain XP. The Profile screen's maximum selection hides the smaller total; it does not reconcile or sum the ledgers."
+      }
+    },
+    {
+      "id": "local-counters-feed-ten-skills",
+      "eyebrow": "TEN BROWSER FORMULAS",
+      "title": "Seven local behavior counters feed ten skills with different weights",
+      "paragraphs": [
+        "The Profile screen derives a complete XP object from seven non-negative local counters: minedBlocks, confirmedMines, resourcesCollected, placedBlocks, confirmedPlacements, smeltingRuns, and materialsSmelted. One action can therefore push several skill cards. Mining contributes to Precision, Swiftness, Exploration, Stamina, Strength, Burden, and Appraisal through different combinations of pending, confirmed, and collected counts.",
+        "Placement is deliberately split too. placedBlocks increases while a placement is pending, so Craftsmanship, Swiftness, and Stamina may move before acceptance. Confirmation adds confirmedPlacements, giving Craftsmanship another 85 XP. Rollback restores the Backpack stack, decreases placedBlocks, and records rolledBackPlacements; the rollback counter itself is not used by a skill formula.",
+        "Smelting has an important current gap. game-state.js saves and reloads smeltingRuns and materialsSmelted, but those two fields have no production writer and are never incremented by play/play-smelting.js. The formulas would use them; the reviewed success path instead refreshes the authoritative Backpack and interface. A successful chain Smelting action can therefore gain Game/Smelting XP while these browser-derived Smelting, Forging, Burden, Craftsmanship, and Appraisal inputs remain unchanged.",
+        "These coefficients are presentation logic, not contract rewards. Precision's 90 and 25 do not tell Chunk how much XP to write. Forging's local material formula does not tell Backpack how to grade an item. The program rules are listed separately in chapter 5."
+      ],
+      "facts": [
+        {
+          "label": "Precision Gathering",
+          "value": "resources × 90 + confirmedMines × 25",
+          "detail": "Uses confirmed mining and actually collected resource items."
+        },
+        {
+          "label": "Burden",
+          "value": "resources × 18 + materials × 12",
+          "detail": "Uses collected resource items and locally recorded processed materials."
+        },
+        {
+          "label": "Smelting",
+          "value": "smeltingRuns × 160 + materials × 90",
+          "detail": "Both counters exist, but current production Smelting does not write them."
+        },
+        {
+          "label": "Forging",
+          "value": "materials × 38 + smeltingRuns × 45",
+          "detail": "This local formula is separate from PlayerProfile Forging XP."
+        },
+        {
+          "label": "Craftsmanship",
+          "value": "confirmedPlacements × 85 + placed × 18 + materials × 28",
+          "detail": "Pending placement can move one term before confirmation adds another."
+        },
+        {
+          "label": "Swiftness",
+          "value": "mined × 5 + placed × 4",
+          "detail": "Both inputs can change while an action is still pending."
+        },
+        {
+          "label": "Exploration",
+          "value": "confirmedMines × 44 + resources × 10",
+          "detail": "This browser formula is separate from contract extra-drop XP."
+        },
+        {
+          "label": "Stamina",
+          "value": "mined × 9 + placed × 7",
+          "detail": "The saved rollback counters do not enter this formula."
+        },
+        {
+          "label": "Strength",
+          "value": "mined × 12 + resources × 6",
+          "detail": "Browser-derived only; there is no current chain Strength XP source."
+        },
+        {
+          "label": "Appraisal",
+          "value": "resources × 22 + materials × 36",
+          "detail": "Browser-derived only; there is no current chain Appraisal XP source."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-local-counters-feed-ten-skills-v1.webp",
+        "alt": "NiceChunk coastal counter workshop where the canonical boy sorts mined resources and the canonical girl places a voxel block beside ten separate unmarked holders and two empty furnace-side tally cups.",
+        "caption": "The ten holders are a memory aid for ten browser skills, not a chart. Their colors, pile sizes, and positions do not encode skill order, coefficients, or totals. The two empty furnace-side cups represent the current missing production write to smeltingRuns and materialsSmelted, not a promise that those counters can never be implemented.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "A field can be readable without having a writer",
+        "body": "The Smelting counters are normalized, stored, and consumed by formulas. The current production success path does not increment them, so documentation must not claim that every successful Smelting run feeds local derived XP."
+      }
+    },
+    {
+      "id": "scoped-storage-and-max-merge",
+      "eyebrow": "THREE SOURCES, ONE MAXIMUM",
+      "title": "Owner-scoped storage falls back once, then each skill keeps its highest XP source",
+      "paragraphs": [
+        "Behavior counters live under nicechunk.play.profile.v1.<encoded owner>. Without a wallet owner the suffix is guest. Changing wallets makes game-state save the previous owner's profile and load the next owner's profile, so local mining and placement history is not intended to become one shared browser tally.",
+        "The optional skill-XP object uses nicechunk.playerSkillXp.<owner>. If that scoped key has no value, the loader tries the older global nicechunk.playerSkillXp key. The older manual-level object follows the same pattern with nicechunk.playerSkills.<owner> and nicechunk.playerSkills. In plain words, it is primary OR legacy fallback, not an object merge. The expression selects one serialized object and never fills missing fields in the primary object from the fallback object.",
+        "The Profile state then merges three XP objects by taking the largest non-negative rounded number for each skill: derived behavior XP, browser-stored XP, and the supplied chain XP object. If the values are 300, 900, and 500, effective XP is 900. This protects a larger known total from being replaced by a smaller source, but it is not synchronization, addition, or proof that the largest source is authoritative.",
+        "deriveProfileSkillXp always returns all ten skill keys, including zero. profileSkillEffectiveLevel prefers an XP value whenever the key is a finite number. Those ten finite keys—including zero—shadow the legacy playerSkills levels, so the older manual-level object normally does not decide any skill level in this Profile path. A repository search also finds only reads for playerSkillXp and playerSkills in production Play; there is no current localStorage.setItem writer for either family."
+      ],
+      "facts": [
+        {
+          "label": "Behavior counters",
+          "value": "nicechunk.play.profile.v1.<encodeURIComponent(owner)>",
+          "detail": "Uses guest when there is no owner address."
+        },
+        {
+          "label": "Browser XP",
+          "value": "nicechunk.playerSkillXp.<owner> OR nicechunk.playerSkillXp",
+          "detail": "The fallback is used only when the scoped serialized value is absent or empty."
+        },
+        {
+          "label": "Older manual levels",
+          "value": "nicechunk.playerSkills.<owner> OR nicechunk.playerSkills",
+          "detail": "Normally masked because the derived XP object supplies every skill key."
+        },
+        {
+          "label": "Effective XP",
+          "value": "max(derived, browser-stored, chain)",
+          "detail": "Calculated separately for every skill; sources are never added."
+        },
+        {
+          "label": "Current production writer",
+          "value": "none for skill-XP and manual-level keys",
+          "detail": "The production Play modules read those keys but do not set them."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-scoped-storage-and-max-merge-v1.webp",
+        "alt": "NiceChunk comparison loft where the canonical girl uses a freestanding height gauge on three separate XP stacks while the canonical boy opens an owner-specific drawer beside a closed legacy drawer and a detached old manual-level block.",
+        "caption": "The unconnected stacks illustrate per-skill maximum selection: only the tallest is marked, and no stack is poured into another. The open scoped drawer and closed legacy drawer illustrate primary OR fallback. The scene does not encode literal storage keys, chain priority, synchronization, account freshness, or a transaction result.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Maximum is not authority",
+        "body": "The highest visible source wins the browser display even if that source is device-local. To know what a program enforces, inspect the program-owned account and its own threshold table."
+      }
+    },
+    {
+      "id": "browser-level-curve-and-progress-bar",
+      "eyebrow": "FROM XP TO LEVEL",
+      "title": "The browser sums rounded tier costs, while its two progress bars answer different questions",
+      "paragraphs": [
+        "Every skill has xpBase and xpGrowth parameters. To price the next step, the browser multiplies xpBase by 10 and by targetLevel raised to xpGrowth, then rounds that one tier to the nearest integer. Reaching a level costs every earlier tier too, so the cumulative threshold is the sum from tier 1 through that level.",
+        "Level selection rounds effective XP to a non-negative integer and finds the maximum level whose cumulative threshold has been reached. Upgrade XP tiers prints each per-level incremental cost, not the cumulative total. For example, Forging's Lv.4 tier itself costs 12,865 XP, while its cumulative Lv.4 threshold is 26,628 XP after the earlier three tiers are included.",
+        "The detail progress bar removes XP already required for the current level. It divides XP inside the current tier by the next tier cost. After an upgrade, this current amount can return near zero even though total XP never fell. At Lv.10 there is no next tier: current and required become zero, ratio becomes one, and the label switches to Total XP.",
+        "The compact skill-card bar is not that tier ratio. It simply shows level divided by 10 and forces at least 4% width so a Lv.0 card still has a visible sliver. Two bars can therefore look different while both match their code. The full cumulative table below includes Lv.1 through Lv.10 for all ten browser skills."
+      ],
+      "facts": [
+        {
+          "label": "Precision Gathering · base 90 · growth 1.52",
+          "value": "900 · 3,481 · 8,261 · 15,663 · 26,054 · 39,764 · 57,094 · 78,323 · 103,715 · 133,517",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Burden · base 130 · growth 1.58",
+          "value": "1,300 · 5,187 · 12,563 · 24,183 · 40,715 · 62,766 · 90,898 · 125,638 · 167,483 · 216,908",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Smelting · base 120 · growth 1.56",
+          "value": "1,200 · 4,738 · 11,398 · 21,831 · 36,608 · 56,246 · 81,223 · 111,984 · 148,950 · 192,519",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Forging · base 140 · growth 1.60",
+          "value": "1,400 · 5,644 · 13,763 · 26,628 · 45,014 · 69,627 · 101,125 · 140,126 · 187,215 · 242,950",
+          "detail": "Cumulative browser thresholds; these differ from Backpack's contract Forging table."
+        },
+        {
+          "label": "Craftsmanship · base 180 · growth 1.66",
+          "value": "1,800 · 7,488 · 18,638 · 36,614 · 62,649 · 97,886 · 143,399 · 200,206 · 269,280 · 351,556",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Swiftness · base 110 · growth 1.50",
+          "value": "1,100 · 4,211 · 9,927 · 18,727 · 31,025 · 47,192 · 67,564 · 92,454 · 122,154 · 156,939",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Exploration · base 125 · growth 1.57",
+          "value": "1,250 · 4,961 · 11,975 · 22,994 · 38,636 · 59,462 · 85,991 · 118,707 · 158,068 · 204,510",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Stamina · base 105 · growth 1.50",
+          "value": "1,050 · 4,020 · 9,476 · 17,876 · 29,615 · 45,047 · 64,493 · 88,252 · 116,602 · 149,806",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Strength · base 145 · growth 1.59",
+          "value": "1,450 · 5,815 · 14,132 · 27,273 · 46,011 · 71,051 · 103,045 · 142,607 · 190,317 · 246,729",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        },
+        {
+          "label": "Appraisal · base 160 · growth 1.62",
+          "value": "1,600 · 6,518 · 16,003 · 31,120 · 52,820 · 81,976 · 119,402 · 165,867 · 222,100 · 288,799",
+          "detail": "Cumulative browser thresholds for Lv.1 through Lv.10."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-browser-level-curve-and-progress-bar-v1.webp",
+        "alt": "NiceChunk quarry classroom where the canonical villagers inspect a ten-landing stone training stair, a cumulative counter chest, a current-level trough, a ten-notch level rack, and a second partially filled tier instrument.",
+        "caption": "The increasingly spaced stair suggests rising tier costs, while the closed chest and current trough separate lifetime XP from XP inside the current tier. The two nearby instruments represent the card's level-out-of-ten bar and the detail view's within-tier ratio. Their shapes and contents do not encode exact thresholds, formulas, XP totals, or Lv.10 state.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "Read the label before reading the bar",
+        "body": "The small card bar answers how many of ten levels are complete. The detail bar answers how far XP has moved through the current level. Neither bar alone reveals the exact lifetime XP threshold."
+      }
+    },
+    {
+      "id": "accepted-actions-write-chain-progress",
+      "eyebrow": "FOUR CHAIN-BACKED XP FAMILIES",
+      "title": "Accepted mining, extra drops, Smelting inputs, and Forging grades write different public records",
+      "paragraphs": [
+        "Chunk owns the public Progress used by mining. An ordinary accepted block adds one Precision XP. Range or grouped paths multiply the same per-block constant by the accepted or rewarded block count. Exploration adds one XP for each actual extra drop, not for every eligible roll or every visible resource.",
+        "Game/Smelting owns another Progress account with the same seed words but a different program ID. A successful execution first validates selected Backpack inputs, removes them, writes outputs, and then adds one Smelting XP for every selected input index. The multiplier and output count do not replace that input-index rule.",
+        "Forging does not use either Progress PDA. Backpack reads Forging XP from PlayerProfile, calculates a final grade, and awards 25 × grade² XP. It tentatively appends the forged record, then invokes the Player program with the calculated outcome. Player verifies the owner-derived current Profile and writes the accumulated u64 at offset 449. If that later invocation fails, Solana rolls the whole transaction back, including the earlier append.",
+        "Each Progress PDA is created on demand when the first relevant action needs it. Chunk and Game/Smelting use the same player-progress seed words under different program IDs, so their PDA addresses differ. The current Devnet IDs used by the reviewed website are Chunk GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj and unified Game/Smelting 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7. The Chunk flow's payer can be the action payer or session authority; the Smelting flow uses the owner as payer. Equal seeds therefore do not imply equal addresses, owners, balances, rent payers, or histories."
+      ],
+      "facts": [
+        {
+          "label": "Precision",
+          "value": "accepted or rewarded block count × 1 XP",
+          "detail": "Stored in the Chunk-owned Progress PDA."
+        },
+        {
+          "label": "Exploration",
+          "value": "actual extra-drop count × 1 XP",
+          "detail": "Stored in that same Chunk-owned Progress PDA."
+        },
+        {
+          "label": "Smelting",
+          "value": "+1 XP × inputIndexes.length",
+          "detail": "Stored in the separate Game/Smelting-owned Progress PDA."
+        },
+        {
+          "label": "Forging",
+          "value": "+25 × finalGrade² XP",
+          "detail": "Stored in PlayerProfile rather than a Progress PDA."
+        },
+        {
+          "label": "Chunk Progress address",
+          "value": "[player-progress, GlobalConfig, owner] under Chunk program ID",
+          "detail": "Precision and Exploration are read from this domain."
+        },
+        {
+          "label": "Smelting Progress address",
+          "value": "[player-progress, GlobalConfig, owner] under Game/Smelting program ID",
+          "detail": "The same seed bytes produce another PDA because the program ID differs."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-accepted-actions-write-chain-progress-v1.webp",
+        "alt": "NiceChunk coastal production courtyard where the canonical villagers work beside a gray Chunk archive with two recesses, a separate copper Smelting archive and furnace, and a forge with a compact Profile drawer and ordinary Backpack.",
+        "caption": "The gray archive's two recesses represent Precision and Exploration sharing one Chunk Progress; the copper furnace archive represents Game/Smelting Progress; the compact drawer represents Forging XP in PlayerProfile. The separated props do not prove exact increments, PDA seeds, rent payment, transaction success, account freshness, or deployed program parity.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Public does not mean one universal account",
+        "body": "A wallet can own two valid player-progress PDAs at once. Always name the program ID before saying which Smelting, Precision, or Exploration history was read."
+      }
+    },
+    {
+      "id": "same-skill-name-different-thresholds",
+      "eyebrow": "ONE XP TOTAL, TWO LEVEL TABLES",
+      "title": "Forging XP is shared, but the browser and Backpack convert it through different thresholds",
+      "paragraphs": [
+        "Precision, Exploration, and Smelting contract thresholds match their corresponding browser cumulative tables. Forging is different. The Profile browser curve starts Lv.1 at 1,400 XP and grows to a Lv.10 threshold of 242,950 XP. Backpack's fixed contract table starts Lv.1 at 250 XP and reaches Lv.10 at 45,000 XP.",
+        "This is not two Forging XP balances. PlayerProfile stores one forging_xp number. The browser converts that total through the browser table for the card. Backpack converts the same total through its contract table when calculating a forged outcome. The resulting level numbers can both be correct for their own consumer.",
+        "Three checkpoints make the difference concrete. At 250 XP, Backpack sees contract Lv.1 while the browser remains Lv.0. At 1,875 XP, the browser is Lv.1 and Backpack is Lv.2. At 45,000 XP, Backpack is Lv.10 while the browser is Lv.4; the browser reaches Lv.5 at 45,014 XP. The last pair differs by only 14 XP but crosses a browser threshold.",
+        "The dated Devnet snapshot contains owner EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx with 1,875 Forging XP, demonstrating the Lv.1 versus Lv.2 conversion against retained account bytes. It is a snapshot at confirmed slot 477,044,477, not proof of a current balance or deployed binary."
+      ],
+      "facts": [
+        {
+          "label": "Precision Gathering contract cumulative",
+          "value": "0 · 900 · 3,481 · 8,261 · 15,663 · 26,054 · 39,764 · 57,094 · 78,323 · 103,715 · 133,517",
+          "detail": "Matches the browser Precision curve including Lv.0."
+        },
+        {
+          "label": "Exploration contract cumulative",
+          "value": "0 · 1,250 · 4,961 · 11,975 · 22,994 · 38,636 · 59,462 · 85,991 · 118,707 · 158,068 · 204,510",
+          "detail": "Matches the browser Exploration curve including Lv.0."
+        },
+        {
+          "label": "Smelting contract cumulative",
+          "value": "0 · 1,200 · 4,738 · 11,398 · 21,831 · 36,608 · 56,246 · 81,223 · 111,984 · 148,950 · 192,519",
+          "detail": "Matches the browser Smelting curve including Lv.0."
+        },
+        {
+          "label": "Forging contract cumulative",
+          "value": "0 · 250 · 900 · 2,100 · 4,000 · 6,800 · 10,700 · 16,000 · 23,000 · 32,000 · 45,000",
+          "detail": "Does not match the browser Forging curve."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-same-skill-name-different-thresholds-v1.webp",
+        "alt": "NiceChunk forging hall where the canonical villagers test equal sample blocks from one shared unmarked weight on two physically different stair mechanisms that reach different heights.",
+        "caption": "The two teaching copies and different stair mechanisms represent one XP total converted by two independent level tables, not duplicated accounts. Stair spacing and reached height do not encode 250, 1,400, 45,000, 45,014, or any exact level; the tables and literal source provide those facts.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Always say browser level or contract level",
+        "body": "Forging Lv.4 is ambiguous without naming the consumer. The Profile card and Backpack calculation use the same XP but different threshold functions."
+      }
+    },
+    {
+      "id": "refresh-recovery-and-source-labels",
+      "eyebrow": "REFRESH AND ANOTHER DEVICE",
+      "title": "Current refresh restores three skill families correctly and looks for Smelting in the wrong program domain",
+      "paragraphs": [
+        "The Profile chain synchronizer enforces an 18-second cooldown unless refresh is forced. It loads the chain module and requests PlayerProfile, Equipment, Appearance, and one Progress in parallel. The fetchPlayerProgress call derives that Progress PDA under the Chunk program ID and rejects any account not owned by Chunk.",
+        "The synchronizer maps positive Chunk precisionGatheringXp, smeltingXp, and explorationXp fields plus positive PlayerProfile forgingXp into the chain XP object; zero chain values are omitted. This is the problem: real Smelting execution writes the same offset shape in the Game/Smelting-owned Progress PDA. fetchPlayerProgress never derives or reads that second address, so a valid Game/Smelting total is absent from the current Profile refresh.",
+        "The retained snapshot makes the wrong-domain effect measurable. Owner EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx had Chunk Precision 1,678, Chunk Smelting 0, Chunk Exploration 4, Game/Smelting Smelting 29, and Profile Forging 1,875. Current Profile refresh supplies Precision 1,678, Exploration 4, and Forging 1,875, but omits the real Smelting 29 because it reads Chunk's zero-valued field.",
+        "On another device, Precision and Exploration can return from Chunk and Forging can return from PlayerProfile. Smelting exists publicly but needs a corrected Game/Smelting fetch before the Profile can recover it. Burden, Craftsmanship, Swiftness, Stamina, Strength, and Appraisal currently depend on device-local counters or optional browser objects. Also note that decoded u64 values are converted to JavaScript Number; above 2^53 − 1, displayed integer precision is not reliable.",
+        "For players, use a simple diagnosis order: verify the same wallet is connected, wait for or force a refresh, identify the source and program domain, and never manually add the three browser sources. Source badges would make this easier, but the current Profile interface does not yet show them; that is an improvement proposal, not a description of an existing control."
+      ],
+      "facts": [
+        {
+          "label": "Precision",
+          "value": "recoverable from Chunk Progress",
+          "detail": "Current refresh reads the correct program domain."
+        },
+        {
+          "label": "Exploration",
+          "value": "recoverable from Chunk Progress",
+          "detail": "Only positive decoded values enter the chain XP object."
+        },
+        {
+          "label": "Forging",
+          "value": "recoverable from PlayerProfile",
+          "detail": "Stored at the Profile Forging XP field rather than Progress."
+        },
+        {
+          "label": "Smelting",
+          "value": "publicly stored, currently fetched from the wrong domain",
+          "detail": "Execution uses Game/Smelting Progress; Profile refresh reads Chunk Progress."
+        },
+        {
+          "label": "Other six skills",
+          "value": "device-local or browser-held",
+          "detail": "No current public chain XP source is supplied for them."
+        },
+        {
+          "label": "Refresh interval",
+          "value": "18 seconds unless forced",
+          "detail": "Profile, Equipment, Appearance, and one Progress request run in parallel."
+        },
+        {
+          "label": "Profile Level",
+          "value": "1 + floor(sum of ten skill levels ÷ 10)",
+          "detail": "The HUD uses 1 + floor(confirmedMines ÷ 25), so the two Level labels can differ normally."
+        },
+        {
+          "label": "u64 display limit",
+          "value": "exact only through 9,007,199,254,740,991",
+          "detail": "Direct Number conversion can round larger chain integers."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-refresh-recovery-and-source-labels-v1.webp",
+        "alt": "NiceChunk recovery room where the canonical boy arrives with an empty local workbox while the canonical girl operates a pendulum refresh desk facing a gray Chunk archive and Profile drawer, with a separate copper Smelting archive farther away.",
+        "caption": "The empty workbox suggests a fresh device; recovered markers beside the gray archive and Profile drawer represent the sources current refresh can read. The distant occupied copper archive represents chain Smelting progress outside the present fetch path. The pendulum does not encode exactly 18 seconds, and no source label, network success, freshness, or lost XP is claimed by the image.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Smelting XP is not missing from chain",
+        "body": "The current recovery gap is a reader-domain problem: the Profile fetch asks Chunk for Progress while Smelting execution writes Game/Smelting Progress. Do not describe that as a vanished transaction or zero chain balance."
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "READ THE IMPLEMENTATION",
+    "title": "Fifteen formulas and twenty-two literal excerpts trace counters, stores, thresholds, awards, and recovery",
+    "summary": "The equations distinguish immediate behavior counters, effective browser XP, tier costs, cumulative thresholds, program awards, and two Level labels. Every source excerpt below is a continuous substring of the reviewed repository. A no-network derived audit reuses the dated account snapshot rather than presenting old bytes as a new live query."
+  },
+  "formulas": [
+    {
+      "title": "Mining counter lifecycle",
+      "expression": "pending: minedBlocks += plannedBlocks; confirm: confirmedMines += plannedBlocks and resourcesCollected += confirmedItems; rollback: minedBlocks -= plannedBlocks and rolledBackMines += 1",
+      "ariaLabel": "Pending mining increases the local mined block count; confirmation increases confirmed mines and collected resources; rollback removes the planned block count and records one rollback.",
+      "explanation": "These are browser counters. Chunk acceptance and its XP award are a separate program result.",
+      "terms": [
+        {
+          "symbol": "plannedBlocks",
+          "meaning": "The number of blocks in this local mining plan."
+        },
+        {
+          "symbol": "confirmedItems",
+          "meaning": "The sum of counts in confirmed reward groups."
+        }
+      ]
+    },
+    {
+      "title": "Placement counter lifecycle",
+      "expression": "pending: placedBlocks += 1; confirm: confirmedPlacements += 1; rollback: placedBlocks -= 1 and rolledBackPlacements += 1",
+      "ariaLabel": "A pending placement increases the local placed block count, confirmation increases confirmed placements, and rollback removes the placed count and records one rolled-back placement.",
+      "explanation": "Rollback also restores the consumed Backpack snapshot. Current skill XP formulas read placedBlocks and confirmedPlacements but not rolledBackPlacements.",
+      "terms": [
+        {
+          "symbol": "placedBlocks",
+          "meaning": "A local count that includes a placement while it is pending."
+        },
+        {
+          "symbol": "confirmedPlacements",
+          "meaning": "A separate local count increased only after confirmation."
+        }
+      ]
+    },
+    {
+      "title": "Ten behavior-derived XP values",
+      "expression": "Precision=90R+25M; Burden=18R+12T; Smelting=160S+90T; Forging=38T+45S; Craftsmanship=85C+18P+28T; Swiftness=5B+4P; Exploration=44M+10R; Stamina=9B+7P; Strength=12B+6R; Appraisal=22R+36T",
+      "ariaLabel": "The browser derives ten skill XP values from mined blocks, confirmed mines, resources, placements, confirmed placements, smelting runs, and processed materials with the listed integer weights.",
+      "explanation": "B is minedBlocks, M confirmedMines, R resourcesCollected, P placedBlocks, C confirmedPlacements, S smeltingRuns, and T materialsSmelted. All inputs are clamped to non-negative integers.",
+      "terms": [
+        {
+          "symbol": "B, M, R",
+          "meaning": "Mined blocks, confirmed mines, and collected resource items."
+        },
+        {
+          "symbol": "P, C",
+          "meaning": "Pending-or-confirmed placed blocks and separately confirmed placements."
+        },
+        {
+          "symbol": "S, T",
+          "meaning": "Local Smelting runs and local materialsSmelted; current production Smelting does not write either counter."
+        }
+      ]
+    },
+    {
+      "title": "Owner-scoped browser selection",
+      "expression": "StoredObject = JSON(primary owner key OR legacy global key); the primary and legacy objects are not merged",
+      "ariaLabel": "The loader parses the owner-scoped browser value when present, otherwise the older global value; it does not merge fields from both objects.",
+      "explanation": "This rule applies separately to browser XP and the older manual-level object. Behavior counters use only their wallet-scoped key and do not use a legacy global profile fallback here.",
+      "terms": [
+        {
+          "symbol": "OR",
+          "meaning": "JavaScript short-circuit selection of one serialized string."
+        }
+      ]
+    },
+    {
+      "title": "Effective browser XP",
+      "expression": "EffectiveXP(skill) = max(DerivedXP(skill), BrowserStoredXP(skill), ChainXP(skill))",
+      "ariaLabel": "For every skill, effective XP is the largest of behavior-derived XP, browser-stored XP, and supplied chain XP.",
+      "explanation": "The merge is performed per key after rounding each value to a non-negative integer. The sources are never summed and chain is not given automatic priority.",
+      "terms": [
+        {
+          "symbol": "max",
+          "meaning": "Choose the greatest value for this one skill."
+        }
+      ]
+    },
+    {
+      "title": "One browser tier cost",
+      "expression": "TierXP(targetLevel) = round(xpBase × 10 × targetLevel^xpGrowth)",
+      "ariaLabel": "One skill tier costs its XP base times ten times the target level raised to the XP growth power, rounded to the nearest integer.",
+      "explanation": "The Upgrade XP tiers list displays these per-step values. targetLevel runs from 1 through 10.",
+      "terms": [
+        {
+          "symbol": "xpBase, xpGrowth",
+          "meaning": "The two browser parameters stored in each skill definition."
+        }
+      ]
+    },
+    {
+      "title": "Cumulative browser threshold",
+      "expression": "TotalXP(level L) = sum of TierXP(k), for k = 1 through L",
+      "ariaLabel": "The cumulative XP threshold for a level is the sum of every rounded tier cost from one through that level.",
+      "explanation": "A tier cost and a cumulative threshold are not interchangeable. Level selection uses the cumulative total.",
+      "terms": [
+        {
+          "symbol": "sum",
+          "meaning": "Add every individual tier cost in the stated range."
+        }
+      ]
+    },
+    {
+      "title": "Browser level from XP",
+      "expression": "Level = maximum L in [0,10] where TotalXP(L) ≤ round(max(0, EffectiveXP))",
+      "ariaLabel": "The browser level is the greatest level from zero through ten whose cumulative threshold does not exceed rounded non-negative effective XP.",
+      "explanation": "At exactly a threshold, the new level is reached. XP below the Lv.1 threshold remains Lv.0.",
+      "terms": [
+        {
+          "symbol": "L",
+          "meaning": "A candidate browser level from zero through ten."
+        }
+      ]
+    },
+    {
+      "title": "Progress inside the current browser level",
+      "expression": "CurrentXP = clamp(XP − TotalXP(currentLevel), 0, TierXP(nextLevel)); Ratio = CurrentXP ÷ TierXP(nextLevel)",
+      "ariaLabel": "Current-level XP subtracts the cumulative threshold already earned, clamps to the next tier cost, and divides by that cost for the detail progress ratio.",
+      "explanation": "At Lv.10, current and required are both zero, ratio is one, and the label shows lifetime Total XP instead.",
+      "terms": [
+        {
+          "symbol": "clamp",
+          "meaning": "Keep a value inside the stated minimum and maximum."
+        }
+      ]
+    },
+    {
+      "title": "Two different Profile progress bars",
+      "expression": "CardWidth = max(4%, 100% × level ÷ 10); DetailWidth = 100% × CurrentXP ÷ TierXP(nextLevel)",
+      "ariaLabel": "The skill card bar uses level out of ten with a four percent minimum, while the detail bar uses XP progress inside the current tier.",
+      "explanation": "The visual difference is intentional. The 4% minimum makes a Lv.0 card visible and is not earned progress.",
+      "terms": [
+        {
+          "symbol": "CardWidth",
+          "meaning": "The compact bar shown on every skill card."
+        },
+        {
+          "symbol": "DetailWidth",
+          "meaning": "The longer bar inside the selected skill detail."
+        }
+      ]
+    },
+    {
+      "title": "Chain XP awards",
+      "expression": "Precision += acceptedBlocks; Exploration += actualExtraDrops; Smelting += selectedInputIndexes; Forging += 25 × finalGrade²",
+      "ariaLabel": "Chain Precision increases by accepted block count, Exploration by actual extra drops, Smelting by selected input count, and Forging by twenty-five times final grade squared.",
+      "explanation": "Each quantity is calculated in its accepting program. Precision and Exploration share Chunk Progress, Smelting uses Game/Smelting Progress, and Forging uses PlayerProfile.",
+      "terms": [
+        {
+          "symbol": "finalGrade",
+          "meaning": "The grade after Backpack applies material, item-level, skill, and cap rules; it is between 1 and 10."
+        }
+      ]
+    },
+    {
+      "title": "Current cross-device recovery mapping",
+      "expression": "RefreshChainXP = {Precision: Chunk.precision, Exploration: Chunk.exploration, Forging: PlayerProfile.forging}; GameSmelting.smelting is not fetched",
+      "ariaLabel": "Current refresh recovers Precision and Exploration from Chunk and Forging from PlayerProfile, but it does not fetch Smelting from the Game Smelting program domain.",
+      "explanation": "The fetched Chunk-shaped object also contains a smelting field, but that field is not the account written by the Smelting execution program.",
+      "terms": [
+        {
+          "symbol": "RefreshChainXP",
+          "meaning": "The positive values supplied to the Profile browser merge after one current refresh."
+        }
+      ]
+    },
+    {
+      "title": "One Forging XP total, two level functions",
+      "expression": "BrowserForgingLevel = BrowserCurve(forging_xp); ContractForgingLevel = BackpackTable(forging_xp)",
+      "ariaLabel": "The Profile browser curve and Backpack contract table convert the same PlayerProfile forging XP through different thresholds.",
+      "explanation": "At 45,000 XP the browser level is 4 and the contract level is 10. The browser reaches level 5 at 45,014 XP.",
+      "terms": [
+        {
+          "symbol": "forging_xp",
+          "meaning": "The one u64 total stored in PlayerProfile at offset 449."
+        }
+      ]
+    },
+    {
+      "title": "The two visible overall Level labels",
+      "expression": "ProfileLevel = 1 + floor(sum(ten skill levels) ÷ 10); HUDLevel = 1 + floor(confirmedMines ÷ 25)",
+      "ariaLabel": "Profile Level averages the ten skill levels in integer groups, while HUD Level counts groups of twenty-five confirmed mines.",
+      "explanation": "These labels answer different questions and can disagree without a refresh failure or corrupted account.",
+      "terms": [
+        {
+          "symbol": "floor",
+          "meaning": "Discard the fractional remainder after division."
+        }
+      ]
+    },
+    {
+      "title": "Exact JavaScript integer boundary",
+      "expression": "Number(u64) is guaranteed integer-exact only when u64 ≤ 2^53 − 1 = 9,007,199,254,740,991",
+      "ariaLabel": "Converting a chain unsigned sixty-four-bit integer to JavaScript Number is guaranteed exact only through two to the fifty-third power minus one.",
+      "explanation": "The current Progress decoder converts readBigUInt64LE results directly to Number. Ordinary observed XP is far smaller, but the type boundary should still be documented honestly.",
+      "terms": [
+        {
+          "symbol": "u64",
+          "meaning": "An unsigned 64-bit chain integer with a larger range than JavaScript's exactly representable integers."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Production Play loads the modular entry",
+      "language": "HTML",
+      "source": "play/index.html",
+      "code": "    <script type=\"module\" src=\"./main.js\"></script>",
+      "explanation": "All production browser claims in this guide start from /play/index.html, then /play/main.js and the play/* modules it imports. The older /src/main.js is not used to prove these current flows.",
+      "walkthrough": [
+        {
+          "lines": "Line 1",
+          "meaning": "Load /play/main.js relative to the current /play/ page."
+        }
+      ]
+    },
+    {
+      "title": "Behavior storage is scoped to an encoded owner or guest",
+      "language": "JavaScript",
+      "source": "play/game-state.js",
+      "code": "export function walletScopedPlayStorageKey(baseKey, ownerAddress = \"\") {\n  const owner = normalizeOwnerAddress(ownerAddress);\n  return `${String(baseKey || \"\")}.${owner ? encodeURIComponent(owner) : \"guest\"}`;\n}",
+      "explanation": "PLAYER_PROFILE_STORAGE_KEY is nicechunk.play.profile.v1. This helper adds a period and either the encoded wallet owner or guest, keeping local behavior counters separated by browser owner.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–2",
+          "meaning": "Normalize the owner string before forming a storage key."
+        },
+        {
+          "lines": "Line 3",
+          "meaning": "Append an encoded owner, or guest when no owner exists."
+        }
+      ]
+    },
+    {
+      "title": "Mining confirms local rewards or reverses the pending count",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "    pendingTx.push(pending);\n    gameState.playerProfile.minedBlocks += planBlocks.length;\n    gameState.savePlayerProfile();\n    onPending(pending);\n    onChanged();\n    return pending;\n  }\n\n  function confirmLast() {\n    return confirmPendingAt(pendingTx.length - 1);\n  }\n\n  function confirmTx(txId) {\n    return confirmPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function confirmPendingAt(index) {\n    const pending = index >= 0 ? pendingTx[index] : null;\n    if (!pending) {\n      onStatus(\"No pending delta to confirm.\");\n      return null;\n    }\n    const { txId } = pending;\n    chunks.applyPendingDelta(pending.pendingDeltas ?? pending.blocks?.map((block) => ({\n      worldX: block.worldX,\n      worldY: block.worldY,\n      worldZ: block.worldZ,\n      blockId: blockAirId,\n    })) ?? [], txId);\n    chunks.confirmPendingDelta(txId);\n    pendingTx.splice(index, 1);\n    const confirmedItems = (pending.rewardGroups ?? []).reduce((sum, group) => sum + Math.max(0, Math.trunc(group.count || 0)), 0);\n    gameState.playerProfile.confirmedMines += Math.max(1, Math.trunc(pending.minedBlockCount || 1));\n    gameState.playerProfile.resourcesCollected += confirmedItems;\n    gameState.savePlayerProfile();\n    onConfirm(pending);\n    onChanged();\n    return pending;\n  }\n\n  function rollbackLast() {\n    return rollbackPendingAt(pendingTx.length - 1);\n  }\n\n  function rollbackTx(txId) {\n    return rollbackPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function rollbackPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending delta to rollback.\");\n      return null;\n    }\n    const damageEntries = Array.isArray(pending.toolDamageBySlot) && pending.toolDamageBySlot.length\n      ? pending.toolDamageBySlot\n      : Number.isInteger(pending.toolSlotIndex) && Number(pending.toolDamage) > 0\n        ? [{ slotIndex: pending.toolSlotIndex, amount: pending.toolDamage }]\n        : [];\n    for (const entry of damageEntries) {\n      gameState.restoreToolDamage(entry.slotIndex, entry.amount);\n    }\n    gameState.playerProfile.rolledBackMines += 1;\n    gameState.playerProfile.minedBlocks = Math.max(0, gameState.playerProfile.minedBlocks - Math.max(1, Math.trunc(pending.minedBlockCount || 1)));\n    gameState.savePlayerProfile();\n    onRollback(pending);\n    onChanged();\n    return pending;\n  }",
+      "explanation": "The local minedBlocks counter changes while pending. Confirmation adds confirmed block count and actual reward-group item count. Rollback restores recorded tool wear, records the rollback, and removes the planned block count.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Record the pending plan and immediately increase local minedBlocks."
+        },
+        {
+          "lines": "Lines 17–39",
+          "meaning": "Confirm the world delta, then increase confirmedMines and resourcesCollected."
+        },
+        {
+          "lines": "Lines 49–68",
+          "meaning": "Restore local tool damage, record rollback history, and subtract pending blocks."
+        }
+      ]
+    },
+    {
+      "title": "Placement uses the same pending, confirm, and rollback shape",
+      "language": "JavaScript",
+      "source": "play/placement-controller.js",
+      "code": "    pendingTx.push(pending);\n    gameState.playerProfile.placedBlocks = (gameState.playerProfile.placedBlocks || 0) + 1;\n    gameState.savePlayerProfile();\n    onPending(pending);\n    onChanged();\n    onStatus(`Pending place ${txId}: ${def.name} at ${target.worldX}, ${target.worldY}, ${target.worldZ}.`);\n    return pending;\n  }\n\n  function confirmLast() {\n    return confirmPendingAt(pendingTx.length - 1);\n  }\n\n  function confirmTx(txId) {\n    return confirmPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function confirmPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending placement to confirm.\");\n      return null;\n    }\n    chunks.confirmPendingDelta(pending.txId);\n    gameState.playerProfile.confirmedPlacements = (gameState.playerProfile.confirmedPlacements || 0) + 1;\n    gameState.savePlayerProfile();\n    onConfirm(pending);\n    onChanged();\n    onStatus(`Confirmed placement ${pending.txId}.`);\n    return pending;\n  }\n\n  function rollbackLast() {\n    return rollbackPendingAt(pendingTx.length - 1);\n  }\n\n  function rollbackTx(txId) {\n    return rollbackPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function rollbackPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending placement to rollback.\");\n      return null;\n    }\n    chunks.rollbackPendingDelta(pending.txId);\n    if (pending.consumed) gameState.restoreBackpackSlotSnapshot?.(pending.consumed);\n    gameState.syncHotbarResourceSlots?.();\n    gameState.playerProfile.rolledBackPlacements = (gameState.playerProfile.rolledBackPlacements || 0) + 1;\n    gameState.playerProfile.placedBlocks = Math.max(0, (gameState.playerProfile.placedBlocks || 0) - 1);\n    gameState.savePlayerProfile();\n    onRollback(pending);\n    onChanged();\n    onStatus(`Rolled back placement ${pending.txId}. Block and backpack stack restored.`);\n    return pending;\n  }",
+      "explanation": "placedBlocks moves at the pending stage, confirmedPlacements moves only after success, and rollback restores both the world delta and consumed Backpack snapshot before decreasing placedBlocks.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Increase placedBlocks before final confirmation."
+        },
+        {
+          "lines": "Lines 18–31",
+          "meaning": "Confirm the delta and add one confirmed placement."
+        },
+        {
+          "lines": "Lines 41–56",
+          "meaning": "Restore the block input, record rollback history, and reverse placedBlocks."
+        }
+      ]
+    },
+    {
+      "title": "The browser derives all ten XP keys from local counters",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "export function deriveProfileSkillXp(profile = {}) {\n  const mined = positiveInt(profile.minedBlocks);\n  const confirmedMines = positiveInt(profile.confirmedMines);\n  const resources = positiveInt(profile.resourcesCollected);\n  const placed = positiveInt(profile.placedBlocks);\n  const confirmedPlacements = positiveInt(profile.confirmedPlacements);\n  const smeltingRuns = positiveInt(profile.smeltingRuns);\n  const materials = positiveInt(profile.materialsSmelted);\n  return {\n    precisionGathering: resources * 90 + confirmedMines * 25,\n    burden: resources * 18 + materials * 12,\n    smelting: smeltingRuns * 160 + materials * 90,\n    forging: materials * 38 + smeltingRuns * 45,\n    craftsmanship: confirmedPlacements * 85 + placed * 18 + materials * 28,\n    swiftness: mined * 5 + placed * 4,\n    exploration: confirmedMines * 44 + resources * 10,\n    stamina: mined * 9 + placed * 7,\n    strength: mined * 12 + resources * 6,\n    appraisal: resources * 22 + materials * 36,\n  };\n}",
+      "explanation": "The function always returns ten finite values, even when every counter is zero. That detail later causes the XP-derived path to take precedence over the older manual-level object.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Normalize seven local behavior counters to positive integers."
+        },
+        {
+          "lines": "Lines 9–20",
+          "meaning": "Build every skill XP total with its exact production coefficients."
+        }
+      ]
+    },
+    {
+      "title": "Scoped or legacy storage is selected once, then XP keeps per-skill maxima",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "function loadProfileSkillLevels(owner) {\n  return loadJsonObject(profileSkillStorageKey(owner), \"nicechunk.playerSkills\");\n}\n\nfunction loadProfileSkillXp(owner) {\n  return loadJsonObject(profileSkillXpStorageKey(owner), \"nicechunk.playerSkillXp\");\n}\n\nfunction profileSkillStorageKey(owner) {\n  return `${PROFILE_SKILL_STORAGE_PREFIX}${String(owner || \"guest\")}`;\n}\n\nfunction profileSkillXpStorageKey(owner) {\n  return `${PROFILE_SKILL_XP_STORAGE_PREFIX}${String(owner || \"guest\")}`;\n}\n\nfunction loadJsonObject(primaryKey, fallbackKey) {\n  try {\n    const storage = globalThis.localStorage;\n    if (!storage) return {};\n    const raw = storage.getItem(primaryKey) || storage.getItem(fallbackKey);\n    const parsed = raw ? JSON.parse(raw) : {};\n    return parsed && typeof parsed === \"object\" && !Array.isArray(parsed) ? parsed : {};\n  } catch {\n    return {};\n  }\n}\n\nfunction mergeSkillXp(...sources) {\n  const result = {};\n  for (const source of sources) {\n    if (!source || typeof source !== \"object\") continue;\n    for (const [key, value] of Object.entries(source)) {\n      const numeric = Math.max(0, Math.round(Number(value) || 0));\n      result[key] = Math.max(result[key] || 0, numeric);\n    }\n  }\n  return result;\n}",
+      "explanation": "The loader uses one raw scoped value or one fallback raw value; it does not merge their fields. The later merge loops over XP sources and retains the greatest number for each skill key.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–14",
+          "meaning": "Form owner-scoped skill-level and skill-XP keys with older global fallbacks."
+        },
+        {
+          "lines": "Lines 16–26",
+          "meaning": "Select primary OR fallback and parse exactly one object."
+        },
+        {
+          "lines": "Lines 28–38",
+          "meaning": "Round each source value and keep the per-skill maximum."
+        }
+      ]
+    },
+    {
+      "title": "Rounded tier costs accumulate before the browser chooses a level",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "export function profileSkillExperienceRequirement(skill, level) {\n  if (level >= PROFILE_SKILL_MAX_LEVEL) return 0;\n  const nextLevel = Math.max(1, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.trunc(level) + 1));\n  return Math.round((skill?.xpBase ?? 100) * PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER * Math.pow(nextLevel, skill?.xpGrowth ?? 1.55));\n}\n\nexport function profileSkillTotalExperienceForLevel(skill, level) {\n  let total = 0;\n  const capped = Math.max(0, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.round(Number(level) || 0)));\n  for (let previousLevel = 0; previousLevel < capped; previousLevel += 1) {\n    total += profileSkillExperienceRequirement(skill, previousLevel);\n  }\n  return total;\n}\n\nexport function profileSkillLevelFromXp(skill, xp) {\n  const total = Math.max(0, Math.round(Number(xp) || 0));\n  let level = 0;\n  for (let nextLevel = 1; nextLevel <= PROFILE_SKILL_MAX_LEVEL; nextLevel += 1) {\n    if (total < profileSkillTotalExperienceForLevel(skill, nextLevel)) break;\n    level = nextLevel;\n  }\n  return level;\n}",
+      "explanation": "Each target tier is rounded separately. The cumulative function sums those tier costs, and the level loop stops at the first cumulative threshold that XP has not reached.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Calculate one additional tier cost from xpBase and xpGrowth."
+        },
+        {
+          "lines": "Lines 7–14",
+          "meaning": "Add every earlier tier cost to obtain a cumulative threshold."
+        },
+        {
+          "lines": "Lines 16–24",
+          "meaning": "Return the greatest cumulative level reached by effective XP."
+        }
+      ]
+    },
+    {
+      "title": "Production main rebuilds skill effects from local Profile and chain XP",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "function refreshProfileSkillEffects() {\n  const snapshot = chainSnapshot?.() ?? {};\n  profileSkillEffects = createProfileSkillEffects({\n    owner: snapshot.walletAddress || gameState.playerProfile?.name || \"guest\",\n    profile: gameState.playerProfile,\n    chainXp: snapshot.playerSkillXp || snapshot.skillXp || null,\n  });\n  if (controls) controls.speed = BASE_PLAYER_SPEED * (profileSkillEffects.movementSpeedMultiplier || 1);\n  return profileSkillEffects;\n}",
+      "explanation": "The active /play/main.js joins the wallet owner, local behavior Profile, and refreshed chain XP before the Profile UI reads the skill state. This is also where the resulting Swiftness multiplier reaches local controls.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Build current skill effects from owner-scoped local data and supplied chain XP."
+        },
+        {
+          "lines": "Lines 8–9",
+          "meaning": "Apply the one current local movement consumer and return the effects object."
+        }
+      ]
+    },
+    {
+      "title": "The card and detail bars use different denominators",
+      "language": "JavaScript",
+      "source": "play/play-profile-ui.js",
+      "code": "    const progress = document.createElement(\"div\");\n    progress.className = \"profile-skill-progress\";\n    const fill = document.createElement(\"span\");\n    fill.style.width = `${Math.max(4, Math.min(100, (level / PROFILE_SKILL_MAX_LEVEL) * 100))}%`;\n    progress.append(fill);\n\n    card.append(head, progress);\n    return card;\n  }\n\n  function renderSkillDetail(skill, copy, level, metrics, xpProgress) {\n    if (!elements.profileSkillDetail) return;\n    elements.profileSkillDetail.hidden = false;\n    elements.profileSkillDetail.dataset.skillTone = skill.tone;\n    elements.profileSkillDetail.replaceChildren();\n\n    const header = document.createElement(\"header\");\n    header.className = \"profile-skill-detail-header\";\n    header.append(createProfileSkillIcon(skill));\n    const titleWrap = document.createElement(\"div\");\n    const title = document.createElement(\"h3\");\n    title.textContent = copy.name;\n    const levelLabel = document.createElement(\"span\");\n    levelLabel.textContent = ui(\"main.profile.skillLevel\", \"Lv. {level}/{max}\", { level, max: PROFILE_SKILL_MAX_LEVEL });\n    const xpLabel = document.createElement(\"small\");\n    xpLabel.textContent = profileXpLabel(level, xpProgress);\n    titleWrap.append(title, levelLabel, xpLabel);\n    header.append(titleWrap);\n\n    const description = document.createElement(\"p\");\n    description.className = \"profile-skill-detail-description\";\n    description.textContent = copy.description;\n\n    const progress = document.createElement(\"div\");\n    progress.className = \"profile-skill-progress profile-skill-detail-progress\";\n    const progressFill = document.createElement(\"span\");\n    progressFill.style.width = `${Math.round(xpProgress.ratio * 100)}%`;\n    progress.append(progressFill);",
+      "explanation": "The compact card uses level divided by the ten-level cap, with a 4% visual minimum. The selected skill detail instead uses the current tier's XP ratio.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Render the compact level-out-of-ten card bar."
+        },
+        {
+          "lines": "Lines 11–38",
+          "meaning": "Render the separate detail view and its within-tier ratio bar."
+        }
+      ]
+    },
+    {
+      "title": "Refresh requests Profile, Equipment, Appearance, and one Progress in parallel",
+      "language": "JavaScript",
+      "source": "play/play-chain-player.js",
+      "code": "    const now = performance.now();\n    if (state.loading) return { ok: false, reason: \"already-loading\" };\n    if (!force && state.owner === wallet && now - state.lastSyncAt < PLAYER_SYNC_INTERVAL_MS) return { ok: false, reason: \"cooldown\" };\n\n    state.loading = true;\n    state.owner = wallet;\n    try {\n      const module = await loadPlayChainModule();\n      const [profileResult, equipmentResult, appearanceResult, progressResult] = await Promise.allSettled([\n        typeof module.fetchPlayerProfileForOwner === \"function\" ? module.fetchPlayerProfileForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerEquipmentForOwner === \"function\" ? module.fetchPlayerEquipmentForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerAppearanceForOwner === \"function\" ? module.fetchPlayerAppearanceForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerProgress === \"function\" ? module.fetchPlayerProgress(wallet) : Promise.resolve(null),\n      ]);\n      const nextProfile = settledValue(profileResult);\n      const nextEquipment = settledValue(equipmentResult);\n      const nextAppearance = settledValue(appearanceResult);\n      const nextProgress = settledValue(progressResult);\n      const nextSkillXp = skillXpFromProgress(nextProgress, nextProfile);\n      const previousSignature = stateSignature(state);\n      state.profile = nextProfile?.initialized === false ? null : nextProfile;\n      state.equipmentReadKnown = equipmentResult?.status === \"fulfilled\";\n      state.equipment = nextEquipment?.initialized === false ? null : nextEquipment;\n      state.appearance = nextAppearance?.initialized === false ? null : nextAppearance;\n      state.progress = nextProgress;\n      state.skillXp = nextSkillXp;\n      state.lastError = firstRejectedReason(profileResult, equipmentResult, appearanceResult, progressResult);\n      state.lastSyncAt = performance.now();\n      applyEquipmentSnapshot();\n      migrateEquipmentIfNeeded();\n      const changed = previousSignature !== stateSignature(state);\n      if (changed) onChanged(snapshot());",
+      "explanation": "PLAYER_SYNC_INTERVAL_MS is 18,000 milliseconds. Unless forced, the same owner is rate-limited; then Profile, Equipment, Appearance, and Progress reads settle independently. The refresh records whether the Equipment read fulfilled, attempts to apply any initialized Equipment snapshot, and runs migration checks; the first rejection is reported without cancelling the other settled results.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–3",
+          "meaning": "Enforce the refresh cooldown when a forced refresh was not requested."
+        },
+        {
+          "lines": "Lines 5–14",
+          "meaning": "Mark the refresh active, load the chain module, and start the four current Profile, Equipment, Appearance, and Progress reads together."
+        },
+        {
+          "lines": "Lines 15–32",
+          "meaning": "Unwrap all four results, derive XP from Profile and Progress, retain the Equipment result and its read-known flag, report the first rejection across four reads, then run the Equipment snapshot and migration helpers before notifying only when state changed."
+        }
+      ]
+    },
+    {
+      "title": "The Profile chain XP object reads four positive fields",
+      "language": "JavaScript",
+      "source": "play/play-chain-player.js",
+      "code": "function skillXpFromProgress(progress, profile) {\n  const result = {};\n  const precision = positiveInt(progress?.precisionGatheringXp);\n  const smelting = positiveInt(progress?.smeltingXp);\n  const exploration = positiveInt(progress?.explorationXp);\n  const forging = positiveInt(profile?.forgingXp);\n  if (precision) result.precisionGathering = precision;\n  if (smelting) result.smelting = smelting;\n  if (exploration) result.exploration = exploration;\n  if (forging) result.forging = forging;\n  return Object.keys(result).length ? result : null;\n}",
+      "explanation": "Precision, Smelting, and Exploration are taken from the one fetched Progress shape, while Forging is taken from PlayerProfile. Zero values are omitted from the chain object.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Read three Progress fields and one Profile field as positive integers."
+        },
+        {
+          "lines": "Lines 7–11",
+          "meaning": "Include only positive values, or return null when none exist."
+        }
+      ]
+    },
+    {
+      "title": "Chunk and Smelting derive the same seeds under different program IDs",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function derivePlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.chunkProgramId);\n}\n\nfunction deriveSmeltingPlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.smeltingProgramId);\n}",
+      "explanation": "The shared lower-level helper uses [player-progress, GlobalConfig, owner], but PDA derivation also includes the program ID. These wrappers therefore return different addresses for the same owner.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–3",
+          "meaning": "Derive the Profile-visible Progress address in the Chunk domain."
+        },
+        {
+          "lines": "Lines 5–7",
+          "meaning": "Derive the execution Smelting Progress address in the Game/Smelting domain."
+        }
+      ]
+    },
+    {
+      "title": "Current fetchPlayerProgress reads only the Chunk-owned address",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchPlayerProgress(ownerAddress) {\n  if (!ownerAddress) return null;\n  const owner = typeof ownerAddress === \"string\" ? new PublicKey(ownerAddress) : ownerAddress;\n  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);\n  const account = await getNicechunkConnection().getAccountInfo(playerProgress, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      publicKey: playerProgress.toBase58(),\n      owner: owner.toBase58(),\n      precisionGatheringXp: 0,\n      smeltingXp: 0,\n      explorationXp: 0,\n    };\n  }\n  if (!account.owner.equals(gameContext.chunkProgramId)) return null;\n  const data = account.data;\n  if (data.length !== playerProgressLength || data.subarray(0, 8).toString(\"utf8\") !== playerProgressMagic) return null;\n  return {\n    publicKey: playerProgress.toBase58(),\n    owner: owner.toBase58(),\n    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),\n    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),\n    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),\n    programId: account.owner.toBase58(),\n  };\n}",
+      "explanation": "The function derives the Chunk wrapper, requires Chunk ownership, and decodes the shared byte shape. It never calls the Smelting wrapper, so its smeltingXp field is the Chunk account's field, not Game/Smelting progress.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Derive and fetch the Chunk-domain Progress PDA."
+        },
+        {
+          "lines": "Lines 6–14",
+          "meaning": "Return an all-zero Chunk-shaped object when the account is absent."
+        },
+        {
+          "lines": "Lines 15–26",
+          "meaning": "Require Chunk ownership and convert three u64 fields directly to JavaScript Number."
+        }
+      ]
+    },
+    {
+      "title": "Chunk defines matching Precision and Exploration thresholds and one-XP awards",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "pub const PLAYER_PROGRESS_PRECISION_XP_OFFSET: usize = 76;\npub const PLAYER_PROGRESS_CREATED_SLOT_OFFSET: usize = 84;\npub const PLAYER_PROGRESS_UPDATED_SLOT_OFFSET: usize = 92;\npub const PLAYER_PROGRESS_CREATED_AT_OFFSET: usize = 100;\npub const PLAYER_PROGRESS_SMELTING_XP_OFFSET: usize = 108;\npub const PLAYER_PROGRESS_EXPLORATION_XP_OFFSET: usize = 116;\npub const PLAYER_PROGRESS_EXPLORED_CHUNK_COUNT_OFFSET: usize = 124;\npub const PRECISION_GATHERING_XP_PER_BLOCK: u64 = 1;\npub const EXPLORATION_XP_PER_EXTRA_DROP: u64 = 1;\npub const RESOURCE_BLOCK_VOLUME_MM3: u32 = 1_000_000;\npub const PRECISION_GATHERING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 900, 3_481, 8_261, 15_663, 26_054, 39_764, 57_094, 78_323, 103_715, 133_517,\n];\npub const EXPLORATION_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_250, 4_961, 11_975, 22_994, 38_636, 59_462, 85_991, 118_707, 158_068, 204_510,\n];",
+      "explanation": "The Chunk Progress layout still contains a smelting-shaped field, but Chunk's active skill constants here are Precision and Exploration. Their level tables match the browser cumulative curves.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Locate the three XP fields and explored chunk count in the common Progress layout."
+        },
+        {
+          "lines": "Lines 8–9",
+          "meaning": "Award one XP per accepted block and actual extra drop."
+        },
+        {
+          "lines": "Lines 11–16",
+          "meaning": "Define cumulative contract levels from Lv.0 through Lv.10."
+        }
+      ]
+    },
+    {
+      "title": "Ordinary Chunk mining adds Precision and conditional Exploration XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    {\n        let mut data = player_progress.try_borrow_mut_data()?;\n        PlayerProgressState::add_precision_gathering_xp(\n            &mut data,\n            &context.owner,\n            global_config.key,\n            PRECISION_GATHERING_XP_PER_BLOCK,\n            context.clock.slot,\n        )?;\n        if extra_drop.is_some() {\n            PlayerProgressState::add_exploration_xp(\n                &mut data,\n                &context.owner,\n                global_config.key,\n                EXPLORATION_XP_PER_EXTRA_DROP,\n                context.clock.slot,\n            )?;\n        }",
+      "explanation": "After the reward path, Chunk always adds one Precision increment for the accepted ordinary block. Exploration advances only when the actual optional extra_drop exists.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–9",
+          "meaning": "Borrow Chunk Progress and add the per-block Precision award."
+        },
+        {
+          "lines": "Lines 10–18",
+          "meaning": "Add Exploration only for a realized extra drop."
+        }
+      ]
+    },
+    {
+      "title": "Game/Smelting owns its matching level table and per-input XP constant",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/state.rs",
+      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 7_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 300;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
+      "explanation": "Smelting's output percentage grows from 7,000 basis points by 300 per contract level. Its XP table matches the browser curve, and the award unit is one XP per selected input.",
+      "walkthrough": [
+        {
+          "lines": "Lines 4–7",
+          "meaning": "Define the output basis-point parameters and one-XP input award."
+        },
+        {
+          "lines": "Lines 9–11",
+          "meaning": "Define cumulative Smelting thresholds from Lv.0 through Lv.10."
+        }
+      ]
+    },
+    {
+      "title": "Accepted Smelting adds XP from the selected input count",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    {\n        let mut progress_data = player_progress.try_borrow_mut_data()?;\n        PlayerProgressState::add_smelting_xp(\n            &mut progress_data,\n            owner.key,\n            global_config.key,\n            (indexes.len() as u64).saturating_mul(SMELTING_XP_PER_INPUT),\n            clock.slot,\n        )?;\n    }\n    Ok(())\n}",
+      "explanation": "After input removal and output append in this instruction, the program multiplies the number of selected input indexes by one. This writes Game/Smelting Progress, not the browser's local counters.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–9",
+          "meaning": "Borrow Smelting Progress and add one XP for each selected input index."
+        },
+        {
+          "lines": "Lines 10–12",
+          "meaning": "Return success only after the XP write succeeds."
+        }
+      ]
+    },
+    {
+      "title": "Backpack derives Forging XP from final grade squared",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "    let skill_factor = 90_u64\n        .saturating_add(grade as u64 * 5)\n        .saturating_add(forging_level.min(10) as u64 * 3);\n    let level_factor = 100_u64.saturating_add(item_level as u64 / 2);\n    let candidate = total_effective_durability\n        .saturating_mul(skill_factor)\n        .saturating_mul(level_factor)\n        / 10_000;\n    let material_cap = total_raw_durability\n        .saturating_mul(105_u64.saturating_add(forging_level.min(10) as u64))\n        / 100;\n    let durability_max = candidate\n        .max(1)\n        .min(material_cap.max(1))\n        .min(u32::MAX as u64) as u32;\n    let gained_xp = (grade as u64)\n        .saturating_mul(grade as u64)\n        .saturating_mul(25);\n\n    ForgeOutcome {\n        grade,\n        item_level,\n        durability_max,\n        quality_bps,\n        volume_mm3: total_volume.max(1).min(u32::MAX as u64) as u32,\n        gained_xp,\n    }",
+      "explanation": "The final outcome already includes material and skill constraints. XP then depends only on the resulting grade: grade multiplied by itself and by 25.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–15",
+          "meaning": "Bound accepted durability with skill, level, and material caps."
+        },
+        {
+          "lines": "Lines 16–18",
+          "meaning": "Calculate gained Forging XP as 25 times grade squared."
+        },
+        {
+          "lines": "Lines 20–27",
+          "meaning": "Return XP with the rest of the verified ForgeOutcome."
+        }
+      ]
+    },
+    {
+      "title": "Backpack uses a separate fixed Forging level table",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "pub fn forging_level_from_xp(xp: u64) -> u8 {\n    let mut level = 0_u8;\n    for (index, required_total) in FORGING_TOTAL_XP_BY_LEVEL.iter().enumerate() {\n        if xp >= *required_total {\n            level = index as u8;\n        }\n    }\n    level.min(10)\n}\n\nconst FORGING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 250, 900, 2_100, 4_000, 6_800, 10_700, 16_000, 23_000, 32_000, 45_000,\n];",
+      "explanation": "This contract table reaches Lv.10 at 45,000 XP. It is not generated from the browser's xpBase 140 and xpGrowth 1.60 parameters.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–9",
+          "meaning": "Choose the greatest contract threshold reached by the u64 XP total."
+        },
+        {
+          "lines": "Lines 11–13",
+          "meaning": "List the fixed cumulative Lv.0–10 Forging thresholds."
+        }
+      ]
+    },
+    {
+      "title": "Backpack appends the outcome before invoking Player XP in the same transaction",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let forging_level = {\n        let player_profile_data = player_profile.try_borrow_data()?;\n        PlayerProfileView::validate_owner(&player_profile_data, owner.key)?;\n        PlayerProfileView::forging_level(&player_profile_data)?\n    };\n    validate_existing_backpack_pda(program_id, backpack, owner.key)?;\n\n    let clock = Clock::get()?;\n    let outcome = {\n        let mut backpack_data = backpack.try_borrow_mut_data()?;\n        BackpackAccount::forge_equipment_from_verified_materials(\n            &mut backpack_data,\n            owner.key,\n            indexes,\n            item_id,\n            design_hash,\n            player_profile.key,\n            forging_level,\n            clock.slot,\n            requirements,\n        )?\n    };\n\n    add_forging_xp_to_player(\n        program_id,\n        owner,\n        backpack,\n        player_profile,\n        player_program,\n        system_program_account,\n        &outcome,\n    )\n}",
+      "explanation": "Backpack reads the Profile's contract Forging level, mutates the Backpack with the verified result, and then performs the Player XP call. A failure returned by the last call fails the same Solana transaction, rolling back the tentative Backpack change.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Validate the Profile owner and obtain the contract Forging level."
+        },
+        {
+          "lines": "Lines 8–22",
+          "meaning": "Calculate and tentatively append the verified forged result."
+        },
+        {
+          "lines": "Lines 24–33",
+          "meaning": "Invoke Player to persist XP; propagated failure keeps the action atomic."
+        }
+      ]
+    },
+    {
+      "title": "Player accumulates Forging XP inside PlayerProfile",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn add_forging_result(\n        dst: &mut [u8],\n        owner: &Pubkey,\n        gained_xp: u64,\n        grade: u8,\n        item_level: u8,\n        updated_slot: u64,\n    ) -> ProgramResult {\n        if dst.len() != Self::LEN {\n            return Err(NicechunkPlayerError::InvalidPlayerProfileData.into());\n        }\n        Self::validate_owner(dst, owner)?;\n        let next_xp = read_u64(dst, Self::FORGING_XP_OFFSET).saturating_add(gained_xp);\n        let next_count = read_u32(dst, Self::FORGED_ITEM_COUNT_OFFSET).saturating_add(1);\n        dst[8..10].copy_from_slice(&PLAYER_PROFILE_VERSION.to_le_bytes());\n        dst[Self::FORGING_XP_OFFSET..Self::FORGING_XP_OFFSET + 8]\n            .copy_from_slice(&next_xp.to_le_bytes());\n        dst[Self::FORGED_ITEM_COUNT_OFFSET..Self::FORGED_ITEM_COUNT_OFFSET + 4]\n            .copy_from_slice(&next_count.to_le_bytes());\n        dst[Self::BEST_FORGED_GRADE_OFFSET] = dst[Self::BEST_FORGED_GRADE_OFFSET].max(grade);\n        dst[Self::BEST_FORGED_ITEM_LEVEL_OFFSET] =\n            dst[Self::BEST_FORGED_ITEM_LEVEL_OFFSET].max(item_level);\n        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())",
+      "explanation": "After the Player instruction validates the current owner-derived Profile and Backpack authority, this state function saturating-adds XP at FORGING_XP_OFFSET, which is declared as byte offset 449.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–12",
+          "meaning": "Validate the exact Profile layout and stored owner."
+        },
+        {
+          "lines": "Lines 13–18",
+          "meaning": "Add Forging XP and store the new u64 total."
+        },
+        {
+          "lines": "Lines 19–25",
+          "meaning": "Update forge count, best results, and the observation slot."
+        }
+      ]
+    },
+    {
+      "title": "Production Smelting refreshes authoritative Backpack state without writing local Smelting counters",
+      "language": "JavaScript",
+      "source": "play/play-smelting.js",
+      "code": "    try {\n      const chainModule = await loadPlayChainModule();\n      if (typeof chainModule.executeSmeltingOnChain !== \"function\") throw new Error(\"smelting-submit-unavailable\");\n      const result = await chainModule.executeSmeltingOnChain({\n        recipeId: chainIdentity.recipeId,\n        recipeTableId: chainIdentity.recipeTableId,\n        inputIndexes,\n        fuelIndexes,\n        batchMultiplier: state.servings,\n        backpackAddress: snapshot.backpackAddress || null,\n      });\n      if (!result?.submitted) {\n        const error = new Error(String(result?.reason || \"smelting-not-submitted\"));\n        error.result = result;\n        throw error;\n      }\n      state.running = false;\n      state.complete = true;\n      state.progress = 100;\n      state.result = { kind: \"success\", signature: String(result.signature || \"\"), result };\n      const refreshResult = await refreshBackpack({\n        previousUpdatedSlot: snapshot.updatedSlot,\n        force: true,\n      });\n      if (!refreshResult?.ok) {\n        console.warn(\"[NiceChunk Smelting] Transaction confirmed but PDA refresh is pending.\", refreshResult);\n      }\n      state.inputSlotIds = [];\n      state.fuelSlotId = \"\";\n      state.servings = 1;\n      invalidateRender();\n      onChanged();\n      onStatus(ui(\"main.smelting.submitComplete\", \"Smelting confirmed on-chain: {signature}\", {\n        signature: shortSignature(result.signature),\n      }));\n      render({ force: true });",
+      "explanation": "The current success path submits selected indexes, marks the interface complete, force-refreshes the Backpack PDA, clears the selection, and renders. No assignment increments playerProfile.smeltingRuns or playerProfile.materialsSmelted; the checker also searches every production play/*.js file for such a writer.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–16",
+          "meaning": "Submit the real Game/Smelting instruction with selected input and fuel indexes."
+        },
+        {
+          "lines": "Lines 17–26",
+          "meaning": "Mark the interface successful and force-refresh authoritative Backpack state."
+        },
+        {
+          "lines": "Lines 27–37",
+          "meaning": "Clear temporary selection and re-render without updating either local Smelting behavior counter."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/index.html",
+      "claim": "Loads ./main.js as the production module entry for /play/."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Imports the production game-state, mining, placement, Smelting, Profile, and chain synchronization modules that supply the current browser flow."
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "Defines wallet-scoped behavior storage, saves the local Profile object, and normalizes all mining, placement, Smelting-run, and processed-material counters."
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "Increases minedBlocks while pending, adds confirmedMines and actual reward-group counts on confirmation, and reverses the pending count while recording rollback history."
+    },
+    {
+      "path": "play/placement-controller.js",
+      "claim": "Increases placedBlocks while pending, adds confirmedPlacements after confirmation, and restores the consumed Backpack snapshot while recording rollback."
+    },
+    {
+      "path": "play/play-smelting.js",
+      "claim": "Runs the production Smelting selection and refresh path without incrementing the local smeltingRuns or materialsSmelted counters."
+    },
+    {
+      "path": "play/play-profile-skills.js",
+      "claim": "Defines ten skill parameters, exact behavior-XP coefficients, scoped and legacy read keys, per-skill maximum merge, rounded tier costs, cumulative thresholds, effective levels, and current-tier progress."
+    },
+    {
+      "path": "play/play-profile-ui.js",
+      "claim": "Builds the compact level-out-of-ten bars, selected-skill current-tier bar, Upgrade XP tier list, and Profile Level from the ten effective skill levels."
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "Applies the 18-second refresh cooldown, fetches Profile, Equipment, Appearance, and one Progress in parallel, maps positive Progress and Profile fields into chain XP, and runs Equipment snapshot application and migration checks."
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "Calculates the separate HUD Level as one plus the number of complete groups of 25 confirmed local mines."
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "Exposes the shared chain module to production Play, keeping the local pending lifecycle separate from accepted instruction results."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Derives Chunk and Game/Smelting Progress PDAs under different program IDs, uses the Smelting form for execution, but fetchPlayerProgress reads only the Chunk form and converts its u64 fields to Number."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Defines the Chunk Progress layout, one-XP Precision and Exploration constants, and their complete Lv.0–10 cumulative threshold tables."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Creates and validates Chunk-owned Progress when needed, adds Precision for accepted or rewarded blocks, and adds Exploration only for actual extra drops."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "Defines Game/Smelting Progress, one XP per selected input, the complete Smelting threshold table, and contract output basis points."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "Creates and validates Game/Smelting-owned Progress, consumes selected inputs, writes accepted outputs, and adds inputIndexes.length Smelting XP."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "Reads contract Forging level from Profile bytes, defines the fixed 0-to-45,000 threshold table, calculates verified ForgeOutcome, and awards 25 times final grade squared."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "Tentatively appends the verified forged record and then invokes Player to add Forging XP in the same atomic transaction."
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Declares PlayerProfile Forging XP at offset 449 and saturating-adds the accepted XP while updating forge count, best results, and updated slot."
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Validates the owner-derived current PlayerProfile and approved Backpack or Game forging authority before writing the supplied Forging result."
+    },
+    {
+      "path": "play/tests/play-profile-lifecycle-browser.test.mjs",
+      "claim": "Exercises the production Profile browser lifecycle and supports the current rendering and synchronization boundary."
+    },
+    {
+      "path": "play/tests/play-smelting-lifecycle-browser.test.mjs",
+      "claim": "Exercises production Smelting selection, submission, and authoritative Backpack refresh behavior without a local behavior-counter award."
+    },
+    {
+      "path": "play/tests/smelting-chain-instruction.test.mjs",
+      "claim": "Checks the Game/Smelting instruction accounts, including the separate player-progress address used by execution."
+    },
+    {
+      "path": "docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json",
+      "claim": "Retains raw confirmed slot-477,044,477 PlayerProfile, Chunk Progress, and Game/Smelting Progress observations with PDA derivations, hashes, and interpretation boundaries."
+    },
+    {
+      "path": "scripts/capture-displayed-stats-devnet.mjs",
+      "claim": "Reproduces the dated shared-context Devnet capture and validates canonical Profile and two-program Progress addresses."
+    },
+    {
+      "path": "docs/audits/skills-xp-and-progress-derived-2026-07-18.json",
+      "claim": "Records a no-network derivation of ten browser tables, four contract tables, key owner conversions, and current recovery results while pinning the upstream snapshot SHA-256."
+    },
+    {
+      "path": "scripts/derive-skills-xp-progress-audit.mjs",
+      "claim": "Deterministically regenerates the derived audit from the retained upstream snapshot and checks 45,000 XP as browser Forging Lv.4 versus contract Lv.10."
+    },
+    {
+      "path": "scripts/check-skills-xp-and-progress-docs.mjs",
+      "claim": "Checks section order, visuals, literal source excerpts, XP coefficients and thresholds, max and fallback semantics, chain rewards, recovery boundaries, locales, and adjacent navigation."
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "Pins the website's current Devnet Player, Chunk, and unified Game program IDs used for program-scoped PDA derivation and the retained audit context."
+    }
+  ],
+  "related": [
+    {
+      "slug": "displayed-stats-vs-enforced-effects",
+      "href": "/docs/displayed-stats-vs-enforced-effects/",
+      "title": "Displayed Stats vs Enforced Effects: A Number Needs a Consumer",
+      "summary": "Review which Profile fields and browser skill effects have a real local or contract consumer before following how their XP is accumulated."
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+      "summary": "See the compact Profile layout, program-scoped progress accounts, and browser-derived presentation state that this XP guide connects."
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key",
+      "summary": "Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what its ordinary session key can still sign, which actions consume the pass, and why refresh, funding, logout, expiry, and Guardian do not sandbox or revoke that key."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "CONTINUE THE PLAYER AND WALLET PATH",
+      "title": "Keep persistent progress separate from temporary authority",
+      "summary": "This guide follows actions into local and public XP records. The next guide explains how a bounded temporary signer may request those actions without owning the player's persistent identity or progress."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "displayed-stats-vs-enforced-effects",
+        "title": "Displayed Stats vs Enforced Effects: A Number Needs a Consumer",
+        "summary": "First identify which stored and displayed values actually reach a production consumer."
+      },
+      {
+        "label": "Next guide",
+        "slug": "player-sessions",
+        "title": "One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key",
+        "summary": "Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what its ordinary session key can still sign, which actions consume the pass, and why refresh, funding, logout, expiry, and Guardian do not sandbox or revoke that key."
+      }
+    ]
+  }
+}

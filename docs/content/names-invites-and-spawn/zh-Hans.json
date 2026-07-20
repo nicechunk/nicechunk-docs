@@ -1,0 +1,966 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-names-invites-and-spawn-zh-Hans-924cb5bf8e95deae",
+    "contentHash": "924cb5bf8e95deae"
+  },
+  "kind": "topic",
+  "slug": "names-invites-and-spawn",
+  "shortTitle": "名称、邀请与出生点",
+  "seo": {
+    "title": "名称、邀请记录与候选出生点 | NiceChunk 文档",
+    "description": "了解为什么 NiceChunk 名称索引、受邀钱包登记和浏览器端候选出生点是三种彼此独立的结果，分别由谁签名，以及当前 Play 入口实际使用什么。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制权 05 · 名称、邀请与出生点",
+    "title": "唯一名称、邀请记录与出生点提示是三种不同结果",
+    "summary": "NiceChunk 当前会在角色流程中传递三个很容易被误当成同一承诺的概念。UsernameIndex 是某个规范名称对应、由程序拥有的查询记录；它之所以会持续存在，是因为当前程序没有提供关闭或释放路径。InviteIndex 行是受邀钱包追加到邀请人分页列表中的公开记录；候选出生点则是浏览器根据可编辑 URL 提示计算的数据。它们的地址、签名者、存储位置、失败方式和读取方都不同。当前生产 Play 入口不会使用待处理邀请出生点记录，因此，无论分享了链接还是成功追加邀请，都不能证明角色最终会出现在哪里。",
+    "readingTime": "阅读约 27 分钟",
+    "visual": {
+      "src": "/docs/media/names-invites-and-spawn-overview-v1.webp",
+      "alt": "在一幅以标准村民模型和真实 Chunk.js 地形为依据生成的 NiceChunk 教学场景中，女孩站在石制名称标记旁，男孩站在另一座木制记录柜旁，更远处的草地上还有一个空的青色地面框。",
+      "caption": "石制标记、木柜和空的青色框被刻意放在三个不同位置，分别代表 UsernameIndex、InviteIndex 页面和候选出生点。这些道具是使用游戏村民、真实地形参考和烘焙材质语言制作的教学比喻；它们不是账户解码器、钱包控件、签名、PDA、链上坐标，也不能证明 Play 已应用某个出生点。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "如果我打开邀请链接、选择唯一名称并成功登记，究竟证明了什么——我又会从哪里开始？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制权 · 15 步中的第 5 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "不懂编程或区块链的普通玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "可编辑 URL 提示 · 当前程序下持续存在的名称查询 · 由受邀钱包签名的分页记录 · 浏览器草稿 · 当前 Play 启动流程"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 16 日 · 当前含未提交改动的工作树、Player Program 源码、聚焦运行时测试、真实生产 Play 截图，以及 finalized 的 Devnet 观测"
+      }
+    ],
+    "terms": [
+      {
+        "term": "邀请链接",
+        "meaning": "一种普通 URL，其查询参数可以携带 ref、guardian 和 guardianRegion 文本。任何能够编辑或重新构造 URL 的人都能更改这些字段；URL 中没有邀请人签名，也没有秘密权限凭证。"
+      },
+      {
+        "term": "邀请人地址",
+        "meaning": "从 ref、invite 或 inviter 读取的公开钱包地址。角色和登录流程之后可能会尝试把当前钱包追加到该地址的 InviteIndex 页面。"
+      },
+      {
+        "term": "Guardian Region",
+        "meaning": "一对整数 Region 坐标。当前候选出生点辅助函数会使用 100 × 100 Chunk 的 Guardian Region 大小和 16 方块的 Chunk 大小，把 Region 中心映射为世界坐标。"
+      },
+      {
+        "term": "规范名称",
+        "meaning": "只把 ASCII 的 A 到 Z 转成小写后得到的玩家名称。计算 SHA-256 前，其他被接受的字符保持不变。"
+      },
+      {
+        "term": "UsernameIndex",
+        "meaning": "一个由规范名称哈希寻址、长度为 256 字节的 Player Program 账户。它把该名称地址关联到 owner、PlayerProfile、GlobalConfig、原始拼写和 slot。"
+      },
+      {
+        "term": "InviteIndex",
+        "meaning": "一个属于某位邀请人和某个页码、长度为 2,688 字节的只追加页面。其中 64 条固定记录只包含受邀钱包地址与登记 slot。"
+      },
+      {
+        "term": "登记 slot",
+        "meaning": "追加指令执行时写在受邀钱包旁的 Solana slot 编号。它不是时间戳、奖励状态、接受消息或出生点坐标。"
+      },
+      {
+        "term": "PDA",
+        "meaning": "由公开 seed 派生、可预测且归程序所有的账户地址。PDA 没有钱包私钥；程序会检查调用方是否提供了预期地址。"
+      },
+      {
+        "term": "页面",
+        "meaning": "一个固定大小的 InviteIndex 账户。正常客户端会先填满 64 行再派生下一页，但当前程序并没有把页码连续性设为无条件成立的不变量。"
+      },
+      {
+        "term": "受邀钱包签名",
+        "meaning": "追加指令要求被记录的钱包签名。这能证明该钱包授权了所提交的追加操作，却不能证明邀请人为这一行单独签过名。"
+      },
+      {
+        "term": "候选出生点",
+        "meaning": "浏览器根据 Region 信息与地形高度计算的位置和镜头建议。角色创建的 Player 交易中不包含这些坐标。"
+      },
+      {
+        "term": "待处理邀请出生点",
+        "meaning": "角色确认后写入、按钱包区分的 localStorage 草稿。保存辅助函数会捕获存储错误，却不报告是否成功；当前生产 Play 入口也不会读取它。"
+      },
+      {
+        "term": "已保存的 Play 位置",
+        "meaning": "另一条不区分钱包的 localStorage 记录。当没有查询姿态或强制 Guardian 出生点时，当前 Play 入口会使用它。它采用固定键 nicechunk.chunkjs.playable.position.v2。"
+      },
+      {
+        "term": "Genesis 默认位置",
+        "meaning": "当前 Play 在 Region 零中心使用的后备位置：解析地形高度前，世界 X 为 800、Z 为 800。当没有优先级更高的查询或已保存 Play 位置时，就会采用它。"
+      },
+      {
+        "term": "免租金最低余额",
+        "meaning": "某个时间点，给定大小的账户维持免租金状态所需的 lamport 余额。支付这笔资金本身不会赋予付款人关闭指令，也不会自动退款。"
+      },
+      {
+        "term": "confirmed 读取",
+        "meaning": "当前浏览器辅助函数读取名称和邀请页面时使用的 commitment。它描述的是 RPC 观测级别，并不表示预留、签名、finalized 结果，也不保证后续交易会成功。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "链接提供的是可编辑提示，不是权限",
+      "body": "ref、guardian 和 guardianRegion 都是公开查询文本。它们可以帮助浏览器选择邀请人和候选 Region，但没有邀请人签名，也不是可信凭证。"
+    },
+    {
+      "title": "名称索引在当前程序下持续存在，但它不是邀请记录",
+      "body": "规范名称会选中一个 256 字节的 UsernameIndex。更改 Profile 名称可以创建另一个索引，但当前程序没有自动关闭或释放旧索引的路径。"
+    },
+    {
+      "title": "受邀钱包会追加自己",
+      "body": "每个 InviteIndex 页面容纳 64 条“钱包 + slot”记录。受邀钱包为追加操作签名，并可能为滚动创建的新页面出资；邀请人不会为每一行签名，合约也不会扫描重复钱包。"
+    },
+    {
+      "title": "保存的候选位置不是当前 Play 起点",
+      "body": "候选出生点只是浏览器尽力保存的草稿。当前 Play 会选择查询姿态、自己保存的本地位置或 Genesis 默认位置；它的选择中从不包含待处理邀请出生点记录。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "invite-links-are-editable-hints",
+      "eyebrow": "公开 URL 文本与候选 REGION",
+      "title": "邀请链接只告诉浏览器尝试什么，不能证明是谁发出的",
+      "paragraphs": [
+        "当前解析器会从 ref、invite 或 inviter 读取邀请人地址，从 guardian 或 guardianId 读取 Guardian 标识，并从 guardianRegion、region、看起来像坐标的 Guardian 值，或单独的 guardianX 与 guardianY 字段读取 Region。这些都只是普通 URL 查询参数。玩家、聊天应用、重定向服务或复制链接的人，都能在页面打开前更改它们。URL 没有签名、nonce、到期时间或服务器签发的权限凭证，也没有任何合约指令会仅因页面收到了这些字符串就验证其真实性。",
+        "空查询还有一项明确边界：parseInviteParams 会先把 guardianId 默认为 genesis，之后 hasInvite 表达式检查的已经是这个默认值，因此即使 URL 没有提供任何邀请字段，hasInvite 也会变成 true。与此同时，parseGuardianRegionParams 会用 Number(\"\") 转换两个缺失的坐标字符串，两个结果都会成为整数零，并返回 Region 0:0。聚焦测试特意锁定了这一当前行为。它应被理解为实现缺陷或后备值泄漏，而不是“每次普通访问都由 Genesis 邀请”的证据。",
+        "无论是否存在有效邀请人，角色创建都会计算候选出生点。它优先使用解析出的 Region；否则尝试在 2.5 秒超时内从公开注册表解析 Guardian 标识；再失败则使用 Region 0:0。对于 Region r，辅助函数会选择 100 × 100 Region 的中心 Chunk，乘以 16 方块的 Chunk 大小，向当前世界生成器查询地表高度，并把 Y 放在地表上方 1.01。它是浏览器根据已加载配置执行的确定性计算，不存在于角色交易中。",
+        "只有角色交易返回后，页面才会把 ref 当作候选邀请人钱包，并尝试单独追加 InviteIndex。公钥格式错误、第一页缺失、自我邀请、钱包请求被拒、程序错误或 RPC 失败，都可能让这次尝试保持待处理或失败，而角色已经存在。浏览器还会保存一个本地邀请回执标签，但该标签不是 InviteIndex 字段，也不能把编辑过的 URL 变成由邀请人签署的声明。"
+      ],
+      "facts": [
+        {
+          "label": "公开输入",
+          "value": "ref · guardian · guardianRegion",
+          "detail": "它们是可编辑的 URL 文本，可以在没有邀请人签名的情况下被复制、缩短、重新排序或替换。"
+        },
+        {
+          "label": "当前空查询结果",
+          "value": "hasInvite 为 true · Region 0:0",
+          "detail": "当前把 guardianId 默认为 genesis，并把空坐标字符串转为零，会让普通访问错误地带上看似邀请的后备结果。"
+        },
+        {
+          "label": "Region 几何",
+          "value": "100 × 100 Chunk · 每个 Chunk 16 个方块",
+          "detail": "候选位置使用 Region 中心与本地计算的地表高度。"
+        },
+        {
+          "label": "URL 中的身份验证",
+          "value": "无",
+          "detail": "该解析器既不会读取，也不会验证邀请人签名、秘密 token、nonce、到期时间或链上回执。"
+        }
+      ],
+      "steps": [
+        {
+          "title": "读取提示",
+          "body": "浏览器会规范化出现的受支持查询参数名，并在登录和角色创建跳转之间继续携带它们。"
+        },
+        {
+          "title": "计算候选位置",
+          "body": "浏览器解析或回退到某个 Region，计算其中心，并在本地算出基于地形高度的位置。"
+        },
+        {
+          "title": "分别批准不同操作",
+          "body": "owner 会先批准角色创建。如果之后仍有有效邀请人，受邀钱包才会被要求批准另一笔邀请追加交易。"
+        },
+        {
+          "title": "分别判断每项结果",
+          "body": "角色签名、邀请签名、本地回执和实际应用的 Play 起点是四种不同观察；其中任何一项都不能悄悄代替其余各项。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-editable-hint-v2.webp",
+        "alt": "在一幅生成的 NiceChunk 教学场景中，标准村民女孩正在重新摆放三块带有简单几何凸点、可以自由移动的空白木片；标准村民男孩手里拿着另一块未封装木片，空的青色地面框则独立留在草地上。",
+        "caption": "这些松散、可替换的木片代表可编辑的公开 URL 提示。没有任何物件被封存、签名、上锁，也没有任何物件与空地面框相连。这些基于游戏世界制作的道具只是比喻，不是真实查询控件、已认证邀请数据、Guardian 证明或有保证的目的地。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "绝不要把 ref 当成邀请人签署的凭证",
+        "body": "后续追加只能证明受邀钱包授权了什么。如果奖励系统需要证明某位特定邀请人确实发出了邀请，就必须增加经过身份验证的设计；当前 URL 和记录行无法提供这种证明。"
+      }
+    },
+    {
+      "id": "name-index-is-not-invite-ledger",
+      "eyebrow": "全局名称查询与历史占用",
+      "title": "UsernameIndex 让名称保持唯一，但既不记录邀请，也不释放旧名称",
+      "paragraphs": [
+        "在派生账户地址前，非空候选名称会先被规范化并计算哈希。只有 ASCII 大写字母会转成小写，因此 Alice 与 aLiCe 共用同一个哈希和 UsernameIndex。PDA seed 包含固定前缀 player-name-v1 与 32 字节哈希，不包含 owner 钱包。这使得该地址在 Player Program 范围内全局唯一，而不是每位玩家各有一个私有名称槽。confirmed 读取可以报告账户缺失或已属于该钱包，但只有被接受的交易才会创建或验证记录。",
+        "该账户恰好为 256 字节。头部与固定字段保存 magic、版本、bump、初始化状态、owner、PlayerProfile、GlobalConfig、32 字节规范哈希、显示名称字节长度、创建 slot 与更新 slot。最后 96 字节保存已接受的原始拼写，并用零填充。合约最多接受 32 个字符，范围是下划线、ASCII 字母与数字，或 U+4E00 到 U+9FFF，因此 32 个三字节中文字符正好能放进这段 96 字节的拼写区域。",
+        "当预期 UsernameIndex 已属于 Player Program 时，程序会验证哈希、GlobalConfig、owner 和 PlayerProfile 后返回，不会重写原始拼写或更新 slot。如果同一地址记录的是不同 owner 或 profile，指令会以 UsernameAlreadyTaken 失败。因此，该索引能够保证唯一性，但这也意味着它是历史归属证据，并不保证始终与玩家当前显示字段保持一致。",
+        "更改 Profile 名称会在同一条原子指令中先写入新名称，再确保新的 UsernameIndex 存在。如果后面的索引检查失败，Solana 会回滚整条指令；但若成功，则不会关闭或释放旧索引。清空 Profile 名称同样不会传入索引账户，所有旧名称地址都保持不变。因此，一个钱包可能长期占用多个曾经使用过的名称。UsernameIndex 不包含邀请人、受邀钱包记录、Guardian、Region、出生点、奖励或状态字段，不能代替 InviteIndex。",
+        "2026 年 7 月 16 日的 finalized Devnet 租金查询显示，256 字节需要 2,672,640 lamports，即 0.002672640 SOL。创建时，付款人会为新索引或余额缺口出资，但当前 Player Program 没有 UsernameIndex 关闭指令。把这笔余额称为可退押金，会暗示一种合约实际并未提供的回收路径。"
+      ],
+      "facts": [
+        {
+          "label": "地址身份",
+          "value": "经 ASCII 小写化名称的 SHA-256",
+          "detail": "owner 保存在账户内部，但不是名称 PDA 的 seed 之一。"
+        },
+        {
+          "label": "账户大小",
+          "value": "256 字节",
+          "detail": "最后 96 字节保留原始显示拼写；哈希使用规范拼写。"
+        },
+        {
+          "label": "改名行为",
+          "value": "确保新索引 · 保留旧索引",
+          "detail": "当前没有任何 tag 会自动释放、转移或关闭较早的 UsernameIndex。"
+        },
+        {
+          "label": "观测到的最低余额",
+          "value": "0.002672640 SOL",
+          "detail": "某个 finalized 时间点的 Devnet 免租金最低余额，不是交易费，也不会自动退款。"
+        },
+        {
+          "label": "邀请字段",
+          "value": "无",
+          "detail": "UsernameIndex 无法证明邀请、追加签名、候选 Region 或奖励状态。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-name-index-v2.webp",
+        "alt": "在一幅生成的 NiceChunk 教学场景中，标准女孩把唯一一块青色当前标记举在石制登记架上方的橙色铭牌旁，上下两个铭牌仍都处于占用状态；标准男孩在旁观察，另一座空木柜则远远独立放置。",
+        "caption": "女孩手中唯一的青色标记代表选择较新的当前名称，而两个嵌入式名称位置仍都被占用。分离的空木柜代表另一套邀请账本。这些朴素的实体道具只是讲解比喻，不是真实哈希、账户字节、owner 证明、关闭控件，也不能证明画面中的柜格与存储布局一致。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "曾经拥有，不等于现在仍在显示",
+        "body": "要了解玩家当前名称，应读取并验证该 owner 当前的 Profile 或 Appearance 字段。仍存在的 UsernameIndex 只能证明程序曾接受该名称地址与 owner、profile 的关系；它不能自动证明该名称现在仍在显示。"
+      }
+    },
+    {
+      "id": "invited-wallet-appends-the-record",
+      "eyebrow": "分页公开记录、签名者与限制",
+      "title": "受邀钱包为追加到邀请人页面的操作签名；邀请人不会为每一行签名",
+      "paragraphs": [
+        "InviteIndex 与 UsernameIndex 的 seed、地址公式、字节布局、签名者和用途都不同。每一页由 invite-index-v1、邀请人的 32 字节公钥和小端序 u32 页码派生。128 字节头部保存身份与页面元数据，之后是 64 条固定的 40 字节记录；每条只包含一个 32 字节受邀钱包和一个 8 字节登记 slot。账户中没有名称、Guardian、Region、候选出生点、本地回执、奖励资格、领取状态、转账数量，也没有逐行的邀请人签名。",
+        "正常情况下，邀请人会先开启第 0 页。Tag 10 要求付款人可写并签名，但只有第 0 页要求付款人与邀请人是同一地址。对于大于 0 的页面，任何付款人都能为所提供的邀请人初始化正确 PDA。如果页面已经由 Player Program 拥有，该指令验证后也会提前返回。独立创建更高页面前，它从不检查上一页是否存在或已经填满。",
+        "Tag 11 要求受邀钱包成为可写签名者，并且只拒绝受邀人与邀请人相同的情况。邀请人账户只是作为公开地址读取，不会签名。如果请求的大于 0 的页面缺失，程序只有在验证紧邻的上一页已满后，才允许受邀钱包出资创建它。但连续性检查完全位于“页面缺失”分支内。通过 tag 10 预先创建的页面已经归程序所有，因此追加会跳过上一页检查，直接写入该页。所以连续的 0、1、2 分页只是正常客户端方案，并非无条件成立的合约不变量。",
+        "追加例程读取 count，拒绝已满页面，在偏移 128 + count × 40 处写入受邀公钥与 slot，再递增 count 并更新页面 slot。它从不在本页或其他页面中搜索该钱包。当前浏览器会先读取页面并尽力检查重复，但读取和追加是两次独立网络操作；两个并发尝试可能竞争，扫描范围之外的记录也不会被检查到。合约会阻止自我邀请，却不会阻止重复登记。",
+        "当前邀请登记和备用面板调用路径会请求 16 个页面地址，读取方会在遇到第一个缺失、无效或未满页面时停止。因此，即使 fetchInviteIndexPages 能接受最多 64 页的更大请求，备用邀请面板仍最多只能展示 1,024 条已读取记录。前 16 页全部读满后，登记路径会构造索引 16 并能向其追加，但下一次扫描仍只覆盖索引 0 到 15。它会在看不到第 16 页 count 的情况下持续选择索引 16；一旦这张隐藏页面填满，当前滚动路径就无法自然选择第 17 页。由于读取方提前停止，断页和预创建的高页也可能一直不可见。",
+        "在 finalized 的 Devnet 快照中，Player Program 只观测到一个 InviteIndex 页面，地址为 HMbG3jiBpBfFEQmggb5gGyvXhsQzTuCy3zttNSXCpiX。第 0 页的两行中有两个不同钱包，占用 64 个槽位中的 2 个，余额恰好为 19,599,360 lamports；审计派生检查到第 63 页时，没有发现后续页面。这项观测是当前状态的有用证据，却不能证明重复或断页永远不可能出现。已部署 ELF 与保留的 172,880 字节本地产物一致，但仅凭这一匹配，仍不能声称含未提交改动的源码可复现地完成了部署。"
+      ],
+      "facts": [
+        {
+          "label": "页面字节数",
+          "value": "2,688 = 128 + 64 × 40",
+          "detail": "每一行只有受邀公钥和登记 slot。"
+        },
+        {
+          "label": "追加签名者",
+          "value": "受邀钱包",
+          "detail": "每次追加都会提供邀请人地址，但该地址不签名。"
+        },
+        {
+          "label": "协议级重复扫描",
+          "value": "无",
+          "detail": "客户端会尝试先读取并检查，但程序的追加操作本身并不强制唯一。"
+        },
+        {
+          "label": "当前浏览器扫描范围",
+          "value": "16 页 · 名义上 1,024 行",
+          "detail": "辅助函数遇到断页或未满页面会提前停止，默认读取看不到索引 16。"
+        },
+        {
+          "label": "观测到的页面最低余额",
+          "value": "0.019599360 SOL",
+          "detail": "记录查询时，2,688 字节账户的 finalized Devnet 最低余额；当前没有实现 InviteIndex 关闭路径。"
+        },
+        {
+          "label": "观测到的现有记录",
+          "value": "2 个不同钱包 · 仅第 0 页",
+          "detail": "这是特定日期在 finalized slot 的快照，不是全生命周期总数，也不保证唯一。"
+        }
+      ],
+      "steps": [
+        {
+          "title": "邀请人开启第 0 页",
+          "body": "当前第一页辅助函数会先要求邀请人钱包签名并为第 0 页 PDA 出资，之后受邀者才能追加。"
+        },
+        {
+          "title": "受邀者读取可见页面",
+          "body": "浏览器最多获取 16 个可预测页面地址，在第一个边界处停止，并在已获取记录中检查自己的钱包。"
+        },
+        {
+          "title": "受邀者批准追加",
+          "body": "受邀钱包签署 tag 11。如果正常滚动需要创建缺失页面，也由同一个受邀钱包为新页面出资。"
+        },
+        {
+          "title": "读取方补充展示含义",
+          "body": "读取方可以另行获取 Appearance 来显示名称，但固定 InviteIndex 记录本身始终只有钱包与 slot。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-invited-wallet-appends-v1.webp",
+        "alt": "在一幅生成的 NiceChunk 教学场景中，标准男孩把自己的青色高亮标记压入大型分页木柜，标准女孩双手离开、在旁观察；画面中还能看到一个相同的男孩标记和另一座后续木柜。",
+        "caption": "男孩操作而女孩双手离开，代表受邀钱包为自己的追加签名，而邀请人不为该行签名。相同标记代表合约层没有重复扫描，分离木柜则代表可以独立存在的高页。木柜格子只是刻意设计的分页视觉比喻，画面中的格数不是技术证据。准确实现容量应以下方的 64 行公式与源码为准。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "已登记不等于自动符合奖励资格",
+        "body": "客户端解码器会添加显示标签 registered，但账户没有保存 status 字段或奖励逻辑。未来任何奖励系统若要把这些记录当作付款依据，都必须先定义自己的邀请人身份验证、重复策略、页面连续性、资格检查与结算规则。"
+      }
+    },
+    {
+      "id": "candidate-spawn-is-not-play-position",
+      "eyebrow": "本地草稿、当前启动流程与位置权威",
+      "title": "角色创建会保存候选出生点，但当前 Play 从未把它纳入启动选择",
+      "paragraphs": [
+        "由 owner 签署的角色交易返回后，角色创建会写入普通角色缓存字段，并用候选位置、yaw、镜头俯仰角、Region、邀请人和 Guardian 标识调用 storePendingInviteSpawn。该辅助函数使用按钱包区分的 nicechunk.inviteSpawn.v1.<wallet> 键，添加 storedAt，捕获任何 localStorage 异常，却不返回成功值。因此，当存储已满、被阻止、被禁用或受隐私限制时，草稿可能被丢弃，而页面仍会继续。该候选位置不是 Player Program 账户，也不属于 tag 8。",
+        "src/player/inviteSpawn.js 中确实存在一个使用方函数。它读取按钱包区分的草稿，在解析前先删除，并返回已保存位置或重新计算的 Region 中心。它没有时效或到期检查。其 catch 块会在没有另一层保护的情况下再次调用 localStorage.removeItem，因此，如果存储实现在读取和删除时都抛错，清理异常仍可能向外逃逸。聚焦测试记录了单次使用、格式错误清理和这一双重失败边界。",
+        "定义了使用方，不代表当前游戏真的调用它。当前生产入口是 play/main.js；其导入包含自己的已保存位置辅助函数和姿态解析器，却没有 consumePendingInviteSpawn。模块启动时先选择 queryPose，否则选择不区分钱包的已保存 Play 位置，再否则选择固定 Genesis 中心。之后，直接的 x、y、z 查询值还能逐轴覆盖结果。强制 Guardian 启动标志会跳过已保存位置，但仍会回退到写死的 Region 零默认位置。待处理邀请出生点键从未出现在这项选择中。",
+        "这张注明日期的生产截图使用了当时的 https://nicechunk.com/play/ 生产运行时、nicechunk-mainnet-001 世界 seed，以及 Genesis 中心明确的 X 800 与 Z 800。保留图像是真实游戏画布截图，不是生成式教学图。之后在 2026 年 7 月 16 日 15:03:35 UTC 对较新的当前运行时再次进行浏览器复核：启动前写入的哨兵待处理出生点值在启动后仍然存在，页面没有邀请面板，检测到三个 canvas，也没有出现控制台或页面错误。这些带日期的观测与源码边界一致，但不能证明未来每个版本都会如此。",
+        "Play 稍后会启动异步 Profile 与 Appearance 刷新。它可以更新身份展示，并向界面提供公开 Profile 位置数据，但本次审核的启动流程不会把已经创建的玩家对象传送到所读取的 Profile 位置。普通本地移动使用另一条已保存位置键；当前链上位置写入则只在资源采矿保存被接受时发生。因此，邀请追加、本地回执、Profile 刷新和实际位置是彼此独立的状态转换。"
+      ],
+      "facts": [
+        {
+          "label": "待处理键",
+          "value": "nicechunk.inviteSpawn.v1.<wallet>",
+          "detail": "角色确认后写入、按钱包区分且尽力保存的草稿。"
+        },
+        {
+          "label": "当前 Play 已保存位置键",
+          "value": "nicechunk.chunkjs.playable.position.v2",
+          "detail": "游戏启动前选择的另一条不区分钱包的本地位置。"
+        },
+        {
+          "label": "当前启动优先级",
+          "value": "查询姿态 → 已保存 Play 位置 → Genesis",
+          "detail": "其中不包含待处理邀请出生点；x、y、z 查询参数可以逐轴覆盖所得坐标。"
+        },
+        {
+          "label": "Genesis 中心",
+          "value": "X 800 · Z 800",
+          "detail": "两个轴都用 100 Chunk 的一半乘以 16 方块。"
+        },
+        {
+          "label": "草稿到期机制",
+          "value": "不检查时效",
+          "detail": "如果运行时确实调用使用方，那么除非另一层先清除旧草稿，否则它可能接受过期草稿。"
+        },
+        {
+          "label": "当前生产环境使用情况",
+          "value": "play/main.js 中未实现",
+          "detail": "备用 src/main.js 路径会使用它，但那不是本次审核的生产 Play 入口。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-candidate-not-applied-v2.webp",
+        "alt": "在同一个连续生成的 NiceChunk 世界景观中，标准女孩站在空青色候选方框和木托盘里未使用的方块旁，标准男孩则背对镜头，远远站在浅色阶梯状 Genesis 地形上。",
+        "caption": "空青色地面框和托盘里未使用的方块留在同一个连续世界中，男孩则单独站在以当日真实 Genesis 截图为依据的浅色地形上。两处在空间上的分离，代表这份候选草稿没有进入当前启动选择。这幅生成场景不是浏览器追踪、传送尝试、账户位置或存储成功保证，也不能证明已有查询参数或已保存 Play 位置时每位玩家仍会从 Genesis 开始。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "当前待处理出生点在生产 Play 中是一条断开的交接",
+        "body": "角色创建可以计算并尝试保存它，另一条源码入口也能使用它，但本次审核的生产 play/main.js 既不导入也不调用该使用方。除非当前活动入口明确验证并应用这份草稿，否则文档和 UI 都不能承诺按邀请位置放置角色。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现细节",
+    "title": "派生每个地址、检查每位签名者，并把浏览器状态排除在合约主张之外",
+    "summary": "下方公式与精确源码摘录会把视觉讲解转化为可复现检查。它们展示 URL 文本为何只是未经认证的提示、名称和邀请页面如何派生不同 PDA、固定字节如何布局、重复与页面连续性主张为何受限，以及当前 Play 启动为何无法应用一份从未读取的草稿。"
+  },
+  "formulas": [
+    {
+      "title": "规范名称与 UsernameIndex 地址",
+      "expression": "canonical(n) = ASCII-lowercase(n); h(n) = SHA256(UTF8(canonical(n))); UsernameIndex(n) = PDA_Player([\"player-name-v1\", h(n)])",
+      "ariaLabel": "规范名称 n 是把 n 中的 ASCII 大写字母转成小写后的结果。h(n) 是规范名称 UTF-8 字节的 SHA-256。UsernameIndex 是由 player-name-v1 与该哈希在 Player Program 下派生的 PDA。",
+      "explanation": "owner 钱包不是 seed，因此任何人都会为 Alice 与 alice 派生出同一个地址。指令执行时，程序会在存储字节中检查归属关系。",
+      "terms": [
+        {
+          "symbol": "n",
+          "meaning": "去除首尾空白后的候选玩家名称。"
+        },
+        {
+          "symbol": "ASCII-lowercase",
+          "meaning": "只把 ASCII 的 A 到 Z 转成 a 到 z；其他 UTF-8 字符保持不变。"
+        },
+        {
+          "symbol": "PDA_Player",
+          "meaning": "在 Player Program ID 下执行的 Solana 程序地址派生。"
+        }
+      ]
+    },
+    {
+      "title": "UsernameIndex 固定存储布局",
+      "expression": "256 bytes = 160 bytes header-and-fields + 96 bytes original display-name region",
+      "ariaLabel": "UsernameIndex 使用 256 字节：160 字节头部与固定字段，加上 96 字节原始显示名称区域。",
+      "explanation": "账户还会在固定区域保存 32 字节规范哈希。原始拼写单独保留；验证同一索引时不会自动重写它。",
+      "terms": [
+        {
+          "symbol": "160",
+          "meaning": "Magic、版本、bump、状态、三个公钥、名称哈希、长度、slot 与填充。"
+        },
+        {
+          "symbol": "96",
+          "meaning": "为已接受显示拼写保留的最大 UTF-8 字节数。"
+        }
+      ]
+    },
+    {
+      "title": "邀请页面地址",
+      "expression": "InvitePage(inviter, i) = PDA_Player([\"invite-index-v1\", inviter32, u32LE(i)])",
+      "ariaLabel": "某位邀请人的第 i 页邀请页面，是使用 invite-index-v1、邀请人公钥字节和小端序无符号 32 位页码在 Player Program 下派生的 PDA。",
+      "explanation": "更改邀请人或页码中的任何一项，都会选中另一个可预测账户。地址可预测，并不能证明页面存在、连续，或由邀请人开启。",
+      "terms": [
+        {
+          "symbol": "inviter32",
+          "meaning": "邀请人的 32 字节 Solana 公钥。"
+        },
+        {
+          "symbol": "u32LE(i)",
+          "meaning": "编码为四个小端序字节的页码。"
+        }
+      ]
+    },
+    {
+      "title": "InviteIndex 页面与记录布局",
+      "expression": "pageBytes = 128 + 64 × 40 = 2,688; rowOffset(k) = 128 + 40k, for 0 ≤ k < 64",
+      "ariaLabel": "页面字节数等于 128 加 64 乘 40，即 2,688。对于 0 到 63 的 k，第 k 行从 128 + 40k 开始。",
+      "explanation": "每行是一个 32 字节钱包加一个 8 字节登记 slot。插图中的木格不是可以数格子的存储图；应以该公式和源码常量作为技术边界。",
+      "terms": [
+        {
+          "symbol": "128",
+          "meaning": "固定页面头部。"
+        },
+        {
+          "symbol": "40",
+          "meaning": "一条受邀钱包与登记 slot 记录。"
+        },
+        {
+          "symbol": "k",
+          "meaning": "由当前 count 选中的从零开始计数的行。"
+        }
+      ]
+    },
+    {
+      "title": "正常连续分页约定",
+      "expression": "page(k) = floor(k / 64); row(k) = k mod 64",
+      "ariaLabel": "在正常连续分页中，全局第 k 条记录位于 floor(k / 64) 页，行号为 k mod 64。",
+      "explanation": "当页面只在滚动时创建，这就是客户端预期的组织方式。Tag 10 可以在不证明前页已满的情况下预创建高页，因此该公式不是当前合约无条件成立的不变量。",
+      "terms": [
+        {
+          "symbol": "k",
+          "meaning": "无断页账本中概念性的从零开始记录编号。"
+        },
+        {
+          "symbol": "mod",
+          "meaning": "除以 64 后的余数。"
+        }
+      ]
+    },
+    {
+      "title": "候选 Region 中心位置",
+      "expression": "x = (regionX × 100 + 50) × 16; z = (regionY × 100 + 50) × 16; y = surfaceHeight(x, z) + 1.01",
+      "ariaLabel": "候选 x 等于 Region X 乘 100 加 50，再乘 16；候选 z 对 Region Y 使用同样计算；候选 y 等于地表高度加 1.01。",
+      "explanation": "100 来自以 Chunk 计量的 Guardian Region 大小，16 来自以方块计量的 Chunk 大小。这只是本地候选位置计算；任何 InviteIndex 记录都不保存这些坐标。",
+      "terms": [
+        {
+          "symbol": "regionX, regionY",
+          "meaning": "整数 Guardian Region 坐标。"
+        },
+        {
+          "symbol": "surfaceHeight",
+          "meaning": "当前浏览器世界生成器在该 X、Z 处得到的地形高度结果。"
+        }
+      ]
+    },
+    {
+      "title": "当前生产 Play 启动流程",
+      "expression": "spawnState = queryPose ?? savedPlayPosition ?? Genesis(800, 800); pendingInviteSpawn is not an operand",
+      "ariaLabel": "当前出生状态优先使用查询姿态，否则使用已保存 Play 位置，再否则使用 800、800 处的 Genesis。待处理邀请出生点不在该表达式中。",
+      "explanation": "之后，直接的 x、y、z 查询参数可以逐轴覆盖结果。Profile 刷新稍后才开始，不会追溯修改这条启动表达式。",
+      "terms": [
+        {
+          "symbol": "??",
+          "meaning": "选择第一个既不是 null 也不是 undefined 的值。"
+        },
+        {
+          "symbol": "savedPlayPosition",
+          "meaning": "另一条独立的浏览器记录 nicechunk.chunkjs.playable.position.v2。"
+        }
+      ]
+    },
+    {
+      "title": "观测到的 Devnet 存储最低余额",
+      "expression": "R(256) = 2,672,640 lamports; R(2,688) = 19,599,360 lamports; 1 SOL = 1,000,000,000 lamports",
+      "ariaLabel": "在记录的 Devnet 查询中，256 字节需要 2,672,640 lamports，2,688 字节需要 19,599,360 lamports。1 SOL 等于 10 亿 lamports。",
+      "explanation": "这些是某个 finalized 时间点的最低余额查询结果。它们不是交易费、奖励数值，也不承诺玩家可以关闭账户并收回余额。",
+      "terms": [
+        {
+          "symbol": "R(L)",
+          "meaning": "观测到的 L 字节账户最低余额。"
+        },
+        {
+          "symbol": "lamport",
+          "meaning": "SOL 的最小原生单位。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "解析器会在计算 hasInvite 前把值默认为 genesis",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function parseInviteParams(input = typeof window !== \"undefined\" ? window.location.search : \"\") {\n  const params = input instanceof URLSearchParams ? input : new URLSearchParams(String(input || \"\"));\n  const referrer = firstParam(params, [inviteRefParam, \"invite\", \"inviter\"]);\n  const guardianId = firstParam(params, [inviteGuardianParam, \"guardianId\"]) || \"genesis\";\n  const region = parseGuardianRegionParams(params);\n  return {\n    referrer: normalizeParam(referrer),\n    guardianId: normalizeParam(guardianId) || \"genesis\",\n    region,\n    hasInvite: Boolean(normalizeParam(referrer) || normalizeParam(guardianId) || region),\n  };\n}",
+      "explanation": "当 URL 不含 Guardian 字段时，guardianId 已经是 genesis，因此该布尔表达式在空查询上也为 true。这个函数不会验证邀请人签名或权限凭证。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "规范化 URL 输入，读取公开邀请人别名，并用 genesis 替代缺失的 Guardian。"
+        },
+        {
+          "lines": "5-11",
+          "meaning": "返回规范化字段；由于默认值已经非空，即使没有提供邀请文本，hasInvite 也会变成 true。"
+        }
+      ]
+    },
+    {
+      "title": "当前缺失坐标字符串会变成 Region 零",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "function parseGuardianRegionParams(params) {\n  const explicit = firstParam(params, [inviteGuardianRegionParam, \"region\"]);\n  const parsedExplicit = parseRegionPair(explicit);\n  if (parsedExplicit) return parsedExplicit;\n  const guardian = firstParam(params, [inviteGuardianParam, \"guardianId\"]);\n  const parsedGuardian = parseRegionPair(guardian);\n  if (parsedGuardian) return parsedGuardian;\n  const x = Number(firstParam(params, [\"guardianX\", \"regionX\"]));\n  const y = Number(firstParam(params, [\"guardianY\", \"regionY\"]));\n  if (Number.isInteger(x) && Number.isInteger(y)) return { regionX: x, regionY: y };\n  return null;\n}",
+      "explanation": "firstParam 会为每个缺失坐标返回空字符串。JavaScript Number 会把空字符串转成零，而零是整数，因此普通访问当前会返回 Region 0:0。",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "优先使用明确的坐标对文本，其次使用看起来像坐标的 Guardian 值。"
+        },
+        {
+          "lines": "8-11",
+          "meaning": "转换单独坐标字段；对缺失字符串的转换正是空查询缺陷。"
+        }
+      ]
+    },
+    {
+      "title": "候选出生点是本地 Region 中心计算",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function guardianSpawnStateForRegion(region, { surfaceHeight, yaw = Math.PI * 0.25, cameraPitch = -0.42 } = {}) {\n  const normalized = normalizeGuardianRegion(region) ?? genesisGuardianRegion();\n  const centerChunkX = normalized.regionX * GUARDIAN_REGION_SIZE + GUARDIAN_REGION_SIZE / 2;\n  const centerChunkZ = normalized.regionY * GUARDIAN_REGION_SIZE + GUARDIAN_REGION_SIZE / 2;\n  const x = centerChunkX * chunkSize;\n  const z = centerChunkZ * chunkSize;\n  const ground = typeof surfaceHeight === \"function\" ? surfaceHeight(x, z) : 0;\n  const y = Number.isFinite(ground) ? ground + 1.01 : 1.01;\n  return {\n    position: { x, y, z },\n    yaw,\n    cameraPitch,\n    guardianRegion: normalized,\n  };\n}",
+      "explanation": "辅助函数根据公开 Region 输入与本地地形计算返回普通 JavaScript 对象。它不会读取 InviteIndex、签署交易或更新 PlayerProfile 位置。",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "规范化 Region 或回退到 Genesis，以 Chunk 为单位选择 Region 中心，再转换为方块坐标。"
+        },
+        {
+          "lines": "7-14",
+          "meaning": "解析本地地面高度，并返回位置与镜头提示。"
+        }
+      ]
+    },
+    {
+      "title": "客户端派生名称 PDA 前只处理 ASCII 大小写",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function canonicalPlayerNameHash(playerName) {\n  const { normalized } = encodePlayerName(playerName);\n  const canonical = normalized.replace(/[A-Z]/g, (char) => char.toLowerCase());\n  const bytes = Buffer.from(canonical, \"utf8\");\n  const subtle = globalThis.crypto?.subtle;\n  if (!subtle) throw new Error(\"WebCrypto SHA-256 is unavailable.\");\n  const digest = await subtle.digest(\"SHA-256\", bytes);\n  return Buffer.from(new Uint8Array(digest));\n}",
+      "explanation": "浏览器和程序使用相同的窄范围大小写规则。SHA-256 会生成 32 字节 seed，但计算哈希不会预留账户，也不会揭示其 owner。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "验证并去除名称首尾空白，只把 ASCII 大写字母转成小写，再编码为 UTF-8 字节。"
+        },
+        {
+          "lines": "5-8",
+          "meaning": "要求 WebCrypto 可用，计算 SHA-256，并返回用于 PDA 派生的摘要字节。"
+        }
+      ]
+    },
+    {
+      "title": "名称 PDA 没有 owner seed",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function deriveUsernameIndexPdaForName(playerName) {\n  const nameHash = await canonicalPlayerNameHash(playerName);\n  return PublicKey.findProgramAddressSync(\n    [Buffer.from(usernameIndexSeed), nameHash],\n    playerProgramId,\n  );\n}",
+      "explanation": "每个调用方都会根据固定 seed 与规范名称哈希派生相同的 Player Program 地址，因此必须从账户内容验证 owner 关系。",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "计算规范名称哈希。"
+        },
+        {
+          "lines": "3-6",
+          "meaning": "只使用固定名称 seed 与哈希，在 Player Program 下派生地址。"
+        }
+      ]
+    },
+    {
+      "title": "已有 UsernameIndex 必须匹配 owner 与 Profile",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_owner_or_available(\n        data: &[u8],\n        owner: &Pubkey,\n        player_profile: &Pubkey,\n        global_config: &Pubkey,\n        name_hash: &[u8; 32],\n    ) -> ProgramResult {\n        if data.len() != Self::LEN || data[0..8] != USERNAME_INDEX_MAGIC {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if read_u16(data, 8) != USERNAME_INDEX_VERSION {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::NAME_HASH_OFFSET..Self::NAME_HASH_OFFSET + 32] != name_hash {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::GLOBAL_CONFIG_OFFSET..Self::GLOBAL_CONFIG_OFFSET + 32]\n            != global_config.as_ref()\n        {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::OWNER_OFFSET..Self::OWNER_OFFSET + 32] != owner.as_ref() {\n            return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n        }\n        if &data[Self::PLAYER_PROFILE_OFFSET..Self::PLAYER_PROFILE_OFFSET + 32]\n            != player_profile.as_ref()\n        {\n            return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n        }\n        Ok(())\n    }",
+      "explanation": "只有格式、哈希、配置、owner 与 Profile 关系全部匹配，程序拥有的索引才会被接受。该函数只负责验证；不会重写拼写、释放旧索引或检查邀请。",
+      "walkthrough": [
+        {
+          "lines": "1-16",
+          "meaning": "检查固定账户标识、版本、规范哈希与 GlobalConfig。"
+        },
+        {
+          "lines": "17-29",
+          "meaning": "如果保存的是不同 owner 或 PlayerProfile，就视为已占用；只接受匹配关系。"
+        }
+      ]
+    },
+    {
+      "title": "更改 Profile 名称会确保新索引存在，却不会关闭旧索引",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let clock = Clock::get()?;\n    let mut data = player_profile.try_borrow_mut_data()?;\n    PlayerProfile::write_name(&mut data, player_name, clock.slot)?;\n    drop(data);\n    if let (Some(system_program_account), Some(username_index)) =\n        (system_program_account, username_index)\n    {\n        ensure_username_index_current(\n            authority,\n            username_index,\n            system_program_account,\n            program_id,\n            authority.key,\n            player_profile.key,\n            global_config.key,\n            player_name,\n            &clock,\n        )?;\n    }\n    Ok(())",
+      "explanation": "指令先写入当前 Profile 名称，再确保传入的新名称索引存在。如果后续检查失败，Solana 会把两项写入一起回滚。成功时，这条路径从未接收或关闭旧 UsernameIndex，因此其中的 lamports 与归属关系都会保留。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "在借用的 Profile 数据中写入候选当前名称与更新 slot。"
+        },
+        {
+          "lines": "5-18",
+          "meaning": "对于非空名称，只创建或验证所提供的当前名称索引。"
+        },
+        {
+          "lines": "19",
+          "meaning": "返回；该指令中没有任何旧名称账户或关闭操作。"
+        }
+      ]
+    },
+    {
+      "title": "邀请页面拥有固定的 64 × 40 字节记录区",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "pub const INVITE_INDEX_MAGIC: [u8; 8] = *b\"NCKINV01\";\npub const INVITE_INDEX_VERSION: u16 = 1;\npub const INVITE_INDEX_SEED: &[u8] = b\"invite-index-v1\";\npub const INVITE_INDEX_CAPACITY: usize = 64;\npub const INVITE_INDEX_HEADER_LEN: usize = 128;\npub const INVITE_INDEX_RECORD_LEN: usize = 40;",
+      "explanation": "这些常量定义账户标识与精确存储计算。视觉木柜只是比喻；实际页面由 128 字节头部和 64 条固定记录组成。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "定义链上格式、版本与 PDA seed。"
+        },
+        {
+          "lines": "4-6",
+          "meaning": "固定 pack、validate 与 append 使用的容量、头部长度和记录长度。"
+        }
+      ]
+    },
+    {
+      "title": "追加操作会直接写入下一个钱包与 slot，不做去重",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn append(dst: &mut [u8], invited: &Pubkey, updated_slot: u64) -> ProgramResult {\n        if dst.len() != Self::LEN || dst[0..8] != INVITE_INDEX_MAGIC {\n            return Err(NicechunkPlayerError::InvalidInviteIndexData.into());\n        }\n        let count = read_u16(dst, Self::COUNT_OFFSET) as usize;\n        if count >= INVITE_INDEX_CAPACITY {\n            return Err(NicechunkPlayerError::InviteIndexPageFull.into());\n        }\n        let offset = Self::RECORDS_OFFSET + count * INVITE_INDEX_RECORD_LEN;\n        dst[offset..offset + 32].copy_from_slice(invited.as_ref());\n        dst[offset + 32..offset + 40].copy_from_slice(&updated_slot.to_le_bytes());\n        dst[Self::COUNT_OFFSET..Self::COUNT_OFFSET + 2]\n            .copy_from_slice(&((count + 1) as u16).to_le_bytes());\n        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())\n    }",
+      "explanation": "通过格式与容量检查后，append 会直接写入由 count 选中的偏移。没有任何一行会在当前页或其他页面中扫描受邀公钥。",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "验证页面身份、读取 count，并且只在容量耗尽时停止。"
+        },
+        {
+          "lines": "9-15",
+          "meaning": "写入 32 字节钱包和 8 字节 slot，递增 count，并更新页面 slot。"
+        },
+        {
+          "lines": "16-17",
+          "meaning": "直接返回成功，不存在重复钱包分支。"
+        }
+      ]
+    },
+    {
+      "title": "Tag 10 会限制第 0 页，却能独立开启高页",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !payer.is_signer || !payer.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if !invite_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }\n    if page_index == 0 && payer.key != inviter.key {\n        return Err(NicechunkPlayerError::InviteFirstPageRequiresInviter.into());\n    }\n    require_key_eq(\n        system_program_account.key,\n        &system_program::ID,\n        NicechunkPlayerError::InvalidSystemProgram,\n    )?;\n    require_key_eq(\n        global_config.owner,\n        &NICECHUNK_CORE_PROGRAM_ID,\n        NicechunkPlayerError::InvalidGlobalConfigOwner,\n    )?;\n\n    let (expected_invite_index, bump) = invite_index_pda(program_id, inviter.key, page_index);\n    require_key_eq(\n        invite_index.key,\n        &expected_invite_index,\n        NicechunkPlayerError::InvalidInviteIndexPda,\n    )?;\n    if invite_index.owner == program_id {\n        let data = invite_index.try_borrow_data()?;\n        return InviteIndex::validate(&data, inviter.key, global_config.key, page_index);\n    }",
+      "explanation": "付款人会签名，并且只有第 0 页把付款人与邀请人绑定。对于正确的高页 PDA，这段代码没有上一页检查。已创建页面只会被验证，然后返回。",
+      "walkthrough": [
+        {
+          "lines": "1-9",
+          "meaning": "要求付款人签名且页面可写；只有第 0 页要求邀请人自行出资。"
+        },
+        {
+          "lines": "10-26",
+          "meaning": "验证 System Program、配置 owner，以及由邀请人与页码组成的 PDA。"
+        },
+        {
+          "lines": "27-30",
+          "meaning": "如果页面已存在且属于 Player Program，就直接验证，不做任何连续性测试。"
+        }
+      ]
+    },
+    {
+      "title": "Tag 11 要求受邀钱包签名，而不是邀请人",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !invited.is_signer || !invited.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if invited.key == inviter.key {\n        return Err(NicechunkPlayerError::InvalidInviteSelf.into());\n    }\n    if !invite_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }",
+      "explanation": "被记录的钱包必须签名，并可为滚动出资。程序会把邀请人当作公钥来检查自我邀请，但这项账户检查不要求邀请人成为签名者。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "要求受邀账户签名且可写。"
+        },
+        {
+          "lines": "4-9",
+          "meaning": "拒绝自我邀请，并要求目标页面可写。"
+        }
+      ]
+    },
+    {
+      "title": "只有目标页面缺失时，才会执行“上一页已满”规则",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if invite_index.owner != program_id {\n        if page_index == 0 {\n            return Err(NicechunkPlayerError::InviteFirstPageRequiresInviter.into());\n        }\n        if accounts.len() != 6 {\n            return Err(NicechunkPlayerError::InvitePreviousPageRequired.into());\n        }\n        let previous_invite_index = next_account_info(account_info_iter)?;\n        let previous_page_index = page_index.saturating_sub(1);\n        let (expected_previous, _) = invite_index_pda(program_id, inviter.key, previous_page_index);\n        require_key_eq(\n            previous_invite_index.key,\n            &expected_previous,\n            NicechunkPlayerError::InvalidInviteIndexPda,\n        )?;\n        require_key_eq(\n            previous_invite_index.owner,\n            program_id,\n            NicechunkPlayerError::InvalidInviteIndexData,\n        )?;\n        let previous_data = previous_invite_index.try_borrow_data()?;\n        if !InviteIndex::is_full(\n            &previous_data,\n            inviter.key,\n            global_config.key,\n            previous_page_index,\n        )\n        .map_err(|_| NicechunkPlayerError::InvalidInviteIndexData)?\n        {\n            return Err(NicechunkPlayerError::InvitePreviousPageNotFull.into());\n        }\n        drop(previous_data);\n        if invite_index.owner != &system_program::ID || invite_index.data_len() != 0 {\n            return Err(NicechunkPlayerError::InvalidSystemAccount.into());\n        }\n        create_or_allocate_invite_index_pda(\n            invited,\n            invite_index,\n            system_program_account,\n            program_id,\n            inviter.key,\n            page_index,\n            bump,\n        )?;\n        let clock = Clock::get()?;\n        {\n            let mut data = invite_index.try_borrow_mut_data()?;\n            InviteIndex::pack_empty(\n                &mut data,\n                &InviteIndexInitArgs {\n                    bump,\n                    inviter: inviter.key,\n                    global_config: global_config.key,\n                    page_index,\n                    created_slot: clock.slot,\n                },\n            )?;\n        }\n    }\n\n    let clock = Clock::get()?;\n    let mut data = invite_index.try_borrow_mut_data()?;\n    InviteIndex::validate(&data, inviter.key, global_config.key, page_index)?;\n    InviteIndex::append(&mut data, invited.key, clock.slot)",
+      "explanation": "正常滚动只会在上一页已满后检查并为缺失高页出资。如果 tag 10 已让目标页归 Player Program 所有，外层 if 就为 false，执行会直接跳到验证与追加，从而绕过连续性检查。",
+      "walkthrough": [
+        {
+          "lines": "1-31",
+          "meaning": "对于缺失页面，禁止创建第 0 页，要求提供并验证上一页，而且上一页必须已满。"
+        },
+        {
+          "lines": "32-58",
+          "meaning": "要求一个未使用的 System 账户，让受邀钱包为其出资，并打包新页面。"
+        },
+        {
+          "lines": "61-64",
+          "meaning": "无论页面是新建还是已存在，都验证目标并追加；已存在的高页会在未经过“上一页已满”分支的情况下到达这里。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器读取方只扫描有限的连续前缀",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchInviteIndexPages(inviterAddress, { maxPages = 16 } = {}) {\n  if (!inviterAddress) return { inviter: \"\", pages: [], entries: [], capacity: inviteIndexCapacity };\n  const inviter = typeof inviterAddress === \"string\" ? new PublicKey(inviterAddress) : inviterAddress;\n  const pageCount = Math.max(1, Math.min(64, Math.floor(Number(maxPages) || 16)));\n  const pageKeys = Array.from({ length: pageCount }, (_value, index) => deriveInviteIndexPda(inviter, index)[0]);\n  const accounts = await getNicechunkConnection().getMultipleAccountsInfo(pageKeys, \"confirmed\");\n  const pages = [];\n  const entries = [];\n  let sawMissingAfterData = false;\n  for (let index = 0; index < pageKeys.length; index += 1) {\n    const account = accounts[index];\n    if (!account?.data?.length || !account.owner.equals(playerProgramId)) {\n      if (pages.length) sawMissingAfterData = true;\n      if (!pages.length || sawMissingAfterData) break;\n      continue;\n    }\n    const page = decodeInviteIndex(account.data, {\n      publicKey: pageKeys[index],\n      inviter,\n      pageIndex: index,\n      programId: account.owner,\n    });\n    if (!page) break;\n    pages.push(page);\n    for (const entry of page.entries) entries.push(entry);\n    if (page.count < inviteIndexCapacity) break;\n  }",
+      "explanation": "默认请求只派生索引 0 到 15，并在遇到缺失、无效或未满页面时停止。停止点之后可以存在有效页面，却不会出现在返回的账本中。",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "限制请求数量，并以 confirmed 读取一个可预测前缀。"
+        },
+        {
+          "lines": "7-16",
+          "meaning": "按顺序遍历，一旦发现缺失边界就停止。"
+        },
+        {
+          "lines": "17-26",
+          "meaning": "解码并累计；如果当前页未满，则再次停止。"
+        }
+      ]
+    },
+    {
+      "title": "客户端去重只是写入前读取的便利措施",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const current = await fetchInviteIndexPages(inviter, { maxPages: 16 });\n  if (!current.pages.length) {\n    return { submitted: false, reason: \"invite-first-page-required\", inviter: inviter.toBase58() };\n  }\n  const invitedWallet = provider.publicKey.toBase58();\n  if (current.entries.some((entry) => String(entry.invitedWallet || entry.wallet || \"\") === invitedWallet)) {\n    return {\n      submitted: false,\n      reason: \"already-registered\",\n      invited: invitedWallet,\n      inviter: inviter.toBase58(),\n      capacity: inviteIndexCapacity,\n    };\n  }\n  let targetPage = current.pages.find((page) => page.count < inviteIndexCapacity);\n  if (!targetPage) {\n    const nextIndex = current.pages.length;\n    const [publicKey] = deriveInviteIndexPda(inviter, nextIndex);\n    targetPage = { pageIndex: nextIndex, publicKey: publicKey.toBase58(), count: 0 };\n  }",
+      "explanation": "浏览器只检查有限读取返回的记录，之后再单独提交。这能避免常见重复，却无法提供原子性或协议范围内的唯一性；nextIndex 也只根据可见页面数量计算。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "最多读取 16 页，并要求第一页可见。"
+        },
+        {
+          "lines": "5-14",
+          "meaning": "如果受邀钱包出现在已获取前缀中，就提前返回。"
+        },
+        {
+          "lines": "15-20",
+          "meaning": "使用可见的未满页面，或根据可见页面数量派生下一索引。"
+        }
+      ]
+    },
+    {
+      "title": "解码器会自行添加显示状态 registered",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const entries = [];\n  for (let index = 0; index < count; index += 1) {\n    const offset = inviteIndexHeaderLength + index * inviteIndexRecordLength;\n    const invited = new PublicKey(data.subarray(offset, offset + 32)).toBase58();\n    entries.push({\n      invitedWallet: invited,\n      wallet: invited,\n      pageIndex: storedPageIndex,\n      index,\n      createdSlot: data.readBigUInt64LE(offset + 32).toString(),\n      status: \"registered\",\n    });\n  }",
+      "explanation": "字节只提供钱包与 slot。status 是解码时附加的 JavaScript 标签，不是程序打包的字段，也不是账户能够强制执行的奖励状态。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "针对保存的每条 count，计算固定记录偏移并读取公钥。"
+        },
+        {
+          "lines": "5-12",
+          "meaning": "构建显示对象，并添加一个并未保存在记录字节中的 registered 标签。"
+        }
+      ]
+    },
+    {
+      "title": "待处理出生点只能尽力保存，并且只能使用一次",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function storePendingInviteSpawn(walletAddress, payload) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !payload) return;\n  try {\n    localStorage.setItem(inviteSpawnStorageKey(wallet), JSON.stringify({\n      ...payload,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Spawn still works from the chain PDA if local storage is unavailable.\n  }\n}\n\nexport function consumePendingInviteSpawn(walletAddress, { surfaceHeight } = {}) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet) return null;\n  const key = inviteSpawnStorageKey(wallet);\n  try {\n    const raw = localStorage.getItem(key);\n    if (!raw) return null;\n    localStorage.removeItem(key);\n    const parsed = JSON.parse(raw);\n    const state = parsed?.position\n      ? {\n          position: parsed.position,\n          yaw: Number.isFinite(Number(parsed.yaw)) ? Number(parsed.yaw) : Math.PI * 0.25,\n          cameraPitch: Number.isFinite(Number(parsed.cameraPitch)) ? Number(parsed.cameraPitch) : -0.42,\n          guardianRegion: normalizeGuardianRegion(parsed.guardianRegion),\n        }\n      : guardianSpawnStateForRegion(parsed?.guardianRegion, { surfaceHeight });\n    return state;\n  } catch {\n    localStorage.removeItem(key);\n    return null;\n  }\n}",
+      "explanation": "保存操作会捕获失败，却不返回持久化信号。调用使用方时，会在解析前删除数据，并且不检查 storedAt 时效；如果 catch 内的存储删除也失败，清理操作本身仍可能抛错。",
+      "walkthrough": [
+        {
+          "lines": "1-12",
+          "meaning": "尝试写入带 storedAt、按钱包区分的 JSON；失败时静默继续。"
+        },
+        {
+          "lines": "14-31",
+          "meaning": "读取一次并立即删除，解析已保存位置或根据 Region 重新计算，然后返回。"
+        },
+        {
+          "lines": "32-35",
+          "meaning": "失败时再次尝试删除；第二次删除没有另一层 catch 保护。"
+        }
+      ]
+    },
+    {
+      "title": "当前 Play 会选择查询、自身保存的位置或 Genesis",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "const queryPose = parsePoseText(params.get(\"pose\") || \"\", { minViewDistance: 2, maxViewDistance: PLAYABLE_MAX_VIEW_DISTANCE });\nconst PLAYABLE_WORLD_SEED = \"nicechunk-mainnet-001\";\nconst PLAYABLE_TEXTURE_TILE_SIZE = 32;\nconst viewDistance = clampInt(Number(params.get(\"view\")) || queryPose?.viewDistance || DEFAULT_PLAY_VIEW_DISTANCE, 2, PLAYABLE_MAX_VIEW_DISTANCE);\nconst meshBudgetMs = clampInt(Number(params.get(\"budget\")) || DEFAULT_MESH_BUDGET_MS, 2, 14);\nconst POSITION_STORAGE_KEY = \"nicechunk.chunkjs.playable.position.v2\";\nconst POSITION_SAVE_INTERVAL_MS = 650;\nconst FRAME_MINIMAP_UPDATE_MS = 250;\nconst FRAME_ACTION_HIT_UPDATE_MS = 90;\nconst forceGuardianSpawn = params.get(\"guardianSpawn\") === \"1\" || params.get(\"spawn\") === \"guardian\";\nconst defaultGuardianSpawn = {\n  worldX: (GENESIS_GUARDIAN_REGION_SIZE_CHUNKS / 2) * 16,\n  worldY: undefined,\n  worldZ: (GENESIS_GUARDIAN_REGION_SIZE_CHUNKS / 2) * 16,\n  localOffsetX: 0.5,\n  localOffsetY: 0,\n  localOffsetZ: 0.5,\n  controlYaw: Math.PI * 0.25,\n  avatarYaw: Math.PI * 0.25,\n  cameraPitch: -0.42,\n};\nconst savedSpawn = (queryPose || hasSpawnParam(params) || forceGuardianSpawn) ? null : loadSavedPlayerPosition({ storageKey: POSITION_STORAGE_KEY, seed: PLAYABLE_WORLD_SEED });\nconst spawnState = queryPose ?? savedSpawn ?? defaultGuardianSpawn;\nconst spawnX = spawnCoord(params, \"x\", spawnState?.worldX ?? 0);\nconst spawnYOverride = spawnCoordOrNull(params, \"y\", spawnState?.worldY);\nconst spawnZ = spawnCoord(params, \"z\", spawnState?.worldZ ?? 0);\nconst spawnFlightEnabled = Boolean(spawnState?.flightEnabled || params.get(\"fly\") === \"1\" || params.get(\"flight\") === \"1\");",
+      "explanation": "当前启动表达式从未引用按钱包区分的待处理邀请键或其使用方。当没有更高优先级状态时，Genesis 的 X 与 Z 都解析为 50 × 16，即 800。",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "解析可选姿态与运行时控制，再定义独立 Play 位置键和强制默认标志。"
+        },
+        {
+          "lines": "11-21",
+          "meaning": "构造固定的 Region 零中心与镜头默认值。"
+        },
+        {
+          "lines": "22-27",
+          "meaning": "对于明确查询或强制默认值，跳过已保存状态；依次选择查询、已保存状态、Genesis，最后应用坐标轴和飞行查询值。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "src/player/inviteSpawn.js",
+      "claim": "定义可编辑邀请参数解析、当前空查询的 Region 零行为、Guardian Region 中心计算、按钱包区分的待处理出生点与回执键、尽力保存、单次使用，以及无到期检查和清理边界。"
+    },
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "在跳转间携带邀请提示，在角色调用前计算候选位置，在角色确认后写浏览器缓存，单独尝试 InviteIndex 登记，并且即使邀请登记未提交也会继续跳转。"
+    },
+    {
+      "path": "login/login.js",
+      "claim": "为已创建角色尝试同一套独立邀请登记，并保存浏览器回执；其中 pending 或 registered 标签都不是 InviteIndex 字段。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "派生 UsernameIndex 与 InviteIndex PDA，执行 confirmed 名称读取和分页邀请读取，解码固定布局，应用有限客户端去重，初始化第 0 页，构建受邀钱包追加，并提供特定时间点的租金查询。"
+    },
+    {
+      "path": "src/play/features/profile/invitePanel.js",
+      "claim": "包含备用 profile 邀请面板：创建分享链接、初始化第 0 页、最多请求 16 个 InviteIndex 页面、对已获取记录分页，并添加显示标签；本次审核的当前生产 Play 入口没有这个面板。"
+    },
+    {
+      "path": "play/index.html",
+      "claim": "定义本次审核是否存在邀请面板的当前生产 Play 界面；预期的 profileInviteOpen 与 profileInvitePanel 元素均不存在。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "是当前生产 Play 入口；启动前选择查询姿态、独立的已保存 Play 位置或 Genesis，稍后再开始 Profile 刷新，并且既不导入也不调用 consumePendingInviteSpawn。"
+    },
+    {
+      "path": "play/position-persistence.js",
+      "claim": "读取并写入另一条不区分钱包的已保存 Play 位置，验证版本与世界 seed，限制写入频率，并捕获普通存储失败。"
+    },
+    {
+      "path": "src/main.js",
+      "claim": "包含一条确实会使用待处理邀请出生点的备用启动路径，说明为什么不能因为其他位置存在使用方，就把该行为归到 play/main.js。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "路由名称、邀请页面初始化和邀请追加 tag；验证账户地址与签名者；第 0 页要求邀请人；允许独立初始化高页；只在追加创建缺失页面时检查上一页已满；并且没有提供 UsernameIndex 或 InviteIndex 关闭路径。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义精确的名称与邀请 seed、长度、布局、验证、固定 64 行页面容量、“钱包 + slot”追加、较窄的名称接受范围，以及 InviteIndex 追加中缺少重复扫描的现状。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/errors.rs",
+      "claim": "定义明确的自我邀请、第一页、上一页、页面已满、数据无效和名称已占用错误，但没有重复登记错误。"
+    },
+    {
+      "path": "target/deploy/nicechunk_player.so",
+      "claim": "保留的 172,880 字节构建产物在当日审计中与 finalized Devnet ProgramData ELF 哈希一致；该字节匹配不能证明含未提交改动的源码具有可复现性。"
+    },
+    {
+      "path": "docs/audits/names-invites-and-spawn-devnet-2026-07-16.json",
+      "claim": "记录 finalized Devnet 程序身份、已部署 ELF 对比、租金最低余额、完整的 InviteIndex 观测扫描、派生的第 0 到 63 页连续性检查、当前两条记录、源码哈希、生产运行时边界和明确的解释限制。"
+    },
+    {
+      "path": "play/tests/names-invites-and-spawn.test.mjs",
+      "claim": "锁定七项当前本地行为：空查询后备值、Region 优先级与序列化、中心计算、按钱包区分的存储、单次使用、格式错误清理，以及存储读取与删除都失败时重新抛出清理异常。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "提供所有生成教学图用作身份参考的 NiceChunk 标准村民男孩模型。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "提供所有生成教学图用作身份参考的 NiceChunk 标准村民女孩模型。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制权学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，查看公开 PlayerProfile，同时不要混入相邻记录",
+      "summary": "名称、邀请记录、浏览器草稿和启动位置彼此独立。下一篇已审核指南会打开与 owner 关联的 PlayerProfile 本身，并把其中的身份、指针、坐标和历史，与 Appearance、名称索引、Backpack 物品、进度 PDA 和本地界面卡片区分开。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "character-creation",
+        "title": "角色创建",
+        "summary": "回顾由 owner 签署、用于创建或更新 Profile、Appearance 与 UsernameIndex 的交易；之后才会发生本页讲解的邀请和浏览器交接。"
+      },
+      {
+        "label": "下一篇已审核指南",
+        "slug": "player-profile",
+        "title": "PlayerProfile PDA",
+        "summary": "了解哪些公开身份、装备指针、位置与历史字段保存在 PlayerProfile 中，以及哪些相邻记录仍彼此独立。"
+      }
+    ]
+  },
+  "related": [
+    {
+      "slug": "character-creation",
+      "href": "/docs/character-creation/",
+      "title": "角色创建",
+      "summary": "回顾前一篇中的名称查询、固定模型选择、由 owner 签署的三记录交易、本地缓存，以及确认后的独立交接。"
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA",
+      "summary": "查看与 owner 关联的公开 Profile；它与本页解释的名称索引和邀请索引仍彼此独立。"
+    },
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "钱包登录与安全",
+      "summary": "回顾为什么公开链接、钱包连接、消息签名、交易签名、提交与确认会提供不同证据。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家会话与临时权限",
+      "summary": "对比受邀钱包的 owner 签名，与之后由临时 session authority 执行的窄范围委托游戏操作。"
+    }
+  ]
+}

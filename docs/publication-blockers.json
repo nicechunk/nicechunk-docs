@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-29",
+  "repository": "nicechunk",
+  "blockers": [
+    {
+      "id": "workflow-scope",
+      "status": "external",
+      "severity": "publication",
+      "surface": "GitHub Actions",
+      "summary": "Workflow files cannot be published until the maintainer uses credentials with GitHub workflow scope.",
+      "requiredEvidence": [
+        "Credential or GitHub App permission includes workflow scope.",
+        "Workflow file is pushed to the target repository.",
+        "Hosted workflow run executes the commands documented in docs/ci-workflow-spec.md."
+      ],
+      "currentEvidence": [
+        "docs/ci-workflow-spec.md documents the intended hosted CI workflow.",
+        "docs/release-readiness.md lists workflow publication as a deferred release item.",
+        "npm run validate:release:full remains the local equivalent until hosted workflow publication is possible."
+      ],
+      "resolution": [
+        "Use a maintainer credential with workflow scope.",
+        "Publish the workflow file.",
+        "Record the first successful hosted workflow run in release evidence."
+      ],
+      "reviewRule": "Do not claim hosted CI coverage until the workflow file is present in GitHub and a run is visible for the reviewed commit."
+    },
+    {
+      "id": "manual-runtime-evidence",
+      "status": "manual",
+      "severity": "release",
+      "surface": "release evidence",
+      "summary": "Runtime, hardware, wallet, and production-capacity claims require targeted manual evidence before a production release.",
+      "requiredEvidence": [
+        "Manual release gate template is completed for each claimed runtime surface.",
+        "Artifacts are tied to the exact commit and environment.",
+        "Secrets, server addresses, wallet keys, and raw production logs remain out of public repositories."
+      ],
+      "currentEvidence": [
+        "docs/manual-release-gates.md lists triggers, minimum evidence, pass criteria, and owners.",
+        "npm run audit:manual-gates checks consistency across reviewer-facing documents and generated evidence.",
+        "npm run audit:maturity includes the same manual gaps in machine-readable output."
+      ],
+      "resolution": [
+        "Collect gate-specific evidence when making the corresponding release claim.",
+        "Attach redacted artifacts to private release evidence or a public-safe summary.",
+        "Rerun release evidence audits."
+      ],
+      "reviewRule": "Accept repository review readiness separately from production launch readiness; reject any release claim that names a manual gate without evidence."
+    }
+  ]
+}

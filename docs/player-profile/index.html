@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="player-profile" data-docs-static-source="226410d2decfb04a3e92f770965114314afd5bd01f60447b9698a24ee5e3fd16">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/player-profile.json" />
+    <meta name="nicechunk:source-sha256" content="226410d2decfb04a3e92f770965114314afd5bd01f60447b9698a24ee5e3fd16" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/player-profile/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Understand NiceChunk&#39;s current PlayerProfile, Appearance, name index, Backpack pointers, split progress accounts, browser fallbacks, source-level forged-item identity collapse, and separate dated Player-account Devnet evidence without needing programming or blockchain experience." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills" />
+    <meta property="og:description" content="Understand NiceChunk&#39;s current PlayerProfile, Appearance, name index, Backpack pointers, split progress accounts, browser fallbacks, source-level forged-item identity collapse, and separate dated Player-account Devnet evidence without needing programming or blockchain experience." />
+    <meta property="og:url" content="https://nicechunk.com/docs/player-profile/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/player-profile-overview-v2.webp" />
+    <meta property="og:image:alt" content="Generated voxel workshop: the canonical boy holds a cyan marker while the canonical girl compares a drawer, cabinet, Backpack, and two progress instruments." />
+    <title>PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/player-profile/#article",
+  "url": "https://nicechunk.com/docs/player-profile/",
+  "name": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+  "description": "Understand NiceChunk's current PlayerProfile, Appearance, name index, Backpack pointers, split progress accounts, browser fallbacks, source-level forged-item identity collapse, and separate dated Player-account Devnet evidence without needing programming or blockchain experience.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+  "mainEntityOfPage": "https://nicechunk.com/docs/player-profile/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One wallet resolves to several records with different jobs",
+    "PlayerProfile stores public fields and checkpoints, not the whole Profile screen",
+    "A unique name claim and a visible appearance follow separate rules",
+    "Current equipment pointers can collapse several forged items into one key",
+    "Progress is split across programs and then merged with browser history",
+    "Treat every Profile card as a claim with its own source",
+    "Current and earlier Profile generations still coexist"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#one-owner-several-records",
+      "name": "One wallet resolves to several records with different jobs"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#profile-is-not-profile-screen",
+      "name": "PlayerProfile stores public fields and checkpoints, not the whole Profile screen"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#name-and-appearance-precedence",
+      "name": "A unique name claim and a visible appearance follow separate rules"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#equipment-pointers-not-custody",
+      "name": "Current equipment pointers can collapse several forged items into one key"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#progress-across-programs",
+      "name": "Progress is split across programs and then merged with browser history"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#what-the-profile-ui-proves",
+      "name": "Treat every Profile card as a claim with its own source"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-profile/#live-devnet-profile-state",
+      "name": "Current and earlier Profile generations still coexist"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/player-profile-overview-v2.webp",
+    "https://nicechunk.com/docs/media/player-profile-one-owner-several-records-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-profile-is-not-profile-screen-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-name-and-appearance-precedence-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-equipment-pointers-not-custody-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-progress-across-programs-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-what-the-profile-ui-proves-v1.webp",
+    "https://nicechunk.com/docs/media/player-profile-live-devnet-profile-state-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>PlayerProfile PDAs</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL · STEP 6</p>
+<h1>PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills</h1>
+<p class="docs-hero-summary">A NiceChunk player is not stored in one all-purpose account. The current source tree keeps a compact PlayerProfile, a much larger Appearance record, a separate unique-name claim, Backpack records, program-scoped progress, and browser-only state. This guide explains a forge-and-market identity limitation found in that source. Its separate dated snapshot covers confirmed Player Program accounts only; it does not prove that deployed Backpack or Market code behaves identically.</p>
+<span class="docs-reading-time">24 min read</span></div>
+<figure class="docs-hero-visual"><img alt="voxel workshop: the canonical boy holds a cyan marker while the canonical girl compares a drawer, cabinet, Backpack, and two progress instruments." decoding="async" height="887" loading="eager" src="/docs/media/player-profile-overview-v2.webp" width="1774" />
+<figcaption class="docs-visual-caption">The separate drawer, cabinet, Backpack, and instruments introduce one central idea: the player experience is assembled from several records and local sources. These physical props are teaching metaphors made with the canonical villagers and real Chunk.js material language; they are not account decoders, exact field counts, ownership proofs, or evidence that every source agrees.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">When the Profile screen shows my name, avatar, Backpack, equipment, position, and skills, which parts really came from PlayerProfile—and which came from somewhere else?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 6 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Implemented boundary</dt>
+<dd>Current-worktree Player, Backpack, Market, Chunk, Smelting, Game, Play, SDK, and renderer source behavior · separate confirmed Devnet evidence for Player Program accounts</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>16 July 2026 · current dirty worktree, literal source excerpts, focused static checks, visual review evidence, and retained confirmed Devnet account evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Owner</dt>
+<dd>The player's wallet public key. It is public identity data, not a secret key.</dd></div>
+<div class="docs-guide-term"><dt>Program</dt>
+<dd>A Solana smart contract. Each program validates only the accounts and instructions defined by its own code.</dd></div>
+<div class="docs-guide-term"><dt>PDA</dt>
+<dd>A predictable address derived from public seeds and a program ID. Derivation alone does not create an account or prove its account owner; initialization and ownership checks are separate.</dd></div>
+<div class="docs-guide-term"><dt>Program scope</dt>
+<dd>The program ID included in PDA derivation and ownership checks. It is why Chunk progress and Game-scoped Smelting progress remain separate.</dd></div>
+<div class="docs-guide-term"><dt>PlayerProfile</dt>
+<dd>The current 773-byte Player Program account for owner and world binding, position, fixed attributes, nine equipment pointer fields, one equipped-Backpack pointer, forging history, and a bounded name.</dd></div>
+<div class="docs-guide-term"><dt>PlayerAppearance</dt>
+<dd>A separate 9,612-byte Player Program account for display name, title, model kind, model code, and twelve reserved rich-equipment records.</dd></div>
+<div class="docs-guide-term"><dt>UsernameIndex</dt>
+<dd>A 256-byte account addressed by a canonical name hash. It links one current name claim to an owner and PlayerProfile.</dd></div>
+<div class="docs-guide-term"><dt>Backpack</dt>
+<dd>A separate inventory account whose dense records hold resources and forged items. Its contents are not copied into PlayerProfile.</dd></div>
+<div class="docs-guide-term"><dt>Account owner</dt>
+<dd>The Solana program allowed to write an account. This is different from the player wallet stored inside Backpack data as its owner field.</dd></div>
+<div class="docs-guide-term"><dt>Record index</dt>
+<dd>A zero-based position inside the Backpack's dense record array. It is not the same as an equipment slot or an item identifier.</dd></div>
+<div class="docs-guide-term"><dt>item_pda field</dt>
+<dd>A 32-byte field stored in each forged Backpack record and copied into Profile equipment. Despite its name, the current forge path fills it with the owner's PlayerProfile address rather than an item-unique account address.</dd></div>
+<div class="docs-guide-term"><dt>Equipment slot</dt>
+<dd>One of nine public-key fields inside PlayerProfile. A slot records a selected 32-byte value; it does not move or lock the underlying Backpack record.</dd></div>
+<div class="docs-guide-term"><dt>Custody</dt>
+<dd>Where the usable item record actually remains. Current Profile equip validation leaves the forged record inside Backpack.</dd></div>
+<div class="docs-guide-term"><dt>PlayerProgress</dt>
+<dd>A 128-byte progress layout derived under a specific program. Chunk and Game can hold separate accounts with the same seed words.</dd></div>
+<div class="docs-guide-term"><dt>Forging XP</dt>
+<dd>XP stored directly in PlayerProfile after Backpack calculates a forge outcome and sends the gained amount to Player.</dd></div>
+<div class="docs-guide-term"><dt>Derived XP</dt>
+<dd>A browser calculation from local activity counters. It can be useful for display or local effects without being chain-settled progress.</dd></div>
+<div class="docs-guide-term"><dt>localStorage</dt>
+<dd>Browser storage on the current device. It is not a Solana account, can be absent or edited locally, and is not automatically shared across devices.</dd></div>
+<div class="docs-guide-term"><dt>Confirmed read</dt>
+<dd>The RPC commitment used by current browser helpers and this dated snapshot. It is a useful observation level, not a permanent guarantee.</dd></div>
+<div class="docs-guide-term"><dt>Dated snapshot</dt>
+<dd>An account inventory captured at one slot and time. Later transactions can change counts and field values.</dd></div>
+<div class="docs-guide-term"><dt>Provenance</dt>
+<dd>A statement of where a displayed value came from: a named account, a runtime value, browser storage, or a derived calculation.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>PlayerProfile is an anchor, not the whole character</strong>
+<p>Its 773 bytes do not contain Backpack inventory, full avatar geometry, a unique-name account, both progress accounts, wallet balance, hotbar selection, or most Profile-screen skills.</p></article>
+<article class="docs-key-point"><strong>The current forged-item pointer is not item-unique</strong>
+<p>Current Backpack forge source writes the owner's PlayerProfile address into every new forged record's item_pda field. Different outputs can therefore share one key, and the equipment-source Market lookup stops at the first item-kind Backpack record whose key matches. The retained Player-only Devnet snapshot does not prove the deployed Backpack or Market binary follows this source.</p></article>
+<article class="docs-key-point"><strong>The Profile screen is a composite view</strong>
+<p>It combines Profile and Appearance reads with wallet data, current runtime position, a cache-first Backpack lookup, selected hotbar state, local counters, browser storage, and client calculations.</p></article>
+<article class="docs-key-point"><strong>Program scope decides which progress was actually read</strong>
+<p>Chunk and Game derive separate PlayerProgress addresses. The current refresh reads only the Chunk-scoped account, so Game-scoped Smelting XP can be missing even when settlement succeeded.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#one-owner-several-records">One wallet resolves to several records with different jobs</a></li>
+<li><a href="#profile-is-not-profile-screen">PlayerProfile stores public fields and checkpoints, not the whole Profile screen</a></li>
+<li><a href="#name-and-appearance-precedence">A unique name claim and a visible appearance follow separate rules</a></li>
+<li><a href="#equipment-pointers-not-custody">Current equipment pointers can collapse several forged items into one key</a></li>
+<li><a href="#progress-across-programs">Progress is split across programs and then merged with browser history</a></li>
+<li><a href="#what-the-profile-ui-proves">Treat every Profile card as a claim with its own source</a></li>
+<li><a href="#live-devnet-profile-state">Current and earlier Profile generations still coexist</a></li>
+<li><a href="#technical-details">Six equations and eight literal excerpts connect the player-facing story to code</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="one-owner-several-records"><p class="docs-eyebrow">PROGRAM-SCOPED IDENTITY</p>
+<h2>One wallet resolves to several records with different jobs</h2>
+<p class="docs-prose">The active website configuration points at Devnet. Profile, Appearance, UsernameIndex, and Session belong to the Player Program. Precision Gathering and Exploration progress belong to the standalone Chunk Program. Backpack, Smelting, and Market are currently routed through the unified Game Program. A PDA includes its program domain, so identical seed words under Chunk and Game still produce unrelated addresses.</p>
+<p class="docs-prose">PlayerProfile is the compact owner-and-world anchor. PlayerAppearance carries visible identity and model data. UsernameIndex carries the canonical name claim. Backpack carries dense inventory records. PlayerProgress carries skill history under the program that updated it. These records can repeat the same owner or Profile key, but no program automatically joins them into one database row.</p>
+<p class="docs-prose">For an ordinary player, the useful rule is simple: one wallet can point to several public boxes, and each box answers a different question. Reading one box does not prove the other boxes exist, are current, or agree.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Compact anchor</span>
+<strong>PlayerProfile · 773 bytes</strong>
+<p>One current player-v7 PDA under the Player Program.</p></article>
+<article class="docs-fact"><span>Visible appearance</span>
+<strong>PlayerAppearance · 9,612 bytes</strong>
+<p>A separate appearance-v1 PDA under the Player Program.</p></article>
+<article class="docs-fact"><span>Split progress</span>
+<strong>Chunk PDA ≠ Game PDA</strong>
+<p>The same progress seed tuple remains program-scoped.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel archive: the canonical villagers stand among a desk, mirror cabinet, separate shelves, and two cyan-topped pedestals." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-one-owner-several-records-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The desk, mirror cabinet, shelves, and two isolated pedestals make the records feel separate even though the same villagers relate to all of them. The natural mirror reflection and visible prop counts are illustrative only; the formula and source determine real PDA addresses, program scope, and byte layouts.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>The owner key is a relationship, not a universal account address</strong>
+<p>Profile, Appearance, UsernameIndex, Session, Backpack, Chunk progress, and Smelting progress remain independently derived and independently validated.</p></aside></section>
+<section class="docs-content-section" id="profile-is-not-profile-screen"><p class="docs-eyebrow">COMPACT ACCOUNT, COMPOSITE SCREEN</p>
+<h2>PlayerProfile stores public fields and checkpoints, not the whole Profile screen</h2>
+<p class="docs-prose">Current initialization writes the NCKPLY01 magic, version 7, owner, GlobalConfig, world ID, position zero, and six defaults: health 100, energy 100, stamina 100, mining power 1, build power 1, and defense 0. It also creates nine empty equipment pointer fields, an empty equipped-Backpack pointer, timestamps, zero forging history, and a bounded name region. No current Player instruction changes those six default attributes.</p>
+<p class="docs-prose">Position is three signed 32-bit integers. The Player Program checks only Y against Core's minimum and maximum build bounds. Current Play does not read Profile position when choosing a spawn and does not save ordinary walking to chain. Query pose, local position storage, or the default Guardian start chooses Play startup instead.</p>
+<p class="docs-prose">The confirmed resource-mining path is the current place that may save a Profile checkpoint. If the verified mine transaction did not already carry that save, Play can request a forced supplemental position update. This makes Profile position a sparse chain checkpoint, not a birth coordinate, live tracker, or proof of where the avatar is standing now.</p>
+<p class="docs-prose">The visible Profile panel then adds information from elsewhere: its level averages effective client skill levels, reputation uses local confirmed-action counters, region comes from runtime position, balance comes from the wallet, and stat cards come from client skill effects. These cards are useful, but they are not direct decodes of the six fixed Profile attributes.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Initialized attributes</span>
+<strong>100 · 100 · 100 · 1 · 1 · 0</strong>
+<p>The current Player instruction set has no write path for these six u16 values.</p></article>
+<article class="docs-fact"><span>Position</span>
+<strong>i32 X · i32 Y · i32 Z</strong>
+<p>Only Y is contract-bounded; current chain saves are tied to the verified resource-mine path.</p></article>
+<article class="docs-fact"><span>Startup</span>
+<strong>Not read from Profile</strong>
+<p>Current Play chooses a query pose, local saved position, or default start.</p></article></div>
+<figure class="docs-section-visual"><img alt="hillside workshop: the canonical boy holds a small ledger while the canonical girl arranges a mirror, clothes stand, Backpack, tool, and map chest." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-profile-is-not-profile-screen-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The small ledger represents the compact Profile while the larger preparation area represents information the screen obtains elsewhere. The mirror reflection, map texture, and prop arrangement are narrative metaphors; they do not encode exact offsets, prove a chain checkpoint, or show a spawn rule.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Read the panel as a composite view</strong>
+<p>A card can be correct and still not come from PlayerProfile. Ask which source supplied it before calling it on-chain Profile state.</p></aside></section>
+<section class="docs-content-section" id="name-and-appearance-precedence"><p class="docs-eyebrow">NAME CLAIM, VISIBLE IDENTITY, AND MODEL CODE</p>
+<h2>A unique name claim and a visible appearance follow separate rules</h2>
+<p class="docs-prose">PlayerProfile reserves 300 bytes for a name, but the contract accepts at most 32 characters drawn from underscore, ASCII letters or digits, and U+4E00 through U+9FFF. The browser precheck uses the broader Unicode Han script class, so some extension characters can pass the browser and still fail the program. For a nonempty name, the program hashes the UTF-8 bytes after lowering ASCII A through Z only and derives UsernameIndex from that hash.</p>
+<p class="docs-prose">Changing a Profile name does not close the old UsernameIndex, and clearing the name does not release earlier claims. A case-only rename reaches the same index and validates ownership, but an existing index is not rewritten with new display capitalization. A string visible in Profile or Appearance is therefore not, by itself, proof that the matching canonical index exists.</p>
+<p class="docs-prose">Appearance upsert is the complete visible-identity path: it writes the validated name into Profile, claims or reuses the current UsernameIndex, and packs display name, title, model kind, and model code into Appearance in one instruction. A name-only update changes Profile but not Appearance. Current Play prefers Appearance.displayName, so an older Appearance value can continue masking a newer Profile-only name.</p>
+<p class="docs-prose">The modelCode contract is deliberately weak: it accepts 3 through 2,048 valid UTF-8 bytes beginning with the case-sensitive prefix NCM. It does not validate an NCM version, decode geometry, bind modelKind to a body, or require a canonical villager. The current Chunk.js loader accepts built-in aliases and renders both NCM2 and NCM4. A prefix-only value such as NCM can pass the program and still fail rendering.</p>
+<p class="docs-prose">The player funds Appearance storage, but only the configured treasury can close that account and receive its lamports. PlayerProfile and UsernameIndex have no close instruction. Storage funding should not be presented as an owner-controlled refundable deposit.</p>
+<ol class="docs-steps"><li><strong>Validate the exact contract character set</strong>
+<p>Apply 32-character, 300-byte, ASCII, underscore, and U+4E00–U+9FFF limits before submission; the browser's broader Han test is not final authority.</p></li>
+<li><strong>Claim or reuse the canonical name address</strong>
+<p>A nonempty name needs the SHA-256-derived UsernameIndex to be absent or already bound to the same owner and current Profile.</p></li>
+<li><strong>Update Profile and Appearance together when visible identity changes</strong>
+<p>The full Appearance upsert keeps the two records aligned; a name-only write intentionally leaves Appearance untouched.</p></li></ol>
+<figure class="docs-section-visual"><img alt="identity stall: the canonical girl faces a lit mirror and wardrobe while the canonical boy holds a blank token at a separate counter." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-name-and-appearance-precedence-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The bright mirror, small blank token, and separate notebook make Appearance, Profile name, and local fallback feel like different sources with an order of precedence. The mirror is not a portal, the token is not a cryptographic proof, and clothing counts do not represent account fields.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Stored model text is not rendered geometry</strong>
+<p>The chain proves only the weak UTF-8 and NCM-prefix envelope. Chunk.js must still decode an accepted alias, NCM2 body, or NCM4 body before a mesh exists.</p></aside></section>
+<section class="docs-content-section" id="equipment-pointers-not-custody"><p class="docs-eyebrow">POINTER, RECORD, AND CUSTODY</p>
+<h2>Current equipment pointers can collapse several forged items into one key</h2>
+<p class="docs-prose">set_equipment_slot is not a simple two-field write. The authority must sign; Profile must be writable, owned by Player, be the authority's current player-v7 PDA, and bind the supplied Core-owned GlobalConfig. The Profile slot must be valid. For a real item, Backpack must be owned by either the accepted standalone Backpack Program or unified Game Program, have the current layout and player owner, and equal PDA(account owner, backpack, player wallet, LE64 backpack ID). The selected dense record must also pass forged-item quantity, ID, durability, grade, level, and quality checks.</p>
+<p class="docs-prose">After validation, Player copies only the record's 32-byte item_pda field into one Profile slot. Backpack remains unchanged: the item is not transferred, reserved, removed, or locked. The same 32-byte value can be written into several Profile slots. Player accepts two possible Backpack account-owner programs, while one compiled Market build accepts only its configured Backpack program owner.</p>
+<p class="docs-prose">The field name suggests an item-specific address, but the current audited forge source passes player_profile.key into every new output. Backpack then stores that value as item_pda. Different forged records made for the same owner can therefore share the same PlayerProfile public key even when item ID, design hash, grade, level, durability, and Backpack index differ.</p>
+<p class="docs-prose">Market's two listing sources fail differently when that key is shared. For an equipment-slot listing, Market reads the selected Profile slot, scans Backpack from dense index zero, and immediately validates the first item-kind record whose key matches. If valid, that Backpack record is removed and the Profile slot the player selected is cleared; if that first matching record is invalid, the instruction errors instead of continuing to a later equal-key record.</p>
+<p class="docs-prose">For a direct Backpack listing, Market removes the Backpack index the player selected, then scans Profile slots from slot zero and clears the first pointer with the same key. Shared keys can therefore make the equipment path remove a different Backpack record than the player expected, or make the Backpack path clear a different matching Profile pointer. These are current audited source-code boundaries; the retained Player-only Devnet snapshot does not prove a matching deployed Market binary or live listing result.</p>
+<p class="docs-prose">PlayerAppearance reserves twelve 576-byte rich equipment records, but every current Appearance pack writes them empty. The chain decoder reads up to nine Profile equipment pointers, yet current Profile UI renders selected hotbar state and a synchronized Backpack instead. The generated workshop image explains reference versus custody only; it does not prove slot counts or item uniqueness.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Forge writes</span>
+<strong>record.item_pda = PlayerProfile PDA</strong>
+<p>Different outputs for one owner can share this same 32-byte value.</p></article>
+<article class="docs-fact"><span>Equip writes</span>
+<strong>Profile slot = record.item_pda</strong>
+<p>The validated Backpack record remains in place and unlocked.</p></article>
+<article class="docs-fact"><span>Market lookup</span>
+<strong>Equipment: first kind/key match</strong>
+<p>A direct Backpack listing instead removes the selected record, then clears the first equal-key Profile slot.</p></article></div>
+<figure class="docs-section-visual"><img alt="equipment workshop: a forged pickaxe stays inside the girl&#39;s open Backpack while the boy places only a cyan marker in a wall rack." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-equipment-pointers-not-custody-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The forged pickaxe stays physically inside the open Backpack while only a small marker reaches the wall rack. This scene teaches reference versus custody. The second closed Backpack, rack openings, hooks, mannequin, and gray tool are illustrative set dressing and do not encode exact slot counts, Market matching, program ownership, or item uniqueness.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not call item_pda item-unique in the current forge path</strong>
+<p>It is an opaque validated field to Player, but the current audited Backpack forge source fills it with the owner's Profile address. Equipment-source Market lookup can therefore fold distinct forged records together. This Player-only Devnet snapshot does not verify the deployed Backpack or Market binaries.</p></aside></section>
+<section class="docs-content-section" id="progress-across-programs"><p class="docs-eyebrow">TEN VISIBLE SKILLS, FOUR CHAIN-BACKED CONCEPTS</p>
+<h2>Progress is split across programs and then merged with browser history</h2>
+<p class="docs-prose">The Profile panel defines ten skills. Precision Gathering and Exploration advance in Chunk PlayerProgress. Smelting advances in a separate PlayerProgress under the unified Game Program's Smelting namespace. Forging XP, forged count, best grade, and best item level live in PlayerProfile. Burden, Craftsmanship, Swiftness, Stamina, Strength, and Appraisal have no matching chain XP field in the current programs.</p>
+<p class="docs-prose">The browser derives XP from local activity counters and loads one browser object. It first tries a wallet-or-profile-scoped localStorage key; only when that value is absent does it use the legacy unscoped key. Those two browser objects are not merged with each other. The selected browser object is then max-merged with derived counters and the fetched chain subset, skill by skill.</p>
+<p class="docs-prose">Current refresh calls fetchPlayerProgress once under gameContext.chunkProgramId and requires the account owner to be the Chunk Program. It decodes the Smelting offset from that Chunk account even though successful Smelting settlement writes the identically laid-out PDA under gameContext.smeltingProgramId, currently the unified Game Program. Real Smelting XP can therefore exist while the Profile panel's fetched source remains zero or stale.</p>
+<p class="docs-prose">Precision, Smelting, and Exploration client threshold formulas reproduce their chain arrays, but Forging does not. Backpack treats 45,000 forging XP as level ten; the generic UI curve shows level four at that value. Backpack also calculates gained forge XP as 25 times final grade squared. Player does not recompute that equation: it validates the forging authority and directly saturating-adds the nonzero gained_xp supplied by Backpack.</p>
+<p class="docs-prose">A large displayed value can therefore be honest about the browser's merge rule without being chain truth. Client-only effects may use that visible maximum, while mining and Smelting settlement still enforce their own program rules.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Chain locations</span>
+<strong>Chunk · Game · PlayerProfile</strong>
+<p>Four chain-backed skill concepts still span three account locations.</p></article>
+<article class="docs-fact"><span>Browser storage</span>
+<strong>Scoped OR legacy</strong>
+<p>One local object is selected before max-merging with derived and fetched values.</p></article>
+<article class="docs-fact"><span>Current Smelting read</span>
+<strong>Chunk scope only</strong>
+<p>The refresh does not fetch the Game-scoped Smelting progress account.</p></article></div>
+<figure class="docs-section-visual"><img alt="grassy clearing: the canonical villagers tend separate cyan progress vessels in quarry and smelting workshops, with notebooks between them." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-progress-across-programs-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The two separated workshops make program scope visible, while the center notebooks suggest browser history. The notebook count and the different vessel shapes are illustrative. The image cannot prove equal seeds, byte layouts, account owners, a missing fetch, or a maximum merge; those claims come from the formulas and literal source.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A correct level curve cannot repair a missing account read</strong>
+<p>Smelting can settle under Game and still be absent from a refresh that derives and fetches only Chunk PlayerProgress.</p></aside></section>
+<section class="docs-content-section" id="what-the-profile-ui-proves"><p class="docs-eyebrow">SOURCE-BY-SOURCE PROVENANCE</p>
+<h2>Treat every Profile card as a claim with its own source</h2>
+<p class="docs-prose">The current chain decoder reads Profile position, fixed attributes, nine equipment pointers, equipped Backpack, forging history, and name. The UI does not consume every decoded field. Its equipment panel uses the selected hotbar record for the main hand and synchronized Backpack data for the back slot, leaving the other conceptual slots empty or locked.</p>
+<p class="docs-prose">Backpack synchronization is cache-first. If a wallet-scoped cached Backpack address still loads as a valid owner Backpack, the helper returns it before reading Profile.equippedBackpack. Only a missing or invalid cache falls back to the current Profile pointer. A screen can therefore show a valid Backpack without proving that it was freshly reconciled with the current Profile selection.</p>
+<p class="docs-prose">Identity is also layered. Appearance display name wins over Profile name; local profile values and built-in villager aliases can supply fallbacks. Runtime position, wallet balance, local counters, and derived skill effects supply other cards. The current Profile panel has no visible control wired to the available savePlayerName or savePlayerAppearance helpers, so helper existence is not proof that players can edit identity there.</p>
+<p class="docs-prose">The browser chain module and exported TypeScript SDK do not currently agree on every name instruction. Static source shows the SDK building three accounts for a nonempty name update where the processor requires five, and five accounts for Appearance upsert where the processor requires six. The browser module constructs the five- and six-account forms. Existing tests assert older SDK lists, so passing those tests does not establish deployed-contract parity. No unsupported Devnet simulation result is claimed here.</p>
+<p class="docs-prose">A trustworthy Profile screen does not need one giant account. It needs labels and reconciliation: name the account or local source, fetch progress under the correct program, distinguish Backpack custody from Profile pointers, and keep local-only values visibly local.</p>
+<ul class="docs-bullets"><li>Identity: state whether Appearance, Profile, local profile, or built-in fallback won.</li>
+<li>Backpack: state whether the value came from wallet cache or a fresh Profile pointer fallback.</li>
+<li>Equipment: separate Backpack record, Profile pointer, empty Appearance record, and selected hotbar presentation.</li>
+<li>Skills: show Chunk, Game, Profile, derived, and browser sources instead of silently calling their maximum chain XP.</li>
+<li>Position: distinguish runtime location, local startup save, and sparse chain checkpoint.</li>
+<li>SDK: compare constructed account lists with the processor contract before treating a test as integration proof.</li></ul>
+<figure class="docs-section-visual"><img alt="records workshop: the canonical girl lifts a ledger beside separate trays of Profile-screen props while the canonical boy watches by a mirror." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-what-the-profile-ui-proves-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Each object remains in its own tray so the viewer can ask where each visible claim came from. The pouch, compass, abacus, cube, Backpack, ledger, mirror, and rail are source metaphors only; they are not UI controls, verified account contents, or proof that the current browser reconciled them.</figcaption></figure>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Provenance is more useful than an on-chain badge</strong>
+<p>A precise label such as Appearance, Profile, Game progress, wallet cache, runtime, or local derived value tells a player what was actually observed.</p></aside></section>
+<section class="docs-content-section" id="live-devnet-profile-state"><p class="docs-eyebrow">RETAINED CONFIRMED DEVNET SNAPSHOT</p>
+<h2>Current and earlier Profile generations still coexist</h2>
+<p class="docs-prose">At confirmed context slot 476,758,441 on 16 July 2026, the retained audit captured all 47 Player-Program-owned accounts with raw Base64 data and hashes. Nineteen carried Profile magic: eleven matched the current owner-derived player-v7 PDA, while eight were earlier records. The remaining recognized accounts were ten Appearances, seven UsernameIndexes, ten Sessions, and one InviteIndex page.</p>
+<p class="docs-prose">The eight earlier Profile records consisted of four 473-byte version-2 records, three 773-byte version-3 records, and one 773-byte version-4 record. Length alone is therefore insufficient: four earlier records use the current 773-byte length. Current writes derive player-v7, so the canonical owner-derived address, version, layout, owner, and GlobalConfig all matter.</p>
+<p class="docs-prose">Among the eleven current Profiles, ten had moved away from origin, five stored an equipped-Backpack pointer, none stored any nonzero value in the nine equipment fields, and two had forging history. All 120 reserved rich equipment states across ten Appearances were zero. All ten retained Sessions were expired at the snapshot and had action count zero. These observations show which layouts are live; they do not prove unused paths are impossible.</p>
+<p class="docs-prose">The full upgradeable-loader ProgramData account was 172,925 bytes: 45 bytes of loader metadata followed by a 172,880-byte ELF allocation. That ELF allocation hashed to 9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a and matched the retained local 172,880-byte artifact. The byte match does not prove that the dirty source worktree reproducibly built it.</p>
+<p class="docs-prose">The archive artwork deliberately does not reproduce these counts. Boxes can make old and current records intuitive, but only the retained audit establishes the dated numbers, raw account bytes, hashes, context slot, and interpretation boundaries.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Recognized accounts</span>
+<strong>47 at slot 476,758,441</strong>
+<p>Raw account bytes and hashes are retained in the dedicated confirmed snapshot.</p></article>
+<article class="docs-fact"><span>Profile magic</span>
+<strong>11 current · 8 earlier</strong>
+<p>Four earlier records are also 773 bytes, so address derivation matters.</p></article>
+<article class="docs-fact"><span>ProgramData</span>
+<strong>172,925 total · 172,880 ELF</strong>
+<p>The smaller number excludes 45 bytes of loader metadata.</p></article></div>
+<figure class="docs-section-visual"><img alt="archive courtyard based on the Chunk.js hillside: the canonical villagers inspect clean and weathered chests beside a survey tripod." decoding="async" height="887" loading="lazy" src="/docs/media/player-profile-live-devnet-profile-state-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The clean and weathered chests make current and earlier records easy to imagine, and the tripod suggests a point-in-time observation. Chest counts, shapes, and the tripod are narrative devices only. They are not the Player Program, an RPC client, account bytes, or evidence for the audited totals.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Live counts are evidence at one slot, not permanent totals</strong>
+<p>Later transactions can change names, positions, Backpack pointers, forging history, Sessions, and account counts. Re-run the audit before calling the snapshot current.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">READ THE IMPLEMENTATION</p>
+<h2>Six equations and eight literal excerpts connect the player-facing story to code</h2>
+<p>The equations identify addresses, byte layouts, browser precedence, the shared forged-item key found in current audited source, equip and Market checks, and the XP merge. Each source block is copied as one continuous substring from the repository so readers can compare the explanation with the implementation.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>One owner resolves to several program-scoped addresses</h3>
+<div aria-label="Profile and Appearance derive under Player, while the same player progress seeds derive different addresses under Chunk and Game." class="docs-formula-expression" role="math"><code>Profile(o)=PDA_P([UTF8("player-v7"),o]); Appearance(o)=PDA_P([UTF8("appearance-v1"),o]); Username(n)=PDA_P([UTF8("player-name-v1"),SHA256(asciiLower(n))]); ChunkProgress(o)=PDA_C([UTF8("player-progress"),GlobalConfig,o]); SmeltingProgress(o)=PDA_G([UTF8("player-progress"),GlobalConfig,o])</code></div>
+<p class="docs-technical-explanation">P is the Player Program, C is the standalone Chunk Program, and G is the unified Game Program used by current Smelting. Changing the program domain changes the PDA even when owner and seed bytes stay the same.</p>
+<dl class="docs-formula-terms"><dt>o, n</dt>
+<dd>The owner public key and validated player-name string.</dd>
+<dt>asciiLower</dt>
+<dd>Lowercase ASCII A through Z only; preserve every other accepted UTF-8 byte.</dd>
+<dt>P, C, G</dt>
+<dd>Player, Chunk, and unified Game program domains.</dd></dl></article>
+<article class="docs-formula"><h3>Profile is compact while Appearance reserves rich render space</h3>
+<div aria-label="PlayerProfile is 773 bytes; PlayerAppearance is 9,612 bytes and about 71.9 percent is reserved for twelve rich equipment records." class="docs-formula-expression" role="math"><code>Profile=773 bytes; Appearance=256+300+96+2048+(12×576)=9612 bytes; richEquipmentShare=(12×576)/9612≈71.9%</code></div>
+<p class="docs-technical-explanation">Profile spends 288 bytes on nine 32-byte equipment fields. Appearance reserves 6,912 bytes for twelve rich equipment records, although the current pack path resets all twelve states and payloads to zero.</p>
+<dl class="docs-formula-terms"><dt>12×576</dt>
+<dd>Twelve rich Appearance equipment records.</dd>
+<dt>300, 96, 2048</dt>
+<dd>Reserved display-name, title, and model-code regions.</dd>
+<dt>71.9%</dt>
+<dd>The approximate share of Appearance bytes reserved for rich equipment.</dd></dl></article>
+<article class="docs-formula"><h3>Visible identity follows a source precedence</h3>
+<div aria-label="Appearance wins over Profile for the chain name, then local and built-in fallbacks fill missing display values." class="docs-formula-expression" role="math"><code>chainName=Appearance.displayName || Profile.playerName; HUDName=chainName || LocalProfile.name || "Local Miner"; AvatarCode=Appearance.modelCode || LocalProfile.modelCode || builtInVillager</code></div>
+<p class="docs-technical-explanation">The double bar means the first nonempty value. This selection explains why a newer Profile-only name can remain hidden by an older Appearance and why a rendered avatar can exist even when no accepted Appearance model is available.</p>
+<dl class="docs-formula-terms"><dt>||</dt>
+<dd>Choose the first nonempty value.</dd>
+<dt>chainName</dt>
+<dd>Appearance display name first, then compact Profile name.</dd>
+<dt>LocalProfile</dt>
+<dd>Browser-stored profile data used as a fallback or preview source.</dd></dl></article>
+<article class="docs-formula"><h3>Current audited forge source gives different outputs the same 32-byte key</h3>
+<div aria-label="In current audited source, every new forged record for one owner receives the same PlayerProfile address, and an equipment-source Market lookup chooses the first item-kind Backpack record with that key." class="docs-formula-expression" role="math"><code>For each new forged record j owned by o: ForgedRecord_j.item_pda=ProfilePDA(o); MarketEquipmentBackpackMatch(k)=min{i | Backpack[i].kind=item ∧ Backpack[i].item_pda=k}</code></div>
+<p class="docs-technical-explanation">The records can still differ in item ID, design hash, grade, level, quality, durability, and index, but the field later copied into Profile equipment is shared. The minimum expression describes only Market's equipment-source Backpack scan. A direct Backpack listing uses the player-supplied record index, then scans Profile slots for the first equal key.</p>
+<dl class="docs-formula-terms"><dt>j</dt>
+<dd>One newly forged Backpack record.</dd>
+<dt>k</dt>
+<dd>The 32-byte value supplied by a Profile equipment slot.</dd>
+<dt>min{i | …}</dt>
+<dd>The first item-kind Backpack index with the matching key in an equipment-source scan, starting at zero.</dd></dl></article>
+<article class="docs-formula"><h3>Equip validates a Backpack record but does not transfer custody</h3>
+<div aria-label="Equip requires the signed current Profile, a valid program-owned Backpack PDA using a little-endian 64-bit ID, and a valid forged record; it copies one field while leaving Backpack unchanged." class="docs-formula-expression" role="math"><code>Acceptance checks include: signer(authority); Profile=PDA_Player(["player-v7",authority]); 0≤slot&lt;9; B.accountOwner∈{BackpackProgram,GameProgram}; B=PDA_B.accountOwner(["backpack",authority,LE64(B.id)]); validForged(B[i]); then Profile.equipment[slot]=B[i].item_pda and B_after=B_before</code></div>
+<p class="docs-technical-explanation">This is a summary of required checks, not an if-and-only-if proof. GlobalConfig ownership and binding, account lengths, magic, versions, internal player owner, dense index, durability, grade, level, quality, and writable-account checks also apply.</p>
+<dl class="docs-formula-terms"><dt>B.accountOwner</dt>
+<dd>The Solana program that owns the Backpack account, not the player wallet stored inside its data.</dd>
+<dt>LE64(B.id)</dt>
+<dd>The Backpack ID encoded as eight little-endian bytes in its PDA seeds.</dd>
+<dt>B_after=B_before</dt>
+<dd>The equip instruction reads Backpack but does not remove or lock its record.</dd></dl></article>
+<article class="docs-formula"><h3>The UI keeps the largest supplied XP value</h3>
+<div aria-label="The browser chooses scoped storage or a legacy fallback, then displays the maximum of derived, selected browser, and fetched chain XP; Backpack separately computes forge XP as twenty-five times grade squared." class="docs-formula-expression" role="math"><code>BrowserObject=ScopedStorage || LegacyStorage; XP_UI(s)=max(XP_derived(s),BrowserObject[s],XP_fetchedChain(s)); ForgeOutcomeXP=25×grade²</code></div>
+<p class="docs-technical-explanation">Scoped and legacy browser objects are alternatives, not two independent merge inputs. The grade-squared equation belongs to Backpack's forge outcome. Player validates the forging authority and adds the supplied gained XP without recomputing the equation.</p>
+<dl class="docs-formula-terms"><dt>s</dt>
+<dd>One visible Profile skill.</dd>
+<dt>XP_fetchedChain</dt>
+<dd>The subset returned by the current refresh, which currently reads only Chunk PlayerProgress plus Profile forging history.</dd>
+<dt>grade</dt>
+<dd>The final forge grade from one through ten calculated by Backpack.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Forge passes the PlayerProfile address as item_pda</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let clock = Clock::get()?;
+    let outcome = {
+        let mut backpack_data = backpack.try_borrow_mut_data()?;
+        BackpackAccount::forge_equipment_from_verified_materials(
+            &amp;mut backpack_data,
+            owner.key,
+            indexes,
+            item_id,
+            design_hash,
+            player_profile.key,
+            forging_level,
+            clock.slot,
+            requirements,
+        )?
+    };</code></pre>
+<p class="docs-technical-explanation">player_profile.key appears on line 10 of this excerpt as the sixth function argument, item_pda. No item-specific PDA is derived before Backpack receives the value.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Borrow the owner's Backpack after reading the clock.</p></li>
+<li><strong>Lines 4–13</strong>
+<p>Send material indexes and output metadata into forge; the supplied item_pda argument is the PlayerProfile public key.</p></li>
+<li><strong>Lines 14–15</strong>
+<p>Return the calculated forge outcome for later Profile XP handling.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack stores that supplied key in the forged record</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        let outcome = calculate_forge_outcome(&amp;materials, forging_level);
+        Self::remove_resources_at(data, owner, indexes, updated_slot)?;
+        let output = BackpackSlotRecord {
+            kind: BACKPACK_SLOT_KIND_ITEM,
+            category: BACKPACK_ITEM_CATEGORY_FORGED,
+            flags: 0,
+            quantity: 1,
+            resource: BackpackResourceRecord::default(),
+            item_code: BACKPACK_FORGED_ITEM_CODE,
+            item_id,
+            item_pda: *item_pda,
+            volume_mm3: outcome.volume_mm3,
+            durability_current: outcome.durability_max,
+            durability_max: outcome.durability_max,
+            grade: outcome.grade,
+            item_level: outcome.item_level,
+            quality_bps: outcome.quality_bps,
+            metadata: design_hash,
+        };
+        Self::append_item(data, owner, &amp;output, updated_slot)?;</code></pre>
+<p class="docs-technical-explanation">The record stores item_pda exactly as supplied. Other fields can distinguish outputs, but Profile equip and current Market identity matching use this shared 32-byte field.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Calculate the outcome and consume the selected materials.</p></li>
+<li><strong>Lines 3–19</strong>
+<p>Build one forged record; item_pda is copied unchanged while item ID, outcome, and design metadata occupy separate fields.</p></li>
+<li><strong>Line 20</strong>
+<p>Append the new record into the dense Backpack.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Appearance repacks visible identity and clears all rich equipment</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn pack(dst: &amp;mut [u8], args: &amp;PlayerAppearanceInitArgs) -&gt; ProgramResult {
+        if dst.len() != Self::LEN {
+            return Err(NicechunkPlayerError::InvalidAppearanceData.into());
+        }
+        Self::validate_model_kind(args.model_kind)?;
+        PlayerProfile::validate_name(args.display_name.as_bytes())?;
+        Self::validate_title(args.title)?;
+        Self::validate_model_code(args.model_code)?;
+
+        let mut writer = ByteWriter { dst, offset: 0 };
+        writer.bytes(&amp;PLAYER_APPEARANCE_MAGIC)?;
+        writer.u16(PLAYER_APPEARANCE_VERSION)?;
+        writer.u8(args.bump)?;
+        writer.u8(1)?;
+        writer.pubkey(args.owner)?;
+        writer.pubkey(args.player_profile)?;
+        writer.pubkey(args.global_config)?;
+        writer.pubkey(args.treasury_authority)?;
+        writer.u8(args.model_kind)?;
+        writer.u16(0)?;
+        writer.u16(args.display_name.as_bytes().len() as u16)?;
+        writer.u16(args.title.len() as u16)?;
+        writer.u16(args.model_code.len() as u16)?;
+        writer.u8(APPEARANCE_EQUIPMENT_SLOT_COUNT as u8)?;
+        writer.u64(args.created_slot)?;
+        writer.u64(args.updated_slot)?;
+        writer.i64(args.created_at)?;
+        writer.i64(args.updated_at)?;
+        writer.bytes(&amp;[0_u8; Self::HEADER_LEN - Self::RESERVED_OFFSET])?;
+
+        let display_name_bytes = args.display_name.as_bytes();
+        writer.bytes(display_name_bytes)?;
+        writer.bytes(
+            &amp;[0_u8; PLAYER_NAME_MAX_BYTES][..PLAYER_NAME_MAX_BYTES - display_name_bytes.len()],
+        )?;
+        writer.bytes(args.title)?;
+        writer.bytes(
+            &amp;[0_u8; APPEARANCE_TITLE_MAX_BYTES][..APPEARANCE_TITLE_MAX_BYTES - args.title.len()],
+        )?;
+        writer.bytes(args.model_code)?;
+        writer.bytes(
+            &amp;[0_u8; APPEARANCE_MODEL_CODE_MAX_BYTES]
+                [..APPEARANCE_MODEL_CODE_MAX_BYTES - args.model_code.len()],
+        )?;
+        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {
+            writer.u8(0)?;
+            writer.u8(slot as u8)?;
+            writer.bytes(&amp;[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;
+        }</code></pre>
+<p class="docs-technical-explanation">The packer validates and rewrites the full visible identity record. Its final loop gives every rich equipment record state zero and a zero-filled payload.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Require the exact account size and validate model kind, name, title, and model-code envelope.</p></li>
+<li><strong>Lines 10–29</strong>
+<p>Write account relationships, lengths, timestamps, and the fixed header.</p></li>
+<li><strong>Lines 31–44</strong>
+<p>Write bounded display name, title, and model code with zero padding.</p></li>
+<li><strong>Lines 45–49</strong>
+<p>Reset every one of the twelve rich equipment records.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Player validates one Backpack record before copying its field</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">fn set_equipment_slot(
+    program_id: &amp;Pubkey,
+    accounts: &amp;[AccountInfo],
+    payload: &amp;[u8],
+) -&gt; ProgramResult {
+    if payload.len() != 2 || (accounts.len() != 3 &amp;&amp; accounts.len() != 4) {
+        return Err(NicechunkPlayerError::InvalidInstruction.into());
+    }
+
+    let account_info_iter = &amp;mut accounts.iter();
+    let authority = next_account_info(account_info_iter)?;
+    let player_profile = next_account_info(account_info_iter)?;
+    let global_config = next_account_info(account_info_iter)?;
+
+    validate_player_write_accounts(program_id, authority, player_profile, global_config)?;
+    let slot = payload[0];
+    let backpack_index = payload[1];
+    let item = if backpack_index == CLEAR_EQUIPMENT_BACKPACK_INDEX {
+        if accounts.len() != 3 {
+            return Err(NicechunkPlayerError::InvalidAccountCount.into());
+        }
+        Pubkey::default()
+    } else {
+        if accounts.len() != 4 {
+            return Err(NicechunkPlayerError::InvalidAccountCount.into());
+        }
+        let backpack = next_account_info(account_info_iter)?;
+        if backpack.owner != &amp;NICECHUNK_BACKPACK_PROGRAM_ID
+            &amp;&amp; backpack.owner != &amp;NICECHUNK_GAME_PROGRAM_ID
+        {
+            return Err(NicechunkPlayerError::InvalidBackpackProgram.into());
+        }
+        let backpack_data = backpack.try_borrow_data()?;
+        BackpackAccountView::validate_pda_and_owner(
+            &amp;backpack_data,
+            backpack.key,
+            backpack.owner,
+            authority.key,
+        )?;
+        BackpackAccountView::equippable_item_pda_at(&amp;backpack_data, authority.key, backpack_index)?
+    };
+    let clock = Clock::get()?;
+    let mut data = player_profile.try_borrow_mut_data()?;
+    PlayerProfile::write_equipment_slot(&amp;mut data, slot, &amp;item, clock.slot)</code></pre>
+<p class="docs-technical-explanation">Index 255 clears; another index requires a fourth Backpack account. Program ownership, Backpack PDA and internal player ownership, and record validity are checked before Player writes the selected 32-byte field.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–15</strong>
+<p>Validate payload shape, take the accounts, and verify the signed current Profile plus GlobalConfig.</p></li>
+<li><strong>Lines 16–26</strong>
+<p>Choose a Profile slot and either clear it or require the Backpack account.</p></li>
+<li><strong>Lines 27–40</strong>
+<p>Accept one of two account-owner programs, validate Backpack PDA and player ownership, then read a valid forged record.</p></li>
+<li><strong>Lines 41–44</strong>
+<p>Copy the returned public key field into Profile.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Equipment-source Market lookup stops at the first shared-key Backpack record</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_market/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">fn find_backpack_item_slot_by_pda(
+    data: &amp;[u8],
+    item: &amp;Pubkey,
+) -&gt; Result&lt;([u8; BACKPACK_SLOT_RECORD_LEN], u8), solana_program::program_error::ProgramError&gt; {
+    let item_count = data[BACKPACK_ITEM_COUNT_OFFSET];
+    for index in 0..item_count {
+        let offset = BACKPACK_HEADER_LEN + index as usize * BACKPACK_SLOT_RECORD_LEN;
+        let slot = &amp;data[offset..offset + BACKPACK_SLOT_RECORD_LEN];
+        if slot[0] == BACKPACK_SLOT_KIND_ITEM
+            &amp;&amp; &amp;slot[BACKPACK_SLOT_ITEM_PDA_OFFSET..BACKPACK_SLOT_ITEM_PDA_OFFSET + 32]
+                == item.as_ref()
+        {
+            return Ok((copy_valid_backpack_slot(slot)?, index));
+        }
+    }
+    Err(NicechunkMarketError::InvalidEquipmentSource.into())</code></pre>
+<p class="docs-technical-explanation">The loop starts at zero. On the first item-kind record with an equal item_pda field, it immediately validates and either returns or errors; it does not add item ID, design hash, or intended Backpack index, and it does not continue after an invalid first match.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Accept Backpack bytes and the 32-byte key from equipment.</p></li>
+<li><strong>Lines 6–13</strong>
+<p>Scan dense records in order; at the first item-kind, equal-key record, attempt validation and return or error without scanning later matches.</p></li>
+<li><strong>Lines 14–16</strong>
+<p>Report no match only after every dense record has been checked.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser derives Chunk and Smelting progress under different programs</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function derivePlayerProgressPdaForContext(owner, context = gameContext) {
+  return derivePlayerProgressPdaForProgram(owner, context.chunkProgramId);
+}
+
+function deriveSmeltingPlayerProgressPdaForContext(owner, context = gameContext) {
+  return derivePlayerProgressPdaForProgram(owner, context.smeltingProgramId);
+}</code></pre>
+<p class="docs-technical-explanation">The seed helper is shared, but context.chunkProgramId and context.smeltingProgramId place the addresses in different program domains.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Derive the progress address under Chunk.</p></li>
+<li><strong>Lines 5–7</strong>
+<p>Derive the Smelting progress address under its configured program, currently unified Game.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Current refresh fetches only the Chunk-scoped progress account</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function fetchPlayerProgress(ownerAddress) {
+  if (!ownerAddress) return null;
+  const owner = typeof ownerAddress === "string" ? new PublicKey(ownerAddress) : ownerAddress;
+  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);
+  const account = await getNicechunkConnection().getAccountInfo(playerProgress, "confirmed");
+  if (!account?.data?.length) {
+    return {
+      publicKey: playerProgress.toBase58(),
+      owner: owner.toBase58(),
+      precisionGatheringXp: 0,
+      smeltingXp: 0,
+      explorationXp: 0,
+    };
+  }
+  if (!account.owner.equals(gameContext.chunkProgramId)) return null;
+  const data = account.data;
+  if (data.length !== playerProgressLength || data.subarray(0, 8).toString("utf8") !== playerProgressMagic) return null;
+  return {
+    publicKey: playerProgress.toBase58(),
+    owner: owner.toBase58(),
+    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),
+    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),
+    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),
+    programId: account.owner.toBase58(),
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The function derives with the Chunk helper, fetches once, and requires Chunk ownership. Reading a Smelting-shaped offset from this account does not fetch the separate Game-scoped Smelting record.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Derive and fetch only the Chunk address at confirmed commitment.</p></li>
+<li><strong>Lines 6–14</strong>
+<p>Return zeroes when that one account is missing.</p></li>
+<li><strong>Lines 15–17</strong>
+<p>Reject non-Chunk ownership and invalid layout.</p></li>
+<li><strong>Lines 18–26</strong>
+<p>Decode all three displayed offsets from that same Chunk-owned account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Browser storage selects one object before the maximum merge</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-skills.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function loadJsonObject(primaryKey, fallbackKey) {
+  try {
+    const storage = globalThis.localStorage;
+    if (!storage) return {};
+    const raw = storage.getItem(primaryKey) || storage.getItem(fallbackKey);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed &amp;&amp; typeof parsed === "object" &amp;&amp; !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function mergeSkillXp(...sources) {
+  const result = {};
+  for (const source of sources) {
+    if (!source || typeof source !== "object") continue;
+    for (const [key, value] of Object.entries(source)) {
+      const numeric = Math.max(0, Math.round(Number(value) || 0));
+      result[key] = Math.max(result[key] || 0, numeric);
+    }
+  }
+  return result;
+}</code></pre>
+<p class="docs-technical-explanation">The logical OR chooses primary storage or fallback storage as one object. A separate call then combines that selected object with derived counters and fetched chain XP by taking the largest number per skill.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–11</strong>
+<p>Select and parse one browser object; use the legacy key only when the primary value is absent.</p></li>
+<li><strong>Lines 13–23</strong>
+<p>Walk all supplied sources and keep the largest nonnegative rounded value for each skill.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines current Profile, Appearance, Session, UsernameIndex, InviteIndex, and Backpack-view layouts, seeds, offsets, name rules, modelCode envelope, LE64 Backpack PDA validation, fixed attributes, Profile writes, and zero-filled rich Appearance equipment.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Implements signed Profile writes, Y-only position bounds, name-index lifecycle, Appearance upsert and treasury close, equip account checks, two accepted Backpack account-owner programs, and forging-result receipt.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/cluster_config.rs</code>
+<p>Pins the Core, standalone Backpack, unified Game, treasury, and related program identities accepted by the Player build.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Passes player_profile.key into forge as the output item_pda field and later sends the calculated gained XP into Player.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Stores the supplied item_pda unchanged in each forged record and defines outcome math, grade-squared XP, thresholds, durability, dense records, and Backpack layout.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/lib.rs</code>
+<p>Validates one compiled Backpack program owner and matches equipment using item_pda. Its two listing sources either scan Backpack from index zero for the first item-kind, equal-key record or remove the selected Backpack record and then scan Profile slots from zero for the first equal key.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/cluster_config.rs</code>
+<p>Selects the one Backpack program identity accepted by a particular Market build.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_game/Cargo.toml</code>
+<p>Shows the unified Game feature composition used by the current Backpack, Smelting, and Market namespaces.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines Chunk's 128-byte PlayerProgress layout, Precision and Exploration fields, thresholds, and explored-chunk count.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Creates and mutates Chunk-scoped PlayerProgress during verified world actions.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/state.rs</code>
+<p>Defines the identically seeded Smelting PlayerProgress layout and Smelting threshold rules under the Smelting program domain.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/lib.rs</code>
+<p>Creates or updates Smelting-scoped progress during successful settlement.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Derives separate Chunk and Smelting progress PDAs, decodes all nine Profile equipment fields, fetches only Chunk progress in the current helper, performs cache-first Backpack loading, and builds current five- and six-account name instructions.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-player.js</code>
+<p>Combines Profile, Appearance, one fetched progress object, and Profile forging history for current Play refresh and constructs forced resource-mine checkpoints.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Marks verified resource mining as the current action class eligible to carry or trigger a chain Profile-position checkpoint.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Chooses Play startup independently of chain Profile position and requests a supplemental Profile checkpoint after confirmed resource mining when needed.</p></article>
+<article class="docs-evidence-item"><code>play/position-persistence.js</code>
+<p>Stores ordinary Play position locally, separately from chain Profile checkpoints.</p></article>
+<article class="docs-evidence-item"><code>play/play-profile-skills.js</code>
+<p>Defines ten visible skills, local derived XP, primary-or-legacy browser selection, generic UI curves, and maximum-across-sources merging.</p></article>
+<article class="docs-evidence-item"><code>play/play-profile-ui.js</code>
+<p>Builds Profile level, reputation, region, stats, selected-hotbar hand, synchronized Backpack, and empty or locked conceptual equipment slots without rendering Profile.equipment.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-backpack.js</code>
+<p>Supplies the synchronized Backpack summary used by Profile UI after the chain module's cache-first load.</p></article>
+<article class="docs-evidence-item"><code>play/play-profile-session.js</code>
+<p>Defines current visible identity and avatar fallback precedence between chain Appearance, local profile, and built-in villagers.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/avatar-mesh.js</code>
+<p>Resolves built-in avatar aliases and renders both NCM2 and NCM4, so a prefix-only chain-accepted modelCode can still fail mesh construction.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-player.ts</code>
+<p>Contains older name limits and account lists that do not yet match the current processor requirements for nonempty name update and Appearance upsert.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_player_chunk.ts</code>
+<p>Asserts older SDK account construction, which explains why those passing tests do not by themselves prove deployed name-index parity.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Declares the website's current Devnet cluster and Player, Chunk, Backpack, Smelting, Market, and Game program configuration.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-profile-devnet-2026-07-16.json</code>
+<p>Retains the confirmed slot-476,758,441 raw Player Program account bytes, hashes, classifications, current-versus-earlier Profile derivation result, live field summary, ProgramData length split, and local ELF comparison.</p></article>
+</div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Next, follow stored appearance text into the visible character</h2>
+<p>PlayerProfile points toward a separate public Appearance account. The next guide follows its model text through browser source selection, NCM2 or NCM4 reconstruction, current equipment boundaries, and safe fallback.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/names-invites-and-spawn/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>Names, Invites, and Spawn</strong>
+<p>See how the unique-name claim, invite append, and startup-position handoffs remain separate before reading the Profile itself.</p></a>
+<a class="docs-path-navigation-card" href="/docs/player-appearance-codes/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>PlayerAppearance: Model Codes, Reconstruction, and Safe Fallbacks</strong>
+<p>See what the public Appearance PDA validates, what the renderer must still reconstruct, and why a stored code can fall back to another working mesh.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="equipment-and-custody" data-docs-static-source="b457e37f68bed88f249e7e323fb7e42d9381c2983f190575dae58888d1b83c87">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/equipment-and-custody.json" />
+    <meta name="nicechunk:source-sha256" content="b457e37f68bed88f249e7e323fb7e42d9381c2983f190575dae58888d1b83c87" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/equipment-and-custody/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn what equipping really changes in NiceChunk, where a forged-item record stays, why several tools can share one key, how local NCF1 rendering differs from chain state, and when a Market listing actually moves custody." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Equipment and Custody: Pointers, Backpacks, and Market Listings" />
+    <meta property="og:description" content="Learn what equipping really changes in NiceChunk, where a forged-item record stays, why several tools can share one key, how local NCF1 rendering differs from chain state, and when a Market listing actually moves custody." />
+    <meta property="og:url" content="https://nicechunk.com/docs/equipment-and-custody/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/equipment-and-custody-overview-v1.webp" />
+    <meta property="og:image:alt" content="Generated voxel village workshop where the canonical girl stands beside a forged tool in an open Backpack, the canonical boy places a cyan reference tile into a multi-cell wall equipment rack, and a rough unpainted tool rests on a local rehearsal stand." />
+    <title>Equipment and Custody: Pointers, Backpacks, and Market Listings</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/equipment-and-custody/#article",
+  "url": "https://nicechunk.com/docs/equipment-and-custody/",
+  "name": "Equipment and Custody: Equipping Selects a Record; Listing Moves It",
+  "description": "Learn what equipping really changes in NiceChunk, where a forged-item record stays, why several tools can share one key, how local NCF1 rendering differs from chain state, and when a Market listing actually moves custody.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Equipment and Custody: Equipping Selects a Record; Listing Moves It",
+  "mainEntityOfPage": "https://nicechunk.com/docs/equipment-and-custody/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Ownership does not tell you where the item record is or what appears in your hand",
+    "Equipping validates one forged record, then copies only its 32-byte reference",
+    "Current forging can give several different tools the same equipment key",
+    "The tool in the avatar's hand is not a direct rendering of the nine chain slots",
+    "Listing, not equipping, moves the complete record out of the Backpack",
+    "The live accounts show Backpack records and forged outputs, but no active Profile equipment references"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#four-meanings-of-ownership",
+      "name": "Ownership does not tell you where the item record is or what appears in your hand"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#equipping-copies-a-pointer",
+      "name": "Equipping validates one forged record, then copies only its 32-byte reference"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#one-key-can-mean-several-tools",
+      "name": "Current forging can give several different tools the same equipment key"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#screen-hand-chain-records-differ",
+      "name": "The tool in the avatar's hand is not a direct rendering of the nine chain slots"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#listing-is-the-custody-transition",
+      "name": "Listing, not equipping, moves the complete record out of the Backpack"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/equipment-and-custody/#live-devnet-and-safe-claims",
+      "name": "The live accounts show Backpack records and forged outputs, but no active Profile equipment references"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/equipment-and-custody-overview-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-four-meanings-of-ownership-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-equipping-copies-a-pointer-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-one-key-several-tools-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-screen-hand-chain-records-differ-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-listing-is-custody-transition-v1.webp",
+    "https://nicechunk.com/docs/media/equipment-and-custody-live-devnet-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Equipment and Custody</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL · STEP 8</p>
+<h1>Equipment and Custody: Equipping Selects a Record; Listing Moves It</h1>
+<p class="docs-hero-summary">Equipping a forged item does not move it out of its Backpack. The Player Program validates one record and copies only its 32-byte item_pda into one of nine numeric Profile slots; those slots have no built-in body-part or item-type rules. In the reviewed current path, the later forging-XP call makes every successful output for one owner use that owner's current Profile PDA, so different tools can share the key. The visible and usable tool still depends on a browser hotbar and hash-validated local NCF1 bytes. A Market listing separately snapshots and removes the full 80-byte record. This guide follows production /play/, labels older src/main.js separately, and finishes with dated Devnet evidence.</p>
+<span class="docs-reading-time">37 min read</span></div>
+<figure class="docs-hero-visual"><img alt="voxel village workshop where the canonical girl stands beside a forged tool in an open Backpack, the canonical boy places a cyan reference tile into a multi-cell wall equipment rack, and a rough unpainted tool rests on a local rehearsal stand." decoding="async" height="887" loading="eager" src="/docs/media/equipment-and-custody-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The complete tool remaining in the open Backpack and the small tile entering the rack illustrate inventory custody versus a Profile reference; the rough model on the right represents local reconstruction practice. This generated scene uses the canonical villagers and real Chunk.js scene and baked-material references, but every prop, distance, glow, and action is a teaching metaphor rather than decoded account data, transaction proof, or a screenshot of the current interface.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">When I equip, hold, list, cancel, or buy a forged tool, where is the actual item record—and which part of what I see is really on chain?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 8 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Implemented boundary</dt>
+<dd>Current dirty-worktree Player, Backpack, Market, Chunk, Play, Guardian, SDK, NCF1, and renderer behavior · separate confirmed Devnet account observation</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>18 July 2026 · literal source excerpts, focused equipment tests, visual review evidence, and retained confirmed slot-477,030,223 evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Wallet authority</dt>
+<dd>The public key whose wallet must approve a transaction. The private signing key must never be placed in a Profile, Backpack, Listing, browser message, or support chat.</dd></div>
+<div class="docs-guide-term"><dt>Solana account owner</dt>
+<dd>The program ID allowed by Solana to change an account's data. It is not the same as the player wallet written inside that data.</dd></div>
+<div class="docs-guide-term"><dt>Stored player owner</dt>
+<dd>A wallet public key inside Profile or Backpack bytes that a program checks to establish the player relationship.</dd></div>
+<div class="docs-guide-term"><dt>PlayerProfile</dt>
+<dd>The compact public player account that stores the wallet relationship, one GlobalConfig address, nine equipment references, one selected Backpack reference, and progression fields. It does not contain full tool records or model geometry.</dd></div>
+<div class="docs-guide-term"><dt>GlobalConfig</dt>
+<dd>A shared configuration account whose address is stored in PlayerProfile and checked by Player, Market, and Chunk flows so unrelated account families cannot be mixed silently.</dd></div>
+<div class="docs-guide-term"><dt>Custody</dt>
+<dd>The current program-controlled location of the usable 80-byte inventory record: normally a Backpack, temporarily a Listing snapshot, then a destination Backpack after cancel or purchase.</dd></div>
+<div class="docs-guide-term"><dt>Backpack</dt>
+<dd>A public inventory account with a header and a dense array of block or item records. Equipping reads it; listing can remove one record from it.</dd></div>
+<div class="docs-guide-term"><dt>Dense record array</dt>
+<dd>A list with no empty gap between active records. Removing one record shifts later records toward the front, so a Backpack index is not permanent identity.</dd></div>
+<div class="docs-guide-term"><dt>Record index</dt>
+<dd>A zero-based position in the current Backpack array. It differs from a Profile equipment slot, item ID, design hash, and PDA.</dd></div>
+<div class="docs-guide-term"><dt>PDA (program-derived address)</dt>
+<dd>A public account address deterministically derived from a program ID and seed bytes, with no private signing key. A field named item_pda does not by itself prove that a unique item account exists there.</dd></div>
+<div class="docs-guide-term"><dt>item_pda</dt>
+<dd>A 32-byte field in a forged Backpack record. Current equip copies it into Profile. In a successful reviewed current forge, the later forging-XP call forces the supplied player_profile to be the owner's current PDA, so the field is shared by that owner's outputs rather than identifying one unique item.</dd></div>
+<div class="docs-guide-term"><dt>Equipment slot</dt>
+<dd>One of nine 32-byte public-key fields in PlayerProfile. The contract enforces only indexes 0 through 8: it assigns no head, hand, or item-category meaning and allows the same key in several slots.</dd></div>
+<div class="docs-guide-term"><dt>Clear sentinel</dt>
+<dd>Backpack index 255 in the equip instruction. It means write the all-zero public key into a Profile slot and requires no Backpack account.</dd></div>
+<div class="docs-guide-term"><dt>Forged record</dt>
+<dd>An 80-byte Backpack item record carrying identifiers, item_pda, volume, durability, grade, level, quality, and a 32-bit metadata value used for the design hash.</dd></div>
+<div class="docs-guide-term"><dt>Design hash</dt>
+<dd>The current 32-bit FNV-1a fingerprint of NCF1 bytes. It helps a browser find matching local presentation data but is not a collision-resistant content identity.</dd></div>
+<div class="docs-guide-term"><dt>NCF1</dt>
+<dd>The compact forged-object byte format used to reconstruct the visible tool. The current Backpack record keeps only its 32-bit design hash, not the complete NCF1 payload.</dd></div>
+<div class="docs-guide-term"><dt>Hotbar</dt>
+<dd>The browser's current quick-selection bar. It controls what the local avatar presents and can differ from the nine chain Profile references.</dd></div>
+<div class="docs-guide-term"><dt>AABB collision</dt>
+<dd>A simple box-to-box contact test whose sides stay aligned with the world axes. Production mining samples tool boxes during a swing and also sweeps between samples so fast motion cannot jump through a block unnoticed.</dd></div>
+<div class="docs-guide-term"><dt>Local durability</dt>
+<dd>The wear number saved in this wallet's browser hotbar. Current production mining subtracts and can restore this local number, but the submitted Chunk instruction does not change the forged Backpack record's chain durability.</dd></div>
+<div class="docs-guide-term"><dt>Guardian equipment message</dt>
+<dd>In production Play, a realtime presentation message carrying right-hand kind and variant, a forged flag, design hash, and optional hash-validated NCF1 bytes. It carries neither Profile equipment keys nor Backpack presentation fields and is not a wallet signature or custody certificate.</dd></div>
+<div class="docs-guide-term"><dt>Rich equipment</dt>
+<dd>Twelve 576-byte records reserved inside PlayerAppearance. Current Appearance packing resets them to empty, so they are not the active nine-slot equip path.</dd></div>
+<div class="docs-guide-term"><dt>Listing</dt>
+<dd>A 216-byte Market account that can hold a complete 80-byte source record plus seller, price, source, timestamps, state, and buyer history.</dd></div>
+<div class="docs-guide-term"><dt>Atomic transaction</dt>
+<dd>A Solana transaction whose instructions and program calls all succeed or all roll back. A failed buyer-Backpack append therefore prevents payment settlement in the same purchase transaction.</dd></div>
+<div class="docs-guide-term"><dt>Local storage</dt>
+<dd>Browser data saved on one device. It can restore NCF1 bytes and hotbar choices, but it can be missing, cleared, or edited and is not chain authority.</dd></div>
+<div class="docs-guide-term"><dt>Dated snapshot</dt>
+<dd>Account bytes observed through RPC at one confirmed context slot. It can show state at that moment but cannot prove that the reviewed source exactly produced the deployed program binary.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Equip copies one key and leaves the Backpack unchanged</strong>
+<p>After wallet, Profile, GlobalConfig, Backpack, and forged-record checks, the Player Program writes only record.item_pda into a numeric slot. It does not remove, lock, reserve, or modify the Backpack record; slot type and duplicate-key rules are not enforced.</p></article>
+<article class="docs-key-point"><strong>One current key can describe several different tools</strong>
+<p>The audited forge first passes player_profile as item_pda, then the same transaction adds forging XP and forces that Profile to be the owner's current derived PDA. Successful outputs for one owner can therefore share the key while item ID, design hash, durability, grade, level, quality, and Backpack index differ.</p></article>
+<article class="docs-key-point"><strong>The hand on screen is a local reconstruction</strong>
+<p>Production Play selects from its local hotbar, requires matching hash-validated NCF1 for a usable forged mesh, and checks sampled plus swept tool collision before an impact. Guardian relays presentation only; neither state proves that Profile or Backpack changed.</p></article>
+<article class="docs-key-point"><strong>Market listing is the custody transition</strong>
+<p>Listing copies the complete 80-byte record into a Listing and removes the dense Backpack record. Equipment source clears the selected Profile slot; Backpack source clears only the first matching slot when the record is an item and a match exists.</p></article>
+<article class="docs-key-point"><strong>Production Play and the older alternate market must not be merged</strong>
+<p>Production /play/ loads play/main.js and play/play-market.js: create is fixed to Backpack source and cancel omits a destination Backpack. The equipment-source and cancel-fallback code in src/main.js is older or alternate. Neither path exposes set_equipment_slot.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#four-meanings-of-ownership">Ownership does not tell you where the item record is or what appears in your hand</a></li>
+<li><a href="#equipping-copies-a-pointer">Equipping validates one forged record, then copies only its 32-byte reference</a></li>
+<li><a href="#one-key-can-mean-several-tools">Current forging can give several different tools the same equipment key</a></li>
+<li><a href="#screen-hand-chain-records-differ">The tool in the avatar's hand is not a direct rendering of the nine chain slots</a></li>
+<li><a href="#listing-is-the-custody-transition">Listing, not equipping, moves the complete record out of the Backpack</a></li>
+<li><a href="#live-devnet-and-safe-claims">The live accounts show Backpack records and forged outputs, but no active Profile equipment references</a></li>
+<li><a href="#technical-details">Nine equations and twenty-one literal excerpts separate references, custody, rendering, mining, and production reachability</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="four-meanings-of-ownership"><p class="docs-eyebrow">ONE WORD, FOUR DIFFERENT QUESTIONS</p>
+<h2>Ownership does not tell you where the item record is or what appears in your hand</h2>
+<p class="docs-prose">Players often say I own this tool, but the implementation needs four separate statements. First, a Solana account has a program owner: only that program may directly change its bytes. Second, Profile, Backpack, and Listing data can store a player wallet or seller public key. Third, the complete usable record has a current location. Fourth, the game on one device has a current presentation choice. These statements can agree, but none automatically proves the others.</p>
+<p class="docs-prose">A Backpack may be owned at the Solana level by Backpack or the unified Game Program while its data names Alice's wallet as the player owner. A forged record inside it can still be Alice's inventory even when no Profile equipment slot refers to it. Conversely, a Profile slot can contain a key while the selected hotbar on Alice's laptop shows something else.</p>
+<p class="docs-prose">Wallet signatures authorize supported changes; they do not encrypt public account bytes. Program ownership governs writes; it does not mean the program possesses a human wallet. A local mesh proves only that the browser reconstructed and displayed geometry. Use the exact phrase that answers the exact question: account owner, stored owner, record location, or screen presentation.</p>
+<p class="docs-prose">The current chain equip path accepts Backpack accounts owned by either the standalone Backpack Program or the unified Game Program. Market is build-scoped instead: its standalone build names the standalone Backpack Program, while the unified Game build is compiled with the unified-game feature and names the Game Program. Program domain therefore matters independently of the wallet stored in the Backpack.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Write authority</span>
+<strong>Solana account.owner</strong>
+<p>The program allowed to change the account data.</p></article>
+<article class="docs-fact"><span>Player relationship</span>
+<strong>Wallet key stored in data</strong>
+<p>The value processors compare with the signing or destination player.</p></article>
+<article class="docs-fact"><span>Custody location</span>
+<strong>Backpack record or Listing snapshot</strong>
+<p>Where the complete 80-byte record currently lives.</p></article>
+<article class="docs-fact"><span>Visible selection</span>
+<strong>Local hotbar and reconstructed mesh</strong>
+<p>What one browser currently presents in the avatar's hand.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel workshop where the canonical girl holds a small wooden owner plug beside a forged tool in an open Backpack while the canonical boy examines a rough unpainted tool on a stand near a program-controlled wall recess." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-four-meanings-of-ownership-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The wall recess, owner plug, open Backpack with its complete record, and rough local tool stand separate write authority, stored player relationship, custody, and presentation. They are generated teaching metaphors built from the canonical villagers and real Chunk.js environmental references; their shapes, poses, and placement are not program IDs, signatures, account bytes, or proof of ownership.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Ask one ownership question at a time</strong>
+<p>A screenshot can show presentation. An RPC read can show account owner and stored fields. A validated transaction can change custody. None of those observations should be silently substituted for another.</p></aside></section>
+<section class="docs-content-section" id="equipping-copies-a-pointer"><p class="docs-eyebrow">SIGNED SELECTION, READ-ONLY INVENTORY</p>
+<h2>Equipping validates one forged record, then copies only its 32-byte reference</h2>
+<p class="docs-prose">The equip instruction carries two bytes: a Profile equipment slot from 0 through 8 and a Backpack record index. The wallet authority must sign. The Player Program validates the writable current owner-derived Profile, its GlobalConfig relationship, and the slot. For a normal equip it also requires a fourth account: a Backpack owned by the permitted program, with the correct length, magic, version, stored wallet owner, ID-derived PDA, and dense index.</p>
+<p class="docs-prose">The selected record must be an item in the forged category with nonzero quantity, item ID, and item_pda. Its durability must be positive and not exceed its maximum; grade must be 1 through 10, level 1 through 100, and quality 1 through 10,000 basis points. This reader does not recheck item_code equals the forged constant, volume is nonzero, flags, or the design hash. Those omissions do not make arbitrary data writable—the Backpack account and PDA checks still matter—but they define the exact acceptance boundary.</p>
+<p class="docs-prose">After those checks, Player writes record.item_pda into one 32-byte Profile field and updates the Profile's shared updated_slot observation field with the current Solana slot. Backpack was borrowed only for reading. Its bytes, item count, record order, durability, and custody remain unchanged. Slots are only numbers 0 through 8: the contract assigns no head, right-hand, armor, or item-category meaning, does not require different keys, and therefore permits the same reference in several slots.</p>
+<p class="docs-prose">To clear a Profile slot, the instruction uses Backpack index 255 and supplies only authority, Profile, and GlobalConfig. Player writes the default all-zero public key. Clearing a reference does not destroy a tool because the tool's complete record was never stored in that Profile field.</p>
+<p class="docs-prose">The repository's older TypeScript Player SDK exposes a builder for this instruction. Neither production Play nor the older alternate src/main.js calls that builder or provides another chain set-equipment action. The contract capability should therefore not be described as a complete button workflow already available to ordinary players.</p>
+<ol class="docs-steps"><li><strong>The wallet approves a Profile write</strong>
+<p>Player checks the authority signature, owner-derived Profile address, Profile owner and GlobalConfig binding, writable state, and requested slot.</p></li>
+<li><strong>Player reads and verifies one dense Backpack record</strong>
+<p>The Backpack remains read-only while its program owner, PDA, stored wallet owner, version, index, forged category, identifiers, and bounded outcome fields are checked.</p></li>
+<li><strong>One public key is copied</strong>
+<p>Profile.equipment[slot] becomes Backpack.records[index].item_pda; no Backpack byte is moved, locked, or consumed.</p></li>
+<li><strong>Index 255 clears only the reference</strong>
+<p>The Profile slot becomes the zero key without requiring a Backpack account or deleting an inventory record.</p></li></ol>
+<figure class="docs-section-visual"><img alt="voxel workshop where a complete forged tool remains visibly inside the canonical girl&#39;s open Backpack while the canonical boy places a small cyan reference tile into a multi-cell wall equipment rack." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-equipping-copies-a-pointer-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The tool staying in the open Backpack while only a small tile enters the rack illustrates read-only Backpack validation and a Profile pointer copy. The rack, tile, glow, and villager gestures are teaching metaphors only; exact slot counts, accepted fields, account order, and signatures come from the audited source.</figcaption></figure>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>After equip, Backpack_after equals Backpack_before</strong>
+<p>The instruction has no Backpack mutation. A Profile reference can change, but custody, record bytes, and record order do not.</p></aside></section>
+<section class="docs-content-section" id="one-key-can-mean-several-tools"><p class="docs-eyebrow">SHARED REFERENCE, DIFFERENT RECORDS</p>
+<h2>Current forging can give several different tools the same equipment key</h2>
+<p class="docs-prose">A current verified forge receives canonical NCF1 bytes, checks the design and material requirements, consumes selected material records, calculates the output, and tentatively appends one forged record using the supplied player_profile.key as item_pda. It then invokes Player to add forging XP with that same Profile. Player derives the owner's current Profile PDA and rejects any other address; Solana atomicity rolls back the earlier append if this later call fails. A successful reviewed current forge therefore uses the owner's current Profile key, not an item-specific account.</p>
+<p class="docs-prose">Two tools forged by the same player can therefore share item_pda while still differing in item ID, Backpack index, design hash, volume, durability, grade, level, or quality. The nine Profile slots retain only the shared 32-byte key. They do not retain those distinguishing fields, so the pointer alone cannot select one unique record when several matches exist.</p>
+<p class="docs-prose">The full Backpack record is 80 bytes. Its last four bytes hold the design hash, while the complete NCF1 bytes remain in browser storage. Production Play uses the 32-bit FNV-1a hash to find candidate local NCF1, then validates version, length, and bytes against the expected hash before constructing a forged runtime. No persistent item account in this path stores the complete NCF1 payload. On a new device or after storage is cleared, a chain forged reference can still be listed in the interface, but it must not be guessed to have a usable grip or trusted geometry without matching NCF1.</p>
+<p class="docs-prose">A 32-bit hash has only 4,294,967,296 possible values and is not designed as a cryptographic identity. It is useful as a compact lookup and integrity hint within the current presentation flow, not as proof that two arbitrary designs are globally unique.</p>
+<p class="docs-prose">The shared key also creates a concrete Market ambiguity. An equipment-source listing scans Backpack records from index zero and selects the first item-kind record with the Profile key. The browser's equipment inventory first builds Map(itemPda to record); repeated keys overwrite earlier entries, so it retains the last matching record. The screen can therefore preview one tool while the contract selects another. A durable fix needs item-unique identity or matching rules that include stable distinguishing data.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Current forged item_pda</span>
+<strong>Owner-derived current PlayerProfile PDA</strong>
+<p>Successful reviewed current outputs for one owner share it; a retained legacy-v3 key is historical or deployment-drift evidence.</p></article>
+<article class="docs-fact"><span>Complete chain record</span>
+<strong>80 bytes</strong>
+<p>Identifiers and outcome metadata remain in Backpack or Listing, not Profile.</p></article>
+<article class="docs-fact"><span>Presentation fingerprint</span>
+<strong>32-bit FNV-1a design hash</strong>
+<p>A compact local lookup key, not collision-resistant global identity.</p></article>
+<article class="docs-fact"><span>Current duplicate match</span>
+<strong>Contract first · browser last</strong>
+<p>Equipment-source Market selection can disagree before transaction submission.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel forge where the canonical villagers compare two visibly different forged tools carrying identical cyan key tiles, with two flat mosaic design boards and two closed notebooks arranged behind the tool trays." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-one-key-several-tools-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Two different tools carrying matching tiles make the shared item_pda problem visible, while the separate mosaic boards and closed notebooks represent distinct local design data. Tool shapes, tiles, boards, books, dials, and lighting are generated metaphors; they do not reproduce exact hashes, item IDs, record bytes, NCF1 payloads, or a verified collision.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not use item_pda alone as current forged-item identity</strong>
+<p>Until the forge path creates an item-unique key, reconcile a tool with the full record and verified NCF1 design hash. The current first-match versus last-match Market behavior should be corrected before equipment-source listing is exposed.</p></aside></section>
+<section class="docs-content-section" id="screen-hand-chain-records-differ"><p class="docs-eyebrow">PROFILE, APPEARANCE, HOTBAR, AND GUARDIAN</p>
+<h2>The tool in the avatar's hand is not a direct rendering of the nine chain slots</h2>
+<p class="docs-prose">There are four equipment-shaped structures in the current experience. PlayerProfile has nine 32-byte references. PlayerAppearance reserves twelve much larger rich-equipment records, but current Appearance packing clears all twelve. The browser game state keeps a local hotbar with selected slots and NCF1 presentation data. Guardian sends a realtime equipment message for nearby presentation. These structures have different purposes and should not be merged into one on-chain equipped label.</p>
+<p class="docs-prose">Production Play equips a Backpack record into its hotbar locally. For a forged record it copies chain metadata, tries to hydrate matching NCF1 from local storage, validates its version, length, and FNV-1a hash, and builds the mesh. The restored geometry and grip determine tool placement and collision parts. Target selection first needs the derived reach sphere to intersect the block, then sampled and swept AABB tests must find an actual swing-path collision. Without matching NCF1, tests require the chain reference to remain non-usable rather than inventing geometry or a grip.</p>
+<p class="docs-prose">Production play/play-guardian.js sends right-hand kind and variant, a forged flag, design hash, and optional NCF1 bytes only after the payload passes version, size, and hash validation. It does not send Profile equipment keys or Backpack presentation fields. The older alternate src/main.js can add cached Profile keys and Backpack-related fields, but neither packet is a wallet signature, RPC proof, custody transfer, or guarantee that cached chain state is fresh.</p>
+<p class="docs-prose">When a production swing hits, the browser decreases durability in its wallet-scoped local hotbar and saves that local state. If chain submission is disabled, unavailable, rejected, or throws, the pending mine is rolled back and the local tool damage is restored. Yet play/play-chain-adapter.js merely passes toolSlotIndex to recordBlockBreakOnChain; that chain helper never reads its toolSlot parameter. The Chunk processor checks Profile shape, authority, and GlobalConfig, but not the nine equipment references, and it does not decrement a forged Backpack record's chain durability. Local tool wear and chain item durability are therefore separate today.</p>
+<p class="docs-prose">Backpack selection has another boundary. The contract can replace Profile.equippedBackpack with another valid Backpack owned by the same wallet, but it defines no all-zero clear sentinel. Production Play does not enumerate and switch among every owned Backpack, and the shared loader tries a wallet-scoped cached Backpack before Profile fallback when the cached account is current, unified-Game-owned, and stores that wallet. Backpack and Chunk reward paths validate the supplied Backpack's ownership but do not require it to equal Profile.equippedBackpack, so the interface should label which source actually won.</p>
+<ul class="docs-bullets"><li>Profile equipment: nine public-key references written by the Player Program.</li>
+<li>Appearance rich equipment: twelve reserved records that current packing leaves empty.</li>
+<li>Local hotbar: the selected browser presentation and interaction source.</li>
+<li>NCF1 library: device-local complete geometry bytes found by a 32-bit design hash.</li>
+<li>Production Guardian: held kind and variant, forged flag, design hash, and optional validated NCF1—not Profile keys or custody proof.</li>
+<li>Mining collision: locally restored geometry must pass reach-sphere plus sampled and swept AABB checks.</li>
+<li>Durability boundary: local hotbar wear is restored after chain failure; current Chunk mining does not read Profile slots or mutate chain tool durability.</li></ul>
+<figure class="docs-section-visual"><img alt="voxel riverside game scene where the canonical girl swings a forged tool at stone while the canonical boy stands between an open Backpack, two empty equipment racks, and a small local rehearsal stand." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-screen-hand-chain-records-differ-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The held tool, open Backpack, two empty racks, and small rehearsal stand separate screen presentation, custody, Profile references, and local reconstruction. This generated scene uses canonical villagers and real Chunk.js scene and baked-material references, but it does not prove hotbar selection, chain slots, Guardian contents, collision, durability, or account freshness.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Visible, locally worn, and chain-equipped are three different claims</strong>
+<p>A reliable equipment UI should label Profile reference, Backpack record and chain durability, verified local NCF1, selected hotbar and local durability, collision result, and Guardian presentation separately.</p></aside></section>
+<section class="docs-content-section" id="listing-is-the-custody-transition"><p class="docs-eyebrow">FULL-RECORD ESCROW-LIKE STORAGE</p>
+<h2>Listing, not equipping, moves the complete record out of the Backpack</h2>
+<p class="docs-prose">Creating a current Market listing always receives eight account positions: seller, new Listing, System Program, Backpack, Backpack Program, PlayerProfile, GlobalConfig, and Player Program. It always checks the Player Program ID, but Profile and GlobalConfig data validation is conditional. For direct Backpack source, Market copies and removes the chosen 80-byte record; a block or an item whose item_pda is zero returns no equipment match before Profile validation. A nonzero item enters Profile validation and clears only the first matching slot when one exists. For equipment source, Market validates Profile and GlobalConfig, reads the chosen slot, scans Backpack from index zero for the first item with that key, removes it, and clears exactly the chosen slot.</p>
+<p class="docs-prose">Removal keeps the Backpack dense: every later record shifts one position toward zero, the old last slot is cleared, and item_count decreases. The Listing remembers the source type and old source index, but it does not store the original Backpack address. That old index is historical context, not stable identity. Ordinary Backpack discard uses the same dense removal primitive but does not write PlayerProfile at all—even the session-authorized account form only reads Profile to validate the session owner. Deleting a referenced record can therefore leave a stale equipment key, and duplicate keys can leave other slots still referring ambiguously to the remaining records.</p>
+<p class="docs-prose">The Listing is 216 bytes and stores the complete 80-byte source record. During cancellation, current Market requires seller, Listing, a seller-owned destination Backpack, Backpack Program, and Market authority. It appends the saved record to the supplied valid Backpack, clears and closes the Listing data, and returns Listing lamports to the seller. The destination can be any qualifying seller Backpack; it need not be the source account because that address was not retained.</p>
+<p class="docs-prose">During purchase, the same transaction validates currency accounts, transfers SOL or NCK shares, appends the saved record to the buyer's supplied Backpack through Market authority, and marks the Listing sold with buyer and time. Solana transaction atomicity means a failed Backpack append or later program error rolls back earlier payment changes in that transaction. A sold Listing remains as history while the active item record lives in the buyer Backpack.</p>
+<p class="docs-prose">Production /play/ loads play/main.js, which imports play/play-market.js. That production market hard-codes new chain listings to Backpack source and its cancel call omits sourceInventory. The create path therefore cannot select an equipment source, and the cancel path cannot form the processor's five-account restore call until it chooses a valid seller destination Backpack.</p>
+<p class="docs-prose">The repository's src/main.js is an older or alternate path, not the reviewed production /play/ entry. It builds candidates from both Backpack records and Profile equipment slots and supplies listing.sourceInventory, another stored Backpack, or the currently equipped Backpack for cancellation. That destination can still fail ownership, program-domain, or capacity checks and is not guaranteed to be the original source because Listing did not save that address.</p>
+<p class="docs-prose">The older alternate preview also builds a Map keyed only by item_pda. Because current forge calls can duplicate that key, it retains the last matching record while the Market contract's equipment-source scan chooses the first. Exposing that alternate flow without identity reconciliation can preview one tool and remove another.</p>
+<ol class="docs-steps"><li><strong>Create snapshots then removes</strong>
+<p>Market copies the full validated 80-byte source record and removes it. Equipment source clears the selected slot; Backpack source clears only the first matching item slot when one exists.</p></li>
+<li><strong>Cancel appends to a seller destination</strong>
+<p>A valid seller Backpack receives the saved record; the Listing is then zeroed, closed, and its lamports returned.</p></li>
+<li><strong>Buy pays and appends atomically</strong>
+<p>Payment and buyer-Backpack append share one transaction, so any failure rolls the whole transaction back.</p></li>
+<li><strong>Start with the production /play/ path</strong>
+<p>Production play/play-market.js fixes create to Backpack source and omits a cancel destination. Equipment-source creation and fallback cancellation live only in the older alternate src/main.js path.</p></li></ol>
+<figure class="docs-section-visual"><img alt="voxel village market where a forged tool already rests inside a central open wooden listing cabinet, the canonical girl stands beside an empty seller Backpack and tray, and the canonical boy stands beside an open destination Backpack." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-listing-is-custody-transition-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The complete tool inside the central wooden cabinet, the empty seller side, and the waiting destination Backpack illustrate Listing custody and later cancel-or-buy restoration. The generated cabinet, trays, scale, villagers, and route are metaphors only; source matching, payment order, record bytes, rollback, and Listing state must be established from code and transaction evidence.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A cancel button still needs a valid destination Backpack</strong>
+<p>Production play/play-market.js currently omits the destination. The older alternate supplies a remembered or current Backpack, but that still requires seller ownership, a supported program domain, and free capacity and does not promise the original source account.</p></aside></section>
+<section class="docs-content-section" id="live-devnet-and-safe-claims"><p class="docs-eyebrow">RETAINED CONFIRMED DEVNET OBSERVATION</p>
+<h2>The live accounts show Backpack records and forged outputs, but no active Profile equipment references</h2>
+<p class="docs-prose">At confirmed context slot 477,030,223 on 18 July 2026, the retained account observation found ten current version-3 Backpack accounts under the unified Game Program, belonging to eight distinct stored owners. Nine were nonempty. Together they held 205 dense records: 200 blocks, three forged items, one material, and one blueprint. Nine Backpacks declared capacity 50 and one historical account declared 51; each held 56,904,960 lamports. The capacity-51 account was created at slot 476,437,186, before the retained current Game deployment slot 476,942,846, so it cannot prove that this deployment still creates capacity 51.</p>
+<p class="docs-prose">The same context found no current version-5 Listing under the unified Game Program. Of fifteen 773-byte Profile candidates under Player, eleven were canonical owner-derived current version-7 Profiles. Their 99 equipment fields were all the zero public key. Five of those eleven Profiles selected a Backpack; all five addresses existed in the retained Backpack set and all five stored the same owner.</p>
+<p class="docs-prose">Each of the three forged Backpack records used an item_pda that named one retained Profile candidate with the same stored owner. Two named the owner's canonical current version-7 Profile and are consistent with the reviewed successful current forge path. The third named an older noncanonical version-3 Profile; that is historical or deployment-drift evidence, not evidence that today's reviewed path accepts a legacy Profile, because the later Player forging-XP call would reject it and atomically roll back the append. None of the three keys is item-unique, and the observation still does not prove source-to-deployed-binary parity.</p>
+<p class="docs-prose">The standalone Backpack Program had no 8,048-byte Backpack account in the observation. A separate standalone Market Program held seven older version-3 Listing accounts—six active and one sold—while the reviewed current Listing layout is version 5 and production Play scans the unified Game domain. Those older accounts are useful deployment-drift evidence, not proof that the current 216-byte flow has been exercised.</p>
+<p class="docs-prose">A separate confirmed 16 July Player audit found all 120 rich-equipment records across ten Appearance accounts empty. It is not part of this slot's account context. Read alongside this slot's 99 zero Profile equipment references and zero current unified Listings, the safe statement is narrow: the retained observations show real Backpack inventory and three forged records, but neither observation shows active use of the reviewed chain equip or current unified Market custody path.</p>
+<p class="docs-prose">These are account-state facts at one confirmed slot. The audit did not claim a reproducible source-to-deployed-binary match for Player, Backpack, Game, or Market in this page. Later transactions can change every count, balance, pointer, and Listing state.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Unified Game Backpacks</span>
+<strong>10 accounts · 205 records</strong>
+<p>200 block + 3 forged + 1 material + 1 blueprint at slot 477,030,223.</p></article>
+<article class="docs-fact"><span>Player Profiles</span>
+<strong>11 canonical v7 · 99 zero equipment fields</strong>
+<p>Five selected Backpacks; every address existed and stored the same owner.</p></article>
+<article class="docs-fact"><span>Forged outputs</span>
+<strong>3 records · 3 owner-matched Profile keys</strong>
+<p>Two keys named canonical current v7 Profiles; one named an older noncanonical v3 Profile.</p></article>
+<article class="docs-fact"><span>Current unified Listings</span>
+<strong>0 accounts of 216 bytes</strong>
+<p>Seven separate old version-3 standalone-Market accounts are legacy drift, not current-flow evidence.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel chain observation deck where the canonical villagers inspect a group of Backpacks, a few forged tools, an empty equipment rack, and an empty market display through survey instruments." decoding="async" height="887" loading="lazy" src="/docs/media/equipment-and-custody-live-devnet-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The observation deck, Backpacks, tools, empty rack, and empty display make a point-in-time audit intuitive without printing false precision into the artwork. Only two miniature tools are clearly visible, and every visible count, distance, instrument, and status is metaphorical; only the retained slot-477,030,223 account bytes and decoder establish the dated figures.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Account state can support a claim without proving source deployment parity</strong>
+<p>The observation verifies decoded bytes at one slot. It does not establish that the current dirty worktree reproducibly built every deployed program, and zero observed use does not mean a code path is impossible.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">READ THE IMPLEMENTATION</p>
+<h2>Nine equations and twenty-one literal excerpts separate references, custody, rendering, mining, and production reachability</h2>
+<p>The equations describe numeric Profile fields, equip copy, the call-supplied forge key, complete record layout, local NCF1 reconstruction, conditional Profile clearing, dense Market transitions, atomic purchase, and the dated live inventory. Every excerpt is a continuous substring from the reviewed repository and production /play/ is kept distinct from the older alternate src/main.js implementation.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Profile equipment stores nine references, not nine records</h3>
+<div aria-label="PlayerProfile reserves 288 bytes for nine 32-byte public-key equipment references." class="docs-formula-expression" role="math"><code>ProfileEquipmentBytes = 9 × 32 = 288 bytes; Profile.equipment[s] ∈ PublicKey for 0 ≤ s &lt; 9</code></div>
+<p class="docs-technical-explanation">Each slot can hold one public key or the all-zero key. The contract gives slots no body-part or item-category meaning and permits duplicate keys. The 80-byte Backpack record and complete NCF1 bytes do not fit here.</p>
+<dl class="docs-formula-terms"><dt>s</dt>
+<dd>A Profile equipment slot from zero through eight.</dd>
+<dt>PublicKey</dt>
+<dd>Exactly 32 bytes, displayed to players as a base-58 address string.</dd></dl></article>
+<article class="docs-formula"><h3>Equip is a copy while custody stays unchanged</h3>
+<div aria-label="Equip copies the selected record&#39;s item PDA into a Profile slot and leaves the Backpack unchanged." class="docs-formula-expression" role="math"><code>Profile_after.equipment[s] = Backpack_before.records[i].item_pda; Backpack_after = Backpack_before</code></div>
+<p class="docs-technical-explanation">This equation applies after all required signer, Profile, GlobalConfig, Backpack, PDA, owner, index, category, identifier, durability, grade, level, and quality checks pass.</p>
+<dl class="docs-formula-terms"><dt>i</dt>
+<dd>The selected dense Backpack record index.</dd>
+<dt>Backpack_after = Backpack_before</dt>
+<dd>No Backpack byte is written by set_equipment_slot.</dd></dl></article>
+<article class="docs-formula"><h3>Clearing changes only one Profile field</h3>
+<div aria-label="Backpack index 255 clears the selected Profile slot to thirty-two zero bytes without a Backpack account." class="docs-formula-expression" role="math"><code>backpackIndex = 255 ⇒ Profile_after.equipment[s] = 0^32 and BackpackAccount is omitted</code></div>
+<p class="docs-technical-explanation">The clear sentinel does not identify or destroy any Backpack record. It only removes the Profile reference.</p>
+<dl class="docs-formula-terms"><dt>0^32</dt>
+<dd>The default Solana public key represented by 32 zero bytes.</dd></dl></article>
+<article class="docs-formula"><h3>A successful current forge uses the owner's current Profile as its shared item key</h3>
+<div aria-label="A successful reviewed current forge requires the owner&#39;s current PlayerProfile PDA and copies that same address into the new record&#39;s item PDA field." class="docs-formula-expression" role="math"><code>SuccessfulCurrentForge(owner = o) ⇒ p = CurrentPlayerProfilePDA(o) ∧ new_record.item_pda = p</code></div>
+<p class="docs-technical-explanation">Backpack first appends with the supplied Profile key, then Player's forging-XP instruction derives and requires the current owner Profile. If that later check fails, Solana atomicity rolls back the append. The resulting key is current but still not item-unique.</p>
+<dl class="docs-formula-terms"><dt>o</dt>
+<dd>The wallet owner that signs the forge.</dd>
+<dt>p</dt>
+<dd>The owner-derived current version-7 PlayerProfile PDA required by the later forging-XP call.</dd></dl></article>
+<article class="docs-formula"><h3>The full forged record and visible design live in different places</h3>
+<div aria-label="An eighty-byte chain record contains a thirty-two-bit design hash, while rendering needs separate matching local NCF1 bytes." class="docs-formula-expression" role="math"><code>BackpackRecord = 80 bytes = identifiers + item_pda + outcome + designHash32; RenderedTool = BackpackRecord metadata + LocalNCF1 where FNV1a32(LocalNCF1) = designHash32</code></div>
+<p class="docs-technical-explanation">The equation describes the current successful reconstruction path. A matching 32-bit value alone is not cryptographic proof, so the NCF1 parser and bounds checks remain necessary.</p>
+<dl class="docs-formula-terms"><dt>designHash32</dt>
+<dd>The unsigned 32-bit metadata field used for the NCF1 fingerprint.</dd>
+<dt>LocalNCF1</dt>
+<dd>Complete forged-object bytes retrieved from device-local browser storage.</dd></dl></article>
+<article class="docs-formula"><h3>Listing moves the full record, but Profile clearing is conditional</h3>
+<div aria-label="Listing always copies and densely removes the source record, while equipment source clears its selected Profile slot and Backpack source clears only the first matching item slot when present." class="docs-formula-expression" role="math"><code>Listing.source_slot = copy(record[i]); Backpack_after = denseRemove(i); clearedSlot = selected slot if source=equipment, else first matching slot if source=backpack item, else none</code></div>
+<p class="docs-technical-explanation">Dense removal shifts later indexes down. A Backpack block or unmatched item clears no Profile field, and duplicate references after the first can remain. Listing retains the old source type and index but not the Backpack address.</p>
+<dl class="docs-formula-terms"><dt>denseRemove</dt>
+<dd>Remove one record, shift later records left, clear the old tail, and decrement item count.</dd>
+<dt>source_slot</dt>
+<dd>The complete 80-byte record stored inside the 216-byte Listing.</dd></dl></article>
+<article class="docs-formula"><h3>Cancel and purchase choose destination Backpacks</h3>
+<div aria-label="Cancellation appends to a supplied seller Backpack, while purchase appends to a supplied buyer Backpack." class="docs-formula-expression" role="math"><code>Cancel: SellerBackpack' = append(SellerBackpack, Listing.source_slot); Buy: BuyerBackpack' = append(BuyerBackpack, Listing.source_slot)</code></div>
+<p class="docs-technical-explanation">Because Listing does not retain the original Backpack address, current cancellation validates the supplied seller destination rather than restoring by remembered source address.</p>
+<dl class="docs-formula-terms"><dt>append</dt>
+<dd>Add the saved record at the current dense tail if capacity and authority checks pass.</dd></dl></article>
+<article class="docs-formula"><h3>One purchase transaction has all-or-nothing effects</h3>
+<div aria-label="Payment, buyer Backpack append, and listing sold update must all succeed, or the transaction rolls back." class="docs-formula-expression" role="math"><code>PurchaseSuccess = PaymentSuccess ∧ BuyerBackpackAppendSuccess ∧ ListingMarkSoldSuccess; otherwise TransactionState_after = TransactionState_before</code></div>
+<p class="docs-technical-explanation">This is Solana transaction atomicity. It does not remove the need to preview capacity, validate accounts, or show a failed transaction clearly.</p>
+<dl class="docs-formula-terms"><dt>∧</dt>
+<dd>All conditions in the same transaction must succeed.</dd></dl></article>
+<article class="docs-formula"><h3>The live Backpack total is exactly decomposed</h3>
+<div aria-label="At confirmed slot 477030223, two hundred and five records consisted of two hundred blocks, three forged items, one material, and one blueprint." class="docs-formula-expression" role="math"><code>205 = 200 block + 3 forged + 1 material + 1 blueprint</code></div>
+<p class="docs-technical-explanation">This arithmetic belongs only to the retained confirmed slot-477,030,223 observation. It is not a permanent supply figure or a contract limit.</p>
+<dl class="docs-formula-terms"><dt>205</dt>
+<dd>The sum of decoded active records across ten unified-Game Backpacks at the snapshot slot.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Player copies one public key into the selected Profile slot</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn write_equipment_slot(
+        dst: &amp;mut [u8],
+        slot: u8,
+        item: &amp;Pubkey,
+        updated_slot: u64,
+    ) -&gt; ProgramResult {
+        if slot as usize &gt;= EQUIPMENT_SLOT_COUNT {
+            return Err(NicechunkPlayerError::InvalidEquipmentSlot.into());
+        }
+        if dst.len() != Self::LEN {
+            return Err(NicechunkPlayerError::InvalidPlayerProfileData.into());
+        }
+        let offset = Self::EQUIPMENT_OFFSET + slot as usize * 32;
+        dst[offset..offset + 32].copy_from_slice(item.as_ref());
+        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]
+            .copy_from_slice(&amp;updated_slot.to_le_bytes());
+        Ok(())
+    }</code></pre>
+<p class="docs-technical-explanation">The writer checks only that the numeric slot is in range and the Profile has the exact length, then changes 32 equipment bytes plus updatedSlot. It assigns no body-part or item-type meaning and performs no duplicate-key check.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–11</strong>
+<p>Accept one slot and public key only after bounds and Profile-size checks.</p></li>
+<li><strong>Lines 12–14</strong>
+<p>Calculate one 32-byte field and copy the supplied public key.</p></li>
+<li><strong>Lines 15–17</strong>
+<p>Update Profile's observation slot and finish without touching Backpack.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The equip processor reads Backpack or uses index 255 to clear</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    validate_player_write_accounts(program_id, authority, player_profile, global_config)?;
+    let slot = payload[0];
+    let backpack_index = payload[1];
+    let item = if backpack_index == CLEAR_EQUIPMENT_BACKPACK_INDEX {
+        if accounts.len() != 3 {
+            return Err(NicechunkPlayerError::InvalidAccountCount.into());
+        }
+        Pubkey::default()
+    } else {
+        if accounts.len() != 4 {
+            return Err(NicechunkPlayerError::InvalidAccountCount.into());
+        }
+        let backpack = next_account_info(account_info_iter)?;
+        if backpack.owner != &amp;NICECHUNK_BACKPACK_PROGRAM_ID
+            &amp;&amp; backpack.owner != &amp;NICECHUNK_GAME_PROGRAM_ID
+        {
+            return Err(NicechunkPlayerError::InvalidBackpackProgram.into());
+        }
+        let backpack_data = backpack.try_borrow_data()?;
+        BackpackAccountView::validate_pda_and_owner(
+            &amp;backpack_data,
+            backpack.key,
+            backpack.owner,
+            authority.key,
+        )?;
+        BackpackAccountView::equippable_item_pda_at(&amp;backpack_data, authority.key, backpack_index)?
+    };
+    let clock = Clock::get()?;
+    let mut data = player_profile.try_borrow_mut_data()?;
+    PlayerProfile::write_equipment_slot(&amp;mut data, slot, &amp;item, clock.slot)</code></pre>
+<p class="docs-technical-explanation">The Backpack borrow is immutable. Normal equip returns one item_pda after validation; clear returns the zero key without a Backpack. Only Profile is borrowed mutably at the end.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Validate the signed Profile write and turn the clear sentinel into the default public key.</p></li>
+<li><strong>Lines 9–26</strong>
+<p>For normal equip, accept a permitted Backpack program and validate PDA, wallet owner, index, and item.</p></li>
+<li><strong>Lines 27–30</strong>
+<p>Write the returned key and current slot into Profile only.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Equip checks forged outcome bounds but not every record field</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        if data[offset] != BACKPACK_SLOT_KIND_ITEM
+            || data[offset + 1] != BACKPACK_ITEM_CATEGORY_FORGED
+        {
+            return Err(NicechunkPlayerError::InvalidBackpackItem);
+        }
+        if read_u32(data, offset + BACKPACK_SLOT_QUANTITY_OFFSET) == 0
+            || read_u64(data, offset + BACKPACK_SLOT_ITEM_ID_OFFSET) == 0
+        {
+            return Err(NicechunkPlayerError::InvalidBackpackItem);
+        }
+        let item = Pubkey::new_from_array(
+            data[offset + BACKPACK_SLOT_ITEM_PDA_OFFSET
+                ..offset + BACKPACK_SLOT_ITEM_PDA_OFFSET + 32]
+                .try_into()
+                .map_err(|_| NicechunkPlayerError::InvalidBackpackItem)?,
+        );
+        let durability_current = read_u32(data, offset + BACKPACK_SLOT_DURABILITY_CURRENT_OFFSET);
+        let durability_max = read_u32(data, offset + BACKPACK_SLOT_DURABILITY_MAX_OFFSET);
+        let grade = data[offset + BACKPACK_SLOT_GRADE_OFFSET];
+        let item_level = data[offset + BACKPACK_SLOT_ITEM_LEVEL_OFFSET];
+        let quality_bps = read_u16(data, offset + BACKPACK_SLOT_QUALITY_BPS_OFFSET);
+        if item == Pubkey::default()
+            || durability_current == 0
+            || durability_max == 0
+            || durability_current &gt; durability_max
+            || grade == 0
+            || grade &gt; 10
+            || item_level == 0
+            || item_level &gt; 100
+            || quality_bps == 0
+            || quality_bps &gt; DURABILITY_BPS_DENOMINATOR
+        {
+            return Err(NicechunkPlayerError::InvalidBackpackItem);
+        }
+        Ok(item)</code></pre>
+<p class="docs-technical-explanation">The excerpt names the fields that gate selection. It does not read item_code, volume_mm3, flags, or metadata/design hash, which is why the page does not imply those fields are revalidated by equip.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–10</strong>
+<p>Require an item in the forged category with nonzero quantity and item ID.</p></li>
+<li><strong>Lines 11–21</strong>
+<p>Read the key and bounded outcome fields from fixed offsets.</p></li>
+<li><strong>Lines 22–36</strong>
+<p>Reject the zero key and invalid durability, grade, level, or quality before returning only item_pda.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Current forge appends with the Profile key, then invokes forging XP</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let clock = Clock::get()?;
+    let outcome = {
+        let mut backpack_data = backpack.try_borrow_mut_data()?;
+        BackpackAccount::forge_equipment_from_verified_materials(
+            &amp;mut backpack_data,
+            owner.key,
+            indexes,
+            item_id,
+            design_hash,
+            player_profile.key,
+            forging_level,
+            clock.slot,
+            requirements,
+        )?
+    };
+
+    add_forging_xp_to_player(
+        program_id,
+        owner,
+        backpack,
+        player_profile,
+        player_program,
+        system_program_account,
+        &amp;outcome,
+    )</code></pre>
+<p class="docs-technical-explanation">Counting mutable Backpack data as argument one, argument six is item_pda, and the append receives player_profile.key. The immediately following Player CPI receives that same Profile; Player derives the owner's current PDA, so failure rolls back the earlier append atomically.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Read the clock and mutably borrow the verified owner Backpack.</p></li>
+<li><strong>Lines 4–15</strong>
+<p>Tentatively append the forged result using the supplied Profile key as item_pda.</p></li>
+<li><strong>Lines 17–25</strong>
+<p>Invoke Player forging-XP handling with the same Profile; a rejected current-PDA check rolls the transaction back.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Forging XP requires the owner-derived current Profile PDA</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let (expected_player_profile, _) =
+        Pubkey::find_program_address(&amp;[PLAYER_PROFILE_SEED, owner.key.as_ref()], program_id);
+    require_key_eq(
+        player_profile.key,
+        &amp;expected_player_profile,
+        NicechunkPlayerError::InvalidPlayerProfilePda,
+    )?;</code></pre>
+<p class="docs-technical-explanation">Player independently derives the current Profile address from the owner and rejects another account. Because Backpack's append and this CPI share one Solana transaction, a legacy or noncanonical Profile makes the whole forge fail rather than leaving the tentative item behind.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Derive the only current Profile PDA accepted for this owner.</p></li>
+<li><strong>Lines 3–7</strong>
+<p>Reject the supplied Profile when its public key differs.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack stores separate record fields around the shared key</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        let output = BackpackSlotRecord {
+            kind: BACKPACK_SLOT_KIND_ITEM,
+            category: BACKPACK_ITEM_CATEGORY_FORGED,
+            flags: 0,
+            quantity: 1,
+            resource: BackpackResourceRecord::default(),
+            item_code: BACKPACK_FORGED_ITEM_CODE,
+            item_id,
+            item_pda: *item_pda,
+            volume_mm3: outcome.volume_mm3,
+            durability_current: outcome.durability_max,
+            durability_max: outcome.durability_max,
+            grade: outcome.grade,
+            item_level: outcome.item_level,
+            quality_bps: outcome.quality_bps,
+            metadata: design_hash,
+        };
+        Self::append_item(data, owner, &amp;output, updated_slot)?;</code></pre>
+<p class="docs-technical-explanation">item_pda is copied exactly as supplied, while item ID, outcome values, and design hash occupy independent fields. Those fields can distinguish records even when the Profile reference cannot.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–9</strong>
+<p>Construct one forged item record and copy the supplied shared key.</p></li>
+<li><strong>Lines 10–16</strong>
+<p>Store calculated volume, durability, grade, level, quality, and design hash.</p></li>
+<li><strong>Lines 17–18</strong>
+<p>Append the complete record to the dense Backpack.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>NCF1 equipment bytes must pass length, version, and hash checks</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/forge-equipment-payload.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export const NCF1_EQUIPMENT_VERSION = 14;
+export const NCF1_EQUIPMENT_MIN_RAW_BYTES = 14;
+export const NCF1_EQUIPMENT_MAX_RAW_BYTES = 640;
+
+export function equipmentPayloadBytes(value) {
+  if (value instanceof Uint8Array) return value.length ? value : null;
+  if (Array.isArray(value)) return value.length ? Uint8Array.from(value) : null;
+  if (value instanceof ArrayBuffer) return value.byteLength ? new Uint8Array(value) : null;
+  if (ArrayBuffer.isView(value)) {
+    return value.byteLength
+      ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+      : null;
+  }
+  return null;
+}
+
+export function validatedNcf1EquipmentPayload(value, expectedDesignHash) {
+  const bytes = equipmentPayloadBytes(value);
+  const designHash = Math.trunc(Number(expectedDesignHash) || 0) &gt;&gt;&gt; 0;
+  if (!bytes
+    || !designHash
+    || bytes.length &lt; NCF1_EQUIPMENT_MIN_RAW_BYTES
+    || bytes.length &gt; NCF1_EQUIPMENT_MAX_RAW_BYTES
+    || (bytes[0] &gt;&gt; 4) !== NCF1_EQUIPMENT_VERSION
+    || forgePayloadHash(bytes) !== designHash) return null;
+  return bytes;
+}
+
+export function forgePayloadHash(value) {
+  const bytes = equipmentPayloadBytes(value);
+  if (!bytes) return 0;
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) {
+    hash ^= Number(byte) &amp; 0xff;
+    hash = Math.imul(hash, 0x01000193) &gt;&gt;&gt; 0;
+  }
+  return hash &gt;&gt;&gt; 0;
+}</code></pre>
+<p class="docs-technical-explanation">The production validator requires a nonzero expected design hash, 14–640 raw bytes, version nibble 14, and exact FNV-1a equality. This rejects mismatched local or Guardian payloads, although a 32-bit hash is still not cryptographic identity.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–15</strong>
+<p>Define the accepted version and size range and normalize byte-like inputs.</p></li>
+<li><strong>Lines 17–27</strong>
+<p>Reject missing bytes or hash, wrong length, wrong version, or a hash mismatch.</p></li>
+<li><strong>Lines 29–38</strong>
+<p>Recompute the current 32-bit FNV-1a design hash from the payload bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production Guardian validates forged presentation on send and receive</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function guardianEquipmentFromAvatarEquipment(equipment = {}) {
+  const rightHand = String(equipment?.rightHand || "empty");
+  if (rightHand === "pickaxe") {
+    const designHash = Math.trunc(Number(equipment.designHash) || 0) &gt;&gt;&gt; 0;
+    const forged = Boolean(equipment.forged || equipment.isForged || designHash);
+    return {
+      rightHandKind: forged ? EQUIPMENT_KIND.forged : EQUIPMENT_KIND.pickaxe,
+      rightHandVariant: forged ? 2 : 1,
+      flags: forged ? EQUIPMENT_FLAG_FORGED : 0,
+      designHash: forged ? designHash : 0,
+      payloadBytes: forged ? validatedNcf1EquipmentPayload(equipment.payloadBytes, designHash) : null,
+    };
+  }
+  if (rightHand === "block") {
+    const blockId = Math.trunc(equipment.blockId || 0);
+    return { rightHandKind: EQUIPMENT_KIND.block, rightHandVariant: BLOCK_VARIANT_BY_ID.get(blockId) || clampByte(blockId), flags: 0, designHash: blockId &gt;&gt;&gt; 0 };
+  }
+  return { rightHandKind: EQUIPMENT_KIND.empty, rightHandVariant: 0, flags: 0, designHash: 0 };
+}
+
+export function equipmentFromGuardianEvent(event = {}) {
+  const kind = Math.trunc(event?.rightHandKind ?? EQUIPMENT_KIND.empty);
+  if (kind === EQUIPMENT_KIND.pickaxe || kind === EQUIPMENT_KIND.forged) {
+    const designHash = Math.trunc(Number(event.designHash) || 0) &gt;&gt;&gt; 0;
+    const forged = Boolean(
+      kind === EQUIPMENT_KIND.forged
+      || (Math.trunc(Number(event.flags) || 0) &amp; EQUIPMENT_FLAG_FORGED)
+      || designHash
+      || Math.trunc(Number(event.rightHandVariant) || 0) === 2
+    );
+    return forged
+      ? { rightHand: "pickaxe", forged: true, designHash, payloadBytes: validatedNcf1EquipmentPayload(event.payloadBytes, designHash) }
+      : { rightHand: "pickaxe" };
+  }
+  if (kind === EQUIPMENT_KIND.block) return { rightHand: "block", blockId: Math.trunc(event.rightHandVariant || 0), color: [0.52, 0.72, 0.38, 1] };
+  return { rightHand: "empty" };
+}</code></pre>
+<p class="docs-technical-explanation">Production encodes only right-hand kind and variant, a forged flag, design hash, and optional validated NCF1. Incoming forged bytes pass through the same validator. It embeds neither Profile equipment keys nor Backpack presentation fields and proves no custody.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–18</strong>
+<p>Encode current right-hand presentation and validate forged bytes before sending.</p></li>
+<li><strong>Lines 20–33</strong>
+<p>Decode forged presentation while applying the same payload validation.</p></li>
+<li><strong>Lines 34–36</strong>
+<p>Reduce block and empty messages to bounded presentation state.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Market snapshots, removes, and clears during listing creation</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_market/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let source_slot = match args.source_type {
+        SOURCE_BACKPACK =&gt; {
+            let source_slot =
+                read_backpack_slot_for_listing(backpack, seller.key, args.source_index)?;
+            remove_backpack_resource(seller, backpack, backpack_program, args.source_index as u16)?;
+            if let Some(equipment_slot) = read_matching_equipment_slot_for_listing(
+                player_profile,
+                seller.key,
+                player_program.key,
+                global_config.key,
+                &amp;source_slot,
+            )? {
+                clear_player_equipment_slot(
+                    seller,
+                    player_profile,
+                    global_config,
+                    player_program,
+                    equipment_slot,
+                )?;
+            }
+            source_slot
+        }
+        SOURCE_EQUIPMENT =&gt; {
+            let (source_slot, backpack_index) = read_equipment_slot_for_listing(
+                player_profile,
+                backpack,
+                seller.key,
+                args.source_index,
+                player_program.key,
+                global_config.key,
+            )?;
+            remove_backpack_resource(seller, backpack, backpack_program, backpack_index as u16)?;
+            clear_player_equipment_slot(
+                seller,
+                player_profile,
+                global_config,
+                player_program,
+                args.source_index,
+            )?;
+            source_slot
+        }
+        _ =&gt; return Err(NicechunkMarketError::InvalidInstruction.into()),
+    };</code></pre>
+<p class="docs-technical-explanation">Both sources copy and remove a complete record. Equipment source clears its selected Profile slot. Backpack source calls the optional matching helper and therefore clears only the first matching item slot when present; block, no-match, and later duplicate references remain.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–21</strong>
+<p>Direct Backpack source copies the requested record, removes it, and clears the first matching Profile reference when present.</p></li>
+<li><strong>Lines 22–40</strong>
+<p>Equipment source resolves the chosen Profile slot, removes the matching Backpack record, and clears that chosen Profile slot.</p></li>
+<li><strong>Line 41</strong>
+<p>Reject any other source type.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production play-market fixes new chain listings to Backpack source</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-market.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      const result = await module.createMarketListingOnChain({
+        item: {
+          source: "backpack",
+          backpack: item.slot.chainBackpack,
+          slotIndex: item.slot.chainIndex,
+          category,
+        },
+        currency,
+        price,
+        backpackAddress: item.slot.chainBackpack,
+      });</code></pre>
+<p class="docs-technical-explanation">Production /play/ loads play/main.js, which imports this module. Although the shared chain helper understands equipment source, this production call always labels the sale as Backpack source and passes a Backpack record index.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Construct a source object whose source value is hard-coded to backpack.</p></li>
+<li><strong>Lines 8–11</strong>
+<p>Pass price and the same source Backpack address into chain submission.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production play-market cancellation omits a destination Backpack</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-market.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      const result = await module.cancelMarketListingOnChain({
+        listing: listing.listing,
+        listingId: listing.listingId,
+      });
+      if (!result?.submitted) {
+        showMarketStatus(`Cancel skipped: ${result?.reason || "not-submitted"}.`, "warn");
+        return result;
+      }</code></pre>
+<p class="docs-technical-explanation">The helper can accept sourceInventory and add Backpack, Backpack Program, and Market authority. Production supplies none of them, so this path cannot satisfy the processor's five-account restore call until it selects a destination. The older alternate caller below does supply fallbacks.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Submit only Listing address and ID; no destination Backpack is selected.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Handle a helper-level non-submission, although an incorrectly shaped signed transaction can instead fail on chain.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The older alternate market creates equipment-source entries</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/main.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function collectMarketSelectableEquipmentItems(slots, backpack, listedSourceIds) {
+  if (!backpack?.publicKey || !equippedPlayerProfileStatus?.equipment?.length) return [];
+  const defaultKey = "11111111111111111111111111111111";
+  const slotByItemPda = new Map(
+    slots
+      .filter((slot) =&gt; slot?.itemPda &amp;&amp; slot.itemPda !== defaultKey)
+      .map((slot) =&gt; [slot.itemPda, slot]),
+  );
+  return equippedPlayerProfileStatus.equipment.flatMap((itemPda, equipmentSlotIndex) =&gt; {
+    if (!itemPda || itemPda === defaultKey) return [];
+    const slot = slotByItemPda.get(itemPda);
+    if (!slot) return [];
+    const id = marketEquipmentSourceItemId(equipmentSlotIndex, itemPda, backpack.publicKey);
+    const sourceIds = [
+      id,
+      marketEquipmentSourceItemId(equipmentSlotIndex, itemPda),
+      marketItemPdaSourceItemId(itemPda),
+      slot.sourceItemId,
+      slot.legacySourceItemId,
+    ].filter(Boolean);
+    if (sourceIds.some((sourceId) =&gt; listedSourceIds.has(sourceId))) return [];
+    const category = marketCategoryForBackpackSlot(slot);
+    return [{
+      id,
+      sourceItemIds: Array.from(new Set(sourceIds)),
+      slotIndex: equipmentSlotIndex,
+      backpackSlotIndex: slot.chainIndex,
+      source: "equipment",
+      backpack: backpack.publicKey,
+      name: backpackSlotDisplayName(slot),
+      meta: `${marketEquipmentSlotLabel(equipmentSlotIndex)} · ${slot.meta?.source ?? gameText("main.backpack.unknownSource", "Unknown source")}`,
+      category,
+      iconType: marketIconTypeForCategory(category),
+      slot,
+    }];
+  });
+}</code></pre>
+<p class="docs-technical-explanation">This src/main.js implementation is older or alternate, not the production /play/ entry. It exposes equipment-source candidates, but its Map keeps the last record for a repeated item_pda while the contract later selects the first match.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Require a Backpack and Profile equipment, then build one record per item_pda key; duplicate keys retain the last record.</p></li>
+<li><strong>Lines 9–22</strong>
+<p>Walk Profile slots, resolve their key through the Map, and filter already listed source identities.</p></li>
+<li><strong>Lines 23–36</strong>
+<p>Create an equipment-source entry whose slotIndex is the Profile slot while backpackSlotIndex records the previewed Backpack position.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The older alternate market supplies a remembered or current cancel destination</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/main.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const result = await chainModule.cancelMarketListingOnChain({
+      listing: listing.listing,
+      listingId: listing.listingId,
+      source: listing.source,
+      sourceInventory: listing.sourceInventory ?? listing.backpack ?? equippedBackpackStatus?.backpack?.publicKey ?? null,
+    });
+    if (!result?.submitted) {
+      setMarketLocalizedStatus("main.market.cancelFailed", "Cancel transaction failed: {reason}", {
+        reason: chainSubmitReasonLabel(result?.reason),
+      }, "error");
+      action.disabled = false;
+      action.textContent = gameText("main.market.cancelListing", "Cancel");
+      return;
+    }</code></pre>
+<p class="docs-technical-explanation">This older alternate first uses remembered sourceInventory, then another stored Backpack, then the currently equipped Backpack. It can form five accounts, but the destination must still be a valid seller Backpack with free capacity and need not be the original source.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Choose the best known destination Backpack and pass it to the chain helper with the Listing.</p></li>
+<li><strong>Lines 7–14</strong>
+<p>Keep the listing active in the UI when helper submission reports failure.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Reach radius comes from the selected tool mesh</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/physics/voxel-item-collision.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function toolReachSphere({ yaw = null, swing = null } = {}) {
+    const geometry = selectedToolGeometry();
+    if (!geometry?.avatarMesh || !geometry.collisionParts.length) return fallbackToolReachSphere(toolYaw(yaw, swing));
+    const pivot = geometry.avatarMesh.pivots?.right_hand_item ?? geometry.avatarMesh.pivots?.right_arm;
+    if (!Array.isArray(pivot)) return fallbackToolReachSphere(toolYaw(yaw, swing));
+    if (reachCacheMesh !== geometry.avatarMesh || reachCacheEquipmentId !== geometry.equipmentId) {
+      reachCacheMesh = geometry.avatarMesh;
+      reachCacheEquipmentId = geometry.equipmentId;
+      reachCacheRadius = toolReachRadius(geometry.collisionParts, pivot);
+    }
+    const center = avatarLocalToWorld(pivot, toolYaw(yaw, swing));
+    return {
+      x: center[0],
+      y: center[1],
+      z: center[2],
+      centerX: center[0],
+      centerY: center[1],
+      centerZ: center[2],
+      radius: reachCacheRadius,
+      radiusSquared: reachCacheRadius * reachCacheRadius,
+      equipmentId: geometry.equipmentId,
+    };
+  }</code></pre>
+<p class="docs-technical-explanation">The resolver takes collision parts from the selected avatar tool and its right-hand pivot, calculates a radius, and places that sphere in world space. Forged geometry is attached only after local runtime and grip restoration, so this is presentation logic rather than a Profile-slot check.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Resolve selected geometry and its right-hand pivot, with a basic fallback only when geometry is unavailable.</p></li>
+<li><strong>Lines 6–10</strong>
+<p>Recalculate reach when mesh or equipment identity changes.</p></li>
+<li><strong>Lines 11–22</strong>
+<p>Transform the hand pivot into world space and return the geometry-derived sphere.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production resamples collision frames throughout the swing</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function toolCollisionHitForProgress(swing, toProgress) {
+    const endProgress = clamp01(toProgress);
+    const startProgress = Math.max(collisionStartProgress, Math.min(endProgress, Number(swing.previousToolProgress) || collisionStartProgress));
+    let previousBoxes = swing.previousToolBoxes;
+    let previousCount = swing.previousToolBoxCount || 0;
+    if (!previousBoxes || !previousCount) {
+      const startFrame = getToolCollisionFrame?.({ progress: startProgress, swing });
+      const startBoxes = Array.isArray(startFrame?.boxes) ? startFrame.boxes : [];
+      const startHit = toolCollisionHit(swing.hit, startBoxes, null, 0);
+      if (startHit.hit) return startHit;
+      previousBoxes = copyToolBoxes(startBoxes, previousBoxes);
+      previousCount = startBoxes.length;
+    }
+
+    const stepCount = Math.max(1, Math.ceil(Math.max(0.001, endProgress - startProgress) / 0.10));
+    for (let step = 1; step &lt;= stepCount; step += 1) {
+      const progress = startProgress + (endProgress - startProgress) * (step / stepCount);
+      const frame = getToolCollisionFrame?.({ progress, swing });
+      const boxes = Array.isArray(frame?.boxes) ? frame.boxes : [];
+      if (!boxes.length) {
+        previousBoxes = null;
+        previousCount = 0;
+        continue;
+      }
+      const hitResult = toolCollisionHit(swing.hit, boxes, previousBoxes, previousCount);
+      if (hitResult.hit) return hitResult;
+      previousBoxes = copyToolBoxes(boxes, previousBoxes);
+      previousCount = boxes.length;
+    }
+    swing.previousToolBoxes = copyToolBoxes(previousBoxes ?? [], swing.previousToolBoxes);
+    swing.previousToolBoxCount = previousCount;
+    swing.previousToolProgress = endProgress;
+    return { hit: false };
+  }</code></pre>
+<p class="docs-technical-explanation">The active swing does not accept its initial reach result as final contact. It subdivides animation progress, samples tool boxes, and carries each previous frame forward for swept testing.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–13</strong>
+<p>Establish and directly test the first collision frame.</p></li>
+<li><strong>Lines 15–29</strong>
+<p>Subdivide elapsed animation progress and test every sampled frame.</p></li>
+<li><strong>Lines 30–34</strong>
+<p>Retain the latest boxes and progress for the next update.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Each sampled frame checks direct and swept AABB contact</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function toolCollisionHit(hit, boxes, previousBoxes, previousBoxCount) {
+    const targetBox = createBlockAabb(hit.worldX, hit.worldY, hit.worldZ, blockCollisionPadding, scratchTargetBox);
+    for (let index = 0; index &lt; boxes.length; index += 1) {
+      const box = boxes[index];
+      if (aabbIntersectsAabb(box, targetBox)) {
+        return collisionResultFromBox(box, targetBox, 1);
+      }
+      const previous = previousBoxes?.[index];
+      if (!previous || index &gt;= previousBoxCount) continue;
+      const result = sweptAabbIntersection(previous, box, targetBox, scratchCollisionResult);
+      if (result.hit) return { hit: true, pointX: result.x, pointY: result.y, pointZ: result.z, time: result.time };
+    }
+    return { hit: false };
+  }</code></pre>
+<p class="docs-technical-explanation">A current tool box may overlap the block directly. Otherwise the controller sweeps from the previous box to the current box so a fast-moving tool cannot skip through the target between samples.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Build the target block AABB and accept direct overlap.</p></li>
+<li><strong>Lines 7–11</strong>
+<p>Sweep the corresponding previous tool box toward the current one.</p></li>
+<li><strong>Lines 12–14</strong>
+<p>Reject contact when neither direct nor swept testing hits.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Mining damage spends local hotbar durability</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const key = damageKey(hit);
+    const now = performance.now();
+    prunePartialDamage(now, key);
+    const damageState = partialDamageState(key, now);
+    const nextDamage = damageState.damage + 1;
+    const requiredDamage = Math.max(1, swing.requiredDamage || requiredDamageForBlock(hit.blockId, def));
+    damageState.damage = nextDamage;
+    damageState.lastTouchedAt = now;
+    damageState.toolDamageBySlot.set(
+      swing.selectedToolIndex,
+      (damageState.toolDamageBySlot.get(swing.selectedToolIndex) ?? 0) + 1,
+    );
+    selectedTool.durability = Math.max(0, Math.trunc(selectedTool.durability || 0) - 1);
+    gameState.saveHotbarSlots();</code></pre>
+<p class="docs-technical-explanation">After target and physical-contact checks, the controller records damage against the selected local hotbar slot, subtracts one durability point, and saves browser state. It does not mutate forged Backpack durability on chain.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Update partial damage for the target.</p></li>
+<li><strong>Lines 9–12</strong>
+<p>Attribute one local durability point to the selected hotbar slot.</p></li>
+<li><strong>Lines 13–14</strong>
+<p>Decrement and persist browser hotbar durability.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Rolling back a pending mine restores recorded local tool damage</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function rollbackPendingAt(index) {
+    const pending = index &gt;= 0 ? pendingTx.splice(index, 1)[0] : null;
+    if (!pending) {
+      onStatus("No pending delta to rollback.");
+      return null;
+    }
+    const damageEntries = Array.isArray(pending.toolDamageBySlot) &amp;&amp; pending.toolDamageBySlot.length
+      ? pending.toolDamageBySlot
+      : Number.isInteger(pending.toolSlotIndex) &amp;&amp; Number(pending.toolDamage) &gt; 0
+        ? [{ slotIndex: pending.toolSlotIndex, amount: pending.toolDamage }]
+        : [];
+    for (const entry of damageEntries) {
+      gameState.restoreToolDamage(entry.slotIndex, entry.amount);
+    }
+    gameState.playerProfile.rolledBackMines += 1;
+    gameState.playerProfile.minedBlocks = Math.max(0, gameState.playerProfile.minedBlocks - Math.max(1, Math.trunc(pending.minedBlockCount || 1)));
+    gameState.savePlayerProfile();
+    onRollback(pending);
+    onChanged();
+    return pending;
+  }</code></pre>
+<p class="docs-technical-explanation">A pending mine retains a per-slot damage ledger. Rollback restores every recorded local slot before updating browser statistics. Production calls this when mining submission is disabled, unavailable, rejected, or throws; it is not an on-chain durability refund.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Remove the matching pending action or stop if it was already resolved.</p></li>
+<li><strong>Lines 7–13</strong>
+<p>Recover the per-slot damage ledger, including the older single-slot fallback.</p></li>
+<li><strong>Lines 14–21</strong>
+<p>Restore local tool damage and update rollback state.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The production adapter passes the selected local tool-slot index</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-adapter.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const method = isTreeFell ? "recordTreeFellOnChain" : "recordBlockBreakOnChain";
+    if (typeof module[method] !== "function") return skipped(isTreeFell ? "record-tree-fell-unavailable" : "record-mine-unavailable");
+    const result = await module[method](block, pending.toolSlotIndex ?? 0, {
+      ...mineOptions,
+      expectedRewardCount: isTreeFell ? Math.max(1, pending.rewardBlocks?.length ?? 1) : 1,
+    });
+    return normalizeChainResult(result);</code></pre>
+<p class="docs-technical-explanation">For an ordinary mine, method resolves to recordBlockBreakOnChain and receives the pending local hotbar index as its second argument. Passing a value does not prove the called helper consumes it.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Select the ordinary or tree-felling helper.</p></li>
+<li><strong>Lines 3–6</strong>
+<p>Pass the pending local slot index as the helper's second argument.</p></li>
+<li><strong>Line 7</strong>
+<p>Normalize the helper result.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The block-break helper accepts toolSlot but never uses it</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function recordBlockBreakOnChain(block, toolSlot = 0, options = {}) {
+  if (!isNicechunkChainSyncEnabled()) {
+    return { submitted: false, reason: "chain-sync-disabled" };
+  }
+  try {
+    const provider = await connectedWalletProvider();
+    if (!provider) return { submitted: false, reason: "wallet-unavailable" };
+
+    const canonicalBlock = await resolveCanonicalMinedBlock(block);
+    if (!isCanonicalMineableBlockId(canonicalBlock.blockId)) {
+      return { submitted: false, reason: "unmineable-block", blockId: canonicalBlock.blockId };
+    }
+
+    const conn = getNicechunkConnection();
+    const [alreadyBroken, equippedBackpack] = await Promise.all([
+      isBlockAlreadyBrokenOnChain(block),
+      loadAuthoritativeMiningBackpack(provider.publicKey, conn, options),
+    ]);
+    if (alreadyBroken) return { submitted: false, reason: "already-mined" };
+    if (!equippedBackpack?.publicKey) {
+      return { submitted: false, reason: "no-backpack" };
+    }
+    const context = gameContext;
+    if (availableBackpackSlots(equippedBackpack) &lt; 1) {
+      return { submitted: false, reason: "backpack-full" };
+    }
+    const backpackBefore = miningBackpackSnapshot(equippedBackpack);
+    const session = await getOrCreateGameplaySession(provider);
+    const tx = new Transaction();
+    const solSpend = createSolSpendSummary();
+    const initSignature = await ensureMiningAccountsInitialized(conn, session.keypair, blockChunkX(canonicalBlock.x), blockChunkZ(canonicalBlock.z), context);
+    await addTransactionSolSpend(solSpend, conn, initSignature, session.keypair.publicKey);
+    tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: miningComputeUnitLimit }));
+    tx.add(createMineBlockWithRewardsInstruction({
+      authority: session.keypair.publicKey,
+      block,
+      owner: provider.publicKey,
+      backpack: equippedBackpack.publicKey,
+      expectedBlockId: canonicalBlock.blockId,
+      context,
+    }));
+    const playerPositionSaved = maybeAddPlayerPositionUpdateInstruction(tx, {
+      provider,
+      session,
+      position: playerPositionForResourceMine(canonicalBlock, options),
+    });
+
+    const signature = await signAndSendKeypairTransaction(session.keypair, tx, conn);
+    await addTransactionSolSpend(solSpend, conn, signature, session.keypair.publicKey);
+    invalidateChunkDeltaCache(blockChunkX(canonicalBlock.x), blockChunkZ(canonicalBlock.z));
+    return {
+      submitted: true,
+      signature,
+      ...solSpendResult(solSpend),
+      ...backpackBefore,
+      backpack: equippedBackpack?.publicKey?.toBase58?.() ?? null,
+      block: canonicalBlock,
+      blockId: canonicalBlock.blockId,
+      type: canonicalBlock.type,
+      playerPositionSaved,
+      programId: context.chunkProgramId.toBase58(),
+    };
+  } catch (error) {
+    reportRpcError(error, "mine-block");
+    throw error;
+  }
+}</code></pre>
+<p class="docs-technical-explanation">The complete helper is shown because an unused-parameter claim requires its whole body. toolSlot appears only in the signature; the mining instruction uses session authority, block, owner, Backpack, expected block ID, and context, so it neither enforces a Profile slot nor changes chain tool durability.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–13</strong>
+<p>Accept toolSlot, but validate only sync state, wallet, and canonical block.</p></li>
+<li><strong>Lines 14–42</strong>
+<p>Load a Backpack and build the mine instruction without reading toolSlot.</p></li>
+<li><strong>Lines 43–67</strong>
+<p>Submit and report the transaction without using toolSlot.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Ordinary Backpack removal shifts the dense array without clearing Profile</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn remove_resource_at(
+        data: &amp;mut [u8],
+        owner: &amp;Pubkey,
+        index: u8,
+        updated_slot: u64,
+    ) -&gt; ProgramResult {
+        Self::validate_owner(data, owner)?;
+        let item_count = data[Self::ITEM_COUNT_OFFSET];
+        if index &gt;= item_count {
+            return Err(NicechunkBackpackError::InvalidResourceIndex.into());
+        }
+
+        let start = Self::RECORDS_OFFSET + index as usize * BACKPACK_SLOT_RECORD_LEN;
+        let end = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;
+        if start + BACKPACK_SLOT_RECORD_LEN &lt; end {
+            data.copy_within(start + BACKPACK_SLOT_RECORD_LEN..end, start);
+        }
+        let last_start =
+            Self::RECORDS_OFFSET + (item_count - 1) as usize * BACKPACK_SLOT_RECORD_LEN;
+        data[last_start..last_start + BACKPACK_SLOT_RECORD_LEN].fill(0);
+        data[Self::ITEM_COUNT_OFFSET] = item_count.saturating_sub(1);
+        data[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]
+            .copy_from_slice(&amp;updated_slot.to_le_bytes());
+        Ok(())
+    }</code></pre>
+<p class="docs-technical-explanation">The function shifts later 80-byte records left, zeroes the old tail, decrements item_count, and updates the Backpack. It receives no Profile data, so ordinary discard cannot clear equipment and may leave a stale or ambiguous reference.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–11</strong>
+<p>Validate stored owner and reject an index outside the active dense prefix.</p></li>
+<li><strong>Lines 13–17</strong>
+<p>Shift every later record left when the removed record is not last.</p></li>
+<li><strong>Lines 18–25</strong>
+<p>Clear the former tail, decrement the count, and update the Backpack slot.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Implements set_equipment_slot account counts, clear sentinel behavior, permitted Backpack program owners, read-only Backpack validation, the final Profile write, and forging-XP validation that requires the owner-derived current Profile PDA.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines the nine 32-byte equipment fields, exact Profile writer, Backpack PDA and stored-owner view, dense forged-record checks, and the twelve empty Appearance rich-equipment records.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-player.ts</code>
+<p>Exposes the older setEquipmentSlot instruction builder that neither production Play nor the older alternate src/main.js currently calls.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Implements verified forge processing, tentatively passes player_profile.key into Backpack as item_pda, then invokes Player forging XP in the same atomic transaction; it also lets session-authorized discard read Profile ownership without updating equipment.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines the dense 80-byte record, ordinary removal's left shift and cleared tail without Profile data, forged outcome fields, and direct storage of item_pda plus the 32-bit design hash.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/lib.rs</code>
+<p>Implements listing source resolution, full-record copy and dense Backpack removal, conditional first-match clearing for Backpack source, selected-slot clearing for equipment source, cancel append and close, and atomic purchase append.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/state.rs</code>
+<p>Defines the current 216-byte version-5 Listing layout, including its 80-byte source record, source metadata, buyer, and timestamps.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/cluster_config.rs</code>
+<p>Selects the accepted Backpack Program ID by build feature: unified Game when unified-game is enabled and standalone Backpack otherwise.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_game/Cargo.toml</code>
+<p>Compiles the embedded Market crate with devnet, no-entrypoint, and unified-game features for the unified Game router.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Shows that the Chunk PlayerProfile view checks Profile shape, authority, and GlobalConfig but does not read the nine equipment references.</p></article>
+<article class="docs-evidence-item"><code>src/forgedItems.js</code>
+<p>Stores complete NCF1 bytes locally, indexes them by 32-bit FNV-1a design hash, and restores matching local presentation data.</p></article>
+<article class="docs-evidence-item"><code>play/forge-equipment-payload.js</code>
+<p>Validates bounded NCF1 equipment payloads and requires the payload hash to match the supplied design hash before Guardian or runtime use.</p></article>
+<article class="docs-evidence-item"><code>play/forged-hotbar-compat.js</code>
+<p>Keeps a chain forged reference even when complete NCF1 is absent, while separating that reference from a validated forged runtime.</p></article>
+<article class="docs-evidence-item"><code>play/game-state.js</code>
+<p>Implements the device-local hotbar selection and hydration of forged Backpack records; hotbar state, including local durability, is stored under a wallet-scoped browser key.</p></article>
+<article class="docs-evidence-item"><code>play/play-avatar-session.js</code>
+<p>Restores the selected NCF1 runtime and binds forged avatar geometry only when the local interaction has a usable grip.</p></article>
+<article class="docs-evidence-item"><code>src/main.js</code>
+<p>Contains the older or alternate market's equipment-source Map with last-write item_pda semantics, cancel-destination fallbacks, and broader legacy Guardian presentation fields; it is not the production /play/ entry.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Builds shared Market instructions for both source types, uses optional sourceInventory for cancel accounts, loads a cached owner Backpack before Profile fallback, and declares but does not read toolSlot in recordBlockBreakOnChain.</p></article>
+<article class="docs-evidence-item"><code>play/play-market.js</code>
+<p>Implements the production /play/ market path that hard-codes new chain listings to Backpack source and calls chain cancellation without sourceInventory.</p></article>
+<article class="docs-evidence-item"><code>play/index.html</code>
+<p>Loads ./main.js as the production /play/ module entry.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Is the production /play/ entry, imports play-market and play-guardian, wires avatar collision frames and targeting into mining, and routes rejected pending mines into rollback.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Implements the production modular Guardian encoder and decoder with right-hand presentation fields and strict forged NCF1 validation, without Profile keys or Backpack presentation fields.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/physics/voxel-item-collision.js</code>
+<p>Derives tool reach from selected avatar collision parts and the right-hand pivot, then searches tool trajectories against target AABBs.</p></article>
+<article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Samples collision boxes through the active swing, requires direct or swept AABB contact, spends local hotbar durability, and restores recorded damage on rollback.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Passes the pending local hotbar index into the shared recordBlockBreakOnChain helper.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Calls mining rollback when submission is disabled, the wallet is unavailable, the adapter rejects the mine, or submission throws.</p></article>
+<article class="docs-evidence-item"><code>play/tests/forged-equipment-restore.test.mjs</code>
+<p>Verifies hash-based local NCF1 hydration, rejects mismatched or oversized Guardian payloads, and keeps missing-NCF1 chain equipment non-usable.</p></article>
+<article class="docs-evidence-item"><code>play/tests/forged-equipment-switch-browser.test.mjs</code>
+<p>Exercises two forged records with a shared item_pda but different item IDs and design hashes.</p></article>
+<article class="docs-evidence-item"><code>play/tests/hotbar-equipment-identity.test.mjs</code>
+<p>Exercises hotbar identity when current forged records share item_pda and require stronger distinguishing fields.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/equipment-and-custody-devnet-2026-07-18.json</code>
+<p>Retains the single confirmed slot-477,030,223 account context, raw Base64 and hashes, decoded Backpack, Profile, Listing, and legacy-program distributions, forged-to-Profile comparisons, and deployment-boundary notes.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-profile-devnet-2026-07-16.json</code>
+<p>Retains the preceding Player account snapshot used to cross-check current Profile and Appearance layouts, including empty rich-equipment records.</p></article>
+</div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Next, separate displayed numbers from enforced effects</h2>
+<p>Equipment custody tells you where a record lives. The next guide asks which Profile fields and skill values have an active production consumer, which are browser-only, and which contracts recalculate their own result.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/player-appearance-codes/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>PlayerAppearance: Model Codes, Reconstruction, and Safe Fallbacks</strong>
+<p>Review the public appearance record, empty rich-equipment reserve, local decoder boundary, and visible-character fallback before following equipment custody.</p></a>
+<a class="docs-path-navigation-card" href="/docs/displayed-stats-vs-enforced-effects/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Displayed Stats vs Enforced Effects: A Number Needs a Consumer</strong>
+<p>Learn why storage and display do not by themselves create a rule, then trace Precision, Smelting, Forging, Exploration, and Swiftness to their real consumers.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

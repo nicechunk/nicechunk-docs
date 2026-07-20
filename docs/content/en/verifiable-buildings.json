@@ -1,0 +1,317 @@
+{
+  "kind": "topic",
+  "slug": "verifiable-buildings",
+  "shortTitle": "Verifiable Buildings",
+  "seo": {
+    "title": "NiceChunk Protected Foundations and Verifiable Buildings",
+    "description": "Explore NiceChunk's protected BuildSite rectangles, exact-scale NCM3 buildings, sharded on-chain verification, Guardian discovery, and high-performance Chunk.js reconstruction."
+  },
+  "hero": {
+    "eyebrow": "FOUNDATION 05 · SHARED CONSTRUCTION",
+    "title": "Preview at exact scale, commit the building bytes",
+    "summary": "NiceChunk separates a responsive construction preview from the state other players can verify. The browser checks that the ground is level, dry, and solid, then projects an exact 1:1 NCM3 building; the Building Program indexes a protected foundation, stores the payload in bounded shards, verifies the complete payload hash and geometry envelope, and activates one revision. Guardian records help nearby players discover it, while Chunk.js normally rebuilds parsing, placement, baked light, meshes, and collision in a dedicated worker, with a main-thread fallback when Worker support is unavailable.",
+    "readingTime": "11 min read",
+    "visual": {
+      "src": "/docs/media/building-system-overview-v1.webp",
+      "alt": "The canonical villager boy places a gray stone block into a level rectangular foundation while the villager girl holds a cyan blueprint tablet beside a half-translucent wooden and stone cottage; glowing colored cubes rest on a wooden cart, with an ocean and beacon in the distance.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "The hologram is a local preflight",
+      "body": "The browser checks level, dry, solid ground and ten voxels of clearance, then shows a translucent 1:1 preview. The Building Program does not replay that terrain scan, so the preview is useful interaction evidence rather than a chain terrain proof."
+    },
+    {
+      "title": "The committed payload is complete",
+      "body": "A BuildingManifest plus at most eight BuildingShard PDAs retain the raw NCM3 bytes. Finalization recomputes the full SHA-256 value, parses bounded declarative commands, and checks the rotated footprint and height before activation."
+    },
+    {
+      "title": "Discovery is not authority",
+      "body": "Guardian region records narrow nearby discovery and cache work. The client checks each changed record against direct BuildSite geometry, active revision, and updated slot; that BuildSite supplies the owner the loaded BuildingManifest must match before the complete Building PDA payload is rendered."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "SPATIAL AND PLACEMENT MATH",
+    "title": "One rectangle determines index work; one exact footprint determines acceptance",
+    "summary": "The first equation mirrors the 16-voxel Chunk coverage used by the Building Program, including negative coordinates. The second shows the centered placement, quarter-turn swap, signed offsets, and height limit checked when a revision is finalized."
+  },
+  "formulas": [
+    {
+      "title": "Foundation coverage across canonical Chunks",
+      "expression": "cx0 = div_euclid(minX, 16); cx1 = div_euclid(minX + width - 1, 16); cz0 = div_euclid(minZ, 16); cz1 = div_euclid(minZ + depth - 1, 16); N_index = (cx1 - cx0 + 1)(cz1 - cz0 + 1); T_upsert = ceil(N_index / 4); T_cleanup = ceil(N_removed / 4)",
+      "explanation": "Euclidean division keeps coverage correct on both sides of world zero. The program indexes every intersected Chunk in stable row-major order, and the current client submits at most four index steps per transaction. T_upsert describes the indexing phase after creation or resize; it excludes the separate BuildSite transaction. T_cleanup applies only when a shrink leaves old covered Chunks to remove.",
+      "terms": [
+        {
+          "symbol": "cx0, cx1",
+          "meaning": "Inclusive minimum and maximum Chunk X coordinates covered by the foundation rectangle."
+        },
+        {
+          "symbol": "cz0, cz1",
+          "meaning": "Inclusive minimum and maximum Chunk Z coordinates covered by the foundation rectangle."
+        },
+        {
+          "symbol": "N_index",
+          "meaning": "Number of canonical Chunk index entries required by the BuildSite."
+        },
+        {
+          "symbol": "T_upsert",
+          "meaning": "Minimum current four-step transactions for the new or staged rectangle's upsert phase."
+        },
+        {
+          "symbol": "T_cleanup",
+          "meaning": "Minimum current four-step cleanup transactions for N_removed old Chunks left by a shrink."
+        }
+      ]
+    },
+    {
+      "title": "Exact-scale rotated building fit",
+      "expression": "(Bx, Bz) = (sizeX, sizeZ) if q mod 2 = 0 else (sizeZ, sizeX); ox = floor((Fw - Bx) / 2) + dx; oz = floor((Fd - Bz) / 2) + dz; accept iff 0 <= ox AND ox + Bx <= Fw AND 0 <= oz AND oz + Bz <= Fd AND surfaceY + sizeY - 1 <= maxBuildY",
+      "explanation": "A quarter turn swaps the horizontal dimensions but never rescales a voxel. Signed X and Z offsets move the centered origin. Finalization rejects any footprint crossing the protected rectangle or any declared NCM3 envelope above the configured build ceiling, even when the envelope's top layer contains no occupied voxel.",
+      "terms": [
+        {
+          "symbol": "q",
+          "meaning": "Quarter-turn count in the range zero through three."
+        },
+        {
+          "symbol": "Fw, Fd",
+          "meaning": "Active foundation width and depth in world voxels."
+        },
+        {
+          "symbol": "dx, dz",
+          "meaning": "Signed placement offsets stored in the BuildingManifest."
+        },
+        {
+          "symbol": "Bx, Bz",
+          "meaning": "Rotated NCM3 footprint dimensions at exact 1:1 scale."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Finalization binds the full payload hash to an exact footprint",
+      "language": "Rust",
+      "source": "programs/nicechunk_building/src/lib.rs",
+      "code": "    if hash_payload_slices(&payload_slices) != manifest_view.expected_hash {\n        return Err(NicechunkBuildingError::BuildingHashMismatch.into());\n    }\n    let dimensions = validate_ncm3_payload(&payload_slices)?;\n    let (footprint_width, footprint_depth) = if manifest_view.quarter_turns % 2 == 0 {\n        (dimensions.x, dimensions.z)\n    } else {\n        (dimensions.z, dimensions.x)\n    };\n    let max_build_y = i32::from(site.surface_y)\n        .checked_add(\n            i32::try_from(dimensions.y).map_err(|_| NicechunkBuildingError::BuildingDoesNotFit)?,\n        )\n        .and_then(|value| value.checked_sub(1))\n        .ok_or(NicechunkBuildingError::BuildingDoesNotFit)?;\n    if !building_axis_fits(site.width, footprint_width, manifest_view.offset_x)\n        || !building_axis_fits(site.depth, footprint_depth, manifest_view.offset_z)\n        || max_build_y > i32::from(context.config.max_build_y)\n    {\n        return Err(NicechunkBuildingError::BuildingDoesNotFit.into());\n    }",
+      "explanation": "The program reads every complete shard, hashes their ordered payload slices, parses the bounded NCM3 envelope, applies the quarter-turn footprint, and rejects a revision that does not fit before either the manifest or BuildSite becomes active."
+    },
+    {
+      "title": "Guardian discovery must still match the complete Building PDA",
+      "language": "JavaScript",
+      "source": "play/play-chain-buildings.js",
+      "code": "export function buildingMatchesFoundation(building, foundation) {\n  const fullHash = String(building?.contentHash || \"\").trim().toLowerCase();\n  const expectedPrefix = String(foundation?.contentHash || \"\").trim().toLowerCase();\n  return String(building?.foundationId) === String(foundation?.foundationId)\n    && String(building?.owner || \"\") === String(foundation?.owner || \"\")\n    && Number(building?.revision) === Number(foundation?.activeRevision)\n    && /^[0-9a-f]{64}$/.test(fullHash)\n    && /^[0-9a-f]{32}$/.test(expectedPrefix)\n    && expectedPrefix !== ZERO_BUILDING_HASH\n    && fullHash.startsWith(expectedPrefix);\n}",
+      "explanation": "The regional record contributes a 128-bit hexadecimal prefix and active BuildSite identity. The loaded Building PDA must supply the same foundation, owner, revision, and a complete 256-bit hash beginning with that prefix before it enters the verified render set."
+    }
+  ],
+  "sections": [
+    {
+      "id": "local-preflight",
+      "eyebrow": "LOCAL CONSTRUCTION PREVIEW",
+      "title": "The blueprint makes placement understandable before it becomes shared state",
+      "paragraphs": [
+        "The blueprint tool starts with camera targeting and a local rectangle. For every covered column, the browser finds the highest opaque voxel, requires the same ground height, rejects fluid or non-solid support, and checks ten voxels of clearance. A valid selection becomes a translucent foundation hologram; a selected NCM3 design is parsed and previewed at one world voxel per design voxel, normally through the building worker with a main-thread fallback when Worker support is unavailable.",
+        "Rotation is restricted to quarter turns, X and Z offsets remain integers, and a building that extends beyond the rectangle stays previewable but cannot be submitted. Confirm locks the current valid hologram and begins the chain workflow. These checks keep construction legible and avoid obvious bad transactions, but the Building Program does not read the rendered scene, regenerated terrain, or local clearance scan."
+      ],
+      "facts": [
+        {
+          "label": "Preview scale",
+          "value": "1 NCM3 voxel = 1 world voxel",
+          "detail": "Rotation and offsets are allowed; scaling is not."
+        },
+        {
+          "label": "Clearance preflight",
+          "value": "10 voxels",
+          "detail": "The browser rejects local obstructions above the selected support surface."
+        },
+        {
+          "label": "Preview pass",
+          "value": "Translucent · no depth write",
+          "detail": "The hologram remains visually distinct and never enters finalized collision."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Level ground is not an on-chain terrain proof",
+        "body": "BuildSite creation validates the signed player session, PDA identity, rectangle bounds, dimensions, and surface-Y range, then records that player as the owner. It does not read terrain or prove ownership of a backpack blueprint item; flatness, dryness, and clearance remain client preflight rules."
+      }
+    },
+    {
+      "id": "protected-foundation",
+      "eyebrow": "BUILDSITE AND CHUNK INDEXES",
+      "title": "One protected rectangle is registered everywhere it crosses",
+      "paragraphs": [
+        "A BuildSite PDA binds one owner, global configuration, nonzero foundation ID, fixed minimum X and Z, surface Y, width, depth, revision counters, and indexing progress. The Building Program invokes the Chunk Program through a PDA authority to register the same rectangle in every intersected 16 × 16 Chunk. Only after all entries exist does the BuildSite switch from indexing to active.",
+        "Chunk indexes reject a different foundation whose XZ rectangle overlaps an existing one. The overlap rule is two-dimensional, so placing a second foundation at another height does not bypass the reservation. The protected mining layer is narrower: a coordinate is protected only when its XZ position lies inside the rectangle and its Y equals surfaceY minus one. The space above is not an immutable column.",
+        "Resize uses staged geometry and a second revision-safe index cycle. Expansion adds new Chunk entries before switching the active rectangle; shrinking removes entries that fall outside only after the new geometry is ready. The fixed anchor never drifts, and an active building must still fit before a shrink can complete."
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Negative coordinates use the same coverage rule",
+        "body": "The program uses Euclidean division and a stable row-major index, so crossing world zero does not skip or duplicate the Chunks that must know about a foundation."
+      }
+    },
+    {
+      "id": "ncm3-envelope",
+      "eyebrow": "DECLARATIVE BUILDING FORMAT",
+      "title": "NCM3 describes a bounded building without executing imported code",
+      "paragraphs": [
+        "NCM3 is a compact declarative byte format. It declares dimensions and a bounded sequence of material-bearing construction commands such as boxes, repeats, roof families, trees, and fences. The parser expands those commands into canonical material voxels; it does not evaluate JavaScript or download executable building behavior.",
+        "The deployed validator accepts at most 256 voxels on each axis, 4,096 commands, and a total expansion budget of 262,144 operations. It rejects noncanonical or overflowing varints, out-of-bounds command geometry, invalid repeat steps, trailing bytes, and material IDs outside the canonical building allowlist. That bounded envelope makes a compact payload predictable enough to validate and reconstruct without storing a raw dense cube."
+      ],
+      "facts": [
+        {
+          "label": "Maximum payload",
+          "value": "65,535 bytes",
+          "detail": "The manifest rejects zero length or any larger raw NCM3 payload."
+        },
+        {
+          "label": "Maximum dimensions",
+          "value": "256 × 256 × 256",
+          "detail": "Every command must remain within the declared envelope."
+        },
+        {
+          "label": "Expansion budget",
+          "value": "262,144 operations",
+          "detail": "Repeated and procedural commands contribute their bounded expanded work."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Compact commands do not change voxel scale",
+        "body": "Compression describes repeated structure; it never allows a submitted building to be stretched or shrunk to fit a foundation."
+      }
+    },
+    {
+      "id": "sharded-finalization",
+      "eyebrow": "ON-CHAIN BUILDING COMMIT",
+      "title": "Upload is resumable; activation waits for every byte and every check",
+      "paragraphs": [
+        "Beginning a building revision creates a 160-byte BuildingManifest PDA in uploading state and reserves the next BuildSite revision. The manifest stores owner, global configuration, foundation ID, revision, quarter turns, signed offsets, payload length, expected 32-byte hash, shard count, completion bitmap, and slots. Payload capacity is divided into at most eight BuildingShard PDAs of at most 8,192 bytes each.",
+        "Shard writes are sequential and limited to 700 payload bytes per instruction. A dropped wallet request can resume from the shard's uploaded length instead of restarting the entire design. Finalization requires every shard account in exact order, validates every PDA and completed length, reconstructs the ordered payload slices, recomputes SHA-256, parses NCM3, checks footprint and height, then activates both manifest and BuildSite revision in one atomic transaction.",
+        "The instruction has no backpack or material input accounts. It proves that authorized bytes form an allowed building and fit the protected rectangle; it does not prove that the owner collected or consumed the wood, stone, or glass represented by those material IDs."
+      ],
+      "facts": [
+        {
+          "label": "Shard capacity",
+          "value": "8 × 8,192 bytes",
+          "detail": "The 65,535-byte payload ceiling fits within the bounded shard set."
+        },
+        {
+          "label": "Write step",
+          "value": "Up to 700 bytes",
+          "detail": "Sequential offsets make partially uploaded shards safely resumable."
+        },
+        {
+          "label": "Content commitment",
+          "value": "SHA-256 · 32 bytes",
+          "detail": "The program hashes the complete ordered raw NCM3 payload before activation."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Uploading is not active",
+        "body": "Incomplete shards can be inspected for recovery, but only a manifest whose full payload, syntax, materials, dimensions, rotation, offsets, and height pass finalization becomes a shared building revision."
+      }
+    },
+    {
+      "id": "guardian-discovery",
+      "eyebrow": "REGIONAL DISCOVERY BOUNDARY",
+      "title": "Guardian records find nearby buildings without replacing their source of truth",
+      "paragraphs": [
+        "A Guardian region account commits a compact regional manifest summary. For the current NCKBRG03 format, it is the first 16 bytes of a SHA-256 digest over the canonical record bytes, plus revision and record count. The client fetches the matching HTTP manifest, recomputes that truncated digest, and rejects a manifest for another region. New or changed records are checked against direct BuildSite PDA geometry, active revision, and updated slot. The BuildSite supplies the authoritative owner, which the loaded BuildingManifest must also match.",
+        "Each digest-committed regional record carries the first 16 bytes of one building content hash. The chain loader fetches the active BuildingManifest and every shard, verifies the complete 32-byte payload hash, and requires it to begin with that regional record prefix. Chunk.js then parses the verified NCM3 payload during reconstruction. Guardian discovery can reduce wide account scans and seed a verified cache, but it cannot invent geometry or authorize an uncommitted revision.",
+        "When Guardian coverage or a regional manifest is unavailable, the current nearby discovery path does not treat unknown non-owned buildings as trusted. A player's owned BuildSite PDAs can still be restored in one batch. Already verified cached buildings remain visible across temporary RPC failures; building sync waits five seconds before retrying a failure, while an unchanged healthy view uses a 60-second refresh window."
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Two commitments with different jobs",
+        "body": "The on-chain Guardian Region stores a 16-byte regional manifest digest, revision, and record count. Each digest-committed regional record carries a 16-byte building-hash prefix. Building PDAs retain the complete payload and full 32-byte SHA-256 value."
+      }
+    },
+    {
+      "id": "chunkjs-runtime",
+      "eyebrow": "HIGH-PERFORMANCE RECONSTRUCTION",
+      "title": "Chunk.js turns a verified payload into light, meshes, and collision once",
+      "paragraphs": [
+        "Chunk.js normally sends NCM3 parsing, placement, baked light, and greedy meshing to a dedicated worker; when Worker support is unavailable, the same deterministic operations fall back to the main thread. Placement preserves exact voxel scale, partitions output by canonical 16 × 16 world columns, removes hidden faces even across building Chunk boundaries, and separates opaque from glass or other visual materials. Packed vertices use a 20-byte stride, while collision occupies a compact Uint32Array bit mask instead of a second object per voxel.",
+        "Verified chain buildings are scheduled nearest first. Unchanged foundation, revision, hash, rotation, offset, and placement keys reuse previously built mesh data. A new snapshot cancels stale work and discards a replacement whose decode or meshing fails. The desktop cache is capped by both 64 entries and 48 MiB; the current mobile configuration is capped by both 16 entries and 16 MiB. Frustum bounds keep off-screen building Chunks out of the draw list.",
+        "Only finalized chain buildings enter the supplemental collision provider, so a player can stand on a building floor and cannot walk through its solid voxels. A local translucent preview neither writes depth nor becomes authoritative collision. Natural support-collapse planning remains a separate conservative terrain-mining feature; it does not simulate building loads, and the Building Program does not validate a structural support graph."
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "The render cost follows visible surfaces, not a dense design volume",
+        "body": "Declarative commands, worker expansion, hidden-face removal, greedy quads, packed buffers, bounded caches, and bit-mask collision keep large exact-scale structures practical without putting every rendered vertex on chain."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/foundation-controller.js",
+      "claim": "Implements local level-ground, solid-support, fluid, clearance, overlap, hologram, and locked-anchor construction preflight."
+    },
+    {
+      "path": "programs/nicechunk_building/src/building.rs",
+      "claim": "Defines BuildSite, BuildingManifest, BuildingShard, Chunk coverage, exact-fit math, shard limits, SHA-256 input hashing, and the bounded NCM3 validator."
+    },
+    {
+      "path": "programs/nicechunk_building/src/lib.rs",
+      "claim": "Validates player sessions and PDAs, stages cross-Chunk index work, writes resumable shards, finalizes complete payloads, and atomically activates revisions."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Stores per-Chunk foundation indexes, rejects overlapping XZ rectangles, and protects only the canonical support layer."
+    },
+    {
+      "path": "chunk.js/ncm/blueprint-codec.js",
+      "claim": "Defines canonical declarative NCM3 commands, varint encoding, material references, and raw Building PDA payload decoding."
+    },
+    {
+      "path": "chunk.js/construction/building-parser.js",
+      "claim": "Parses NCM3 without executable imports, preserves one-to-one scale, applies quarter turns and integer offsets, and builds compact placements."
+    },
+    {
+      "path": "chunk.js/construction/building-mesher.js",
+      "claim": "Partitions verified buildings into terrain-compatible Chunks with baked light, cross-boundary face removal, greedy quads, packed buffers, visual passes, frustum bounds, and collision masks."
+    },
+    {
+      "path": "chunk.js/construction/building-mesh-client.js",
+      "claim": "Runs parse, placement, and meshing in a cancellable, prioritized worker queue with transferable buffers and a main-thread fallback."
+    },
+    {
+      "path": "play/building-controller.js",
+      "claim": "Owns exact-scale preview state, fit gating, nearest-first chain meshing, stale-work cancellation, verified collision, and bounded mesh caching."
+    },
+    {
+      "path": "play/play-chain-foundations.js",
+      "claim": "Verifies Guardian regional manifests against chain commitments and BuildSite identity before exposing nearby foundation records."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Loads active BuildingManifest and shard PDAs, reconstructs ordered payloads, verifies complete SHA-256 values, decodes BuildSites, and submits staged foundation and building transactions."
+    },
+    {
+      "path": "play/play-chain-buildings.js",
+      "claim": "Filters, caches, and applies buildings whose foundation, owner, revision, and full content hash match the verified BuildSite and Guardian record prefix."
+    },
+    {
+      "path": "programs/nicechunk_guardian/src/state.rs",
+      "claim": "Defines the compact on-chain Guardian region revision, record count, and 16-byte manifest digest used by the discovery layer."
+    }
+  ],
+  "related": [
+    {
+      "slug": "deterministic-world",
+      "href": "/docs/deterministic-world/",
+      "title": "The Deterministic World",
+      "summary": "See why generated terrain, mined deltas, foundations, and buildings remain separate state layers."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "Compare construction preflight and staged activation with the pending and confirmed lifecycle of mining."
+    }
+  ]
+}

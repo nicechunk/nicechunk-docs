@@ -1,0 +1,1137 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="displayed-stats-vs-enforced-effects" data-docs-static-source="9bbf4065f370e1ebe1124a967aa2d4b09c647312bbc04b59d8de7845b1e437c0">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/displayed-stats-vs-enforced-effects.json" />
+    <meta name="nicechunk:source-sha256" content="9bbf4065f370e1ebe1124a967aa2d4b09c647312bbc04b59d8de7845b1e437c0" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn which NiceChunk Profile fields and skills are stored, which values are derived for the browser, which effects have a real production consumer, and where contracts recalculate mining, Smelting, Forging, and Exploration outcomes." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Displayed Stats vs Enforced Effects: What Actually Changes NiceChunk" />
+    <meta property="og:description" content="Learn which NiceChunk Profile fields and skills are stored, which values are derived for the browser, which effects have a real production consumer, and where contracts recalculate mining, Smelting, Forging, and Exploration outcomes." />
+    <meta property="og:url" content="https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-overview-v1.webp" />
+    <meta property="og:image:alt" content="Generated voxel hillside workshop where the canonical villager boy walks on a mechanical treadmill while the canonical villager girl inspects a storage cabinet beside quiet gauges and presses." />
+    <title>Displayed Stats vs Enforced Effects: What Actually Changes NiceChunk</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#article",
+  "url": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/",
+  "name": "Displayed Stats vs Enforced Effects: A Number Needs a Consumer",
+  "description": "Learn which NiceChunk Profile fields and skills are stored, which values are derived for the browser, which effects have a real production consumer, and where contracts recalculate mining, Smelting, Forging, and Exploration outcomes.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Displayed Stats vs Enforced Effects: A Number Needs a Consumer",
+  "mainEntityOfPage": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "A number becomes a rule only when an active consumer uses it",
+    "health, energy, stamina, miningPower, buildPower, and defense are reserved state—not current gameplay loops",
+    "The six visible stat cards, two Level labels, and Reputation are browser-derived",
+    "The consumer matrix shows exactly which skill effects cross into production behavior",
+    "The browser estimates mining; Chunk weighs the accepted reward again",
+    "Smelting uses a different Progress PDA, and Forging ignores the browser's simple bonus",
+    "Swiftness really changes local walking speed, but no authority enforces a skill-limited race",
+    "Guardian carries pose and presentation, not a hidden combat, weight, or fatigue system"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#number-needs-a-consumer",
+      "name": "A number becomes a rule only when an active consumer uses it"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#six-defaults-not-survival",
+      "name": "health, energy, stamina, miningPower, buildPower, and defense are reserved state—not current gameplay loops"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#browser-derived-stats",
+      "name": "The six visible stat cards, two Level labels, and Reputation are browser-derived"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#ten-skill-consumer-matrix",
+      "name": "The consumer matrix shows exactly which skill effects cross into production behavior"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#mining-prediction-and-settlement",
+      "name": "The browser estimates mining; Chunk weighs the accepted reward again"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#smelting-and-forging-recompute",
+      "name": "Smelting uses a different Progress PDA, and Forging ignores the browser's simple bonus"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#swiftness-is-local-only",
+      "name": "Swiftness really changes local walking speed, but no authority enforces a skill-limited race"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/#guardian-and-missing-loops",
+      "name": "Guardian carries pose and presentation, not a hidden combat, weight, or fatigue system"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-overview-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-number-needs-consumer-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-six-defaults-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-browser-derived-panel-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-ten-skill-consumers-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-mining-recomputed-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-smelting-forging-recomputed-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-swiftness-local-v1.webp",
+    "https://nicechunk.com/docs/media/displayed-stats-vs-enforced-effects-guardian-no-stats-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Displayed Stats vs Enforced Effects</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL · STEP 9</p>
+<h1>Displayed Stats vs Enforced Effects: A Number Needs a Consumer</h1>
+<p class="docs-hero-summary">NiceChunk can store a number, calculate a card from it, and describe a future effect without using that number in gameplay. Current production /play/ directly applies Swiftness to local movement. Chunk independently recalculates Precision Gathering and Exploration, Smelting independently recalculates output, and Backpack independently recalculates Forging. Burden, Craftsmanship, Stamina, Strength, and Appraisal have no current production consumer. The six base Profile attributes also remain fixed defaults with no survival, combat, carrying, mining-power, or building-power loop. This guide follows /play/index.html → /play/main.js → play/*, keeps older src/main.js out of the production claim, and checks those source boundaries against one dated confirmed Devnet snapshot.</p>
+<span class="docs-reading-time">42 min read</span></div>
+<figure class="docs-hero-visual"><img alt="voxel hillside workshop where the canonical villager boy walks on a mechanical treadmill while the canonical villager girl inspects a storage cabinet beside quiet gauges and presses." decoding="async" height="887" loading="eager" src="/docs/media/displayed-stats-vs-enforced-effects-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The storage cabinet and quiet gauges represent stored or displayed values, while the working treadmill represents a value reaching an active consumer. This generated teaching scene uses the canonical villagers and real Chunk.js scene and baked-material references; its props, placement, motion, and lighting are metaphors, not decoded attributes, contract execution, an interface screenshot, or proof that every represented effect exists.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">Which health, energy, strength, skill, and level numbers really change an action—and which ones are only stored or displayed today?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 9 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Production entry reviewed</dt>
+<dd>/play/index.html → /play/main.js → play/*; older /src/main.js is labeled separately</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>18 July 2026 · literal source excerpts, consumer searches, focused checks, visual review evidence, and confirmed Devnet slot 477,044,477</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Stored field</dt>
+<dd>A value written into account or browser data. Storage proves the value exists there; it does not prove that any action reads it.</dd></div>
+<div class="docs-guide-term"><dt>Displayed value</dt>
+<dd>Text or a card calculated for the interface. It may be useful and accurate as a display while still having no effect on a transaction, contract result, or game rule.</dd></div>
+<div class="docs-guide-term"><dt>Consumer</dt>
+<dd>The specific production code that reads a value and uses it to change an outcome such as movement distance, recovered volume, an extra-drop chance, Smelting output, or forged durability.</dd></div>
+<div class="docs-guide-term"><dt>Browser-local effect</dt>
+<dd>A real effect inside this running browser, such as Swiftness changing the local movement controller. It is not automatically checked or enforced by Guardian or a Solana program.</dd></div>
+<div class="docs-guide-term"><dt>Contract-enforced effect</dt>
+<dd>A program reads authoritative account data and calculates the accepted result itself instead of trusting a number supplied by the browser.</dd></div>
+<div class="docs-guide-term"><dt>Derived value</dt>
+<dd>A value calculated from other records or counters. The Profile screen's six stat cards, two different Level labels, and Reputation are current examples.</dd></div>
+<div class="docs-guide-term"><dt>Effective skill XP</dt>
+<dd>For each skill, the browser takes the largest XP value among local behavior counters, browser-stored skill XP, and the chain XP object, then converts that XP through the browser threshold table.</dd></div>
+<div class="docs-guide-term"><dt>Legacy level object</dt>
+<dd>The older nicechunk.playerSkills.&lt;wallet&gt; browser object. It can remain as a fallback, but the normal XP path supplies every skill key—even zero—so the XP-derived level usually wins.</dd></div>
+<div class="docs-guide-term"><dt>PlayerProfile base attributes</dt>
+<dd>Six u16 fields named health, energy, stamina, miningPower, buildPower, and defense. They are distinct from the ten browser skill cards.</dd></div>
+<div class="docs-guide-term"><dt>Progress PDA</dt>
+<dd>A program-derived public account that stores skill progress for one owner and GlobalConfig inside one program domain. The same seed words under different program IDs create different addresses.</dd></div>
+<div class="docs-guide-term"><dt>Basis points (bps)</dt>
+<dd>A scale where 10,000 means 100%. Contracts use integer basis points so they do not need floating-point percentages.</dd></div>
+<div class="docs-guide-term"><dt>Pending prediction</dt>
+<dd>The browser's immediate estimate before chain acceptance. It helps presentation, but the submitted instruction and program calculation decide the authoritative result.</dd></div>
+<div class="docs-guide-term"><dt>Guardian</dt>
+<dd>The realtime regional service that relays pose, identity, equipment presentation, chat, and dig hints. Its current movement protocol does not carry Profile attributes, skill levels, or XP.</dd></div>
+<div class="docs-guide-term"><dt>Dated snapshot</dt>
+<dd>Account bytes observed through RPC at one confirmed context slot. It proves what those accounts contained then, not a permanent population total or reproducible deployed binary.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>A label is not a rule</strong>
+<p>Ask which production consumer reads the value and what accepted result changes. A field can be stored forever and a card can update perfectly while neither affects movement, mining, carrying, crafting, combat, or settlement.</p></article>
+<article class="docs-key-point"><strong>The six Profile defaults are not a survival system</strong>
+<p>health 100, energy 100, stamina 100, miningPower 1, buildPower 1, and defense 0 are initialized on chain, but current Player instructions do not edit them and production /play/ has no gameplay consumer for them.</p></article>
+<article class="docs-key-point"><strong>Only one browser skill directly changes ordinary local control</strong>
+<p>Swiftness multiplies the base movement speed used by the local controller. Guardian and the Player Program do not read its level or enforce a skill-limited speed, so this is real browser behavior rather than chain-enforced racing state.</p></article>
+<article class="docs-key-point"><strong>Mining, Exploration, Smelting, and Forging are recalculated by programs</strong>
+<p>The browser may preview a result, but Chunk reads Chunk progress, Smelting reads Smelting progress, and Backpack reads PlayerProfile forging_xp before applying its own thresholds and rules. Precision, Exploration, Smelting, and Forging therefore have contract consumers, with important UI-versus-contract differences explained below.</p></article>
+<article class="docs-key-point"><strong>One seed name can hide two independent skill histories</strong>
+<p>Chunk and Game/Smelting both derive [player-progress, GlobalConfig, owner], but their program IDs differ. Current Profile fetching reads the Chunk account while real Smelting uses the Game/Smelting account.</p></article>
+<article class="docs-key-point"><strong>Current means current</strong>
+<p>An unconsumed field may become gameplay later. This page records the reviewed production path and a dated Devnet snapshot; it does not promise that a future release will keep these boundaries.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#number-needs-a-consumer">A number becomes a rule only when an active consumer uses it</a></li>
+<li><a href="#six-defaults-not-survival">health, energy, stamina, miningPower, buildPower, and defense are reserved state—not current gameplay loops</a></li>
+<li><a href="#browser-derived-stats">The six visible stat cards, two Level labels, and Reputation are browser-derived</a></li>
+<li><a href="#ten-skill-consumer-matrix">The consumer matrix shows exactly which skill effects cross into production behavior</a></li>
+<li><a href="#mining-prediction-and-settlement">The browser estimates mining; Chunk weighs the accepted reward again</a></li>
+<li><a href="#smelting-and-forging-recompute">Smelting uses a different Progress PDA, and Forging ignores the browser's simple bonus</a></li>
+<li><a href="#swiftness-is-local-only">Swiftness really changes local walking speed, but no authority enforces a skill-limited race</a></li>
+<li><a href="#guardian-and-missing-loops">Guardian carries pose and presentation, not a hidden combat, weight, or fatigue system</a></li>
+<li><a href="#technical-details">Ten equations and twenty-two literal excerpts trace each number to—or away from—its consumer</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="number-needs-a-consumer"><p class="docs-eyebrow">STORAGE, DISPLAY, EXECUTION</p>
+<h2>A number becomes a rule only when an active consumer uses it</h2>
+<p class="docs-prose">Imagine a character sheet that says Strength 20. Three different things may be true. The number may be saved. The interface may print it. A lifting, tool, damage, or carrying system may read it. Only the third statement tells us that Strength changes gameplay. NiceChunk currently contains examples of all three stages, so the word active is too vague unless we name the consumer.</p>
+<p class="docs-prose">Use a four-question test. Where did the value come from? Which production function reads it? Does that function change a visible action, a submitted instruction, or a program result? Can another authority recalculate the result without trusting the browser? This test avoids two opposite mistakes: calling every card fake, and calling every displayed formula an enforced rule.</p>
+<p class="docs-prose">Swiftness demonstrates a real browser-local consumer: the production main module writes a multiplier into controls.speed and movement uses that speed. Precision demonstrates a preview plus an independent contract consumer: the browser estimates pending volume, does not submit that estimate, and Chunk recalculates volume from its own progress account. Burden demonstrates display without a consumer: its carry kilograms appear on the Profile screen, but no current inventory weight, overweight, or movement rule reads them.</p>
+<p class="docs-prose">The production boundary matters. /play/index.html loads /play/main.js, which imports the play/* modules reviewed here. The older /src/main.js contains related historical or alternate logic but is not imported by this /play/ entry, so it cannot be used to prove a current consumer.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Stored</span>
+<strong>The value exists in bytes</strong>
+<p>This proves persistence or initialization only.</p></article>
+<article class="docs-fact"><span>Displayed</span>
+<strong>The browser calculates or prints it</strong>
+<p>This proves an interface path, not an accepted gameplay effect.</p></article>
+<article class="docs-fact"><span>Consumed</span>
+<strong>A production outcome changes</strong>
+<p>Name the exact browser, Guardian, or program consumer.</p></article>
+<article class="docs-fact"><span>Recalculated</span>
+<strong>The accepting program derives its own result</strong>
+<p>A client preview cannot override that program calculation.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel training workshop where the canonical girl removes a colored block from a cabinet while the canonical boy turns a crank attached to a conveyor and press." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-number-needs-consumer-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The stored blocks and detached display pedestal represent values that can exist or be shown, while the hand-cranked conveyor and press represent a value reaching a real consumer. This generated single-scene metaphor uses canonical villagers and real Chunk.js scene and material references; it does not identify code paths, count fields, prove transactions, or mean that every stored block corresponds to an unimplemented skill.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Never stop at the card</strong>
+<p>When a guide says a stat works, it should be able to finish this sentence: production code reads this exact value here, and it changes this exact outcome.</p></aside></section>
+<section class="docs-content-section" id="six-defaults-not-survival"><p class="docs-eyebrow">SIX STORED DEFAULTS</p>
+<h2>health, energy, stamina, miningPower, buildPower, and defense are reserved state—not current gameplay loops</h2>
+<p class="docs-prose">PlayerProfile initialization writes six values in a fixed order: health 100, energy 100, stamina 100, miningPower 1, buildPower 1, and defense 0. They are real public account bytes. They are not the six cards shown in the current Profile overview, and the creation screen does not allocate different attributes to the boy and girl models.</p>
+<p class="docs-prose">The current Player instruction router can initialize a player, update position, select equipment, change Backpack style or pointer, manage a session, add forging XP, change name, write Appearance, close Appearance, and maintain invite pages. After initialization or migration, it has no updater for these six base attributes. A repository-wide review of the production /play/ path also finds no action that reads them to decide damage, fatigue, speed, mining yield, building strength, carrying, or defense.</p>
+<p class="docs-prose">The two Stamina names are especially easy to merge by accident. Profile.stamina is one chain field initialized to 100. Stamina Lv.0–10 is one browser skill whose effect object calculates a fatigue multiplier. The current code does not connect the field to the skill, and no fatigue consumer uses either value.</p>
+<p class="docs-prose">The retained Devnet snapshot queried all three relevant programs at confirmed context slot 477,044,477. Fifteen 773-byte Profile candidates were returned; eleven were canonical current version-7 Profile PDAs. All eleven stored exactly the six defaults, and zero canonical Profile had a nondefault base attribute. That is evidence about those accounts on 18 July 2026, not proof that every historical or future Profile must match.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>health</span>
+<strong>100 · stored default</strong>
+<p>No current damage, healing, defeat, or respawn consumer.</p></article>
+<article class="docs-fact"><span>energy</span>
+<strong>100 · stored default</strong>
+<p>No current sprint, flight, mining, or work-cost consumer.</p></article>
+<article class="docs-fact"><span>stamina</span>
+<strong>100 · stored default</strong>
+<p>Separate from the Stamina skill card; neither feeds a fatigue loop.</p></article>
+<article class="docs-fact"><span>miningPower</span>
+<strong>1 · stored default</strong>
+<p>Current mining resolves after three valid physical tool contacts instead.</p></article>
+<article class="docs-fact"><span>buildPower</span>
+<strong>1 · stored default</strong>
+<p>No current placement, support, or construction-power consumer.</p></article>
+<article class="docs-fact"><span>defense</span>
+<strong>0 · stored default</strong>
+<p>No current enemy, incoming-damage, armor, or combat consumer.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel archive workshop where the canonical villagers inspect open trays of sealed colored blocks beside a shield-like fixture and unused work tools." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-six-defaults-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">This chapter discusses exactly six current base Profile fields. The repeated sealed blocks and archive drawers represent initialized and retained state that is not connected to current survival, combat, mining-power, or building-power loops; prop count, size, and arrangement are illustrative only. This generated scene uses canonical villagers and real Chunk.js references and does not encode field offsets, values, account freshness, or a claim that future consumers cannot be added.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Reserved does not mean useless</strong>
+<p>Keeping stable account fields can support future systems. The safe present-tense statement is that the reviewed production path does not consume them today.</p></aside></section>
+<section class="docs-content-section" id="browser-derived-stats"><p class="docs-eyebrow">PROFILE SCREEN SOURCES</p>
+<h2>The six visible stat cards, two Level labels, and Reputation are browser-derived</h2>
+<p class="docs-prose">The Profile overview does not print the six base Profile attributes. It converts effective browser skill levels into Gathering, Carry, Smelting, Speed, Strength, and Crafting cards. A card can therefore change when browser XP changes even though health, energy, Profile stamina, miningPower, buildPower, and defense remain untouched on chain.</p>
+<p class="docs-prose">For each of the ten skills, buildProfileSkillState collects XP derived from local action counters, XP saved under nicechunk.playerSkillXp.&lt;wallet&gt;, and the chain XP object supplied to the screen. mergeSkillXp keeps the largest value for each skill. It does not add the sources together. The older nicechunk.playerSkills.&lt;wallet&gt; level object is still loaded, with an unscoped nicechunk.playerSkills fallback, but deriveProfileSkillXp supplies every skill key—even zero—so profileSkillEffectiveLevel normally uses the XP-derived branch instead of that legacy manual level.</p>
+<p class="docs-prose">The word Level also labels two independent calculations. The small top HUD uses one plus local confirmed mines divided by 25 and rounded down. The Profile overview uses one plus the sum of ten effective skill levels divided by ten and rounded down. They can disagree without either value being corrupt. Reputation is another local formula: confirmed mines times five, confirmed placements times three, plus materials smelted times four.</p>
+<p class="docs-prose">These values can still be useful progress summaries. The important wording is browser-derived, not PlayerProfile attributes and not automatically chain-enforced. If browser storage is cleared, changed, or restored on another device, locally derived portions can differ until authoritative reads and new actions rebuild them.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Profile cards</span>
+<strong>Six formulas from skill levels</strong>
+<p>Gathering, Carry, Smelting, Speed, Strength, and Crafting.</p></article>
+<article class="docs-fact"><span>XP merge</span>
+<strong>Per-skill maximum, never a sum</strong>
+<p>Behavior XP, stored browser XP, and supplied chain XP are compared independently.</p></article>
+<article class="docs-fact"><span>Top HUD Level</span>
+<strong>1 + floor(confirmedMines / 25)</strong>
+<p>Uses a local confirmed-mine counter.</p></article>
+<article class="docs-fact"><span>Profile Level</span>
+<strong>1 + floor(sum of ten levels / 10)</strong>
+<p>Uses effective browser skill levels.</p></article>
+<article class="docs-fact"><span>Reputation</span>
+<strong>5M + 3P + 4S</strong>
+<p>M is confirmed mines, P confirmed placements, and S materials smelted.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel record shed where the canonical girl holds a measuring rod beside three gold columns of different heights while the canonical boy stands among ordinary gears and balances." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-browser-derived-panel-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The three different column heights and one measuring rod illustrate comparing sources and selecting a per-skill maximum rather than adding them; nearby gears and balances represent further browser derivation. This generated scene uses canonical villagers and real Chunk.js references; the columns do not encode exact XP amounts, storage locations, chain confirmation, skill count, or a real Profile interface.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Same word, different source</strong>
+<p>Profile stamina and Stamina skill are separate. Top HUD Level and Profile Level are separate. A visible Strength kilogram value is derived from the Strength skill and does not prove a lifting consumer.</p></aside></section>
+<section class="docs-content-section" id="ten-skill-consumer-matrix"><p class="docs-eyebrow">TEN SKILLS, TEN QUESTIONS</p>
+<h2>The consumer matrix shows exactly which skill effects cross into production behavior</h2>
+<p class="docs-prose">createProfileSkillEffects returns ten convenient fields. Returning a field is not the same as consuming it. The review follows each field through production /play/, Guardian, and the relevant programs, then labels the strongest claim supported by that path.</p>
+<p class="docs-prose">Four skills have program-side consumers: Chunk executes Precision Gathering and Exploration; Smelting executes Smelting; Backpack executes Forging. One skill has a direct ordinary browser-control consumer: Swiftness. Five fields—Burden, Craftsmanship, Stamina, Strength, and Appraisal—currently stop at calculation or display.</p>
+<p class="docs-prose">The four contract-backed skills are not all correctly represented by the current Profile screen. Precision is a local preview followed by contract recomputation. The reviewed Smelting source path derives its separate progress account, while the current Profile fetch reads the Chunk progress account instead. Forging's browser threshold and simple +5% description disagree with the Backpack contract. Exploration's browser effect field is unused even though Chunk reads Exploration XP directly.</p>
+<p class="docs-prose">This matrix is deliberately conservative. A code comment, tooltip, planned stat, or similarly named field does not count as a consumer. The result must reach movement, accepted inventory output, accepted drop probability, accepted forged outcome, or another concrete production behavior.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Precision Gathering</span>
+<strong>Chunk contract recalculates</strong>
+<p>Browser predicts pending yield; submitted block data omits that prediction; Chunk reads its own XP and decides final recovered volume.</p></article>
+<article class="docs-fact"><span>Burden</span>
+<strong>Displayed only</strong>
+<p>safeCarryKg has no current weight total, overweight gate, speed penalty, or inventory consumer.</p></article>
+<article class="docs-fact"><span>Smelting</span>
+<strong>Smelting contract recalculates</strong>
+<p>The program reads its progress PDA and applies skill output; the current Profile fetch can show Chunk-side smeltingXp instead.</p></article>
+<article class="docs-fact"><span>Forging</span>
+<strong>Backpack contract recalculates</strong>
+<p>The real formula uses materials, grade caps, skill level, item level, quality, and durability caps; the browser's fixed +5% field has no production consumer.</p></article>
+<article class="docs-fact"><span>Craftsmanship</span>
+<strong>Displayed only</strong>
+<p>craftsmanshipTier has no current recipe, placement, blueprint, quality, or production consumer.</p></article>
+<article class="docs-fact"><span>Swiftness</span>
+<strong>Browser movement consumer</strong>
+<p>movementSpeedMultiplier changes local controls.speed; neither Guardian nor Player enforces the skill level.</p></article>
+<article class="docs-fact"><span>Exploration</span>
+<strong>Chunk contract recalculates</strong>
+<p>Chunk uses chain Exploration XP to raise ordered extra-drop chance; browser rareRollWeightBps is currently unused and has no production consumer.</p></article>
+<article class="docs-fact"><span>Stamina</span>
+<strong>Calculated only</strong>
+<p>fatigueCostMultiplier has no fatigue meter or action-cost consumer and is separate from Profile.stamina.</p></article>
+<article class="docs-fact"><span>Strength</span>
+<strong>Displayed only</strong>
+<p>oneHandLiftKg does not alter carrying, mining contacts, tool permission, placement, or movement.</p></article>
+<article class="docs-fact"><span>Appraisal</span>
+<strong>Calculated only</strong>
+<p>visibleMaterialTraits has no current information gate; material display is not unlocked by this value.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel training hall where the canonical villagers stand among a few working craft stations and several neatly arranged but idle training instruments." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-ten-skill-consumers-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Working stations and idle instruments represent the mixed consumer status of the ten skill effects without assigning one prop to one exact skill. This generated scene uses canonical villagers and real Chunk.js material references; prop count, activity, distance, and lighting do not encode the matrix, guarantee an effect, or replace the source-backed rows above.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Contract-backed does not mean the screen is authoritative</strong>
+<p>Precision, Smelting, Forging, and Exploration all have real program consumers, but each result must be read from the correct program calculation and progress domain.</p></aside></section>
+<section class="docs-content-section" id="mining-prediction-and-settlement"><p class="docs-eyebrow">PRECISION AND EXPLORATION</p>
+<h2>The browser estimates mining; Chunk weighs the accepted reward again</h2>
+<p class="docs-prose">After the third valid physical tool contact, the mining controller calculates a pending yield from precisionGatheringBps. That estimate helps build local reward groups and an immediate presentation. The chain adapter's intermediate blockFromPending object keeps integer coordinates, blockId, resourceId, and a local key but omits gatheringYieldBps and resourceVolumeMilliLiters. The later ordinary Chunk instruction encodes only x, y, z, and expectedBlockId from that path.</p>
+<p class="docs-prose">Chunk validates or creates its own player-progress PDA, reads precision_gathering_xp, converts it through the contract threshold table, and calculates recovered volume from the canonical 1,000,000 mm³ resource block. The program then writes that calculated volume into Backpack output. Editing a browser preview therefore cannot directly instruct Chunk to credit a larger volume.</p>
+<p class="docs-prose">Exploration follows the same authority principle but changes a different result. Chunk reads exploration_xp from the same Chunk progress account, converts it to a level, and multiplies an eligible extra-drop rule's chance by 100% plus 10% per level, capped at 10,000 bps. The browser's rareRollWeightBps field is not what the instruction submits.</p>
+<p class="docs-prose">Precision and Exploration are real contract effects, but they do not make every mining input authoritative. The browser still controls the local swing presentation, pending state, and tool collision sampling; Guardian supplies realtime hints; the Chunk instruction and program checks decide accepted block and reward changes. Strength, miningPower, Profile stamina, and the Stamina skill do not change the current three-contact rule.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Local contact rule</span>
+<strong>Three valid physical tool contacts</strong>
+<p>Hardness decides whether a target is mineable, not a Strength or miningPower hit count.</p></article>
+<article class="docs-fact"><span>Pending estimate</span>
+<strong>Uses browser Precision effect</strong>
+<p>Useful for immediate local reward presentation.</p></article>
+<article class="docs-fact"><span>Chunk instruction payload</span>
+<strong>x, y, z, expectedBlockId</strong>
+<p>The intermediate resourceId and key, preview bps, and preview volume are not encoded into the ordinary Chunk payload.</p></article>
+<article class="docs-fact"><span>Accepted volume</span>
+<strong>Chunk progress XP → contract level → mm³</strong>
+<p>Chunk recalculates before Backpack credit.</p></article>
+<article class="docs-fact"><span>Extra-drop chance</span>
+<strong>Chunk Exploration XP</strong>
+<p>The program applies the level multiplier to an eligible ordered rule.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel coastal quarry where the canonical boy holds a mineral container beside a side table while the canonical girl stands near a separate press, barrel, and output bins." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-mining-recomputed-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The boy's container and side table represent a local pending estimate, while the separate press and output bins represent an independently calculated accepted result. The flower and purple crystal are illustrative possibilities, not guaranteed extra drops. This generated scene uses canonical villagers and real Chunk.js coast and baked-material references; it is not a split timeline, does not encode volume or XP, and does not prove a particular transaction or Backpack credit.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Preview is not a transaction argument</strong>
+<p>The browser can estimate recovered volume, but the ordinary Chunk instruction payload contains no preview yield. Chunk reads Chunk-owned progress and recalculates the accepted reward.</p></aside></section>
+<section class="docs-content-section" id="smelting-and-forging-recompute"><p class="docs-eyebrow">TWO PROGRESS DOMAINS, TWO FORMULAS</p>
+<h2>Smelting uses a different Progress PDA, and Forging ignores the browser's simple bonus</h2>
+<p class="docs-prose">Chunk and Game/Smelting both use the seed tuple ["player-progress", GlobalConfig, owner]. A PDA also includes the deriving program ID. Chunk's address under GnVKn…13wbj and Smelting's address under 6Curn…2UP7 are therefore different accounts even for the same wallet and GlobalConfig.</p>
+<p class="docs-prose">Current fetchPlayerProgress derives through context.chunkProgramId and accepts only an account owned by that Chunk program. It exposes the smeltingXp bytes found in that Chunk-format account. The reviewed createExecuteSmeltingInstruction source instead calls deriveSmeltingPlayerProgressPdaForContext, derives under context.smeltingProgramId, and supplies that separate account to Smelting. The Profile screen can therefore feed the wrong Smelting XP into its effective-XP calculation without changing which progress PDA this instruction builder supplies.</p>
+<p class="docs-prose">Smelting reads its own progress.smelting_xp, converts it to skill_output_bps, checks recipe inputs, removes resources, and calculates output from declared recipe volume, actual input volume, batch size, recipe yield, and skill output. The browser also calculates skillOutputBps inside selectedRecipeView, but that value is only returned in the local view: it is neither displayed in the current progress status nor included in the Smelting instruction.</p>
+<p class="docs-prose">Forging has a second, larger mismatch. The browser skill definition uses xpBase 140 with a global multiplier of 10, so browser Forging Lv.1 starts at 1,400 XP, and the card describes +5% durability per level. Backpack's contract table starts Lv.1 at 250 XP. Its outcome combines material volume, effective durability accumulated from current durability times quality, maximum durability, weighted grade, a weak-material cap, item level, skill grade and cap, a candidate factor, and a material durability cap. The simple browser bonus field is not a contract input.</p>
+<p class="docs-prose">The confirmed Devnet snapshot found four canonical Chunk progress accounts and nine canonical Game/Smelting progress accounts. Four owners had both. For each of those owners the seed text and GlobalConfig relationship matched, but the two program IDs produced different addresses and independent XP histories.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Chunk Program</span>
+<strong>GnVKn442…13wbj</strong>
+<p>Owns the Precision and Exploration progress used by mining.</p></article>
+<article class="docs-fact"><span>Game / Smelting Program</span>
+<strong>6Curnvne…2UP7</strong>
+<p>Owns the progress account used by current Smelting execution.</p></article>
+<article class="docs-fact"><span>Current Profile fetch</span>
+<strong>Reads Chunk progress</strong>
+<p>Its smeltingXp field is not the Game/Smelting account's value.</p></article>
+<article class="docs-fact"><span>Smelting execution</span>
+<strong>Reads Game/Smelting progress</strong>
+<p>The reviewed instruction and program source use this account even when the Profile screen reads the other account.</p></article>
+<article class="docs-fact"><span>Forging Lv.1</span>
+<strong>Browser 1,400 XP · contract 250 XP</strong>
+<p>The two threshold systems must not be presented as one level.</p></article>
+<article class="docs-fact"><span>Forged durability</span>
+<strong>Multi-input bounded calculation</strong>
+<p>Not browser forgingDurabilityBonusBps and not a guaranteed +5% per level.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel hillside craft yard where the canonical girl carries material beside a furnace and the canonical boy works at a physically separate forge press among material bins and measuring fixtures." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-smelting-forging-recomputed-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The separated furnace and forge stations represent program-scoped calculation, while the material bins, press, and measuring fixtures represent recomputation with several inputs. This generated scene uses canonical villagers and real Chunk.js references; the props are not PDA addresses, XP values, formula terms, proof of account ownership, or evidence that the Smelting function itself has failed.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Fix the screen source before judging execution</strong>
+<p>The reviewed Smelting builder and program source use the Smelting-scoped account, while Backpack reads PlayerProfile Forging XP and applies its own rules. The Profile-side Smelting source and browser Forging description can be wrong without becoming inputs to those calculations.</p></aside></section>
+<section class="docs-content-section" id="swiftness-is-local-only"><p class="docs-eyebrow">REAL LOCAL MOVEMENT</p>
+<h2>Swiftness really changes local walking speed, but no authority enforces a skill-limited race</h2>
+<p class="docs-prose">Production /play/ defines a base speed of 14.8. When Profile skill effects refresh, movementSpeedMultiplier becomes (100 + 3 × Swiftness level) / 100 and the main module writes base speed times that multiplier into controls.speed. The Chunk.js control update then uses controls.speed to calculate this frame's horizontal movement. This is a concrete production consumer, not merely a card.</p>
+<p class="docs-prose">The boundary is equally important. Holding Shift multiplies the current control speed by sprintMultiplier, which is configured as five. Flight uses the same current speed for horizontal and vertical motion. None of these paths subtract health, energy, Profile stamina, or the Stamina skill's fatigue multiplier.</p>
+<p class="docs-prose">The Player position instruction checks signature, Profile relationships, and the world's Y bounds before saving a position; it does not receive Swiftness XP or verify distance divided by time. Guardian's MOVE handler decodes a pose, applies a message-rate limit, maps local to global chunks, enforces Guardian service range, and updates the pose. It likewise receives no skill level and performs no skill-speed check.</p>
+<p class="docs-prose">So Swiftness works for ordinary local control, but it is not an anti-cheat certificate, competitive racing attribute, or proof that a remote observer moved legally. A future race or authoritative locomotion system would need its own timing, path, collision, session, and skill checks.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Base local speed</span>
+<strong>14.8</strong>
+<p>The production main module's current control baseline.</p></article>
+<article class="docs-fact"><span>Swiftness</span>
+<strong>+3% per browser level</strong>
+<p>Applied directly to controls.speed.</p></article>
+<article class="docs-fact"><span>Shift sprint</span>
+<strong>Current speed × 5</strong>
+<p>A separate fixed input multiplier, not a Stamina cost.</p></article>
+<article class="docs-fact"><span>Flight</span>
+<strong>Uses current controls.speed</strong>
+<p>No health, energy, or either stamina value is consumed.</p></article>
+<article class="docs-fact"><span>Player and Guardian</span>
+<strong>No Swiftness or speed-limit input</strong>
+<p>They do not turn the browser multiplier into chain-enforced locomotion.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel hillside training yard where the canonical boy walks on a mechanical treadmill while the canonical girl observes beside ordinary counterweight fixtures and an open path." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-swiftness-local-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The walking treadmill represents a genuine local control consumer, while the observer, detached fixtures, and distant path avoid implying race settlement or authority approval. This generated scene uses canonical villagers and a real Chunk.js hillside reference; it does not encode speed, level, sprint, energy cost, Guardian validation, or a chain position proof.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Real in one layer is not enforced in every layer</strong>
+<p>Swiftness is a real production browser effect. Guardian relay and Player position storage still do not verify that the movement matched the skill.</p></aside></section>
+<section class="docs-content-section" id="guardian-and-missing-loops"><p class="docs-eyebrow">WHAT IS NOT IN THE LOOP</p>
+<h2>Guardian carries pose and presentation, not a hidden combat, weight, or fatigue system</h2>
+<p class="docs-prose">The browser's MOVE packet contains local chunk coordinates, compact offsets, Y, yaw, pitch, and a client tick. The equipment packet contains a sequence, right-hand kind and variant, flags, a design hash, and optional payload bytes. Player identity carries a name. None of these packets carries health, energy, Profile stamina, miningPower, buildPower, defense, ten skill levels, or skill XP.</p>
+<p class="docs-prose">Guardian checks packet shape, connection state, rate limits, sequence behavior, service range, and the fields needed for realtime pose or presentation. Its equipment message helps remote clients reconstruct a right-hand item; it is not a wallet signature or proof of Profile attributes. Its dig path validates regional protocol rules and publishes hints; accepted resource settlement still belongs to the relevant Solana program.</p>
+<p class="docs-prose">Current production /play/ has no enemy, attack, incoming damage, healing, death, armor, or defense loop. Combat appears as an inventory category, not a functioning stat consumer. It also has no aggregate inventory mass, overweight state, fatigue meter, action-energy cost, Strength gate, Appraisal information gate, or Craftsmanship recipe tier. Mining's ordinary target still resolves after three valid physical tool contacts.</p>
+<p class="docs-prose">This absence should be documented without pretending the fields are permanently meaningless. A future feature can connect a stored field by adding a consumer and defining who owns the result. Until then, player-facing copy should label the five unconsumed skill effects as preview, planned, or informational and should not promise survival, carrying, crafting, or combat benefits.</p>
+<p class="docs-prose">The dated snapshot strengthens only the stored-state claim: all eleven canonical version-7 Profiles at confirmed slot 477,044,477 retained the six defaults, and the two progress families were observably separate. It does not prove that the deployed program binaries match this dirty working tree byte for byte, so live account evidence and source-consumer evidence remain two distinct truth layers.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>MOVE carries</span>
+<strong>Pose and client tick</strong>
+<p>No Profile attributes, skill level, XP, or allowed-speed field.</p></article>
+<article class="docs-fact"><span>Equipment carries</span>
+<strong>Right-hand presentation</strong>
+<p>Kind, variant, flags, design hash, and optional payload—not stat authority.</p></article>
+<article class="docs-fact"><span>Current combat</span>
+<strong>No gameplay loop</strong>
+<p>No enemy damage, HP reduction, healing, death, armor, or defense settlement.</p></article>
+<article class="docs-fact"><span>Current carrying</span>
+<strong>No mass loop</strong>
+<p>No total kg, safe-capacity gate, overweight state, or Burden slowdown.</p></article>
+<article class="docs-fact"><span>Current fatigue</span>
+<strong>No cost loop</strong>
+<p>Sprint, flight, mining, and building do not spend health, energy, or either stamina value.</p></article>
+<article class="docs-fact"><span>Current strength and craft gates</span>
+<strong>No consumers</strong>
+<p>Strength, Craftsmanship, and Appraisal do not unlock actions or information.</p></article></div>
+<figure class="docs-section-visual"><img alt="voxel outdoor training shed where the canonical villagers stand among an unused mannequin, balance scales, wooden wheel, storage shelf, and quiet workbench fixtures." decoding="async" height="887" loading="lazy" src="/docs/media/displayed-stats-vs-enforced-effects-guardian-no-stats-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The orderly idle training and work fixtures represent effect fields that are not connected to current production loops. This generated scene uses canonical villagers and real Chunk.js material references; the props do not prove packet contents, field absence, exact mining contacts, future plans, or a live Guardian session.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>A clean future contract starts with an explicit consumer</strong>
+<p>To activate one of these fields safely, define the authoritative source, the action that reads it, the exact formula, the signer or session rules, the accepted result, and how the interface distinguishes preview from settlement.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">READ THE IMPLEMENTATION</p>
+<h2>Ten equations and twenty-two literal excerpts trace each number to—or away from—its consumer</h2>
+<p>The equations separate stored defaults, browser derivation, local motion, and program-owned settlement. Every source excerpt is a continuous substring of the reviewed repository. The live observation retains raw account bytes from one shared confirmed Devnet context, while source behavior and deployed program evidence remain separately scoped.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>The consumer test</h3>
+<div aria-label="A value affects an action only when production code reads it and changes an outcome; storage or display alone is not an effect." class="docs-formula-expression" role="math"><code>Effect(v, a) = changed outcome only if a production consumer for action a reads value v; storage(v) or display(v) alone does not imply Effect</code></div>
+<p class="docs-technical-explanation">This is a reasoning rule, not executable syntax. It asks us to name the browser, Guardian, or contract function and the concrete outcome before calling a stat active.</p>
+<dl class="docs-formula-terms"><dt>v</dt>
+<dd>The stored or derived value being investigated.</dd>
+<dt>a</dt>
+<dd>The action whose movement, output, permission, or settlement may change.</dd>
+<dt>consumer</dt>
+<dd>Reachable production code that uses v in the outcome for a.</dd></dl></article>
+<article class="docs-formula"><h3>The six initialized Profile attributes</h3>
+<div aria-label="PlayerProfile initializes health, energy, and stamina to one hundred; mining power and build power to one; and defense to zero." class="docs-formula-expression" role="math"><code>(health, energy, stamina, miningPower, buildPower, defense) = (100, 100, 100, 1, 1, 0)</code></div>
+<p class="docs-technical-explanation">These are exact u16 values written during Profile initialization. The reviewed instruction set contains no updater for them, and current production Play contains no gameplay consumer for them.</p>
+<dl class="docs-formula-terms"><dt>stamina</dt>
+<dd>The Profile field, not the separate browser Stamina skill.</dd>
+<dt>u16</dt>
+<dd>An unsigned 16-bit integer stored in the public account bytes.</dd></dl></article>
+<article class="docs-formula"><h3>Effective browser XP is a per-skill maximum</h3>
+<div aria-label="For each skill, effective XP is the largest of behavior-derived, browser-stored, and supplied chain XP, then browser thresholds convert it to a level." class="docs-formula-expression" role="math"><code>EffectiveXP_s = max(BehaviorXP_s, StoredBrowserXP_s, ChainXP_s); EffectiveLevel_s = BrowserThreshold_s(EffectiveXP_s)</code></div>
+<p class="docs-technical-explanation">The three sources are not added. The legacy manual level object is a fallback rather than a fourth value in this maximum under the normal all-skill XP path.</p>
+<dl class="docs-formula-terms"><dt>s</dt>
+<dd>One of the ten skill IDs.</dd>
+<dt>BehaviorXP</dt>
+<dd>XP derived from local mining, placement, resource, Smelting, and material counters.</dd>
+<dt>ChainXP</dt>
+<dd>The chain XP object supplied to the browser state; its program domain must still be identified.</dd></dl></article>
+<article class="docs-formula"><h3>The six visible Profile cards</h3>
+<div aria-label="The six Profile cards derive Gathering, Carry, Smelting, Speed, Strength, and Crafting from six browser skill levels." class="docs-formula-expression" role="math"><code>Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(100,70+3M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)</code></div>
+<p class="docs-technical-explanation">P, B, M, W, S, and C are effective browser levels for Precision Gathering, Burden, Smelting, Swiftness, Strength, and Craftsmanship. These formulas do not decode the six base Profile attributes.</p>
+<dl class="docs-formula-terms"><dt>P, B, M</dt>
+<dd>Precision Gathering, Burden, and Smelting levels.</dd>
+<dt>W, S, C</dt>
+<dd>Swiftness, Strength, and Craftsmanship levels.</dd></dl></article>
+<article class="docs-formula"><h3>Two Levels and one Reputation</h3>
+<div aria-label="The HUD Level uses confirmed mines, the Profile Level averages ten effective skill levels, and Reputation weights three local counters." class="docs-formula-expression" role="math"><code>HUDLevel=1+floor(confirmedMines/25); ProfileLevel=1+floor(sum(ten effective skill levels)/10); Reputation=5M+3P+4S</code></div>
+<p class="docs-technical-explanation">M is confirmed mines, P is confirmed placements, and S is materials smelted. None of these three labels is one of the six base Profile attributes.</p>
+<dl class="docs-formula-terms"><dt>HUDLevel</dt>
+<dd>The small level near the account name.</dd>
+<dt>ProfileLevel</dt>
+<dd>The value in the Profile overview.</dd>
+<dt>Reputation</dt>
+<dd>A local weighted activity summary.</dd></dl></article>
+<article class="docs-formula"><h3>Precision preview versus Chunk settlement</h3>
+<div aria-label="The browser previews volume from its Precision basis points, while Chunk independently calculates volume from the Chunk progress level." class="docs-formula-expression" role="math"><code>PreviewVolume=1,000,000×precisionGatheringBps/10,000 mm³; ChunkVolume=1,000,000×(10+10×ChunkPrecisionLevel)/100 mm³</code></div>
+<p class="docs-technical-explanation">The two formulas currently share the same 10%-per-level shape, but authority still differs. blockFromPending omits preview basis points and volume, so Chunk's own XP conversion controls accepted Backpack output.</p>
+<dl class="docs-formula-terms"><dt>1,000,000 mm³</dt>
+<dd>The canonical one-liter resource block volume.</dd>
+<dt>ChunkPrecisionLevel</dt>
+<dd>The level derived by the Chunk Program from Chunk-owned progress XP.</dd></dl></article>
+<article class="docs-formula"><h3>Exploration changes the program's extra-drop chance</h3>
+<div aria-label="Chunk raises an eligible base extra-drop chance by ten percent of that chance per Exploration level, capped at one hundred percent." class="docs-formula-expression" role="math"><code>WeightedChanceBps = min(10,000, floor(BaseChanceBps × (100 + 10 × ChunkExplorationLevel) / 100))</code></div>
+<p class="docs-technical-explanation">Rust integer division floors the weighted value. This multiplies the configured chance; it does not add 1,000 absolute bps per level. Rule order, eligibility, reward priority, and available Backpack capacity still mean a higher chance is not a guaranteed stored reward.</p>
+<dl class="docs-formula-terms"><dt>BaseChanceBps</dt>
+<dd>The chance stored in the eligible ResourceDrop rule.</dd>
+<dt>ChunkExplorationLevel</dt>
+<dd>The contract level derived from Chunk progress exploration_xp.</dd></dl></article>
+<article class="docs-formula"><h3>Same progress seeds, different program domains</h3>
+<div aria-label="The same player progress seed tuple produces different addresses under the Chunk Program and the Game Program." class="docs-formula-expression" role="math"><code>ChunkProgress(o)=PDA_Chunk(["player-progress",GlobalConfig,o]) ≠ SmeltingProgress(o)=PDA_Game(["player-progress",GlobalConfig,o])</code></div>
+<p class="docs-technical-explanation">PDA derivation includes the program ID. Sharing seed text, owner, and GlobalConfig does not merge XP across programs.</p>
+<dl class="docs-formula-terms"><dt>o</dt>
+<dd>The player wallet public key.</dd>
+<dt>PDA_Chunk, PDA_Game</dt>
+<dd>Program-derived addresses in two different program domains.</dd></dl></article>
+<article class="docs-formula"><h3>Smelting and Forging are program calculations</h3>
+<div aria-label="Smelting expands expected input and recipe output by the batch, then scales by actual input, recipe yield, and Smelting skill, while Forging bounds a multi-input candidate by a material durability cap." class="docs-formula-expression" role="math"><code>B=max(1,batchMultiplier); E=RecipeInputPerBatch×B; R=RecipeOutputPerBatch×B; SmeltOut=max(1,floor(floor(floor(R×ActualInput/E)×RecipeYieldBps/10,000)×SmeltingSkillBps/10,000)); ForgeDurability=min(Candidate(materials,grade,itemLevel,forgingLevel),MaterialCap(materials,forgingLevel))</code></div>
+<p class="docs-technical-explanation">B expands both expected batch input and recipe output before the actual-input ratio is applied. The nested floors reflect integer division; the compact expression still omits validation, saturation, and the u32 ceiling. Neither accepted result trusts the browser's view-only Smelting bps or simple Forging bonus field.</p>
+<dl class="docs-formula-terms"><dt>B, E, R</dt>
+<dd>The normalized batch multiplier, expected batch input volume, and batch recipe output volume.</dd>
+<dt>SmeltingSkillBps</dt>
+<dd>Derived by the Smelting Program from its own progress account.</dd>
+<dt>Candidate</dt>
+<dd>Effective material durability multiplied by grade, skill, and item-level factors.</dd>
+<dt>MaterialCap</dt>
+<dd>The contract ceiling derived from raw material durability and Forging level.</dd></dl></article>
+<article class="docs-formula"><h3>Swiftness changes local control speed</h3>
+<div aria-label="Local walking speed starts at fourteen point eight, gains three percent per Swiftness level, and Shift applies a separate five-times multiplier." class="docs-formula-expression" role="math"><code>LocalSpeed = 14.8 × (100 + 3 × SwiftnessLevel) / 100; ShiftSpeed = LocalSpeed × 5</code></div>
+<p class="docs-technical-explanation">This is a real production browser effect. No current health, energy, or stamina cost is subtracted, and neither Player nor Guardian verifies the skill-derived speed.</p>
+<dl class="docs-formula-terms"><dt>14.8</dt>
+<dd>The current BASE_PLAYER_SPEED in production Play.</dd>
+<dt>ShiftSpeed</dt>
+<dd>The separate sprint input multiplier applied after Swiftness.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production Play loads play/main.js</h3>
+<span class="docs-code-language">HTML</span>
+<code class="docs-code-source">play/index.html</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="HTML">    &lt;script type="module" src="./main.js"&gt;&lt;/script&gt;</code></pre>
+<p class="docs-technical-explanation">This is the current /play/ entry. Claims about production consumers begin in play/main.js and its play/* imports; the older src/main.js is not loaded here.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Load the production module relative to /play/index.html.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>PlayerProfile declares six fixed defaults</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub const DEFAULT_HEALTH: u16 = 100;
+pub const DEFAULT_ENERGY: u16 = 100;
+pub const DEFAULT_STAMINA: u16 = 100;
+pub const DEFAULT_MINING_POWER: u16 = 1;
+pub const DEFAULT_BUILD_POWER: u16 = 1;
+pub const DEFAULT_DEFENSE: u16 = 0;</code></pre>
+<p class="docs-technical-explanation">These constants define the exact initialized values. A constant defines what is written; it does not create a health, fatigue, mining-power, construction, or defense consumer.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Set health, energy, and Profile stamina to 100.</p></li>
+<li><strong>Lines 4–6</strong>
+<p>Set mining and building power to 1 and defense to 0.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Profile initialization writes those defaults in order</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        writer.u16(DEFAULT_HEALTH)?;
+        writer.u16(DEFAULT_ENERGY)?;
+        writer.u16(DEFAULT_STAMINA)?;
+        writer.u16(DEFAULT_MINING_POWER)?;
+        writer.u16(DEFAULT_BUILD_POWER)?;
+        writer.u16(DEFAULT_DEFENSE)?;</code></pre>
+<p class="docs-technical-explanation">The six u16 values occupy real public Profile bytes. The complete current Player instruction router contains no corresponding attribute update instruction.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Serialize all six defaults into the new Profile account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Profile Level and Reputation come from browser state</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-ui.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const levels = effectiveSkillLevels(skillState);
+    const totalSkillLevels = Object.values(levels).reduce((sum, value) =&gt; sum + value, 0);
+    const level = Math.max(1, 1 + Math.floor(totalSkillLevels / Math.max(1, PLAYER_SKILL_DEFINITIONS.length)));
+    const reputation = Math.max(0,
+      Number(profile.confirmedMines || 0) * 5
+      + Number(profile.confirmedPlacements || 0) * 3
+      + Number(profile.materialsSmelted || 0) * 4,
+    );</code></pre>
+<p class="docs-technical-explanation">Profile Level averages ten effective browser skill levels. Reputation weights three local activity counters. Neither expression reads health, energy, Profile stamina, miningPower, buildPower, or defense.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Sum ten effective levels, divide by the skill count, round down, and add one.</p></li>
+<li><strong>Lines 4–8</strong>
+<p>Weight confirmed mining, confirmed placement, and smelted-material counters.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The six Profile cards are skill formulas</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-ui.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const levels = effectiveSkillLevels(skillState);
+    const stats = [
+      { id: "gathering", label: ui("main.profile.statGathering", "Gathering"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },
+      { id: "carry", label: ui("main.profile.statCarry", "Carry"), value: `${30 + levels.burden * 10} kg` },
+      { id: "smelting", label: ui("main.profile.statSmelting", "Smelting"), value: `${Math.min(100, 70 + levels.smelting * 3)}%` },
+      { id: "speed", label: ui("main.profile.statSpeed", "Speed"), value: `${100 + levels.swiftness * 3}%` },
+      { id: "strength", label: ui("main.profile.statStrength", "Strength"), value: `${8 + levels.strength * 4} kg` },
+      { id: "crafting", label: ui("main.profile.statCrafting", "Crafting"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },
+    ];</code></pre>
+<p class="docs-technical-explanation">Every visible card is derived from a browser skill level. The similarly named Strength and Smelting cards are not direct decodes of PlayerProfile base attributes.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Resolve effective browser skill levels first.</p></li>
+<li><strong>Lines 2–9</strong>
+<p>Calculate six display cards from six of those levels.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>XP sources are merged by per-skill maximum</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-skills.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function mergeSkillXp(...sources) {
+  const result = {};
+  for (const source of sources) {
+    if (!source || typeof source !== "object") continue;
+    for (const [key, value] of Object.entries(source)) {
+      const numeric = Math.max(0, Math.round(Number(value) || 0));
+      result[key] = Math.max(result[key] || 0, numeric);
+    }
+  }
+  return result;
+}</code></pre>
+<p class="docs-technical-explanation">buildProfileSkillState passes behavior-derived XP, browser-stored XP, and supplied chain XP into this helper. Each skill keeps only the largest normalized number; values are never added.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Visit every available XP source object.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Normalize each skill value and retain the greater value already seen.</p></li>
+<li><strong>Lines 9–11</strong>
+<p>Return one merged per-skill XP object.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser creates ten effect fields</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-skill-effects.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const levels = Object.fromEntries(PLAYER_SKILL_DEFINITIONS.map((skill) =&gt; [skill.id, level(skill.id)]));
+  return {
+    levels,
+    precisionGatheringBps: Math.min(10000, 1000 + levels.precisionGathering * 1000),
+    safeCarryKg: 30 + levels.burden * 10,
+    smeltingOutputBps: smeltingSkillOutputBpsForLevel(levels.smelting),
+    forgingDurabilityBonusBps: levels.forging * 500,
+    craftsmanshipTier: 1 + Math.floor(levels.craftsmanship / 2),
+    movementSpeedMultiplier: (100 + levels.swiftness * 3) / 100,
+    rareRollWeightBps: levels.exploration * 1000,
+    fatigueCostMultiplier: Math.max(0.6, (100 - levels.stamina * 4) / 100),
+    oneHandLiftKg: 8 + levels.strength * 4,
+    visibleMaterialTraits: 2 + levels.appraisal,
+  };</code></pre>
+<p class="docs-technical-explanation">This object is a convenient catalog of intended effects. Later consumer searches determine that Swiftness reaches ordinary local movement, four skills have independent contract consumers, and five fields stop at calculation or display.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Resolve all ten effective browser levels.</p></li>
+<li><strong>Lines 2–14</strong>
+<p>Return ten named effect values; returning a field alone does not execute it.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Mining builds a local Precision prediction</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const resourceId = Number.isFinite(hit.resourceId) ? hit.resourceId : def.resourceId;
+    const txId = `local-pending-${txSerial++}`;
+    const skillEffects = getSkillEffects?.() ?? {};
+    const yieldBps = Math.max(1, Math.min(10000, Math.trunc(skillEffects.precisionGatheringBps || 1000)));
+    const volumeMilliLiters = Math.max(1, Math.floor(1000 * yieldBps / 10000));
+    const planBlocks = currentPlanBlocks(swing, hit);
+    const plannedRewardBlocks = swing.miningPlan?.rewardBlocks?.length ? swing.miningPlan.rewardBlocks : planBlocks;
+    const rewardGroups = rewardGroupsForBlocks(uniqueMiningBlocks([hit, ...plannedRewardBlocks]), {
+      yieldBps,
+      volumeMilliLiters,
+    });</code></pre>
+<p class="docs-technical-explanation">After valid contacts, the browser estimates a pending yield and builds local reward groups. This is responsive presentation data, not yet an accepted Backpack amount.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Read the local Precision effect and turn its bps into a predicted volume.</p></li>
+<li><strong>Lines 6–11</strong>
+<p>Attach the estimate to local reward planning.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The chain adapter omits preview yield and volume</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-adapter.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function blockFromPending(pending) {
+  return {
+    x: Math.trunc(pending.worldX),
+    y: Math.trunc(pending.worldY),
+    z: Math.trunc(pending.worldZ),
+    blockId: Math.trunc(pending.blockId),
+    resourceId: Math.trunc(pending.resourceId ?? 0),
+    key: `${Math.trunc(pending.worldX)},${Math.trunc(pending.worldY)},${Math.trunc(pending.worldZ)}`,
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The object sent toward ordinary chain mining contains coordinates and expected block identifiers. gatheringYieldBps and resourceVolumeMilliLiters are absent, so the client prediction cannot directly select contract credit.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–10</strong>
+<p>Build and return the intermediate position, block, resource, and local-key object without any predicted yield or volume field.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk loads its own progress and recalculates mining values</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let data = player_progress.try_borrow_data()?;
+    let progress = PlayerProgressState::validate(&amp;data, &amp;context.owner, global_config.key)?;
+    Ok((
+        PlayerProgressState::precision_gathering_volume_mm3_from_xp(
+            progress.precision_gathering_xp,
+        ),
+        progress.exploration_xp,
+    ))</code></pre>
+<p class="docs-technical-explanation">After validating the Chunk-owned progress PDA, the program derives accepted recovered volume from precision_gathering_xp and separately returns exploration_xp for extra-drop logic.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Borrow and validate the program-owned progress account.</p></li>
+<li><strong>Lines 3–8</strong>
+<p>Return contract-calculated volume and authoritative Exploration XP.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk defines Precision volume and Exploration weighting</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn precision_gathering_volume_mm3_from_xp(xp: u64) -&gt; u32 {
+        let level = Self::precision_gathering_level_from_xp(xp) as u32;
+        RESOURCE_BLOCK_VOLUME_MM3.saturating_mul(10 + level.saturating_mul(10)) / 100
+    }
+
+    pub fn exploration_level_from_xp(xp: u64) -&gt; u8 {
+        let mut level = 0_u8;
+        for (index, required_total) in EXPLORATION_TOTAL_XP_BY_LEVEL.iter().enumerate() {
+            if xp &gt;= *required_total {
+                level = index as u8;
+            }
+        }
+        level.min(10)
+    }
+
+    pub fn exploration_chance_bps(chance_bps: u16, exploration_xp: u64) -&gt; u16 {
+        let level = Self::exploration_level_from_xp(exploration_xp) as u32;
+        let weighted = (chance_bps as u32)
+            .saturating_mul(100_u32.saturating_add(level.saturating_mul(10)))
+            / 100;
+        weighted.min(RESOURCE_DROP_CHANCE_DENOMINATOR) as u16
+    }</code></pre>
+<p class="docs-technical-explanation">Precision controls a fraction of the canonical resource volume. Exploration multiplies an eligible rule's base chance by 100% plus 10% per contract level and caps it at the denominator.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Convert Chunk Precision XP to level and level to recovered volume.</p></li>
+<li><strong>Lines 6–14</strong>
+<p>Convert Chunk Exploration XP through the contract threshold table.</p></li>
+<li><strong>Lines 16–22</strong>
+<p>Weight and cap the eligible extra-drop chance.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The current Profile progress fetch is Chunk-scoped</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function fetchPlayerProgress(ownerAddress) {
+  if (!ownerAddress) return null;
+  const owner = typeof ownerAddress === "string" ? new PublicKey(ownerAddress) : ownerAddress;
+  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);
+  const account = await getNicechunkConnection().getAccountInfo(playerProgress, "confirmed");
+  if (!account?.data?.length) {
+    return {
+      publicKey: playerProgress.toBase58(),
+      owner: owner.toBase58(),
+      precisionGatheringXp: 0,
+      smeltingXp: 0,
+      explorationXp: 0,
+    };
+  }
+  if (!account.owner.equals(gameContext.chunkProgramId)) return null;
+  const data = account.data;
+  if (data.length !== playerProgressLength || data.subarray(0, 8).toString("utf8") !== playerProgressMagic) return null;
+  return {
+    publicKey: playerProgress.toBase58(),
+    owner: owner.toBase58(),
+    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),
+    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),
+    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),
+    programId: account.owner.toBase58(),
+  };
+}</code></pre>
+<p class="docs-technical-explanation">derivePlayerProgressPdaForContext uses context.chunkProgramId, and the owner check enforces that domain. The decoded smeltingXp therefore comes from the Chunk account layout, not the separate Game/Smelting progress PDA.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Derive and fetch the Chunk-scoped progress address.</p></li>
+<li><strong>Lines 6–14</strong>
+<p>Return zeroed Chunk fields when that account is absent.</p></li>
+<li><strong>Lines 15–26</strong>
+<p>Require Chunk ownership and decode all three offsets from that account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Real Smelting derives a Smelting-scoped Progress PDA</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const [smeltingAuthority] = deriveSmeltingAuthorityPdaForContext(context);
+  const [playerProgress] = deriveSmeltingPlayerProgressPdaForContext(owner, context);
+  const globalConfig = deriveGlobalConfigPda();
+  const inputs = normalizeBackpackIndexes(inputIndexes);
+  const fuels = normalizeBackpackIndexes(fuelIndexes);
+  const multiplier = Math.max(1, Math.min(0xffff, Math.floor(Number(batchMultiplier) || 1)));
+  const data = Buffer.alloc(13 + inputs.length + fuels.length);
+  data.writeUInt8(2, 0);
+  data.writeBigUInt64LE(BigInt(recipeId), 1);
+  data.writeUInt8(inputs.length, 9);
+  data.writeUInt8(fuels.length, 10);
+  data.writeUInt16LE(multiplier, 11);
+  inputs.forEach((index, offset) =&gt; data.writeUInt8(index, 13 + offset));
+  fuels.forEach((index, offset) =&gt; data.writeUInt8(index, 13 + inputs.length + offset));
+  return new TransactionInstruction({
+    programId: context.smeltingProgramId,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: true },
+      { pubkey: recipeTable, isSigner: false, isWritable: false },
+      { pubkey: backpack, isSigner: false, isWritable: true },
+      { pubkey: playerProgress, isSigner: false, isWritable: true },
+      { pubkey: globalConfig, isSigner: false, isWritable: false },
+      { pubkey: smeltingAuthority, isSigner: false, isWritable: false },
+      { pubkey: context.backpackProgramId, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data: contextInstructionData(context, gameNamespaceSmelting, data),
+  });</code></pre>
+<p class="docs-technical-explanation">The transaction uses context.smeltingProgramId and the separately derived Smelting progress account. No browser skillOutputBps field appears in instruction data.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Derive Smelting authority and Smelting-scoped player progress, then normalize the batch.</p></li>
+<li><strong>Lines 7–14</strong>
+<p>Encode recipe identity, counts, multiplier, and Backpack indexes only.</p></li>
+<li><strong>Lines 15–28</strong>
+<p>Submit the independent progress account to the Smelting program.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Smelting reads XP and calculates accepted output</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_smelting/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let skill_output_bps = {
+        let progress_data = player_progress.try_borrow_data()?;
+        let progress = PlayerProgressState::validate(&amp;progress_data, owner.key, global_config.key)?;
+        PlayerProgressState::smelting_output_bps_from_xp(progress.smelting_xp)
+    };
+
+    let input_volume_mm3 = {
+        let backpack_data = backpack.try_borrow_data()?;
+        BackpackAccountView::validate_recipe_inputs(
+            &amp;backpack_data,
+            owner.key,
+            indexes,
+            fuel_indexes,
+            &amp;recipe,
+            multiplier,
+        )?
+    };
+
+    remove_backpack_resources(owner, backpack, backpack_program, indexes, fuel_indexes)?;
+    let recipe_input_volume_mm3 = recipe_input_volume_mm3(&amp;recipe);
+    for output_index in 0..recipe.output_count as usize {
+        let output = &amp;recipe.outputs[output_index];
+        let output_volume_mm3 = smelting_output_volume_mm3(
+            output.volume_mm3,
+            input_volume_mm3,
+            recipe_input_volume_mm3,
+            multiplier,
+            recipe.yield_bps,
+            skill_output_bps,
+        );</code></pre>
+<p class="docs-technical-explanation">The contract derives skill output from its validated progress account, validates actual Backpack inputs, consumes them, and sends all rule inputs into the integer output calculation.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Read authoritative Smelting XP and convert it to output basis points.</p></li>
+<li><strong>Lines 7–17</strong>
+<p>Validate actual input and fuel records against the recipe.</p></li>
+<li><strong>Lines 19–30</strong>
+<p>Consume inputs and calculate each output from program-owned values.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser Forging card promises a simple five-percent step</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-skills.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    id: "forging",
+    name: "Forging",
+    tone: "steel",
+    xpBase: 140,
+    xpGrowth: 1.6,
+    description: "Improves forged equipment durability and future tool quality calculations.",
+    xpSource: "Gains XP from forging-ready material output and future forged equipment actions.",
+    metrics(level) {
+      const bonus = level * 5;
+      const nextBonus = Math.min(PROFILE_SKILL_MAX_LEVEL, level + 1) * 5;
+      return {
+        current: `+${bonus}% forged item durability`,
+        next: `Next level: +${nextBonus}% durability`,
+        max: "Max: +50% durability",
+        formula: "Durability bonus = Lv x 5%",
+      };
+    },</code></pre>
+<p class="docs-technical-explanation">This definition supplies xpBase 140 and a simple +5% card description. The generated forgingDurabilityBonusBps field has no production consumer and is not passed into the Backpack contract.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Define the browser skill identity, XP base, and descriptive copy.</p></li>
+<li><strong>Lines 8–17</strong>
+<p>Render a fixed five-percent-per-level durability claim.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser turns Forging's XP base into a 1,400-XP first step</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-profile-skills.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function profileSkillExperienceRequirement(skill, level) {
+  if (level &gt;= PROFILE_SKILL_MAX_LEVEL) return 0;
+  const nextLevel = Math.max(1, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.trunc(level) + 1));
+  return Math.round((skill?.xpBase ?? 100) * PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER * Math.pow(nextLevel, skill?.xpGrowth ?? 1.55));
+}</code></pre>
+<p class="docs-technical-explanation">PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER is 10. At level zero, Forging therefore requires 140 × 10 × 1^1.6 = 1,400 XP for browser Lv.1.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Choose the next browser level inside the 0–10 range.</p></li>
+<li><strong>Line 4</strong>
+<p>Multiply xpBase by the global 10 multiplier and level growth.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack Forging combines grade, skill, item level, and durability caps</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let material_grade = if total_volume &gt; 0 {
+        ((weighted_grade + total_volume / 2) / total_volume) as u8
+    } else {
+        1
+    }
+    .max(1)
+    .min(10);
+    let quality_bps = (((weighted_quality + total_volume / 2) / total_volume) as u16)
+        .max(1)
+        .min(DURABILITY_BPS_DENOMINATOR as u16);
+    let material_level =
+        material_item_level_from_durability(total_effective_durability, total_volume);
+    let item_level = material_level.max(1);
+    let item_level_grade = 1_u8.saturating_add((item_level.saturating_sub(1) / 10).min(9));
+    let skill_grade = 1_u8.saturating_add(forging_level.min(9));
+    let skill_cap = 3_u8.saturating_add(forging_level.min(7)).min(10);
+    let blended_grade =
+        ((material_grade as u16 * 2 + item_level_grade as u16 + skill_grade as u16 + 2) / 4) as u8;
+    let grade = blended_grade
+        .max(1)
+        .min(10)
+        .min(skill_cap)
+        .min(material_grade.saturating_add(1).min(10))
+        .min(weak_grade_cap);
+
+    let skill_factor = 90_u64
+        .saturating_add(grade as u64 * 5)
+        .saturating_add(forging_level.min(10) as u64 * 3);
+    let level_factor = 100_u64.saturating_add(item_level as u64 / 2);
+    let candidate = total_effective_durability
+        .saturating_mul(skill_factor)
+        .saturating_mul(level_factor)
+        / 10_000;
+    let material_cap = total_raw_durability
+        .saturating_mul(105_u64.saturating_add(forging_level.min(10) as u64))
+        / 100;
+    let durability_max = candidate
+        .max(1)
+        .min(material_cap.max(1))
+        .min(u32::MAX as u64) as u32;
+    let gained_xp = (grade as u64)
+        .saturating_mul(grade as u64)
+        .saturating_mul(25);</code></pre>
+<p class="docs-technical-explanation">The contract mixes material grade and quality, item level, Forging skill grade and cap, weak-material limits, effective durability, a level factor, and a material ceiling. That is not the browser's fixed +5% field.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–24</strong>
+<p>Derive bounded output grade from materials, item level, Forging level, and weak-material limits.</p></li>
+<li><strong>Lines 26–40</strong>
+<p>Build a durability candidate and cap it by raw material durability.</p></li>
+<li><strong>Lines 41–43</strong>
+<p>Calculate potential gained XP from the squared accepted grade; the later processor sends that outcome to Player.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The contract Forging table starts Lv.1 at 250 XP</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn forging_level_from_xp(xp: u64) -&gt; u8 {
+    let mut level = 0_u8;
+    for (index, required_total) in FORGING_TOTAL_XP_BY_LEVEL.iter().enumerate() {
+        if xp &gt;= *required_total {
+            level = index as u8;
+        }
+    }
+    level.min(10)
+}
+
+const FORGING_TOTAL_XP_BY_LEVEL: [u64; 11] = [
+    0, 250, 900, 2_100, 4_000, 6_800, 10_700, 16_000, 23_000, 32_000, 45_000,
+];</code></pre>
+<p class="docs-technical-explanation">Backpack uses a fixed contract table beginning at 250 XP, not the browser curve beginning at 1,400 XP. A player with 250 XP is contract Lv.1 but browser Lv.0.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Choose the greatest contract threshold not exceeding XP.</p></li>
+<li><strong>Lines 11–13</strong>
+<p>List the exact level-zero through level-ten totals.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Swiftness is applied to production controls.speed</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/main.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function refreshProfileSkillEffects() {
+  const snapshot = chainSnapshot?.() ?? {};
+  profileSkillEffects = createProfileSkillEffects({
+    owner: snapshot.walletAddress || gameState.playerProfile?.name || "guest",
+    profile: gameState.playerProfile,
+    chainXp: snapshot.playerSkillXp || snapshot.skillXp || null,
+  });
+  if (controls) controls.speed = BASE_PLAYER_SPEED * (profileSkillEffects.movementSpeedMultiplier || 1);
+  return profileSkillEffects;
+}</code></pre>
+<p class="docs-technical-explanation">This is the direct production consumer. BASE_PLAYER_SPEED is 14.8, and the Swiftness-derived multiplier changes the local controller's actual speed value.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Refresh effective skill state from local profile and supplied chain snapshot.</p></li>
+<li><strong>Line 8</strong>
+<p>Multiply the base control speed by Swiftness.</p></li>
+<li><strong>Lines 9–10</strong>
+<p>Return the effect object for other consumers and display uses.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Movement consumes speed and adds a separate Shift multiplier</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/input/controls.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const speed = this.speed * (this.keys.has("ShiftLeft") || this.keys.has("ShiftRight") ? this.sprintMultiplier : 1);
+    this.move.x = moveX;
+    this.move.z = moveZ;
+    this.move.dx = moveX * speed * dt;
+    this.move.dz = moveZ * speed * dt;
+    this.move.yaw = Math.atan2(-moveX, -moveZ);</code></pre>
+<p class="docs-technical-explanation">The controller uses this.speed—already modified by Swiftness—then applies the independent sprintMultiplier. It reads no health, energy, Profile stamina, or fatigueCostMultiplier.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Choose ordinary or Shift-multiplied current speed.</p></li>
+<li><strong>Lines 2–6</strong>
+<p>Convert that speed into this frame's horizontal displacement and facing.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian MOVE contains pose, not stats</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian-client.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  encodeMove({ x, y, z, yaw, pitch }) {
+    const chunk = this.worldToChunk(x, z);
+    const local = this.globalToLocalChunk(chunk.x, chunk.z);
+    const offsetX = x - chunk.x * this.chunkSize;
+    const offsetZ = z - chunk.z * this.chunkSize;
+    const bytes = new Uint8Array(MOVE_SIZE);
+    const view = new DataView(bytes.buffer);
+    view.setUint8(0, MSG_MOVE);
+    view.setUint8(1, clampByte(local.x));
+    view.setUint8(2, clampByte(local.z));
+    view.setUint16(3, clampU16(Math.round(offsetX * this.positionPrecision)), true);
+    view.setUint16(5, clampU16(Math.round(y * this.positionPrecision)), true);
+    view.setUint16(7, clampU16(Math.round(offsetZ * this.positionPrecision)), true);
+    view.setUint8(9, encodeYaw(yaw));
+    view.setInt8(10, encodePitch(pitch));
+    view.setUint16(11, ++this.clientTick &amp; 0xffff, true);
+    return bytes;
+  }</code></pre>
+<p class="docs-technical-explanation">The compact packet carries local chunk coordinates, offsets, Y, view angles, and a tick. There is no allowed speed, Swiftness, health, energy, stamina, Strength, level, or XP field.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Convert world pose into compact Guardian-local coordinates.</p></li>
+<li><strong>Lines 7–16</strong>
+<p>Write only message type, pose, angles, and client tick.</p></li>
+<li><strong>Lines 17–18</strong>
+<p>Return the binary pose packet.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian checks rate and service range, not skill speed</h3>
+<span class="docs-code-language">C++</span>
+<code class="docs-code-source">Guardian/src/app.cpp</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="C++">void handle_move(Ws&lt;SSL&gt; *ws, GuardianState &amp;state, std::string_view message) {
+  Player *player = ws-&gt;getUserData()-&gt;player;
+  if (!player || !player-&gt;connected || !state.is_active_player(player)) {
+    close_with_error(ws, ERROR_NOT_HELLO);
+    return;
+  }
+  Move move;
+  if (!decode_move(message, move)) {
+    close_with_error(ws, ERROR_BAD_PAYLOAD_LENGTH);
+    return;
+  }
+  uint64_t t = now_ms();
+  if (!rate_limit_allow(t, player-&gt;move_window_ms, player-&gt;move_count, state.config().client_move_rate_limit_per_sec)) {
+    send_error(ws, ERROR_RATE_LIMIT);
+    return;
+  }
+  int32_t new_chunk_x = 0;
+  int32_t new_chunk_z = 0;
+  if (!state.local_to_global(move.local_chunk_x, move.local_chunk_z, new_chunk_x, new_chunk_z)) {
+    state.add_log("Player #" + std::to_string(player-&gt;local_player_id) + " moved out of Guardian range");
+    close_with_error(ws, ERROR_OUT_OF_RANGE);
+    return;
+  }</code></pre>
+<p class="docs-technical-explanation">The handler requires an active connection, decodes the fixed packet, applies a message-rate limit, and maps the pose into Guardian service range. It has no Profile or skill input from which to enforce Swiftness.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Require an active registered realtime player.</p></li>
+<li><strong>Lines 7–11</strong>
+<p>Decode the fixed MOVE payload.</p></li>
+<li><strong>Lines 12–16</strong>
+<p>Apply a message-rate limit.</p></li>
+<li><strong>Lines 17–23</strong>
+<p>Reject movement outside Guardian's served chunk range.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>play/index.html</code>
+<p>Loads ./main.js as the production module entry for /play/.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Imports production play/* modules, defines BASE_PLAYER_SPEED, builds skill effects, and applies Swiftness to controls.speed.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines and writes the six Profile defaults, Profile layout, equipment fields, forging history, name, position, and other public state.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Routes the complete current Player instruction set and shows no updater for the six base attributes; position checks do not receive a speed skill.</p></article>
+<article class="docs-evidence-item"><code>player_creat/player_creat.js</code>
+<p>Submits name, model choice, title, and model code without allocating different base attributes to the two canonical villagers.</p></article>
+<article class="docs-evidence-item"><code>play/play-profile-ui.js</code>
+<p>Calculates Profile Level, Reputation, and the six visible stat cards from browser state and effective skill levels.</p></article>
+<article class="docs-evidence-item"><code>play/play-profile-skills.js</code>
+<p>Defines ten browser skills, their descriptions and XP curves, local behavior XP, browser storage keys, per-skill maximum merging, and effective levels.</p></article>
+<article class="docs-evidence-item"><code>play/play-skill-effects.js</code>
+<p>Builds the ten convenient effect fields, including the one production-local movement multiplier and several currently unconsumed fields.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Calculates the top HUD Level from the local confirmedMines counter.</p></article>
+<article class="docs-evidence-item"><code>play/game-state.js</code>
+<p>Persists the local action counters used to derive browser XP, Level, and Reputation.</p></article>
+<article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Requires three valid contacts, creates the local Precision prediction, and keeps pending reward presentation separate from chain acceptance.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Reduces ordinary pending mining data to coordinates, blockId, resourceId, and a key before calling the chain module.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Derives program-scoped progress PDAs, fetches Profile progress through Chunk, and derives the separate Game/Smelting progress account for execute Smelting.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines Precision and Exploration XP thresholds and contract calculations for recovered volume and weighted extra-drop chance.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Loads Chunk-owned progress, calculates accepted mining rewards, writes recovered volume to Backpack, and applies Exploration extras.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/state.rs</code>
+<p>Defines Smelting progress seeds, level thresholds, and skill output bps in the Smelting program domain.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/lib.rs</code>
+<p>Reads Smelting progress, validates and consumes inputs, calculates accepted output, writes Backpack results, and adds Smelting XP.</p></article>
+<article class="docs-evidence-item"><code>play/play-smelting.js</code>
+<p>Calculates a local skillOutputBps view field that is not displayed in current progress status or submitted as an instruction argument.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines the contract Forging thresholds and the multi-input grade, item-level, quality, durability, cap, and gained-XP calculation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Reads the Profile Forging level and passes it into the Backpack outcome calculation during accepted forge execution.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/input/controls.js</code>
+<p>Consumes controls.speed for horizontal movement and applies the independent Shift sprint multiplier.</p></article>
+<article class="docs-evidence-item"><code>play/player-motion-controller.js</code>
+<p>Uses the same current control speed during flight without consuming health, energy, or either stamina value.</p></article>
+<article class="docs-evidence-item"><code>play/play-input-actions.js</code>
+<p>Enables current input and flight actions without a fatigue or energy gate.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Synchronizes realtime name and right-hand presentation and does not provide Profile attributes or skill XP to Guardian.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian-client.js</code>
+<p>Defines compact MOVE, DIG, equipment, and identity packets without health, energy, stamina, Strength, skill level, or XP fields.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/app.cpp</code>
+<p>Checks Guardian packet, rate, sequence, and service-range boundaries but performs no Profile-skill movement or combat settlement.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/protocol.h</code>
+<p>Defines realtime protocol records for pose, dig, equipment, and identity without PlayerProfile stat fields.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json</code>
+<p>Retains the shared-context confirmed slot-477,044,477 Profile and two-program progress snapshot, raw bytes, hashes, PDA derivations, and interpretation boundaries.</p></article>
+<article class="docs-evidence-item"><code>scripts/capture-displayed-stats-devnet.mjs</code>
+<p>Reproduces the dated Devnet account capture and validates canonical Profile and program-scoped progress addresses.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Pins the website's current Devnet Player, Chunk, and unified Game program IDs used in the audit and browser contexts.</p></article></div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Keep visible progress separate from temporary authority</h2>
+<p>This guide identifies which displayed numbers have consumers. The next guide follows the complete skills, XP, level, and recovery lifecycle before the path moves on to temporary authority.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/equipment-and-custody/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>Equipment and Custody: Equipping Selects a Record; Listing Moves It</strong>
+<p>Review where the complete forged record lives and why screen presentation differs from Profile references before judging what an equipment or skill number can enforce.</p></a>
+<a class="docs-path-navigation-card" href="/docs/skills-xp-and-progress/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Skills, XP, and Progress: How One Action Becomes a Level</strong>
+<p>Follow one action through local counters, browser and chain XP, threshold conversion, refresh, and cross-device recovery.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

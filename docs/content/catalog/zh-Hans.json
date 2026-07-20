@@ -1,0 +1,425 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-catalog-zh-Hans-f8bed9fbceb38290",
+    "contentHash": "f8bed9fbceb38290"
+  },
+  "kind": "catalog",
+  "slug": "catalog",
+  "shortTitle": "技术指南",
+  "seo": {
+    "title": "NiceChunk 技术指南",
+    "description": "通过有源码证据支持的指南，探索 NiceChunk 的 GlobalConfig 创世配置、确定性世界与水面、规则 PDA、Civilization 生命周期、公开玩家身份、玩家会话、已验证操作、多方块提取、材质生命周期、Backpack、Marketplace 与 Smelting PDA、锻造、NCM 模型编码、建筑、Guardian 区域，以及 Chunk.js 性能。"
+  },
+  "hero": {
+    "eyebrow": "NICECHUNK 技术指南",
+    "title": "先看懂这个世界，再决定是否信任它",
+    "summary": "NiceChunk 将快速的本地游戏体验，与可独立核验的规则和状态结合起来。这些指南用通俗语言解释当前实现，区分画面呈现与权威事实，并为每一项技术说法标明源码依据。",
+    "readingTime": "选择一条学习路径 · 已完成页面会逐篇发布",
+    "visual": {
+      "src": "/docs/media/catalog-overview-v4.webp",
+      "alt": "NiceChunk 村民男孩正在挖掘方块，村民女孩在锻造台旁查看花朵与棉花，远处山坡上还能看到一座有地基支撑、按精确比例预览的小屋。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "metrics": [
+    {
+      "source": "readyTopicCount",
+      "label": "已审核指南",
+      "detail": "只有经过源码核对的页面才会出现在目录中。列出的指南仍可能只是本地发布候选版本；是否已发布到生产环境以及线上路由是否可用，需要另行核验。"
+    },
+    {
+      "value": "2",
+      "label": "规则边界",
+      "detail": "规范生成的结构与由 PDA 驱动的可变表各司其职。"
+    },
+    {
+      "value": "1",
+      "label": "共享锻造引擎",
+      "detail": "Chunk.js 负责锻造数据编解码、编辑规则、网格生成、工具和运行时还原。"
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "实现原理入门",
+    "title": "先读懂状态模型，再查看确切代码",
+    "summary": "这个公式为一个已渲染方块提供了简洁的理解模型。下面的代码片段复制自当前 Chunk.js 运行时，并在每次构建 Docs 时与源文件核对。"
+  },
+  "formulas": [
+    {
+      "title": "一个坐标，三种渲染来源",
+      "expression": "B_runtime(p) = firstDefined(pending(p), renderDelta(p), G_current(seed, p))",
+      "explanation": "优先采用第一个可用的渲染来源。可回滚的本地编辑让交互立即响应，已保存的渲染差量会覆盖基础结果，而确定性生成器会重建未被改动的坐标。运行时内部的 chainDeltas 名称本身并不是独立的链上证明：手动本地确认和 Guardian 提示也能进入该集合，因此若要声称它是共享状态，仍需读取并验证 PDA。",
+      "terms": [
+        {
+          "symbol": "B_runtime(p)",
+          "meaning": "本地 Chunk.js 场景在整数坐标 p 渲染的方块。"
+        },
+        {
+          "symbol": "pending(p)",
+          "meaning": "仍可确认（confirmed）或回滚的本地交易预览。"
+        },
+        {
+          "symbol": "renderDelta(p)",
+          "meaning": "运行时当前用于该坐标的差量。集合名称无法证明它来自经过验证的 RPC 快照、手动本地确认，还是 Guardian 提示。"
+        },
+        {
+          "symbol": "G_current(seed,p)",
+          "meaning": "当前规范的地形、流体或生成树体素。配置中虽然携带 generationVersion，但目前它不会选择另一套算法。由 PDA 驱动的表面装饰仍是独立的、绑定到方块表面的图层。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "优先采用第一个可用层",
+      "language": "JavaScript",
+      "source": "chunk.js/chunk/chunk-state.js",
+      "code": "  getFinalBlock(localX, localY, localZ) {\n    if (!containsLocal(localX, localY, localZ, this)) return BLOCK_ID.air;\n    if (!this.pendingDeltas.size && !this.chainDeltas.size) return this.getBaseBlock(localX, localY, localZ);\n    const key = deltaKey(localX, localY, localZ, this.chunkSize);\n    const pending = this.pendingDeltas.get(key);\n    if (pending) return pending.blockId;\n    const chain = this.chainDeltas.get(key);\n    if (chain) return chain.blockId;\n    return this.getBaseBlock(localX, localY, localZ);\n  }",
+      "explanation": "待处理编辑保持独立且可以回滚。内部 chainDeltas 集合会覆盖基础结果，未改动的单元格则继续使用规范生成结果。由于本地 Confirm（确认）操作和 Guardian 提示也能填充这一渲染层，因此在把它称为共享链上状态之前，必须另行取得并验证 RPC 快照。"
+    },
+    {
+      "title": "规范输入生成唯一方块答案",
+      "language": "JavaScript",
+      "source": "chunk.js/world/world-generator.js",
+      "code": "export function getBlockAt(worldSeed, worldX, worldY, worldZ, ruleVersion = DEFAULT_GENERATION_VERSION, options = {}) {\n  const config = createWorldGeneratorConfig({ ...options, worldSeed, generationVersion: ruleVersion });\n  const x = Math.trunc(worldX);\n  const y = Math.trunc(worldY);\n  const z = Math.trunc(worldZ);\n  return blockAtConfig(config, x, y, z);\n}",
+      "explanation": "公开查询会把世界位置规范化为整数体素坐标，并把选定的 seed 与 ruleVersion 传入配置；当前生成器没有依赖版本的分支。"
+    }
+  ],
+  "catalogHeading": {
+    "eyebrow": "七条玩家学习路径",
+    "title": "从你最想弄清的问题开始",
+    "summary": "这些指南按玩家关心的问题组织，而不是按源码文件夹排列。已有的深度技术页面会继续保留，同时面向新手的聚焦页面会在逐项验证后依次发布。"
+  },
+  "groups": [
+    {
+      "pathNumber": 1,
+      "eyebrow": "路径 1 · 从这里开始",
+      "title": "先看懂整套系统，再学习各部分名称",
+      "summary": "先从完整系统地图开始，了解四种不同观察各自能证明什么，再沿着一个可见操作深入查看其实现细节。",
+      "entries": [
+        {
+          "slug": "nicechunk-in-one-picture",
+          "href": "/docs/nicechunk-in-one-picture/",
+          "status": "ready",
+          "readingTime": "16 分钟",
+          "title": "一张图看懂 NiceChunk",
+          "summary": "了解浏览器、Chunk.js、Guardian、Solana 程序、PDA、模型、烘焙材质与确定性重建如何协作，同时不把每一帧画面都误说成链上状态。"
+        },
+        {
+          "slug": "four-truth-layers",
+          "href": "/docs/four-truth-layers/",
+          "status": "ready",
+          "readingTime": "12 分钟",
+          "title": "四层事实：每一种观察能证明什么",
+          "summary": "了解为什么本地响应、Guardian 提示、confirmed 指令和干净重建都是有用证据，却并不证明同一件事。"
+        },
+        {
+          "slug": "verified-actions",
+          "href": "/docs/verified-actions/",
+          "status": "ready",
+          "readingTime": "8 分钟",
+          "title": "从即时反馈到已验证操作",
+          "summary": "了解本地发生了什么、提交了什么、程序检查什么，以及何时才允许正式提交可见世界的变化。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 2,
+      "eyebrow": "路径 2 · 玩家、钱包与控制权",
+      "title": "理解谁拥有角色、谁可以执行操作",
+      "summary": "Start with external-wallet connection and approval safety, compare the browser-held Game Wallet with Seed's exact-message proof and central registration, then follow public identity, temporary authority, separate funding objects, browser policy windows, and Solana chain time without turning a session key into the owner.",
+      "entries": [
+        {
+          "slug": "wallet-login-and-safety",
+          "href": "/docs/wallet-login-and-safety/",
+          "status": "ready",
+          "step": "2.1",
+          "readingTime": "14 分钟",
+          "title": "钱包登录与安全：连接究竟允许什么",
+          "summary": "了解连接会分享什么、消息批准与交易批准有何不同、应检查哪些内容，以及哪些秘密绝不能分享。"
+        },
+        {
+          "slug": "local-game-wallet-backup-and-risk",
+          "href": "/docs/local-game-wallet-backup-and-risk/",
+          "status": "ready",
+          "step": "2.2",
+          "readingTime": "24 分钟",
+          "title": "本地 Game Wallet：备份、签名与恢复",
+          "summary": "了解浏览器把完整签名秘密保存在何处、备份门槛与充值门槛有何不同、它可以签署什么，以及为什么 Disconnect（断开连接）并不等于删除或恢复。"
+        },
+        {
+          "slug": "seed-whitelist-and-message-signatures",
+          "href": "/docs/seed-whitelist-and-message-signatures/",
+          "status": "ready",
+          "step": "2.3",
+          "readingTime": "24 分钟",
+          "title": "Seed 白名单签名、中心化登记与 NCK 证据",
+          "summary": "了解 NiceChunk Seed 消息签名能证明什么、中心化 SQLite 服务保存什么，以及为什么页面显示的 100 NCK 并不等于链上付款。"
+        },
+        {
+          "slug": "character-creation",
+          "href": "/docs/character-creation/",
+          "status": "ready",
+          "step": "2.4",
+          "readingTime": "28 分钟",
+          "title": "角色创建：固定模型、三份记录与本地交接",
+          "summary": "依次了解钱包绑定、不预留名称的查询、两个规范 NCM2 选项，以及一笔由 owner 签名的 Player 交易——并弄清为什么确认、浏览器缓存、邀请登记和候选出生点分别是不同结果。"
+        },
+        {
+          "slug": "names-invites-and-spawn",
+          "href": "/docs/names-invites-and-spawn/",
+          "status": "ready",
+          "step": "2.5",
+          "readingTime": "27 分钟",
+          "title": "名称、邀请记录与候选出生点",
+          "summary": "了解为什么 NiceChunk 名称索引、受邀钱包登记和浏览器端候选出生点是三种彼此独立的结果，分别由谁签名，以及当前 Play 入口实际使用什么。"
+        },
+        {
+          "slug": "player-profile",
+          "href": "/docs/player-profile/",
+          "status": "ready",
+          "step": "2.6",
+          "readingTime": "24 分钟",
+          "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+          "summary": "了解紧凑的 Profile、详细的 Appearance、名称声明、Backpack、按程序分域的进度、浏览器回退，以及当前已审计源码中的锻造物品共享键如何共同组成玩家体验，却不会合并成一个万能玩家记录。"
+        },
+        {
+          "slug": "player-appearance-codes",
+          "href": "/docs/player-appearance-codes/",
+          "status": "ready",
+          "step": "2.7",
+          "readingTime": "27 分钟",
+          "title": "PlayerAppearance: 模型代码、角色重建与安全回退",
+          "summary": "沿着这份 9,612 字节的公开 Appearance 记录，了解宽松的链上存储检查、浏览器来源优先级、NCM2 与 NCM4 重建、安全回退、SDK 差异、treasury 关闭，以及带日期的 Devnet 证据。"
+        },
+        {
+          "slug": "equipment-and-custody",
+          "href": "/docs/equipment-and-custody/",
+          "status": "ready",
+          "step": "2.8",
+          "readingTime": "37 分钟",
+          "title": "装备与托管：装备只是选中记录，挂牌才会移动记录",
+          "summary": "了解 NiceChunk 中装备操作究竟改变了什么、锻造物品记录存放在哪里、为什么多件工具可能共用一个键、本地 NCF1 渲染与链上状态有何区别，以及 Market 挂牌何时才真正转移托管位置。"
+        },
+        {
+          "slug": "displayed-stats-vs-enforced-effects",
+          "href": "/docs/displayed-stats-vs-enforced-effects/",
+          "status": "ready",
+          "step": "2.9",
+          "readingTime": "42 分钟",
+          "title": "显示属性与实际生效效果：数值必须有使用方",
+          "summary": "区分已存储的 Profile 默认值和浏览器派生卡片，以及本地移动、Chunk 采矿与探索、熔炼和 Backpack 锻造中真正生效的使用方。"
+        },
+        {
+          "slug": "skills-xp-and-progress",
+          "href": "/docs/skills-xp-and-progress/",
+          "status": "ready",
+          "step": "2.10",
+          "readingTime": "48 分钟",
+          "title": "技能、XP 与进度：一次操作如何变成等级",
+          "summary": "沿着一次操作，依次了解本地计数器、浏览器保存的 XP 与链上 XP、各技能取最大值、浏览器等级阈值、各程序独立发放的奖励、刷新，以及跨设备恢复。"
+        },
+        {
+          "slug": "player-sessions",
+          "href": "/docs/player-sessions/",
+          "status": "ready",
+          "step": "2.11",
+          "readingTime": "56 min",
+          "title": "一次钱包授权可以创建会到期的 NiceChunk 通行证——但它不会把密钥关进沙箱",
+          "summary": "了解一次钱包授权如何创建会到期的 NiceChunk PlayerSession、普通 Session 密钥仍能签署什么、哪些操作会读取这张通行证，以及为什么刷新、注资、退出登录、到期和 Guardian 都不能把密钥限制在沙箱内，也不等于撤销密钥。"
+        },
+        {
+          "slug": "session-funding-and-expiry",
+          "href": "/docs/session-funding-and-expiry/",
+          "status": "ready",
+          "step": "2.12",
+          "readingTime": "54 分钟",
+          "title": "会话注资与到期：目标不是余额，浏览器时间也不是链上时间",
+          "summary": "把浏览器中的 0.1 SOL 目标值，与 owner、sessionAuthority 以及 PlayerSession 租金余额分开；再对照浏览器策略时间窗口和 Solana Clock，判断何时应补款、复用、刷新、更换或恢复密钥。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 3,
+      "eyebrow": "路径 3 · 世界、地形与采矿",
+      "title": "跟随一个坐标，看它如何从基础地形走到被接受的移除结果",
+      "summary": "了解哪些世界事实由重建得出、哪些有生命感的表面来自 PDA 规则，以及为什么树木与支撑坍塌使用不同的结算模型。",
+      "entries": [
+        {
+          "slug": "deterministic-world",
+          "href": "/docs/deterministic-world/",
+          "status": "ready",
+          "readingTime": "7 分钟",
+          "title": "确定性世界",
+          "summary": "了解 seed 与整数坐标如何重建未改动的地形，而玩家造成的变化仍作为独立状态保存。"
+        },
+        {
+          "slug": "chunkjs-water",
+          "href": "/docs/chunkjs-water/",
+          "status": "ready",
+          "readingTime": "10 分钟",
+          "title": "水：同一水位，多种可见深度",
+          "summary": "了解确定性河床如何填充到同一海平面，而仅顶部网格、压缩深度、片元光照与操作规则仍彼此独立。"
+        },
+        {
+          "slug": "rule-pdas",
+          "href": "/docs/rule-pdas/",
+          "status": "ready",
+          "readingTime": "8 分钟",
+          "title": "规则 PDA 与表面生态",
+          "summary": "了解为什么植物和其他单面对象来自带版本的规则表，而不是针对每种物品编写不同的合约分支。"
+        },
+        {
+          "slug": "resource-drop-rules",
+          "href": "/docs/resource-drop-rules/",
+          "status": "ready",
+          "readingTime": "17 分钟",
+          "title": "ResourceDropTable PDA：按顺序判定的 Exploration 额外掉落",
+          "summary": "了解空间筛选、坐标哈希、Exploration 权重、首次命中顺序、可能丢失的 Backpack 写入，以及拆分的程序职责范围，如何共同定义当前的额外掉落。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 4,
+      "eyebrow": "路径 4 · BACKPACK、生产与交易",
+      "title": "追踪一项资源从归属到加工与交换的全过程",
+      "summary": "跟随确切的 Backpack 记录，查看它如何经过 Smelting、锻造、托管、付款、交付、回滚，以及当前的画面呈现边界。",
+      "entries": [
+        {
+          "slug": "backpack-inventory",
+          "href": "/docs/backpack-inventory/",
+          "status": "ready",
+          "readingTime": "14 分钟",
+          "title": "Backpack PDA：自有槽位与重建",
+          "summary": "了解由 owner 派生的公开账户、可信追加路径、密集数组式删除、压缩方块标识与 Chunk.js 预览，如何把权威记录变成可用的物品栏。"
+        },
+        {
+          "slug": "material-lifecycle",
+          "href": "/docs/material-lifecycle/",
+          "status": "ready",
+          "readingTime": "11 分钟",
+          "title": "棉花、Backpack、布料与锻造",
+          "summary": "了解确定性棉花规则如何依次变成受容量限制的奖励、会被消耗的配方输入，以及可用于锻造的布料材质。"
+        },
+        {
+          "slug": "smelting-recipes",
+          "href": "/docs/smelting-recipes/",
+          "status": "ready",
+          "readingTime": "15 分钟",
+          "title": "Smelting 配方 PDA：完整槽位与权限边界",
+          "summary": "了解传入的配方表、确切的 Backpack 记录、热量等级、原子转换、逐项产出计算，以及当前客户端的一致性缺口，如何共同界定一笔冶炼交易真正证明了什么。"
+        },
+        {
+          "slug": "forging-system",
+          "href": "/docs/forging-system/",
+          "status": "ready",
+          "readingTime": "10 分钟",
+          "title": "材质感知锻造",
+          "summary": "了解可编辑的 3D 作品、继承的材质属性、紧凑的 NCF1 数据与两项链上容量检查如何配合。"
+        },
+        {
+          "slug": "marketplace-listings",
+          "href": "/docs/marketplace-listings/",
+          "status": "ready",
+          "readingTime": "15 分钟",
+          "title": "Marketplace 挂单 PDA：托管槽位、拆分付款与原子交付",
+          "summary": "了解由卖家派生的挂单 PDA 如何移除完整 Backpack 记录、拆分 SOL 或 NCK 付款、通过签名的市场权限方完成交付，以及当前的发现与取消限制。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 5,
+      "eyebrow": "路径 5 · 角色模型与建筑",
+      "title": "看紧凑字节如何变成可见的角色与建筑结构",
+      "summary": "区分模型格式、已验证边界、受保护地基、分片载荷、Guardian 发现、重建与碰撞。",
+      "entries": [
+        {
+          "slug": "ncm-codes",
+          "href": "/docs/ncm-codes/",
+          "status": "ready",
+          "readingTime": "13 分钟",
+          "title": "NCM 编码：存储字节、验证边界与重建几何体",
+          "summary": "了解 NCM 别名、角色长方体、感知材质的建筑命令、链上验证与 Chunk.js 重建为何仍是彼此独立的环节。"
+        },
+        {
+          "slug": "verifiable-buildings",
+          "href": "/docs/verifiable-buildings/",
+          "status": "ready",
+          "readingTime": "11 分钟",
+          "title": "受保护地基与可验证建筑",
+          "summary": "了解精确比例的 NCM3 预览、受保护的 BuildSite、分片载荷检查、Guardian 发现与 Chunk.js 重建如何配合。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 6,
+      "eyebrow": "路径 6 · GUARDIAN 与多人游戏",
+      "title": "把实时传递与持久化权威分开",
+      "summary": "查看 Play 如何发现范围受限的区域中继、它传递哪些附近消息，以及哪些事实仍需要 Solana 证据。",
+      "entries": [
+        {
+          "slug": "guardian-regions",
+          "href": "/docs/guardian-regions/",
+          "status": "ready",
+          "readingTime": "13 分钟",
+          "title": "Guardian Regions 与范围受限的中继",
+          "summary": "了解已登记的 100 × 100 Region、从链上发现的端点、附近实时提示与已验证的建筑索引承诺，如何把中继速度与持久化权威分开。"
+        }
+      ]
+    },
+    {
+      "pathNumber": 7,
+      "eyebrow": "路径 7 · 信任、治理与引擎",
+      "title": "检查根配置、规则变化与渲染器预算",
+      "summary": "借助当前最深入的参考资料，理解根配置、调用者提供的治理计票、原子适配器，以及高性能重建的局限。",
+      "entries": [
+        {
+          "slug": "global-config-genesis",
+          "href": "/docs/global-config-genesis/",
+          "status": "ready",
+          "readingTime": "18 分钟",
+          "title": "GlobalConfig 创世配置：固定字节、NCK Mint 与执行边界",
+          "summary": "了解一个 293 字节根 PDA、无权限方的 NCK mint 判定条件、旧版世界字段、下游选择性读取、二进制漂移与升级权限，如何共同界定当前的创世信任边界。"
+        },
+        {
+          "slug": "civilization-rule-lifecycle",
+          "href": "/docs/civilization-rule-lifecycle/",
+          "status": "ready",
+          "readingTime": "17 分钟",
+          "title": "Civilization 规则生命周期：中心化证明的力量、调用者选择的计票与原子适配器",
+          "summary": "了解固定权限方控制的力量账户、签名者 PDA、调用者选择的计票输入、执行回执与目标程序适配器，如何共同界定当前 Civilization 的信任边界。"
+        },
+        {
+          "slug": "chunkjs-performance",
+          "href": "/docs/chunkjs-performance/",
+          "status": "ready",
+          "readingTime": "12 分钟",
+          "title": "Chunk.js：只重建发生变化的部分",
+          "summary": "了解紧凑状态、脏区重建、Worker、压缩网格、可见性筛选与帧预算，如何让可验证世界保持流畅响应。"
+        }
+      ]
+    }
+  ],
+  "principlesHeading": {
+    "eyebrow": "如何阅读这些文档",
+    "title": "信任来自清晰的边界",
+    "summary": "当每一层都准确说明自己做什么、不做什么时，这个项目就更容易评估。"
+  },
+  "principles": [
+    {
+      "title": "明确权威来源",
+      "body": "每篇指南都会说明一个结果究竟来自确定性代码、PDA 规则表、已签名交易，还是本地画面呈现。"
+    },
+    {
+      "title": "保持游戏响应流畅",
+      "body": "选择、动画、预览与网格生成都可以在本地完成，同时不把这些视觉瞬间误说成已经成为共享状态。"
+    },
+    {
+      "title": "把说法链接到代码",
+      "body": "每个主题末尾的证据路径，让重要说法都可供检查，而不是要求读者相信营销话术。"
+    }
+  ]
+}

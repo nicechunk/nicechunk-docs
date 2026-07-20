@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="verified-actions" data-docs-static-source="fc70d9ffaa6826179dccc3d1dfc476f7186f6d617a63a3b73687bc477f7768c1">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/verified-actions.json" />
+    <meta name="nicechunk:source-sha256" content="fc70d9ffaa6826179dccc3d1dfc476f7186f6d617a63a3b73687bc477f7768c1" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/verified-actions/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Follow a NiceChunk mining action from responsive local tool contact through program validation, PDA writes, confirmation, and rollback." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Verified Player Actions" />
+    <meta property="og:description" content="Follow a NiceChunk mining action from responsive local tool contact through program validation, PDA writes, confirmation, and rollback." />
+    <meta property="og:url" content="https://nicechunk.com/docs/verified-actions/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/verified-actions-overview-v2.webp" />
+    <meta property="og:image:alt" content="The canonical villager boy strikes a stone voxel that remains inside an amber pending lattice while the villager girl observes a cyan validation projection; confirmation records the missing coordinate, while a faint rejected echo returns through the water." />
+    <title>NiceChunk Verified Player Actions</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/verified-actions/#article",
+  "url": "https://nicechunk.com/docs/verified-actions/",
+  "name": "The screen responds first; shared state commits after checks",
+  "description": "Follow a NiceChunk mining action from responsive local tool contact through program validation, PDA writes, confirmation, and rollback.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "The screen responds first; shared state commits after checks",
+  "mainEntityOfPage": "https://nicechunk.com/docs/verified-actions/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One mining swing crosses four different layers",
+    "What stays local, and why",
+    "The mining program checks the world instead of trusting the claim",
+    "The automatic chain path uses pending as a reversible bridge",
+    "Verification is specific to the action and accounts involved"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/verified-actions/#four-layers",
+      "name": "One mining swing crosses four different layers"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/verified-actions/#local-feedback",
+      "name": "What stays local, and why"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/verified-actions/#program-checks",
+      "name": "The mining program checks the world instead of trusting the claim"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/verified-actions/#confirmation-and-rollback",
+      "name": "The automatic chain path uses pending as a reversible bridge"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/verified-actions/#scope-of-verification",
+      "name": "Verification is specific to the action and accounts involved"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/verified-actions-overview-v2.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Verified Actions</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 03 · ACTION VALIDATION</p>
+<h1>The screen responds first; shared state commits after checks</h1>
+<p class="docs-hero-summary">NiceChunk does not send every cursor movement or animation frame to the chain. The client handles physical tool contact and feedback locally, then submits a compact action with integer coordinates. The program recalculates the generated block at the submitted coordinate, validates the relevant accounts and rules, and only then writes the accepted result.</p>
+<span class="docs-reading-time">8 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The canonical villager boy strikes a stone voxel that remains inside an amber pending lattice while the villager girl observes a cyan validation projection; confirmation records the missing coordinate, while a faint rejected echo returns through the water." decoding="async" height="887" loading="eager" src="/docs/media/verified-actions-overview-v2.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Local feedback is immediate</strong>
+<p>Ray selection, reach checks, swept tool collision, damage feedback, animation, and particles can run at frame speed without becoming chain state.</p></article>
+<article class="docs-key-point"><strong>The program recomputes facts</strong>
+<p>For mining, the program reads the submitted world coordinate, derives its chunk and local coordinates, recalculates the generated block, checks protection and both rule tables, and rejects mismatched or already-mined targets.</p></article>
+<article class="docs-key-point"><strong>The automatic chain path gates commitment</strong>
+<p>The automatic chain path confirms a pending delta after a confirmed transaction result and rolls it back when submission or program validation fails. The current manual Confirm control can still resolve a delta locally, so that path is not shared-state evidence.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#four-layers">One mining swing crosses four different layers</a></li>
+<li><a href="#local-feedback">What stays local, and why</a></li>
+<li><a href="#program-checks">The mining program checks the world instead of trusting the claim</a></li>
+<li><a href="#confirmation-and-rollback">The automatic chain path uses pending as a reversible bridge</a></li>
+<li><a href="#scope-of-verification">Verification is specific to the action and accounts involved</a></li>
+<li><a href="#technical-details">Separate the program predicate from client reconciliation</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="four-layers"><p class="docs-eyebrow">THE ACTION LIFECYCLE</p>
+<h2>One mining swing crosses four different layers</h2>
+<p class="docs-prose">First, the browser decides what the player is pointing at and whether the equipped tool can physically reach it. A valid strike accumulates local damage and creates a pending record containing the target coordinate, block and resource IDs, selected tool slot, affected blocks, and a planned base-reward summary.</p>
+<p class="docs-prose">Second, the chain adapter turns that pending record into a transaction. Third, the chunk program verifies the action against canonical world and account state. Fourth, the automatic chain path reconciles and applies the accepted delta, then refreshes the chain-backed world and backpack views. A separate manual Confirm control can still resolve a pending delta locally and is not evidence of shared-state confirmation.</p>
+<ol class="docs-steps"><li><strong>Interact locally</strong>
+<p>Select a visible target, check reach and protection hints, animate the tool, and detect a real tool-box contact with the voxel.</p></li>
+<li><strong>Create a pending action</strong>
+<p>Preserve an integer coordinate tuple and the exact local proposal without yet treating it as authoritative chain state.</p></li>
+<li><strong>Submit and validate</strong>
+<p>Sign the transaction and let the program validate PDA derivations, recalculate generated facts, and validate current account contents.</p></li>
+<li><strong>Confirm or roll back</strong>
+<p>In the automatic chain path, commit the rendered delta after confirmed submission, or remove the pending action and restore local tool damage when it fails. A manual local confirm remains a separate, non-authoritative path.</p></li></ol></section>
+<section class="docs-content-section" id="local-feedback"><p class="docs-eyebrow">FRAME-SPEED WORK</p>
+<h2>What stays local, and why</h2>
+<p class="docs-prose">Camera motion, pointer rays, target highlights, tool poses, hit sparks, sound, partial-damage indicators, and mesh updates are presentation and interaction work. Putting these on chain would add latency without making the underlying world rule more trustworthy.</p>
+<p class="docs-prose">The mining controller also checks obvious invalid cases locally: no usable tool, no backpack, a target outside reach, fluid or air, protected foundations, a target that changed before impact, or a duplicate pending target. These checks improve the experience, but they do not replace program validation.</p>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A convincing animation is not a chain receipt</strong>
+<p>Visual feedback proves that the local interaction system ran. Authority comes from the program accepting the transaction and writing the expected accounts.</p></aside></section>
+<section class="docs-content-section" id="program-checks"><p class="docs-eyebrow">AUTHORITATIVE WORK</p>
+<h2>The mining program checks the world instead of trusting the claim</h2>
+<p class="docs-prose">The reward-bearing mine instruction receives 12 accounts: session authority, player profile, player session, player progress, ChunkBroken, foundation chunk, global configuration, resource-drop table, surface-decoration table, backpack program, backpack, and system program. It validates the exact count, writable status, program ownership where required, the PDAs explicitly derived by the instruction or backpack CPI, owner and data relationships for the remaining accounts, and the player's active action context before processing the target.</p>
+<p class="docs-prose">It reads the submitted world-coordinate tuple, checks its height, derives chunk and local coordinates with Euclidean division, recalculates the generated block, compares that result with the expected block ID, rejects air, water, and bedrock, checks foundation protection, and prevents the same generated coordinate from being recorded twice. It then resolves extra-drop and surface-decoration rules from the two program-owned tables.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Target identity</span>
+<strong>x, y, z + block ID</strong>
+<p>The client submits the integer target; the program independently recalculates the generated block ID at that coordinate.</p></article>
+<article class="docs-fact"><span>World edit</span>
+<strong>ChunkBroken PDA</strong>
+<p>An accepted generated block removal is stored as a compact coordinate in its chunk account.</p></article>
+<article class="docs-fact"><span>Reward destination</span>
+<strong>Validated owner backpack</strong>
+<p>The primary block reward must fit. Eligible secondary rewards use a best-effort append and may be partial when capacity is exhausted.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Acceptance changes related records under explicit capacity rules</strong>
+<p>The instruction records the mined coordinate, requires the primary reward append, attempts eligible secondary rewards lossily, and updates relevant progress. An instruction error aborts the transaction; a successful best-effort secondary append may still add only the rewards that fit.</p></aside></section>
+<section class="docs-content-section" id="confirmation-and-rollback"><p class="docs-eyebrow">CLIENT RECONCILIATION</p>
+<h2>The automatic chain path uses pending as a reversible bridge</h2>
+<p class="docs-prose">The chain module signs and sends the transaction, then waits for confirmed commitment. A successful result carries the signature and, for a batched outcome, the reconciled block list. Only then does the automatic chain session ask the mining controller to confirm the pending delta.</p>
+<p class="docs-prose">If the wallet is unavailable, the adapter rejects the action, the transaction throws, or the program returns an unsuccessful result, mining rolls back its pending record. The controller restores the locally consumed tool damage and does not apply that pending block-removal delta.</p>
+<ul class="docs-bullets"><li>Batch outcomes such as support collapse can be reconciled to the exact subset the chain confirmed.</li>
+<li>After confirmation, the client requests fresh ChunkBroken snapshots and refreshes the PDA backpack.</li>
+<li>Local-preview mode is labeled separately; it must not be confused with a confirmed shared transaction.</li>
+<li>The current manual Confirm input has no chain-state guard and can apply a pending delta locally; that result is not a chain receipt.</li>
+<li>Console failure reports include transaction errors and program logs when available, making rejected actions diagnosable during the current session.</li></ul>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Why read state again after success</strong>
+<p>A signature identifies the submission. The client separately waits for a confirmed status with no transaction error, then refreshes affected PDAs so the rendered world converges on stored state instead of relying forever on the local pending record.</p></aside></section>
+<section class="docs-content-section" id="scope-of-verification"><p class="docs-eyebrow">HONEST SCOPE</p>
+<h2>Verification is specific to the action and accounts involved</h2>
+<p class="docs-prose">For mining, NiceChunk can verify the canonical generated-block identity at the submitted coordinate, protection state, rule-table result, duplicate-removal state, player session, an owner-derived backpack PDA, and the writes performed by that instruction. The client chooses the equipped backpack it submits; the programs validate ownership and PDA derivation rather than comparing that address with the profile's equipped-backpack field. The chain does not verify which coordinate the player actually aimed at, nor simulate the rendered camera, exact hand path, particles, every intermediate frame, or a manually confirmed local delta.</p>
+<p class="docs-prose">Other actions have their own instruction formats and checks. A forging transaction, for example, validates backpack material slots and compact design requirements rather than replaying the workbench animation.</p>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>No blanket “everything is on chain” claim</strong>
+<p>The shared state is authoritative where a program validates and stores it. Local rendering remains a high-performance interpretation of that state.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">EXECUTION GATES</p>
+<h2>Separate the program predicate from client reconciliation</h2>
+<p>The first equation summarizes the authoritative checks for one generated-block mine. The second describes the exact set intersection used when a batched result reports which proposed coordinates the chain accepted.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Core acceptance gate for a generated-block mine</h3>
+<div aria-label="accept(p) = validAccounts AND validSession AND expectedBlock = G_chain(p) AND G_chain(p) NOT IN {air, water, bedrock} AND NOT protected(p) AND p NOT IN ChunkBroken AND primaryRewardFits" class="docs-formula-expression" role="math"><code>accept(p) = validAccounts AND validSession AND expectedBlock = G_chain(p) AND G_chain(p) NOT IN {air, water, bedrock} AND NOT protected(p) AND p NOT IN ChunkBroken AND primaryRewardFits</code></div>
+<p class="docs-technical-explanation">This is a compact model of the instruction rather than one literal source expression. Account validity includes the expected writable flags, owners, PDA derivations, both rule tables, backpack program, and owner-derived backpack. The primary reward append must succeed; eligible secondary rewards are best effort.</p>
+<dl class="docs-formula-terms"><dt>p</dt>
+<dd>The submitted integer world coordinate x, y, z.</dd>
+<dt>G_chain(p)</dt>
+<dd>The block ID independently recalculated by the chunk program for p.</dd>
+<dt>validAccounts</dt>
+<dd>The instruction received the required accounts with valid count, ownership, and writability; it validates the PDAs explicitly derived by the instruction or backpack CPI plus owner and data relationships for the remaining accounts.</dd>
+<dt>ChunkBroken</dt>
+<dd>The program-owned set of generated coordinates already recorded as mined for the affected chunk.</dd>
+<dt>primaryRewardFits</dt>
+<dd>The validated backpack can accept the required mined-block reward; secondary rewards may be partial.</dd></dl></article>
+<article class="docs-formula"><h3>Confirmed subset for a batched outcome</h3>
+<div aria-label="K_commit = intersection(K_pending, K_chain)" class="docs-formula-expression" role="math"><code>K_commit = intersection(K_pending, K_chain)</code></div>
+<p class="docs-technical-explanation">When a batch result carries confirmedBlocks, the client converts both proposals and confirmed coordinates to integer keys, keeps only their intersection, and filters pending air deltas and reward groups to that same subset before confirmation.</p>
+<dl class="docs-formula-terms"><dt>K_pending</dt>
+<dd>Coordinate keys proposed by the local mining plan.</dd>
+<dt>K_chain</dt>
+<dd>Coordinate keys returned in the chain result as confirmed.</dd>
+<dt>K_commit</dt>
+<dd>The only proposed block keys retained for the confirmed local delta.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The program recalculates and rejects a mismatched block</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let block_id = generated_block_id_at(global_config_view, &amp;generated_args);
+    if args.expected_block_id != block_id {
+        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());
+    }
+    if matches!(block_id, BLOCK_AIR | BLOCK_WATER | BLOCK_BEDROCK) {
+        return Err(NicechunkChunkError::UnmineableBlock.into());
+    }</code></pre>
+<p class="docs-technical-explanation">The signed payload supplies an expected block ID, but the instruction uses its own generated result and rejects a mismatch or an unmineable canonical block.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The client keeps only block keys confirmed by a batch result</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-mining-result.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const previousCount = Math.max(1, Math.trunc(Number(pending.minedBlockCount) || originalBlocks.length || 1));
+  const chainConfirmedBlocks = Array.isArray(chainResult?.confirmedBlocks) ? chainResult.confirmedBlocks : [];
+  let confirmedBlocks = originalBlocks;
+  if (chainConfirmedBlocks.length) {
+    const confirmedKeys = new Set(chainConfirmedBlocks.map(blockKey).filter(Boolean));
+    confirmedBlocks = originalBlocks.filter((block) =&gt; confirmedKeys.has(blockKey(block)));
+    if (!confirmedBlocks.length) return { changed: false, droppedCount: 0, confirmedCount: 0 };
+    const confirmedKeySet = new Set(confirmedBlocks.map(blockKey));
+    pending.blocks = confirmedBlocks.map((block) =&gt; ({ ...block }));
+    pending.pendingDeltas = (Array.isArray(pending.pendingDeltas) ? pending.pendingDeltas : [])
+      .filter((delta) =&gt; confirmedKeySet.has(blockKey(delta)))
+      .map((delta) =&gt; ({ ...delta }));
+    pending.collapseBlocks = (Array.isArray(pending.collapseBlocks) ? pending.collapseBlocks : [])
+      .filter((block) =&gt; confirmedKeySet.has(blockKey(block)))
+      .map((block) =&gt; ({ ...block }));
+    pending.minedBlockCount = confirmedBlocks.length;
+  }</code></pre>
+<p class="docs-technical-explanation">Support-collapse and other batched proposals can be larger than the accepted result. Reconciliation removes every unconfirmed coordinate before the mining controller applies the pending air deltas.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Implements local target validation, swept tool collision, partial damage, pending action records, confirmation, and reversible rollback.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Separates local preview, wallet-needed, submitting, confirmed, and rejected states and confirms or rolls back pending actions from adapter results.</p></article>
+<article class="docs-evidence-item"><code>play/play-input-actions.js</code>
+<p>Exposes the current manual Confirm and Rollback controls, including the local-confirm path that is not guarded by chain state.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Maps pending integer action data to mining and placement calls in the lazily loaded chain module.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-mining-result.js</code>
+<p>Reconciles batch mining proposals to the exact confirmed block subset and its confirmed base-reward block subset.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Builds and signs gameplay transactions, waits for confirmed commitment, and returns structured action results.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Validates mining accounts, session, generated block, protection, rule tables, ChunkBroken state, rewards, and player progress.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-chunk-deltas.js</code>
+<p>Reads confirmed ChunkBroken account snapshots and applies their decoded coordinate deltas to loaded chunks.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

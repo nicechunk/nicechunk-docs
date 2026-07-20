@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "label": "Simplified Chinese",
+    "version": "docs-locale-zh-Hans-5e3b3b94a5c186aa",
+    "contentHash": "5e3b3b94a5c186aa"
+  },
+  "common": {
+    "language": "语言",
+    "comingSoon": "即将推出",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "NiceChunk 首页",
+    "primaryNavigationAria": "主导航",
+    "openMenu": "打开菜单",
+    "closeMenu": "关闭菜单",
+    "routes": {
+      "home": "首页",
+      "roadbook": "路书",
+      "worldRules": "世界规则",
+      "resources": "资源",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "元素",
+      "fairness": "公平性",
+      "proofOfFrontier": "证明",
+      "seed": "种子",
+      "guardians": "守护者",
+      "contracts": "合约",
+      "civilization": "文明",
+      "trust": "信任",
+      "docs": "文档",
+      "enterWorld": "进入世界"
+    }
+  },
+  "meta": {
+    "title": "NiceChunk 实地指南",
+    "description": "以当前运行中的游戏、公开规则和已部署程序行为为依据，为玩家编写的 NiceChunk 文档。"
+  },
+  "accessibility": {
+    "skipContent": "跳至内容"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "实地指南",
+    "homeAria": "NiceChunk 首页"
+  },
+  "navigation": {
+    "aria": "文档导航",
+    "guide": "指南",
+    "worldRules": "世界规则",
+    "programs": "程序",
+    "enterWorld": "进入世界"
+  },
+  "status": {
+    "loading": "正在加载实地指南",
+    "loadingDetail": "正在获取一份所选语言的文档。",
+    "failed": "无法加载此指南页面。",
+    "failedDetail": "请检查连接，或返回指南目录。"
+  },
+  "actions": {
+    "backToIndex": "返回指南目录",
+    "guideIndex": "实地指南",
+    "openGuide": "打开指南 →"
+  },
+  "footer": {
+    "statement": "依据当前运行中的规则和程序代码编写。所有主张都限定在实现能够证明的范围内。",
+    "fairness": "公平性",
+    "trust": "信任",
+    "roadmap": "路书"
+  },
+  "translation": {
+    "fallbackTitle": "当前显示英文原文",
+    "fallbackBody": "此主题已有独立语言文件，但经审阅的翻译尚未完成。当前显示英文原文，不对技术主张进行机器翻译。"
+  },
+  "labels": {
+    "guideMetrics": "实地指南覆盖范围",
+    "breadcrumb": "面包屑导航",
+    "keyPoints": "要点",
+    "onThisPage": "本页内容",
+    "evidenceEyebrow": "实现证据",
+    "evidenceTitle": "这些主张的依据",
+    "evidenceIntro": "每项主张都被有意限定在具体实现路径能够证明的范围。这些引用用于验证，而不是装饰。"
+  },
+  "statusLabels": {
+    "ready": "已审阅",
+    "preview": "审阅中",
+    "planned": "已规划"
+  },
+  "calloutLabels": {
+    "note": "阅读方式",
+    "boundary": "实现边界",
+    "verified": "代码保证的内容"
+  }
+}

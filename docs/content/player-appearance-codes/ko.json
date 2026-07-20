@@ -1,0 +1,855 @@
+{
+  "_meta": {
+    "language": "ko",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-player-appearance-codes-ko-2363bdd92181b009",
+    "contentHash": "2363bdd92181b009"
+  },
+  "kind": "topic",
+  "slug": "player-appearance-codes",
+  "shortTitle": "PlayerAppearance and Model Codes",
+  "seo": {
+    "title": "PlayerAppearance: Model Codes, Reconstruction, and Safe Fallbacks",
+    "description": "Understand what NiceChunk stores in the 9,612-byte PlayerAppearance PDA, what its contract does not validate, how NCM2 and NCM4 become a visible villager, which browser source wins, and why a stored code can still fail to render."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL · STEP 7",
+    "title": "PlayerAppearance: Model Codes, Reconstruction, and Safe Fallbacks",
+    "summary": "PlayerAppearance stores public identity text, not a finished 3D character. The Player Program accepts a deliberately loose NCM envelope; the browser then chooses chain or local text, resolves the few built-in aliases, decodes NCM2 or NCM4, builds a mesh, and keeps or restores a working model when reconstruction fails. This guide follows that complete handoff and marks the current decoder, equipment, SDK, rent, and deployment boundaries honestly.",
+    "readingTime": "27 min read",
+    "visual": {
+      "src": "/docs/media/player-appearance-codes-overview-v1.webp",
+      "alt": "voxel riverside workshop where the canonical girl opens a small code chest while the canonical boy stands on a separate wooden model assembly platform.",
+      "caption": "The chest represents stored public text and the assembly platform represents local reconstruction: opening one does not guarantee the other succeeds. This teaching scene was generated with the canonical boy and girl and a real Chunk.js riverside material reference; its props, lighting, and visible counts are metaphors, not account bytes, chain status, or renderer output proof.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "If my Appearance account contains an NCM code, why might I still see the previous character or the default boy—and which part of that result did the chain actually verify?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 7 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Implemented boundary",
+        "value": "Current dirty-worktree Player, creation, login, Play, SDK, NCM2, NCM4, and renderer behavior · separate dated Devnet account and rent observations"
+      },
+      {
+        "label": "Reviewed",
+        "value": "17 July 2026 · literal source excerpts, decoder-focused tests, retained raw Devnet bytes, visual review evidence, and focused static checks"
+      }
+    ],
+    "terms": [
+      {
+        "term": "PlayerAppearance",
+        "meaning": "A public 9,612-byte Player Program account containing owner links, display name, title, model kind, model text, timestamps, and twelve currently empty rich-equipment records."
+      },
+      {
+        "term": "PDA",
+        "meaning": "A predictable address derived here from the public seed appearance-v1, the owner wallet, and the Player Program ID. A derived address is not a private vault."
+      },
+      {
+        "term": "Upsert",
+        "meaning": "One instruction that creates a record when absent or completely rewrites its supported fields when it already exists."
+      },
+      {
+        "term": "modelKind",
+        "meaning": "One stored byte restricted to 1 or 2. The current contract does not bind it to model geometry, and the renderer does not use it to select boy or girl bytes."
+      },
+      {
+        "term": "modelCode",
+        "meaning": "UTF-8 text in a fixed 2,048-byte region. Passing the contract's NCM-prefix check does not prove that the text can be decoded or rendered."
+      },
+      {
+        "term": "Alias",
+        "meaning": "A short exact label that the browser replaces with built-in model text. The current alias table contains only routes to the standard boy."
+      },
+      {
+        "term": "NCM2",
+        "meaning": "The compact palette-and-cuboid format used by the current creation-page boy and girl. The avatar renderer adds a heuristic rig and hand anchors after decoding geometry."
+      },
+      {
+        "term": "NCM4",
+        "meaning": "A newer self-contained character format with bounded geometry, twenty fixed bones, named actions, canonical Base64URL, and CRC32C integrity checking."
+      },
+      {
+        "term": "Renderer",
+        "meaning": "Chunk.js code on the player's device that turns model data into vertices, indices, animation state, collision bounds, and a visible mesh."
+      },
+      {
+        "term": "Zero-fill",
+        "meaning": "Current avatar NCM2 bit reads substitute zero when requested bits extend beyond the payload, so some truncated geometry is accepted instead of rejected."
+      },
+      {
+        "term": "Browser cache",
+        "meaning": "Data saved on one device in localStorage. It can speed up entry or provide a fallback, but it is editable, device-local, and not chain authority."
+      },
+      {
+        "term": "Rich equipment",
+        "meaning": "Twelve reserved 576-byte Appearance records. The decoder names their fields, but the current contract packer clears every record on each upsert."
+      },
+      {
+        "term": "Rent-exempt funding",
+        "meaning": "Lamports held so a Solana data account can remain allocated under the observed rent schedule. The amount can change and is separate from transaction fees."
+      },
+      {
+        "term": "Treasury close",
+        "meaning": "The current tag-9 instruction that only the configured protocol treasury may sign. It clears Appearance and sends all of its lamports to that same treasury."
+      },
+      {
+        "term": "Dated snapshot",
+        "meaning": "RPC account bytes observed at one cluster, commitment, slot, and time. It describes that moment; it does not freeze later state or prove every dirty source file was deployed."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "Stored NCM text is not a render certificate",
+      "body": "The contract accepts valid UTF-8 beginning with uppercase NCM. It does not parse a version, Base64URL, geometry, bones, checksum, canonical form, or rendering cost."
+    },
+    {
+      "title": "The visible avatar has a source order and a failure order",
+      "body": "Current Play requests chain Appearance first, then the local profile, then the built-in boy. A failed replacement keeps the last working mesh when possible before attempting the default."
+    },
+    {
+      "title": "NCM2 and NCM4 do not have the same safety boundary",
+      "body": "NCM4 applies strict envelope and structural checks. The current avatar NCM2 decoder can zero-fill missing geometry bits and has no cuboid-count resource budget, even though a different source codec is stricter."
+    },
+    {
+      "title": "Current clients do not all build the same instruction",
+      "body": "The website adapter supplies the six accounts required by the current processor. The older TypeScript SDK and its older test still build a five-account Appearance instruction."
+    }
+  ],
+  "sections": [
+    {
+      "id": "appearance-public-record-layout",
+      "eyebrow": "PUBLIC ACCOUNT, FIXED LAYOUT",
+      "title": "Appearance is a separate public record, not a private model file or finished mesh",
+      "paragraphs": [
+        "For owner wallet o, the Player Program derives one Appearance PDA from the literal seed appearance-v1 and o. The account is public like other Solana program data. Its program owner controls which instructions may write it, while its stored owner field identifies the player relationship. Neither kind of ownership encrypts the display name, title, model code, timestamps, or treasury key.",
+        "The account has exactly 9,612 bytes. A 256-byte header stores magic, version, bump, initialized state, owner, linked PlayerProfile, GlobalConfig, treasury, modelKind, flags, three string lengths, the declared equipment count, and four timestamps. Fixed regions then reserve 300 bytes for display name, 96 for title, 2,048 for modelCode, and 6,912 for twelve 576-byte rich-equipment records.",
+        "That large reserved equipment region is about 71.9 percent of the account. Reserved capacity is not proof of a working feature: the current packer writes every rich-equipment state as zero and clears each payload. The fields exposed by the SDK decoder describe a format, not a current contract path that fills it.",
+        "The four user-facing fields follow independent rules. Name is at most 32 characters and 300 UTF-8 bytes using underscore, ASCII letters or digits, or U+4E00 through U+9FFF. Title may be empty and is at most 96 UTF-8 bytes. modelKind is only 1 or 2. modelCode is valid UTF-8 from 3 through 2,048 bytes beginning with the exact uppercase characters NCM. No rule connects the kind byte to the model text."
+      ],
+      "facts": [
+        {
+          "label": "Address",
+          "value": "PDA_Player([appearance-v1, owner])",
+          "detail": "One deterministic public address per owner under the Player Program."
+        },
+        {
+          "label": "Total length",
+          "value": "9,612 bytes",
+          "detail": "256 + 300 + 96 + 2,048 + 12 × 576."
+        },
+        {
+          "label": "Rich-equipment reserve",
+          "value": "6,912 bytes · about 71.9%",
+          "detail": "Current packing still leaves every record empty."
+        },
+        {
+          "label": "Model envelope",
+          "value": "3–2,048 UTF-8 bytes · uppercase NCM",
+          "detail": "It is not an NCM structure or rendering validation."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-appearance-public-record-layout-v1.webp",
+        "alt": "voxel riverside archive where the canonical boy holds a small identity piece and the canonical girl opens a much larger cabinet with separate fixed storage regions.",
+        "caption": "The small identity piece and large cabinet make Profile and Appearance feel like separate public records, while the cabinet regions suggest a fixed layout. Prop sizes, shelf counts, colors, and reflections are teaching metaphors only; exact byte offsets and write authority come from the source.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Public storage is not a privacy feature",
+        "body": "The wallet signature controls supported writes, but every RPC reader can inspect the account. Never place a private key, recovery phrase, personal secret, or confidential model license inside modelCode."
+      }
+    },
+    {
+      "id": "upsert-rewrites-and-clears",
+      "eyebrow": "ONE INSTRUCTION, THREE IDENTITY RECORDS",
+      "title": "One upsert maintains Profile, name claim, and Appearance—then clears every reserved equipment payload",
+      "paragraphs": [
+        "Tag 8 requires exactly six accounts: writable owner signer and payer, writable PlayerProfile, writable PlayerAppearance, GlobalConfig, System Program, and writable UsernameIndex. The current website supplies all six. The processor validates the variable instruction lengths, field rules, signer, writable flags, program identities, and the owner-derived Profile and Appearance addresses before changing state.",
+        "Within that one instruction, the program ensures or reuses PlayerProfile, writes its name, ensures or verifies the current UsernameIndex for a nonempty name, then creates or reuses Appearance. These are separate accounts changed atomically by the transaction. A later browser cache write is not part of that atomic unit.",
+        "On reuse, a valid Appearance keeps its original createdSlot and createdAt. updatedSlot and updatedAt become the current Clock values. The program then calls the complete fixed-layout packer rather than editing only changed strings. Flags, padding, reserved bytes, and all twelve rich-equipment records are rewritten.",
+        "Each 576-byte rich record is shaped for state, slot, flags, item public key, mass, grip point, grip rotation, and up to 512 model-code bytes. Current pack writes state zero, preserves only the ordinal slot byte, and zeroes the other 574 bytes. The Player Program exposes no separate Appearance instruction that fills them. Current held tools instead come through Backpack and NCF1 reconstruction, not these records."
+      ],
+      "steps": [
+        {
+          "title": "Owner approves the six-account instruction",
+          "body": "The wallet is signer and storage payer; Profile, Appearance, and UsernameIndex remain separate writable destinations."
+        },
+        {
+          "title": "Profile and canonical name claim are handled first",
+          "body": "The current name is written to Profile and its current index is created or checked before Appearance packing."
+        },
+        {
+          "title": "Appearance is completely packed again",
+          "body": "Creation metadata survives valid reuse, update metadata advances, and every rich-equipment payload returns to empty."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-upsert-rewrites-and-clears-v1.webp",
+        "alt": "voxel workshop where the canonical girl replaces a cyan cabinet panel, empty trays sit below, the canonical boy handles small identity pieces, and a separate treasury pedestal stands outside.",
+        "caption": "Replacing the cyan panel and leaving the lower trays empty illustrates a complete Appearance repack; the isolated pedestal introduces the separate treasury close boundary. The scene does not encode instruction order, exact slot count, signer status, or lamport transfer—the source excerpts do.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Do not build durable gameplay state on the reserved records yet",
+        "body": "Every current Appearance upsert erases their payloads. Until a verified writer and preservation rule exist, nonzero client-created rich-equipment data would not survive an ordinary identity update."
+      }
+    },
+    {
+      "id": "stored-code-not-render-proof",
+      "eyebrow": "CHAIN ENVELOPE, CLIENT DECODERS",
+      "title": "A code can fit the chain's storage rule and still be invalid, incomplete, or expensive to render",
+      "paragraphs": [
+        "The Player contract stops after UTF-8, length, and uppercase NCM-prefix checks. It does not require a colon, recognize a version, decode Base64URL, verify a checksum, count cuboids, inspect bones, or estimate reconstruction work. Values such as NCM, NCM3:anything, or a nonexistent alias can therefore be stored even though the avatar loader cannot build them.",
+        "After exact alias resolution, the current shared avatar loader dispatches NCM4 to its strict character codec and sends other avatar text through the NCM2 decoder. NCM4 requires the exact uppercase NCM4: envelope, canonical unpadded Base64URL, valid version and flags, bounded counts and coordinates, twenty fixed bones, valid actions, no trailing ambiguity, a maximum 1,532-byte raw payload, and a matching CRC32C checksum. Those checks occur on the player's device, not inside the Player Program.",
+        "The current avatar NCM2 path is materially looser. It checks positive dimensions, scale, and palette count, but applies no cuboid-count, palette-count, dimension, canonical-encoding, trailing-byte, or reconstruction resource budget. Its bit reader zero-fills out-of-range bits. In focused read-only tests, heavily truncated standard girl text could still produce seventy boxes, and a 19-byte synthetic text declaring 10,000 cuboids produced 10,000 overlapping boxes. That is a current client memory or denial-of-service hardening gap; the 2,048-byte chain limit alone is not a render-cost guarantee.",
+        "The repository's general source NCM2 codec is stricter and throws when its bitstream ends. Passing that utility's fixture checks does not prove the actual avatar decoder rejects the same damaged text. Documentation and tests must name the consumer whose behavior they measured."
+      ],
+      "facts": [
+        {
+          "label": "Contract parses",
+          "value": "UTF-8 + byte length + NCM prefix",
+          "detail": "No version, geometry, checksum, or cost validation."
+        },
+        {
+          "label": "Avatar NCM2",
+          "value": "Missing geometry bits become 0",
+          "detail": "No current decoder resource budget or canonical check."
+        },
+        {
+          "label": "NCM4",
+          "value": "Canonical envelope + CRC32C + bounded structure",
+          "detail": "Strict client validation still does not turn the code into a chain-verified mesh."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-stored-code-not-render-proof-v1.webp",
+        "alt": "voxel workshop where the canonical boy removes a flat cyan storage plate from a cabinet while the canonical girl inspects separate body parts and a frame on an assembly table.",
+        "caption": "A plate that fits the storage cabinet may still fail to become a complete body at the assembly table. The props intentionally carry no labels or status lights; only the documented validators establish which text is stored, which decoder accepts it, and which runtime work remains.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Stored(c) does not imply Renderable(c)",
+        "body": "Treat untrusted Appearance text as untrusted renderer input. Contract acceptance proves only the narrow storage envelope; it does not provide an NCM2 resource budget or certify a safe mesh."
+      }
+    },
+    {
+      "id": "creation-cache-play-precedence",
+      "eyebrow": "CREATION, LOGIN, AND PLAY ARE SEPARATE HANDOFFS",
+      "title": "The creation page, browser cache, and Play refresh can briefly hold different model sources",
+      "paragraphs": [
+        "The creation page currently offers exactly two checked-in NCM2 fixtures. It embeds the complete 353-character standard boy code and complete 451-character standard girl code, previews the selected bytes, and submits the full selected code—not a boy-or-girl alias—to Appearance. The female model therefore works without any built-in girl alias.",
+        "After the transaction helper returns, creation writes gender, full code, label, and timestamp to both legacy global localStorage keys and wallet-scoped keys. Those sequential cache writes are not part of the Solana transaction. A storage exception can occur after chain confirmation and leave only an earlier prefix of browser values; the confirmed public account cannot be rolled back by that local error.",
+        "Login first uses a wallet-scoped character cache when a username is already present. Without that shortcut, it reads Appearance and copies the chain model into global and wallet-scoped storage. Current Play can start from the local profile and then asynchronously fetch Profile and Appearance again. These latency choices allow a short interval where the creation page, login gateway, local profile, and fresh chain read do not yet agree.",
+        "For the local visible avatar, current precedence is chain Appearance.modelCode, then the local profile modelCode, then the built-in boy default. Name precedence is related but separate. A cache value is a presentation source; it is not evidence that Appearance contains the same bytes."
+      ],
+      "steps": [
+        {
+          "title": "Choose one complete standard fixture",
+          "body": "Creation uses the full male or female NCM2 text and sends it with name, title, and modelKind."
+        },
+        {
+          "title": "Confirm chain work before local handoffs",
+          "body": "Browser caches, invite receipt, and candidate spawn are later local or separate steps; none extends the atomic scope of Appearance upsert."
+        },
+        {
+          "title": "Let Play refresh authority asynchronously",
+          "body": "A cached model can appear first, then a successful chain Appearance read becomes the preferred source for the next mesh load."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-creation-cache-play-precedence-v1.webp",
+        "alt": "voxel riverside workshop with the canonical boy beside a creation counter, separate cyan packages in a browser cabinet, an empty assembly frame, and the canonical girl observing the handoff.",
+        "caption": "The separated counter, cabinet, and frame represent creation, browser storage, and Play reconstruction as different handoffs. Their spacing is the lesson; package count, cabinet order, and the unlit frame do not prove cache keys, network timing, or chain precedence.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "A fast return visit can intentionally skip the first chain read",
+        "body": "That improves entry time but changes what the first frame proves. Wait for a validated fresh Appearance read before treating the visible model as the current public record."
+      }
+    },
+    {
+      "id": "aliases-ncm2-ncm4-fallback",
+      "eyebrow": "RESOLUTION, RECONSTRUCTION, AND SURVIVAL",
+      "title": "Aliases, NCM2, and NCM4 reach different runtime capabilities before fallback keeps play usable",
+      "paragraphs": [
+        "The built-in alias map recognizes the empty string, NCM:peasant_guy:v1, NCM:peasant_guy_blackhair:v1, and peasant_guy. All four resolve to the same embedded standard boy NCM2. There is no current NCM:peasant_girl:v1 alias. Such text would pass the contract's NCM prefix but miss the alias table and fail the avatar decoder.",
+        "NCM2 geometry has no stored skeleton. The renderer centers its boxes above the ground, infers head, torso, arms, and legs from names and spatial position, creates pivots and hand anchors, applies procedural walking and mining motion, and can append the current basic or restored forged tool, blueprint, or held block. The character uses vertex colors and realtime light; the baked world TextureArray visible in the teaching references is not sampled as the character's own texture.",
+        "NCM4 carries bones, groups, and actions, and the shared renderer can decode a valid model, build its mesh, and sample an explicitly selected action. Current Play integration is incomplete: its normal frame state supplies moving and mining values rather than an NCM4 action or clip selection. The NCM4 mesh currently returns equipment: [] and handAnchors: {}, so the established NCM2 held-tool attachment path is bypassed. Current collision and hidden-group behavior also lack complete Play-level coverage.",
+        "When a requested local model fails, Play does not erase a mesh that already works. It tries the last active code when one exists; with no usable mesh it tries the default boy. If fallback also fails, it returns the existing mesh or null. Guardian remote avatars and Profile preview have related but separate default-boy recovery paths and caches, so one successful fallback does not repair the stored Appearance text."
+      ],
+      "facts": [
+        {
+          "label": "Built-in aliases",
+          "value": "4 keys → one standard boy NCM2",
+          "detail": "The empty key is included; no standard girl alias exists."
+        },
+        {
+          "label": "NCM2 runtime",
+          "value": "Heuristic rig + current held equipment",
+          "detail": "Procedural moving and mining are derived after geometry decode."
+        },
+        {
+          "label": "NCM4 in current Play",
+          "value": "Mesh and actions exist · gameplay mapping incomplete",
+          "detail": "Normal moving and mining do not select clips; equipment and handAnchors are empty."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-aliases-ncm2-ncm4-fallback-v1.webp",
+        "alt": "voxel reconstruction bench with the canonical boy at a model frame, the canonical girl beside separate compact model blocks, a plain fallback cube, and stored cyan packages.",
+        "caption": "The frame, compact blocks, and plain cube suggest alias resolution, two reconstruction families, and a safe fallback without pretending to show binary formats. Character identity, action support, equipment attachment, and decoder success must be read from the runtime paths rather than inferred from prop shape or color.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Fallback is availability behavior, not silent chain correction",
+        "body": "Seeing the default boy after an error does not change Appearance.modelCode, prove modelKind, or make the rejected text canonical. Another client may attempt the same stored value again."
+      }
+    },
+    {
+      "id": "browser-sdk-devnet-boundary",
+      "eyebrow": "CURRENT CLIENT, OLDER SDK, DATED EVIDENCE",
+      "title": "The production browser shape and older SDK differ, while Devnet proves a real modelKind mismatch",
+      "paragraphs": [
+        "The current website chain adapter constructs the tag-8 browser instruction with six accounts, including writable UsernameIndex. The checked-in TypeScript SDK still constructs an older five-account instruction, and its older test asserts that shape. Because the current processor rejects any account count other than six, passing that test is evidence of SDK drift, not production parity. Integrators should compare any builder with the processor and deployed artifact they intend to call.",
+        "A retained confirmed Devnet snapshot at slot 476,758,441 contains ten canonical PlayerAppearance accounts. Every account is 9,612 bytes, version 1, carries the configured treasury, holds 67,790,400 lamports, and has twelve zero-state rich-equipment records. Raw model text matches the standard creation fixtures exactly: five boy codes and five girl codes, with no NCM4 in that snapshot. Eight titles are empty and two are Explorer.",
+        "The stored kind distribution is four kind 1 and six kind 2. One kind-2 account named kali contains the exact 353-character boy code. That live byte-level mismatch is direct evidence that modelKind does not select or enforce the rendered body. It is a dated observation, not a claim that every future account has this distribution.",
+        "The 67,790,400-lamport amount also matches a separate finalized 16 July 2026 minimum-balance query for 9,612 bytes. The player pays or tops up Appearance during upsert, but only the configured treasury can call tag 9. Close requires the recipient to be that same treasury, clears the data, and transfers the account's full balance. There is no current player close-and-reclaim path.",
+        "The retained deployed ProgramData allocation matched a saved ELF at the snapshot, but current Rust, Play, Chunk.js, and documentation worktrees contain later modifications. The snapshot supports its captured account and artifact claims; it does not prove every current source line is already deployed."
+      ],
+      "facts": [
+        {
+          "label": "Instruction parity",
+          "value": "Browser 6 accounts · older SDK 5 accounts",
+          "detail": "The sixth current account is writable UsernameIndex."
+        },
+        {
+          "label": "Dated model sample",
+          "value": "10 Appearance · 5 boy code · 5 girl code",
+          "detail": "Confirmed slot 476,758,441; zero NCM4 in that snapshot."
+        },
+        {
+          "label": "Kind mismatch",
+          "value": "1 kind-2 record carries the boy code",
+          "detail": "Raw bytes disprove any automatic kind-to-model binding."
+        },
+        {
+          "label": "Observed balance",
+          "value": "67,790,400 lamports each",
+          "detail": "Dated schedule observation, not a permanent SOL quote or player refund promise."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-browser-sdk-devnet-boundary-v1.webp",
+        "alt": "voxel audit bench where the canonical boy inspects six cyan fixtures, the canonical girl compares a separate smaller five-part builder, and stored packages remain in a cabinet.",
+        "caption": "The unequal work fixtures suggest current browser and older SDK instruction shapes, while the cabinet represents retained account evidence. Visible fixture and package counts are narrative aids only; exact account order, sample totals, balances, and model bytes come from source and the dated raw audit.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "Separate three kinds of evidence",
+        "body": "Current source explains intended checks, retained raw RPC bytes prove the dated accounts, and artifact hashes compare particular binaries. None of those automatically substitutes for the other two."
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "READ THE IMPLEMENTATION",
+    "title": "Six equations and twelve literal excerpts connect stored text to the visible villager",
+    "summary": "The formulas separate address, layout, field checks, upsert, renderability, source precedence, and close authority. Each code block is a continuous repository substring, so the plain-language explanation can be checked against the exact implementation."
+  },
+  "formulas": [
+    {
+      "title": "One owner has a separate fixed-size Appearance address",
+      "expression": "Appearance(o)=PDA_Player([UTF8(\"appearance-v1\"),o]); LEN=256+300+96+2048+(12×576)=9612; richShare=6912/9612≈71.9%",
+      "ariaLabel": "PlayerAppearance derives under the Player Program from appearance-v1 and the owner, totals 9,612 bytes, and reserves about 71.9 percent for rich equipment.",
+      "explanation": "Derivation identifies the expected address. Program ownership, initialization, magic, version, internal relationships, and validated contents remain separate checks.",
+      "terms": [
+        {
+          "symbol": "o",
+          "meaning": "The player's public wallet key."
+        },
+        {
+          "symbol": "PDA_Player",
+          "meaning": "Program-address derivation under the Player Program ID."
+        },
+        {
+          "symbol": "12×576",
+          "meaning": "Twelve fixed rich-equipment regions, currently packed empty."
+        }
+      ]
+    },
+    {
+      "title": "Four fields pass four independent rules",
+      "expression": "Valid=Name(chars≤32,bytes≤300,allowedRange) ∧ Title(validUTF8,bytes≤96) ∧ modelKind∈{1,2} ∧ ModelCode(validUTF8,3≤bytes≤2048,startsWith(\"NCM\"))",
+      "ariaLabel": "The name, title, model kind, and model code are checked independently; model kind one or two is not matched against model geometry.",
+      "explanation": "The expression contains no NCM version parser, geometry decoder, checksum, reconstruction budget, or relation between modelKind and modelCode because the current contract contains none.",
+      "terms": [
+        {
+          "symbol": "allowedRange",
+          "meaning": "Underscore, ASCII letters or digits, or code points U+4E00 through U+9FFF."
+        },
+        {
+          "symbol": "∧",
+          "meaning": "Every listed independent condition must hold."
+        },
+        {
+          "symbol": "bytes",
+          "meaning": "UTF-8 byte length, which can exceed visible character count."
+        }
+      ]
+    },
+    {
+      "title": "Upsert preserves birth metadata but replaces the record body",
+      "expression": "Upsert_8=Ensure(Profile)+WriteName+Ensure(UsernameIndex)+CreateOrReuse(Appearance)+PackAll; created'=storedCreated∨now; updated'=now; ∀s∈[0,11],richState'_s=0",
+      "ariaLabel": "Tag eight maintains Profile, name index, and Appearance, preserves valid creation metadata, updates modification time, and clears all twelve rich-equipment states.",
+      "explanation": "The plus signs show ordered work inside one instruction. Browser cache writes happen later and are not rolled back by this transaction.",
+      "terms": [
+        {
+          "symbol": "created'",
+          "meaning": "Creation slot and time after the operation."
+        },
+        {
+          "symbol": "updated'",
+          "meaning": "The current Clock slot and timestamp."
+        },
+        {
+          "symbol": "s",
+          "meaning": "One reserved rich-equipment slot from zero through eleven."
+        }
+      ]
+    },
+    {
+      "title": "Contract storage and local renderability are different predicates",
+      "expression": "Stored(c)≠Renderable(c); Renderable(c)=ExactBoyAlias(c) ∨ AvatarNCM2Decode(c) succeeds ∨ StrictNCM4Decode(c) succeeds",
+      "ariaLabel": "A code accepted for storage is not automatically renderable; local success requires an exact boy alias or a successful NCM2 or NCM4 decoder path.",
+      "explanation": "NCM2 success here means the behavior of the actual avatar decoder, including its current zero-fill and missing resource-budget boundary. NCM4 success means its stricter canonical and structural checks passed.",
+      "terms": [
+        {
+          "symbol": "Stored",
+          "meaning": "Passes the Player Program's narrow modelCode envelope."
+        },
+        {
+          "symbol": "Renderable",
+          "meaning": "The current shared avatar loader produces a mesh without throwing."
+        },
+        {
+          "symbol": "∨",
+          "meaning": "At least one route succeeds."
+        }
+      ]
+    },
+    {
+      "title": "The requested source and the survival fallback have separate orders",
+      "expression": "RequestedCode=Appearance.modelCode || LocalProfile.modelCode || DefaultBoy; VisibleMesh=requestedSuccess || CurrentValidMesh || defaultBoySuccess",
+      "ariaLabel": "Play first requests chain Appearance, then local profile, then the default boy; if reconstruction fails it preserves a current valid mesh before trying a default replacement.",
+      "explanation": "The double bars mean choose the first usable value. A fallback changes the local visible mesh only; it does not rewrite the public Appearance code.",
+      "terms": [
+        {
+          "symbol": "LocalProfile",
+          "meaning": "The browser's current local player profile object."
+        },
+        {
+          "symbol": "CurrentValidMesh",
+          "meaning": "The last mesh that finished construction and was uploaded successfully."
+        },
+        {
+          "symbol": "DefaultBoy",
+          "meaning": "The built-in standard boy route used when no better code is available."
+        }
+      ]
+    },
+    {
+      "title": "Storage payer and close authority are intentionally different",
+      "expression": "UpsertPayer=owner; CloseAllowed⇔signer=recipient=configuredTreasury; close⇒data=0^9612 ∧ TreasuryLamports+=AppearanceLamports ∧ AppearanceLamports=0",
+      "ariaLabel": "The owner funds Appearance, but close succeeds only when the configured treasury is both signer and recipient; it clears 9,612 bytes and transfers the full account balance.",
+      "explanation": "The observed 67,790,400 lamports was a dated Devnet rent-exempt balance, not a source constant. No current player reclaim path exists.",
+      "terms": [
+        {
+          "symbol": "0^9612",
+          "meaning": "All 9,612 data bytes are filled with zero."
+        },
+        {
+          "symbol": "configuredTreasury",
+          "meaning": "The treasury public key compiled into the current Player build."
+        },
+        {
+          "symbol": "⇔",
+          "meaning": "The stated signer and recipient equality is required."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Fixed offsets make the 9,612-byte layout explicit",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub const HEADER_LEN: usize = 256;\n    pub const DISPLAY_NAME_OFFSET: usize = Self::HEADER_LEN;\n    pub const TITLE_OFFSET: usize = Self::DISPLAY_NAME_OFFSET + PLAYER_NAME_MAX_BYTES;\n    pub const MODEL_CODE_OFFSET: usize = Self::TITLE_OFFSET + APPEARANCE_TITLE_MAX_BYTES;\n    pub const EQUIPMENT_OFFSET: usize = Self::MODEL_CODE_OFFSET + APPEARANCE_MODEL_CODE_MAX_BYTES;\n    pub const LEN: usize =\n        Self::EQUIPMENT_OFFSET + APPEARANCE_EQUIPMENT_SLOT_COUNT * APPEARANCE_EQUIPMENT_SLOT_LEN;",
+      "explanation": "Each variable string owns a fixed reserved region. The twelve equipment records begin only after the full 2,048-byte model-code region.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Build each offset from the preceding fixed-size region."
+        },
+        {
+          "lines": "Lines 6–7",
+          "meaning": "Add twelve 576-byte records to reach the total length."
+        }
+      ]
+    },
+    {
+      "title": "Kind and model text are validated independently",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_model_kind(model_kind: u8) -> Result<(), NicechunkPlayerError> {\n        if model_kind != CHARACTER_MODEL_KIND_MALE && model_kind != CHARACTER_MODEL_KIND_FEMALE {\n            return Err(NicechunkPlayerError::InvalidCharacterModelKind);\n        }\n        Ok(())\n    }\n\n    pub fn validate_title(title: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if title.len() > APPEARANCE_TITLE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidAppearanceTitle);\n        }\n        core::str::from_utf8(title).map_err(|_| NicechunkPlayerError::InvalidAppearanceTitle)\n    }\n\n    pub fn validate_model_code(code: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if code.is_empty() || code.len() > APPEARANCE_MODEL_CODE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        let value =\n            core::str::from_utf8(code).map_err(|_| NicechunkPlayerError::InvalidCharacterCode)?;\n        if !value.starts_with(\"NCM\") {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        Ok(value)\n    }",
+      "explanation": "The kind function receives no model text, and the code function receives no kind. The code validator stops after length, UTF-8, and uppercase prefix.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Accept only numeric kind one or two."
+        },
+        {
+          "lines": "Lines 8–24",
+          "meaning": "Validate the optional title, then accept bounded model UTF-8 beginning with uppercase NCM without decoding a format."
+        }
+      ]
+    },
+    {
+      "title": "Tag 8 rejects any account list other than six",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "fn upsert_player_appearance(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    payload: &[u8],\n) -> ProgramResult {\n    if accounts.len() != 6 || payload.len() < 7 {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }",
+      "explanation": "A five-account SDK instruction fails this first shape check before the processor can perform the remaining Appearance work.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Enter the Appearance processor with supplied accounts and bytes."
+        },
+        {
+          "lines": "Lines 6–8",
+          "meaning": "Require exactly six accounts and at least the seven-byte variable-length header."
+        }
+      ]
+    },
+    {
+      "title": "The sixth processor account is writable UsernameIndex",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let account_info_iter = &mut accounts.iter();\n    let owner = next_account_info(account_info_iter)?;\n    let player_profile = next_account_info(account_info_iter)?;\n    let appearance = next_account_info(account_info_iter)?;\n    let global_config = next_account_info(account_info_iter)?;\n    let system_program_account = next_account_info(account_info_iter)?;\n    let username_index = next_account_info(account_info_iter)?;\n\n    if !owner.is_signer || !owner.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if !player_profile.is_writable || !appearance.is_writable || !username_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }",
+      "explanation": "The ordered roles are owner, Profile, Appearance, GlobalConfig, System Program, and UsernameIndex. Three data accounts plus the payer must be writable as shown.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Assign each supplied AccountInfo to its fixed semantic role."
+        },
+        {
+          "lines": "Lines 9–14",
+          "meaning": "Require a writable signing payer and writable Profile, Appearance, and UsernameIndex."
+        }
+      ]
+    },
+    {
+      "title": "Every full pack clears all twelve rich-equipment payloads",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {\n            writer.u8(0)?;\n            writer.u8(slot as u8)?;\n            writer.bytes(&[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;\n        }",
+      "explanation": "For each record, state becomes zero, the slot ordinal is stored, and all other 574 bytes become zero. Earlier rich-equipment data is not preserved.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Repeat the empty-record representation for slot indexes zero through eleven."
+        }
+      ]
+    },
+    {
+      "title": "Close clears data and transfers the entire balance",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;\n    Ok(())",
+      "explanation": "Earlier checks require the configured treasury as both signer and recipient. This block zeroes the account and transfers whatever balance is present, not only a quoted minimum.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Clear all Appearance data bytes."
+        },
+        {
+          "lines": "Lines 5–10",
+          "meaning": "Add the full balance to the validated recipient and drain Appearance."
+        },
+        {
+          "lines": "Line 11",
+          "meaning": "Return success after both changes."
+        }
+      ]
+    },
+    {
+      "title": "The current website builder supplies UsernameIndex",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "    keys: [\n      { pubkey: authority, isSigner: true, isWritable: true },\n      { pubkey: playerProfile, isSigner: false, isWritable: true },\n      { pubkey: appearance, isSigner: false, isWritable: true },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n      { pubkey: usernameIndex, isSigner: false, isWritable: true },\n    ],\n    data: Buffer.concat([header, name, title, code]),",
+      "explanation": "The browser order matches the processor and includes writable UsernameIndex as account six. Instruction data follows after those account metas.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Declare the signing owner and five non-signing accounts in the current order."
+        },
+        {
+          "lines": "Line 9",
+          "meaning": "Append tag, kind, lengths, and full string bytes."
+        }
+      ]
+    },
+    {
+      "title": "Creation submits full model text before writing local caches",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "    const result = await createPlayerAppearanceOnChain({\n      playerName: name,\n      gender: model.gender,\n      title: \"\",\n      ncmCode: model.code,\n    });\n    if (result?.submitted === false) throw new Error(result.reason || \"player-appearance-not-saved\");\n    persistUsername(name);\n    localStorage.setItem(characterStorageKeys.gender, model.gender);\n    localStorage.setItem(characterStorageKeys.code, model.code);\n    localStorage.setItem(characterStorageKeys.label, t(model.labelKey));\n    localStorage.setItem(characterStorageKeys.createdAt, String(Date.now()));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.gender), model.gender);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.code), model.code);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.label), t(model.labelKey));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.createdAt), String(Date.now()));",
+      "explanation": "The selected object contains the complete boy or girl NCM2. Chain submission is awaited first; the later global and wallet-scoped writes are independent browser operations.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Submit full selected text and reject an explicit skipped result."
+        },
+        {
+          "lines": "Lines 8–16",
+          "meaning": "Persist name and character fields locally after the helper returns."
+        }
+      ]
+    },
+    {
+      "title": "Every built-in alias resolves to the standard boy",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/avatar-mesh.js",
+      "code": "export const BUILTIN_AVATAR_MODEL_CODES = new Map([\n  [\"\", DEFAULT_PEASANT_GUY_NCM],\n  [\"NCM:peasant_guy:v1\", DEFAULT_PEASANT_GUY_NCM],\n  [\"NCM:peasant_guy_blackhair:v1\", DEFAULT_PEASANT_GUY_NCM],\n  [\"peasant_guy\", DEFAULT_PEASANT_GUY_NCM],\n]);",
+      "explanation": "The map contains no girl alias. Creation makes the girl work by storing her full NCM2 text instead.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Map four accepted keys, including empty text, to one embedded standard boy code."
+        }
+      ]
+    },
+    {
+      "title": "The avatar NCM2 bit reader zero-fills missing bytes",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/avatar-mesh.js",
+      "code": "function createBitReader(bytes, offset = 0) {\n  let bitOffset = offset * 8;\n  return {\n    read(bits) {\n      let value = 0;\n      for (let i = 0; i < bits; i += 1) {\n        const byte = bytes[bitOffset >> 3] ?? 0;\n        const bit = (byte >> (bitOffset & 7)) & 1;\n        value |= bit << i;\n        bitOffset += 1;\n      }\n      return value >>> 0;\n    },\n  };\n}",
+      "explanation": "When geometry asks for a byte beyond the decoded payload, nullish fallback supplies zero. The read continues instead of signaling truncated data.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Create a bit-positioned reader."
+        },
+        {
+          "lines": "Lines 5–11",
+          "meaning": "Read each requested bit; missing source bytes explicitly become zero."
+        },
+        {
+          "lines": "Lines 12–15",
+          "meaning": "Return the accumulated unsigned value without an end-of-stream check."
+        }
+      ]
+    },
+    {
+      "title": "NCM4 enforces canonical text, payload size, and CRC32C",
+      "language": "JavaScript",
+      "source": "chunk.js/ncm/character-codec.js",
+      "code": "function readEnvelope(code) {\n  const text = String(code ?? \"\");\n  if (!text.startsWith(NCM4_PREFIX)) throw new Error(\"Expected a canonical NCM4 payload.\");\n  const encoded = text.slice(NCM4_PREFIX.length);\n  if (!encoded || !/^[A-Za-z0-9_-]+$/.test(encoded) || encoded.length % 4 === 1) {\n    throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  }\n  let raw;\n  try {\n    raw = base64UrlDecode(encoded);\n  } catch {\n    throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  }\n  if (base64UrlEncode(raw) !== encoded) throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  if (raw.length < 8) throw new Error(\"NCM4 payload is truncated.\");\n  if (raw.length > NCM4_MAX_PAYLOAD_BYTES) throw new Error(\"NCM4 payload exceeds the on-chain safety limit.\");\n  const body = raw.subarray(0, raw.length - 4);\n  const storedChecksum = new DataView(raw.buffer, raw.byteOffset, raw.byteLength).getUint32(raw.length - 4, true);\n  const actualChecksum = ncm4Crc32c(body);\n  if (storedChecksum !== actualChecksum) throw new Error(\"NCM4 CRC32C checksum mismatch.\");\n  return { text, raw, body };\n}",
+      "explanation": "These are local codec checks after chain storage. Exact prefix, canonical re-encoding, minimum and maximum bytes, and checksum must all agree.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Require exact NCM4 prefix and canonical Base64URL characters."
+        },
+        {
+          "lines": "Lines 8–16",
+          "meaning": "Decode, re-encode, and enforce the bounded payload length."
+        },
+        {
+          "lines": "Lines 17–21",
+          "meaning": "Separate the checksum, recompute CRC32C, and reject a mismatch."
+        }
+      ]
+    },
+    {
+      "title": "Play chooses chain, local, then default model text",
+      "language": "JavaScript",
+      "source": "play/play-profile-session.js",
+      "code": "  function currentAvatarModelCode() {\n    const chainAppearance = getChainPlayer()?.snapshot?.()?.appearance || null;\n    return normalizeProfileModelCode(chainAppearance?.modelCode)\n      || normalizeProfileModelCode(gameState.playerProfile?.modelCode)\n      || defaultModelCode;\n  }",
+      "explanation": "The first acceptable nonempty code comes from the asynchronously refreshed chain Appearance, followed by local profile text and the configured default route.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–2",
+          "meaning": "Read the current chain Appearance snapshot when available."
+        },
+        {
+          "lines": "Lines 3–5",
+          "meaning": "Choose chain model text, then local profile text, then default."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Defines Appearance seed, magic, version, 9,612-byte offsets, field validators, complete packing, empty rich-equipment records, and creation metadata reads."
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Implements tag-8 six-account upsert, Profile and UsernameIndex ordering, rent funding, creation-time preservation, full repack, and treasury-only tag-9 close."
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "Pins the configured Player treasury authority used in new Appearance data and close authorization."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Builds the current website's six-account instruction, applies browser field checks, fetches and decodes Appearance, and derives the name index."
+    },
+    {
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "Retains the older five-account Appearance builder and a rich-equipment decoder, exposing both integration drift and the difference between a readable schema and an active contract writer."
+    },
+    {
+      "path": "tests/nicechunk_player_chunk.ts",
+      "claim": "Asserts the older SDK account shape and contains a hand-authored nonzero equipment decode fixture; it is not proof that the current program writes rich equipment."
+    },
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "Embeds the full standard boy and girl NCM2 codes, submits selected complete text, and writes global plus wallet-scoped browser cache values after the chain helper returns."
+    },
+    {
+      "path": "login/login.js",
+      "claim": "Uses a wallet-scoped character shortcut, otherwise reads Appearance and restores chain model text into global and wallet-scoped browser storage."
+    },
+    {
+      "path": "play/play-profile-session.js",
+      "claim": "Defines chain-Appearance, local-profile, and default model-code precedence for the local avatar."
+    },
+    {
+      "path": "play/play-avatar-session.js",
+      "claim": "Builds and replaces the local mesh, restores Backpack and NCF1 equipment for the established path, keeps a working mesh on failure, and attempts the default when needed."
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "Fetches Profile and Appearance asynchronously and keeps modelKind as decoded state rather than renderer model selection."
+    },
+    {
+      "path": "play/play-guardian-appearance.js",
+      "claim": "Implements the separate five-minute wallet cache, bounded mesh cache, Appearance fetch, and default-boy fallback used for remote Guardian avatars."
+    },
+    {
+      "path": "play/player-motion-controller.js",
+      "claim": "Supplies normal moving, time, mining progress, and mining aim state without selecting an NCM4 action or clip."
+    },
+    {
+      "path": "chunk.js/renderer/avatar-mesh.js",
+      "claim": "Defines the boy-only alias map, NCM2 and NCM4 dispatch, loose NCM2 zero-filled bit reader, heuristic NCM2 rig and tools, and current NCM4 empty equipment and hand-anchor fields."
+    },
+    {
+      "path": "chunk.js/renderer/avatar-action.js",
+      "claim": "Resolves and samples explicitly selected NCM4 actions, bone rotations, and visible groups."
+    },
+    {
+      "path": "chunk.js/ncm/character-codec.js",
+      "claim": "Defines NCM4's 1,532-byte payload ceiling, twenty bones, bounded geometry and actions, canonical Base64URL envelope, and CRC32C validation."
+    },
+    {
+      "path": "src/vox/ncm.js",
+      "claim": "Provides the stricter general source NCM2 decoder whose truncated-bit rejection must not be confused with the avatar renderer's zero-fill behavior."
+    },
+    {
+      "path": "chunk.js/renderer/webgl2-renderer.js",
+      "claim": "Shows avatar vertex color and realtime lighting behavior separately from the world's baked terrain texture array."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "The checked-in 353-character standard boy NCM2 fixture used by current creation and built-in fallback."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "The checked-in 451-character standard girl NCM2 fixture submitted as full text because no girl alias exists."
+    },
+    {
+      "path": "chunk.js/tests/ncm-character.test.mjs",
+      "claim": "Exercises shared character format behavior; its passing scope does not add Player Program validation."
+    },
+    {
+      "path": "chunk.js/tests/ncm4-avatar-renderer.test.mjs",
+      "claim": "Exercises NCM4 decode, mesh construction, groups, and explicit action sampling outside the incomplete normal Play mapping."
+    },
+    {
+      "path": "docs/audits/character-creation-devnet-2026-07-16.json",
+      "claim": "Retains finalized Devnet rent queries, standard model hashes and dimensions, deployed ProgramData evidence, and source-versus-deployment limitations."
+    },
+    {
+      "path": "docs/audits/player-profile-devnet-2026-07-16.json",
+      "claim": "Retains confirmed slot-476,758,441 raw accounts used to re-derive ten Appearance addresses, balances, field distributions, model bytes, titles, and 120 empty rich states."
+    }
+  ],
+  "related": [
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+      "summary": "Return to the compact Profile and see why Appearance, name claims, Backpack, progress, and browser state remain separate records."
+    },
+    {
+      "slug": "ncm-codes",
+      "href": "/docs/ncm-codes/",
+      "title": "NCM Codes: Stored Bytes, Verified Bounds, Rebuilt Geometry",
+      "summary": "Continue into model and building format families while keeping each consumer's validator and reconstruction boundary distinct."
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "Player Sessions and Temporary Authority",
+      "summary": "Move from persistent public appearance to the temporary signer, action bits, funding, and expiry used during play."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "CONTINUE THE PLAYER AND WALLET PATH",
+      "title": "Next, separate persistent appearance from temporary authority",
+      "summary": "Appearance keeps public identity and model text across visits. The next available reviewed guide explains the short-lived PlayerSession record that authorizes only selected actions without becoming the owner."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "player-profile",
+        "title": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+        "summary": "Review the compact player anchor and the other records it cannot contain before following model text into reconstruction."
+      },
+      {
+        "label": "Next available guide",
+        "slug": "player-sessions",
+        "title": "Player Sessions and Temporary Authority",
+        "summary": "Learn how a temporary key receives bounded action bits and an expiry without changing persistent player ownership."
+      }
+    ]
+  }
+}

@@ -1,0 +1,830 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-local-game-wallet-backup-and-risk-zh-Hans-7ae699140dd3888a",
+    "contentHash": "7ae699140dd3888a"
+  },
+  "kind": "topic",
+  "slug": "local-game-wallet-backup-and-risk",
+  "shortTitle": "本地 Game Wallet：备份与风险",
+  "seo": {
+    "title": "本地 Game Wallet 的备份、签名与恢复",
+    "description": "了解 NiceChunk Game Wallet 如何把 Base58 私钥保存在浏览器 localStorage 中、备份与资金检查实际做了什么，以及为什么 Disconnect（断开）不等于 Delete（删除）。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 02 · 浏览器持有的密钥",
+    "title": "Game Wallet 是保存在这个浏览器里的密钥，不是加密保险库",
+    "summary": "NiceChunk 可以生成或导入一组 Solana 密钥对，并把完整的 Base58 私钥保存在本站点的浏览器 localStorage 中。这份私钥在每个 Solana 集群上都代表同一地址的完整签名权限，并不是仅限 NiceChunk 的许可。当前客户端以 Devnet 为目标：只使用新建、专用、低余额的钱包与 Devnet SOL，绝不要导入主钱包；充值前应先理解备份、同源访问、静默替换、直接签名，以及 Disconnect 与删除的局限。",
+    "readingTime": "阅读约 24 分钟",
+    "visual": {
+      "src": "/docs/media/local-game-wallet-backup-and-risk-overview-v1.webp",
+      "alt": "这幅教学场景参考标准 NiceChunk 村民与真实 Chunk.js 山坡：女孩在开放式木营地里准备一把镐子，一只合上的普通木盒留在架子上，男孩在营地外等待。",
+      "caption": "普通的合盖木盒代表浏览器持有的签名秘密，女孩的工具代表它可以授权的动作。它们只是教学隐喻，不是游戏钱包对象或状态指示器；这张图不能证明加密已经存在、备份已经完成、私钥安全、签名有效、余额充足或链上操作成功。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "内置 Game Wallet 如何保存、备份、用于跨 Solana 集群签名、断开、删除与恢复？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 15 步中的第 2 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景、希望减少钱包弹窗的玩家"
+      },
+      {
+        "label": "当前网络",
+        "value": "客户端目标：Solana Devnet（开发网）· 私钥本身不属于某个特定集群"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 15 日 · 当前工作树、9 项聚焦密钥测试，以及构建后浏览器登录流程"
+      }
+    ],
+    "terms": [
+      {
+        "term": "内置 Game Wallet",
+        "meaning": "由 NiceChunk 创建或导入、并由当前浏览器源保存的一组 Solana 密钥对。它不同于外部钱包扩展。"
+      },
+      {
+        "term": "密钥对（Keypair）",
+        "meaning": "一组在数学上相互关联的公开地址与签名秘密。公开部分标识钱包，秘密部分可以授权操作。"
+      },
+      {
+        "term": "钱包 Provider",
+        "meaning": "提供公钥与签名方法的 JavaScript 接口。内置 Provider 会重建本地 Keypair；外部 Provider 则会请求独立的钱包应用或扩展。"
+      },
+      {
+        "term": "Solana 集群",
+        "meaning": "彼此独立的 Solana 网络，例如 Devnet 或 Mainnet。私钥不会被标记为仅限 Devnet：它在每个集群上都会推导出同一公开地址与签名权限。"
+      },
+      {
+        "term": "Lamport（SOL 最小单位）",
+        "meaning": "SOL 的最小单位。1 SOL 等于十亿 lamports，因此当前 100,000,000 lamports 的登录最低门槛等于 0.1 SOL。"
+      },
+      {
+        "term": "PlayerSession PDA",
+        "meaning": "PDA（程序派生地址）是由 Solana 程序控制的链上记录。PlayerSession 描述谁可以执行受支持的玩家操作，以及权限持续到何时。在本地 Game Wallet 模式中，会话权限就是所有者自身，而不是独立的临时密钥。"
+      },
+      {
+        "term": "公开地址",
+        "meaning": "用于充值和查询公开账户的 Base58 Solana 地址。公开查看它本身不会泄露签名密钥，但它可以把公开活动和余额关联起来。"
+      },
+      {
+        "term": "私钥或秘密密钥",
+        "meaning": "让软件能够以该钱包身份签名的秘密字节。NiceChunk 把完整的 64 字节密钥对秘密保存在名为 secretKey 的 localStorage 键下。"
+      },
+      {
+        "term": "32 字节种子",
+        "meaning": "一种可接受的原始字节导入形式。它不是由 12 个或 24 个单词组成的助记词。解析器把这些字节交给 Keypair.fromSeed，然后保存由此得到的完整 64 字节私钥。"
+      },
+      {
+        "term": "64 字节秘密密钥",
+        "meaning": "另一种可接受的导入形式，也是 Solana Keypair 输出的形式。当前代码把这 64 个字节编码成 Base58，用于保存与备份。"
+      },
+      {
+        "term": "Base58 编码",
+        "meaning": "一种避开易混淆字符的文本编码。它不是加密，不是密码，也无法阻止有权读取文本的脚本。"
+      },
+      {
+        "term": "JSON 秘密密钥数组",
+        "meaning": "粘贴后由当前解析器使用 Uint8Array.from 转换的数组。结果长度必须为 32 或 64，但代码不会严格检查每个元素是否为 0 到 255 的整数。"
+      },
+      {
+        "term": "localStorage（浏览器本地存储）",
+        "meaning": "属于某个浏览器源的持久键值存储。同源 JavaScript 可以读取它，清除站点数据也可以把它删除。"
+      },
+      {
+        "term": "浏览器源（Browser origin）",
+        "meaning": "浏览器用来区分某个站点地址与协议组合的身份边界。同一源上的页面通常共享 localStorage；同一站点上的另一条路径并不是独立的钱包保险库。"
+      },
+      {
+        "term": "同源脚本",
+        "meaning": "能够访问同一站点源的 JavaScript。这类代码可以读取该钱包保存的 Base58 私钥；localStorage 不会像钱包扩展那样把密钥隔离起来。"
+      },
+      {
+        "term": "RPC（远程过程调用）",
+        "meaning": "客户端用来查询余额、账户数据、近期区块哈希、提交交易和确认状态的网络服务。一次 RPC 响应只是一项观察结果，不是备份，也不具备签名权限。"
+      },
+      {
+        "term": "交易字节",
+        "meaning": "包含指令、账户、手续费支付方和近期区块哈希的确切序列化请求。签名授权的是这些字节，但不保证网络会接受它们。"
+      },
+      {
+        "term": "confirmed 与 finalized",
+        "meaning": "Solana 的两个确认置信级别。已审核的签名路径会等待 confirmed；finalized 是随后出现、置信度更强的状态，因此本页不会混用这两个词。"
+      },
+      {
+        "term": "备份确认",
+        "meaning": "登录页上供新建钱包勾选的复选框。它不会记录持久证据，也无法知道玩家是否真的保存了可用备份。"
+      },
+      {
+        "term": "confirmed 余额",
+        "meaning": "以 Solana confirmed 承诺级别从 RPC 观察到的余额。它只是一个快照，不是 finalized 证明、支出储备，也不保证今后的每次操作都有足够费用。"
+      },
+      {
+        "term": "Disconnect（断开）",
+        "meaning": "清除当前选中钱包的绑定，并在存在扩展 Provider 时请求它断开。这个操作不会删除内置 Game Wallet 的私钥。"
+      },
+      {
+        "term": "删除与恢复",
+        "meaning": "删除是指移除这条浏览器记录或清除站点数据；它不会抹掉所有副本，也不会退回余额。恢复是指根据有效秘密材料重建同一组密钥对。已审核客户端没有提供服务器支持的恢复路径，因此不要假设客服能够恢复它。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "Base58 文本以明文保存在浏览器存储中",
+      "body": "创建与导入最终都会把完整的 64 字节秘密编码为 Base58，并存入 nicechunk.localGameWallet.secretKey。这里没有加密层或密码层。"
+    },
+    {
+      "title": "充值或替换之前先备份",
+      "body": "完整登录页要求创建者先确认已经备份再继续，但这个复选框只是自我声明。Create 与 Import 都可能静默替换已有本地记录。"
+    },
+    {
+      "title": "它是在各个集群上都有效的完整账户权限",
+      "body": "签名器不会把自身限制在 NiceChunk 指令内。同一份私钥在 Devnet 与 Mainnet 上控制同一地址；0.1 SOL 门槛、action bits 与当前界面都不是权限上限。"
+    },
+    {
+      "title": "Disconnect、Delete 与 Recover 是三件不同的事",
+      "body": "Disconnect 会清除会话绑定字段。删除站点数据只会移除浏览器记录，不会移除余额或所有已复制密钥。如果最后一份有效私钥丢失，资产仍会留在链上，却可能永久无法访问。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "browser-held-secret",
+      "eyebrow": "存储与导入边界",
+      "title": "创建与导入最终都会变成一份由浏览器持有的 Base58 私钥",
+      "paragraphs": [
+        "Create 会生成一组 Solana Keypair。Import 接受去除首尾空白后的 Base58 文本，或以左方括号开头的 JSON 数组文本。解码后 32 字节会被当作种子，64 字节会被当作完整秘密密钥。无论哪条路径成功，NiceChunk 都会把推导出的公开地址、编码为 Base58 的完整 64 字节秘密、当前毫秒时间戳，以及 created 或 imported 来源标签分别写入四个 localStorage 项。",
+        "这些项目只是当前源的普通存储，并不是加密钱包文件。Base58 改变的是字符表，不会改变谁能够读取该值。同源脚本可以请求包含私钥的记录，清除本站点数据则可能删掉浏览器中的唯一副本。source 标签是可编辑、用于控制界面行为的浏览器数据，不是密码学来源证明。对于导入的钱包，createdAt 表示本浏览器何时保存它，而不是这把密钥最初何时产生。",
+        "这把密钥没有仅限 NiceChunk 或仅限 Devnet 的标记。在 Devnet 与 Mainnet 上，Solana 都会根据同一私钥推导出同一地址。因此，把主钱包私钥导入这个以 Devnet 为目标的页面，会同时暴露该密钥对其 Mainnet 地址、代币、账户与其他权限的控制能力。请只使用新建的专用 Game Wallet 与 Devnet SOL；不要向这个流程发送 Mainnet SOL。",
+        "JSON 分支比较宽松。它会对 JSON.parse 返回的内容调用 Uint8Array.from，之后只检查结果的字节长度。像 256 这样的值会回绕为 0，数字字符串也会被强制转换；代码并不要求输入必须是一维的 0 到 255 整数数组。Base58 与 JSON 路径同样不接受助记词、十六进制字符串或 Base64 值。",
+        "Create 与 Import 会调用同一个存储流程，不检查是否已有记录，也不会在替换前征求许可。四个键按顺序逐个写入，并非原子提交。第二次操作可能静默覆盖尚未备份的钱包，写入中途发生存储失败还可能留下残缺或不匹配的记录。读取记录时虽然要求地址和私钥同时存在，却不会根据私钥推导地址再进行比对。之后构造 Provider 时会根据私钥推导公钥，因此损坏的已存地址与已存私钥可能描述两个不同钱包。"
+      ],
+      "facts": [
+        {
+          "label": "已保存的秘密",
+          "value": "完整 64 字节 Keypair 秘密的 Base58 文本",
+          "detail": "导入 32 字节种子时会先把它展开为 Keypair，因此最终写入存储的仍是所得 64 字节秘密。"
+        },
+        {
+          "label": "已保存的元数据",
+          "value": "地址、时间戳以及 created/imported 标签",
+          "detail": "它们是四个相互独立的 localStorage 值，没有 schema 版本、原子提交，也没有经过认证的关联关系。"
+        },
+        {
+          "label": "JSON 校验",
+          "value": "类型转换加长度检查",
+          "detail": "当前解析器不会在 Uint8Array 转换前拒绝所有非整数、越界值、字符串、嵌套值或其他会被强制转换的元素。"
+        },
+        {
+          "label": "替换行为",
+          "value": "最后一次成功的 Create 或 Import 覆盖之前记录",
+          "detail": "没有覆盖确认，也不会自动导出之前的私钥。"
+        },
+        {
+          "label": "集群边界",
+          "value": "私钥并非仅限 Devnet",
+          "detail": "当前页面以 Devnet 为目标，但在这把密钥拥有权限的任何集群上——包括 Mainnet——同一私钥都会控制同一公开地址。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/local-game-wallet-backup-and-risk-browser-held-secret-v1.webp",
+        "alt": "这幅教学场景参考标准村民与真实 Chunk.js 山坡：女孩把一只合上的木盒放在开放式木棚内无遮蔽的架子上，男孩从外面观看。",
+        "caption": "开放式木棚与普通架子代表同一站点源中的代码可以访问的存储，合上的木盒代表私钥。它们并不是真实浏览器对象；这幅场景不能证明加密、隔离或备份已经完成，也不能证明私钥安全、签名有效、余额充足或链上操作成功。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "即使只是测试 Devnet，也绝不要导入主钱包",
+        "body": "Base58 只是让字节便于打印，而 Solana 密钥并不属于某个特定集群。任何拿到这段已存文本的人或同源代码，都可以重建同一把拥有完整权限的签名密钥。"
+      }
+    },
+    {
+      "id": "backup-before-funding",
+      "eyebrow": "备份与充值边界",
+      "title": "即使只转入小额资金，也要先验证备份确实可以恢复",
+      "paragraphs": [
+        "完整登录页创建钱包后，会显示公开地址与完整的 Base58 私钥备份，清空确认复选框，并在玩家勾选前阻止 Continue。页面不会验证剪贴板复制结果、测试恢复后的密钥、下载文件或持久保存这次确认。创建者即使什么都没保存，也可以勾选复选框。之后再次显示一条尚未绑定的 created 记录时，私钥仍可重新显示，而复选框会再次重置。",
+        "Copy private key 按钮会把该值写入操作系统剪贴板，并报告成功或失败。它不会读回剪贴板、验证重建地址，也不会在之后清空剪贴板。剪贴板历史、剪贴板同步与其他应用都可能保留已复制文本。在共享浏览器配置文件中，另一个能够使用同一站点源的人也可能访问已存记录。localStorage 不是可靠的跨设备备份：更换设备、浏览器、浏览器配置文件、站点源、隐私模式或站点数据设置，都可能让钱包不可用；某些配置文件备份或同步系统也可能以当前客户端无法验证的方式复制浏览器数据。",
+        "导入记录会走另一条分支：由于密钥由玩家提供，完整登录页会清空私钥字段、隐藏备份控件，并跳过备份复选框。这并不会从 localStorage 中移除已导入私钥。控制这条界面分支的 source 标签只是本地数据，不能证明安全的外部备份仍然存在。",
+        "随后，完整登录页的 Continue 路径会向已配置 RPC 查询已存地址在 confirmed 承诺级别下的 SOL 余额。余额至少达到 100,000,000 lamports，也就是 0.1 SOL，才会保存钱包会话并继续。这只是最低门槛，不是精确充值额、最高余额、托管、支出上限、手续费保证，也不会限制后续交易把 SOL 发送到哪里。由于显示值只保留三位小数，略低于门槛的余额甚至可能显示为 0.100 SOL，但整数比较仍会拒绝它。",
+        "游戏内 Play 钱包面板是另一条路径，会绕过完整登录页的两项门槛。Create 会立即写入钱包并应用钱包会话，只用文字提醒玩家保存并充值。Use local game wallet 同样会直接应用会话，不检查备份复选框、source 标签或 0.1 SOL 余额。这个绕过不会让没有资金的交易成功，也不会绕过任何链上指令校验；它只说明登录页的保护措施并非处处生效。"
+      ],
+      "steps": [
+        {
+          "title": "只使用专门的低余额 Game Wallet",
+          "body": "界面会警告不要导入主钱包，但代码无法识别什么是主钱包。请把贵重资产和长期权限放在其他钱包中。"
+        },
+        {
+          "title": "充值前保存准确无误的私钥",
+          "body": "通过可信的离线备份流程保存完整 Base58 值。不要通过聊天、云端表单或客服发送它；截图与同步剪贴板历史也可能泄露或复制它。"
+        },
+        {
+          "title": "在不暴露私钥的前提下验证备份",
+          "body": "使用独立、可信的恢复环境，确认已保存材料能够重建出同一个公开地址。不要在当前已存钱包中使用 Import 来测试，因为 Import 可能覆盖该记录。"
+        },
+        {
+          "title": "只转入你愿意承担风险的金额",
+          "body": "只使用 Devnet SOL。当前登录门槛要求至少 0.1 SOL，但没有设置上限，也不会限制密钥权限。保持低余额是降低风险的建议，并非代码强制。"
+        },
+        {
+          "title": "不要随意点击 Create 或 Import",
+          "body": "任一操作都可能在不确认的情况下替换现有已存密钥。请先备份当前钱包并核对目标地址。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "新建钱包复选框",
+          "value": "临时的自我声明",
+          "detail": "每次显示钱包保管区时它都会重置，无法证明备份确实存在或能够使用。"
+        },
+        {
+          "label": "导入钱包分支",
+          "value": "隐藏私钥并跳过复选框",
+          "detail": "即使完整登录页在该分支中不显示私钥，私钥仍然保存在浏览器中。"
+        },
+        {
+          "label": "0.1 SOL",
+          "value": "当前完整登录页的最低门槛",
+          "detail": "它是对 100,000,000 lamports 的 confirmed 余额比较，不是上限、储备、托管，也不是协议授权规则。"
+        },
+        {
+          "label": "Play 钱包面板",
+          "value": "不经过这两项门槛就应用会话",
+          "detail": "它提供独立的 Create 与 Use local wallet 操作，二者都不会强制检查备份复选框或最低余额。"
+        },
+        {
+          "label": "剪贴板与设备边界",
+          "value": "复制与持久保存不在复选框的证明范围内",
+          "detail": "客户端不会清除剪贴板历史，也不保证存储能经受隐私模式、配置文件变更、站点数据清理或设备更换。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/local-game-wallet-backup-and-risk-backup-before-funding-v1.webp",
+        "alt": "这幅教学场景参考标准村民与真实 Chunk.js 山坡：女孩把一只普通合盖木盒放进干燥的石壁凹槽，第二只合盖木盒留在远处营地棚下，男孩站在两者之间。",
+        "caption": "两只分开放置的合盖木盒代表原始私钥与独立恢复副本。它们只是教学隐喻，并不是复制实体游戏物品的指示；这幅场景无法验证备份是否正确或安全、是否没有副本泄露、SOL 是否已经转移，也无法证明任何签名或链上操作成功。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Play 面板可以跳过完整登录页的保护措施",
+        "body": "应把备份复选框与 0.1 SOL 门槛理解为完整登录流程的行为，而不是所有本地钱包入口或 Solana 程序都会强制执行的通用要求。"
+      }
+    },
+    {
+      "id": "one-key-signs-game-actions",
+      "eyebrow": "签名权限边界",
+      "title": "弹窗更少，意味着浏览器持有的密钥可以直接签名",
+      "paragraphs": [
+        "NiceChunk 需要本地 Provider 时，会读取已保存的 Base58 私钥、重建 Keypair，并返回一个标记为已连接的 Provider。它的 connect 方法只会返回推导出的公钥。交易方法会用这组 Keypair 对单笔交易或所给列表中的每笔交易调用 partialSign。这些方法不会弹出外部钱包确认框，而 disconnect 什么也不会做。",
+        "这些交易方法不会检查所给字节是否属于 NiceChunk 挖矿操作。能够触达签名器的调用方，可以请求密钥为任何提供给它的兼容交易签名，包括转账、代币操作或由所有者授权的指令；这些交易仍受其中常规 Solana 程序与账户规则约束。当前界面、0.1 SOL 最低门槛、PlayerSession action bits 与低余额建议，都不会缩小所有者私钥本身能够授权的范围。",
+        "当前链适配器也能识别这个 Provider，并可直接发送由 Keypair 签名的交易。在本地 Game Wallet 的玩家会话设置中，所有者公钥与 session-authority 公钥是同一把密钥。这样无需充值和保存第二个临时签名者，但也意味着 Game Wallet 私钥始终保有直接签名权限。把这条记录称为 session，并不会把这把长期所有者密钥变成服务器持有的会话，也不会把它变成权限更窄的扩展批准。",
+        "PlayerSession PDA 可以过期，也可以限制读取它的受支持玩家指令，但这种过期不会轮换、删除或消除长期所有者私钥的效力。相比之下，外部钱包路径可以使用另一把临时会话密钥。本地模式返回 Game Wallet Keypair 本身，并明确标记为没有使用独立的 Gameplay Session 签名器。",
+        "这并不意味着密钥能让每一次游戏操作都成功。Provider 只实现了一个基于 partialSign 的小型交易接口，链适配器则另有一些本地密钥分支。准备好的指令仍要面对 RPC 可用性、手续费、账户所有权、PDA 推导、程序检查、冷却时间、容量规则与确认失败。本地密钥只能提供签名，不能证明指令正确或已经被接受。",
+        "存储记录损坏后，记录与 Provider 会用不同方式确定身份。登录余额与绑定直接使用单独保存的地址，不会拿它与私钥核对。构造 Provider 时则会根据私钥推导公钥，之后链 Provider 选择器还要求已绑定会话地址等于这个推导公钥。因此，地址不匹配可能让登录流程查询或绑定一个地址，却在后续无法使用本地签名器。这是完整性故障，不是安全的地址迁移功能。"
+      ],
+      "facts": [
+        {
+          "label": "由什么签名",
+          "value": "重建后的浏览器持有 Keypair",
+          "detail": "每次请求 Provider 或直接请求本地 Keypair 时，私钥都会被重新解码。"
+        },
+        {
+          "label": "玩家会看到什么",
+          "value": "这些本地方法不会弹出扩展批准框",
+          "detail": "这种便利依赖于你信任同源应用代码：它会准备交易字节，并请求 Keypair 为其签名。"
+        },
+        {
+          "label": "签名能够证明什么",
+          "value": "这把密钥签署了确切的交易字节",
+          "detail": "它不能证明程序行为正确、余额充足、RPC 已接受交易、状态达到 confirmed 或 finalized。"
+        },
+        {
+          "label": "地址完整性",
+          "value": "读取四字段记录时不会检查",
+          "detail": "安全的加载流程应先根据私钥推导公钥，并要求它与已存地址完全相等，之后才能使用其中任何一项。"
+        },
+        {
+          "label": "签名器范围",
+          "value": "该 Solana 账户密钥的完整权限",
+          "detail": "partial-sign 方法本身不会强制执行仅限 NiceChunk 的指令列表、SOL 上限或仅限 Devnet 的边界。"
+        },
+        {
+          "label": "会话过期",
+          "value": "不会让所有者私钥失效",
+          "detail": "链上 PlayerSession 记录可以过期，但同一组由浏览器持有的所有者 Keypair 仍能为所有者可授权的交易签名。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/local-game-wallet-backup-and-risk-one-key-signs-game-actions-v1.webp",
+        "alt": "这幅教学场景参考标准村民与真实 Chunk.js 山坡：女孩在一块完好石头前举起镐子，男孩在旁等待，一只合上的木盒留在她身后的营地架子上。",
+        "caption": "女孩使用自己工具的动作，代表浏览器持有的所有者密钥无需扩展弹窗即可为一项游戏操作签名；这不表示该密钥只限于这个操作。完好的石头把画面停在结果出现之前；这幅场景不能证明签名有效、余额充足、交易已接受，或状态达到 confirmed 或 finalized。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "自动签名既是功能，也是风险",
+        "body": "能够接触已存密钥的受感染同源脚本，无需攻破扩展钱包弹窗，而且这把密钥并不只限于 NiceChunk 操作。请使用全新、专用的钱包，只在 Devnet 中使用并保持低余额；把贵重资产与更广泛权限放在其他钱包中。"
+      }
+    },
+    {
+      "id": "disconnect-delete-and-recover",
+      "eyebrow": "生命周期边界",
+      "title": "Disconnect 会清除会话；删除只会移除当前浏览器记录",
+      "paragraphs": [
+        "登录页的 Disconnect 按钮会尝试断开检测到的扩展 Provider，然后清除当前选中钱包地址、钱包名称与钱包绑定时间戳。Play 退出路径同样把 Provider 断开视为 best effort，清除身份与选定运行时缓存，再返回登录页。内置本地 Provider 自身的 disconnect 方法会直接返回，不改变任何内容。这些路径都不会删除四个 nicechunk.localGameWallet 字段。",
+        "本地钱包模块确实导出了 clearLocalGameWallet，它会删除地址、私钥、时间戳与 source 字段。但当前仓库搜索没有发现已审核运行时或产品控件调用它，两个钱包面板也都没有 Delete 或 Forget Game Wallet 按钮。玩家可以先断开，之后再看到或复用同一条已存本地记录。清除浏览器站点数据可以把它删掉，但这项范围更广的浏览器操作也可能移除 NiceChunk 的其他本地状态。",
+        "删除不等于撤销、转移、退款，也不保证安全擦除。断开连接、清除站点数据或删除本地记录，都不会转出 SOL、代币或其他资产，不会撤销已完成交易、抹去公开历史、关闭程序账户、移除其他地方的浏览器或剪贴板副本，也不一定能移除仍被活动 JavaScript 内存持有的 Keypair。如果被删记录是最后一份有效私钥，链上余额与资产仍会留在该地址，却可能永久无法访问。",
+        "如果私钥已经暴露，任何持有副本的人仍可能签名。应在可信环境中创建新钱包并迁移剩余资产与权限，而不是依赖 Disconnect 或本地删除。移除一个浏览器副本，无法让别人持有的副本重新变得私密。",
+        "恢复是确定性地重建密钥，不是重置账户。以受支持的 Base58 或 JSON 数组形式提供正确的 32 字节种子或 64 字节秘密，就能重建对应 Keypair，存储流程随后会保存其完整的 64 字节 Base58 私钥。错误格式会被拒绝，但宽松的 JSON 强制转换可能静默改变异常值。在认定钱包恢复前，务必核对恢复出的公开地址。如果清除站点数据或静默覆盖后所有有效副本都已丢失，已审核客户端没有提供服务器支持的恢复路径；玩家不应假设 NiceChunk 客服能够恢复私钥。"
+      ],
+      "steps": [
+        {
+          "title": "如果只想在当前会话中停止使用钱包",
+          "body": "使用 Disconnect 或退出。此操作会清除本地绑定，但内置私钥仍会留在这个浏览器中。"
+        },
+        {
+          "title": "如果要删除浏览器副本",
+          "body": "请先验证安全备份与目标地址，再转移或妥善核对任何剩余余额。当前产品没有专用 Delete 控件；清除站点数据的影响范围大于只删除钱包，而且不保证安全擦除。"
+        },
+        {
+          "title": "如果要恢复同一个钱包",
+          "body": "导入可信备份，并在发送资金或签署任何内容前，确认推导出的公开地址与之前记录的地址完全一致。"
+        },
+        {
+          "title": "如果私钥已经暴露",
+          "body": "应假设已复制的秘密材料仍然可用。通过可信路径创建新钱包，再迁移剩余资产或权限；Disconnect 无法轮换密钥。"
+        },
+        {
+          "title": "如果要避免意外替换",
+          "body": "保存着已有资金的本地钱包时，不要把 Create 或 Import 当作实验功能。当前没有覆盖确认，也不会自动恢复上一把密钥。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "Disconnect 会移除",
+          "value": "当前选中的连接与会话字段",
+          "detail": "登录页与 Play 的具体清理范围不同，但两条路径都不会调用本地 Game Wallet 清除函数。"
+        },
+        {
+          "label": "当前仅删除钱包的界面",
+          "value": "没有",
+          "detail": "清除函数存在于源码中，但没有已审核的运行时或产品调用方，也没有面向玩家的按钮。"
+        },
+        {
+          "label": "清除浏览器站点数据",
+          "value": "可能删除唯一的本地私钥副本",
+          "detail": "它还可能删除无关的本地游戏状态，而且无法撤销已经复制到其他地方的私钥。"
+        },
+        {
+          "label": "已审核客户端中的恢复路径",
+          "value": "已审核客户端未提供此路径",
+          "detail": "能否恢复取决于是否有可重建同一公开地址的有效秘密材料；不要假设客服可以恢复遗失的私钥。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/local-game-wallet-backup-and-risk-disconnect-delete-and-recover-v1.webp",
+        "alt": "这幅教学场景参考标准村民与真实 Chunk.js 山坡：女孩与男孩离开开放式木营地，一只普通合盖木盒仍留在无遮蔽的架子上，旁边的石块也保持完好。",
+        "caption": "人物离开而木盒仍在，代表 Disconnect 会把浏览器持有的私钥留在原处；没有变化的石块代表本地清理无法抹去的共享历史。这些只是教学隐喻，不是产品控件，也不能证明删除、恢复、撤销、余额、签名或链上状态。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "没有备份，已审核客户端中就没有恢复路径",
+        "body": "如果浏览器存储被清除或静默替换，并且没有留下有效私钥副本，就无法根据公开地址重建密钥。已审核客户端没有提供服务器支持的恢复路径，因此剩余资产可能继续留在链上，却永久无法访问。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "追踪这把密钥",
+    "title": "十一段源码追踪私钥从存储到签名与清理的全过程",
+    "summary": "两个公式把登录页的一项门槛与密钥更广泛的权限区分开来。逐字源码展示创建、导入、清除、宽松字节转换、Provider 直接签名、created 与 imported 的界面差异、备份与余额门槛、Play 绕过路径、剪贴板复制、会话清理、所有者等于会话权限、达到 confirmed 的提交，以及已存地址完整性检查。"
+  },
+  "formulas": [
+    {
+      "title": "当前完整登录页的 Continue 门槛",
+      "expression": "continueLogin = has(record.address) AND (source = imported OR backupBox = checked) AND confirmedBalance(record.address) >= 100,000,000 lamports",
+      "ariaLabel": "只有在已存地址存在、source 为 imported 或备份复选框已勾选，并且该地址的 confirmed 余额至少为一亿 lamports 时，完整登录页才会继续。",
+      "explanation": "这是浏览器界面策略，不是 Solana 程序规则。复选框不能证明备份存在，导入记录会绕过它，而且该表达式不会验证 record.address 是否匹配根据已存私钥推导出的公钥。这个门槛是最低值，不是上限或预留预算。Play 钱包面板无需计算该公式就会应用本地会话。",
+      "terms": [
+        {
+          "symbol": "record.address",
+          "meaning": "从 localStorage 单独读取的 Base58 地址；这个门槛不会根据已存私钥推导地址并进行比对。"
+        },
+        {
+          "symbol": "source",
+          "meaning": "可修改的 created 或 imported localStorage 标签，用于选择备份界面分支。"
+        },
+        {
+          "symbol": "backupBox",
+          "meaning": "新建钱包使用的临时复选框。已勾选只代表玩家在当前页面状态中选择了它。"
+        },
+        {
+          "symbol": "confirmedBalance",
+          "meaning": "针对单独保存地址、以 confirmed 承诺级别读取的一次 RPC 快照。"
+        },
+        {
+          "symbol": "100,000,000 lamports",
+          "meaning": "精确的 0.1 SOL，在这里用作当前完整登录页的最低值，而不是上限。"
+        }
+      ]
+    },
+    {
+      "title": "登录最低门槛不是密钥的权限边界",
+      "expression": "GameWalletSecret => full signing authority for Address on every Solana cluster; 0.1 SOL gate != spending cap != permission cap",
+      "ariaLabel": "Game Wallet 私钥在每个 Solana 集群上都拥有其地址的完整签名权限。0.1 SOL 登录门槛既不是支出上限，也不是权限上限。",
+      "explanation": "同一份私钥会在 Devnet 与 Mainnet 上推导出同一地址。本地 Provider 会把该 Keypair 应用于交易字节，而不检查它是否为仅限 NiceChunk 的指令。Solana 程序仍会验证已提交交易，但浏览器门槛、低余额建议、会话 action bits 与当前用户界面，都不会缩小所有者密钥在密码学上的权限范围。",
+      "terms": [
+        {
+          "symbol": "GameWalletSecret",
+          "meaning": "由浏览器持有的完整 Keypair 私钥，以 Base58 文本保存，能够生成所有者签名。"
+        },
+        {
+          "symbol": "Address",
+          "meaning": "根据私钥推导出的公钥。选择不同集群只会改变查询哪本账本，不会改变推导出的地址。"
+        },
+        {
+          "symbol": "full signing authority",
+          "meaning": "签名器本身不会把请求限制在 NiceChunk 操作内；每笔交易仍受其正常程序与账户检查约束。"
+        },
+        {
+          "symbol": "0.1 SOL gate",
+          "meaning": "当前完整登录页的 Devnet 最低余额，不是托管、自动转账、支出上限或授权规则。"
+        },
+        {
+          "symbol": "!=",
+          "meaning": "表示“并不相同”。不能把界面策略误认为密码学权限边界。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Create、Import 与 Clear 共用同一条本地记录",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "export function createLocalGameWallet() {\n  const keypair = Keypair.generate();\n  return storeLocalGameWalletKeypair(keypair, \"created\");\n}\n\nexport function importLocalGameWallet(value) {\n  const keypair = keypairFromSecretInput(value);\n  return storeLocalGameWalletKeypair(keypair, \"imported\");\n}\n\nexport function clearLocalGameWallet() {\n  if (!hasLocalStorage()) return;\n  localStorage.removeItem(localGameWalletKeys.address);\n  localStorage.removeItem(localGameWalletKeys.secretKey);\n  localStorage.removeItem(localGameWalletKeys.createdAt);\n  localStorage.removeItem(localGameWalletKeys.source);\n}",
+      "explanation": "Create 会生成 Keypair，Import 会解析一组 Keypair，但两者都会立即调用同一个存储流程，只改变 source 标签。它们都不检查钱包是否已经存在，因此任一操作都可以替换记录。Clear 会删除 Game Wallet 的全部四个字段，但已审核的登录页与 Play 控件都没有调用这个导出函数。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "生成一组新的 Solana Keypair，并以 created 来源直接交给存储流程。"
+        },
+        {
+          "lines": "6-9",
+          "meaning": "解析提供的秘密材料，并以 imported 来源把所得 Keypair 交给同一流程。"
+        },
+        {
+          "lines": "11-17",
+          "meaning": "现有 clear 操作会从浏览器存储中移除地址、私钥、时间戳与 source；它不会撤销其他副本或链上状态。"
+        }
+      ]
+    },
+    {
+      "title": "本地 Provider 使用重建后的 Keypair 签名",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "export function getLocalGameWalletProvider() {\n  const keypair = loadLocalGameWalletKeypair();\n  if (!keypair) return null;\n  return {\n    isNiceChunkLocalGameWallet: true,\n    isConnected: true,\n    publicKey: keypair.publicKey,\n    async connect() {\n      return { publicKey: keypair.publicKey };\n    },\n    async disconnect() {\n      return undefined;\n    },\n    async signTransaction(transaction) {\n      transaction.partialSign(keypair);\n      return transaction;\n    },\n    async signAllTransactions(transactions) {\n      for (const transaction of transactions) transaction.partialSign(keypair);\n      return transactions;\n    },\n  };\n}",
+      "explanation": "构造 Provider 时会先加载由私钥重建的 Keypair。返回对象始终标记为已连接，connect 只返回公钥，disconnect 不改变任何状态。交易方法直接使用 Keypair 执行 partial-sign，不会弹出扩展提示。这个小型接口并不保证兼容所有 Solana 交易或钱包操作。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "根据已存秘密材料重建 Keypair；加载失败时拒绝创建 Provider。"
+        },
+        {
+          "lines": "4-10",
+          "meaning": "暴露本地 Provider 标记、固定的 connected 标志、推导出的公钥，以及无需外部批准步骤的 connect 结果。"
+        },
+        {
+          "lines": "11-13",
+          "meaning": "disconnect 直接返回，不删除存储、不清除绑定，也不撤销密钥。"
+        },
+        {
+          "lines": "14-21",
+          "meaning": "把这组 Keypair 直接应用到单笔交易或列表中的每笔交易，再返回已签名对象或列表。"
+        },
+        {
+          "lines": "22-23",
+          "meaning": "结束 Provider 对象与函数；其中没有消息签名、事件或删除方法。"
+        }
+      ]
+    },
+    {
+      "title": "存储会规范化私钥，而 JSON 元素会被强制转换",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "function storeLocalGameWalletKeypair(keypair, source = \"created\") {\n  const address = keypair.publicKey.toBase58();\n  const secretKey = bs58.encode(keypair.secretKey);\n  const createdAt = String(Date.now());\n  if (!hasLocalStorage()) throw new Error(\"Browser local storage is unavailable.\");\n  localStorage.setItem(localGameWalletKeys.address, address);\n  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);\n  localStorage.setItem(localGameWalletKeys.createdAt, createdAt);\n  localStorage.setItem(localGameWalletKeys.source, source === \"imported\" ? \"imported\" : \"created\");\n  return { address, secretKey, createdAt, source: source === \"imported\" ? \"imported\" : \"created\" };\n}\n\nfunction loadLocalGameWalletKeypair() {\n  try {\n    const record = getLocalGameWalletRecord({ includeSecret: true });\n    if (!record?.secretKey) return null;\n    return keypairFromSecretInput(record.secretKey);\n  } catch {\n    return null;\n  }\n}\n\nfunction keypairFromSecretInput(value) {\n  const raw = String(value || \"\").trim();\n  if (!raw) throw new Error(\"Missing private key.\");\n  const bytes = raw.startsWith(\"[\") ? Uint8Array.from(JSON.parse(raw)) : bs58.decode(raw);\n  if (bytes.length === 64) return Keypair.fromSecretKey(bytes);\n  if (bytes.length === 32) return Keypair.fromSeed(bytes);\n  throw new Error(\"Private key must be a Solana 64-byte secret key or 32-byte seed.\");\n}",
+      "explanation": "存储流程会推导地址、编码完整 Keypair 私钥，并写入四个独立值。加载流程会忽略单独保存的地址，只根据 secretKey 重建。解析器通过开头的左方括号选择 JSON，再用 Uint8Array.from 转换，之后检查长度。它能接受有效的 32 与 64 字节形式，但不会在强制转换前严格校验每个 JSON 元素。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "推导公开地址，把完整 Keypair 私钥编码为 Base58，记录当前时间，并要求浏览器存储可用。"
+        },
+        {
+          "lines": "6-10",
+          "meaning": "依次写入四个独立 localStorage 项，并把同一组地址、私钥、时间戳与规范化 source 返回调用方。"
+        },
+        {
+          "lines": "13-21",
+          "meaning": "读取包含私钥的记录并重建 Keypair；任何加载或解析失败都会变成 null。这里不会比较已存地址。"
+        },
+        {
+          "lines": "23-26",
+          "meaning": "去除所给文本的首尾空白，拒绝空输入，然后选择宽松的 JSON 到 Uint8Array 转换或 Base58 解码。"
+        },
+        {
+          "lines": "27-30",
+          "meaning": "把 64 字节视为完整私钥、32 字节视为种子，并拒绝其他结果长度。"
+        }
+      ]
+    },
+    {
+      "title": "完整登录页的钱包保管区会区别处理 created 与 imported 记录",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "function showGameWalletVault(wallet, { source = wallet?.source || \"created\" } = {}) {\n  gameWalletVaultSource = source === \"imported\" ? \"imported\" : \"created\";\n  if (gameWalletAddress) gameWalletAddress.value = wallet.address || \"\";\n  if (gameWalletPrivateKey) gameWalletPrivateKey.value = gameWalletVaultSource === \"created\" ? wallet.secretKey || \"\" : \"\";\n  if (gameWalletBackupConfirmed) gameWalletBackupConfirmed.checked = false;\n  if (gameWalletBackupFields) gameWalletBackupFields.hidden = gameWalletVaultSource === \"imported\";\n  if (copyGameWalletPrivateKey) copyGameWalletPrivateKey.tabIndex = gameWalletVaultSource === \"imported\" ? -1 : 0;\n  if (continueGameWalletButton) {\n    const i18nKey = gameWalletVaultSource === \"imported\"\n      ? \"login.gameWallet.continueImportedAction\"\n      : \"login.gameWallet.continueAction\";\n    continueGameWalletButton.dataset.i18n = i18nKey;\n    continueGameWalletButton.textContent = t(i18nKey);\n  }\n  if (gameWalletBalanceLine) {\n    gameWalletBalanceLine.classList.remove(\"warning\");\n    gameWalletBalanceLine.textContent = t(\"login.gameWallet.balanceReady\", { address: formatAddress(wallet.address) });\n  }\n  gameWalletVault?.classList.remove(\"hidden\");\n}",
+      "explanation": "已存 source 标签决定界面分支。Created 分支显示返回的私钥，并把确认框重置为未勾选。Imported 分支会清空私钥字段、隐藏备份控件并更改 Continue 标签，即使导入私钥仍留在 localStorage 中。余额行一开始显示的是操作提示，并不能证明余额。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "把 imported 之外的所有 source 都规范化为 created，显示地址，并且只在 created 分支中显示私钥。"
+        },
+        {
+          "lines": "5-7",
+          "meaning": "重置确认框，隐藏 imported 备份字段，并把 imported 私钥复制按钮移出键盘导航顺序。"
+        },
+        {
+          "lines": "8-14",
+          "meaning": "为 imported 与 created 界面状态选择不同的 Continue 文案。"
+        },
+        {
+          "lines": "15-20",
+          "meaning": "重置余额警告，显示包含格式化地址的操作提示，再显示钱包保管区。"
+        }
+      ]
+    },
+    {
+      "title": "完整登录门槛会检查复选框与 confirmed 最低余额",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "async function continueWithGameWallet() {\n  continueGameWalletButton.disabled = true;\n  statusLine.textContent = t(\"login.gameWallet.statusCheckingBalance\");\n  try {\n    const [{ getLocalGameWalletRecord }, { getNicechunkConnection }, { PublicKey }] = await Promise.all([\n      import(\"../src/localGameWallet.js\"),\n      import(\"../src/chain/nicechunkChain.js\"),\n      import(\"@solana/web3.js\"),\n    ]);\n    const record = getLocalGameWalletRecord();\n    if (!record?.address) throw new Error(\"missing-game-wallet\");\n    const source = record.source === \"imported\" ? \"imported\" : gameWalletVaultSource;\n    if (source !== \"imported\" && !gameWalletBackupConfirmed?.checked) {\n      statusLine.textContent = t(\"login.gameWallet.statusBackupRequired\");\n      gameWalletBackupConfirmed?.focus();\n      return;\n    }\n    const balanceLamports = await getNicechunkConnection().getBalance(new PublicKey(record.address), \"confirmed\");\n    if (balanceLamports < requiredGameWalletLamports) {\n      const balanceSol = formatSol(balanceLamports);\n      if (gameWalletBalanceLine) {\n        gameWalletBalanceLine.classList.add(\"warning\");\n        gameWalletBalanceLine.textContent = t(\"login.gameWallet.balanceRequired\", { balance: balanceSol });\n      }\n      statusLine.textContent = t(\"login.gameWallet.statusFundingRequired\");\n      return;\n    }\n    walletAddress = record.address;\n    persistConnectedWallet({ walletAddress, walletName: \"NiceChunk Game Wallet\" });\n    statusLine.textContent = t(\"login.gameWallet.statusReady\");\n    await initialize();",
+      "explanation": "完整登录流程读取不含私钥的记录、信任已存地址、对 imported source 跳过备份确认，并以 confirmed 承诺级别查询该地址。0.1 SOL 门槛完全由整数余额比较控制。通过门槛只会保存浏览器连接；它不会限制钱包上限、预留资金、验证地址与私钥匹配，也不能证明之后的链上操作。",
+      "walkthrough": [
+        {
+          "lines": "1-9",
+          "meaning": "禁用 Continue，提示正在检查余额，并加载记录、连接与 PublicKey 依赖。"
+        },
+        {
+          "lines": "10-17",
+          "meaning": "要求已存地址存在，并且只要求 created 来源的界面状态勾选临时复选框；imported 来源会绕过它。"
+        },
+        {
+          "lines": "18-26",
+          "meaning": "以 confirmed 承诺级别读取单独保存地址的余额，低于当前 lamport 门槛时停止。"
+        },
+        {
+          "lines": "27-31",
+          "meaning": "把已存地址持久保存为当前选中的 Game Wallet，报告 ready，再重新进入登录初始化。"
+        }
+      ]
+    },
+    {
+      "title": "Play 面板不经过完整登录门槛就应用本地会话",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "  async function createLocalWalletLogin() {\n    try {\n      const module = await loadLocalWalletModule();\n      if (typeof module.createLocalGameWallet !== \"function\") throw new Error(\"Local wallet module does not expose createLocalGameWallet.\");\n      const wallet = module.createLocalGameWallet();\n      applyWalletSession(wallet.address, \"NiceChunk Game Wallet\");\n      renderWalletPanel(`Created game wallet ${shortAddress(wallet.address)}. Save the private key before funding it.`, wallet);\n      setStatus(`Created NiceChunk game wallet ${shortAddress(wallet.address)}. Fund it before real chain mining.`);\n      appendChainEvent(`Created local game wallet ${shortAddress(wallet.address)}. Its private key is stored as unencrypted Base58 text for this browser origin.`);\n      return wallet;\n    } catch (error) {\n      setStatus(`Create game wallet failed: ${readableError(error)}.`);\n      appendChainEvent(`Create game wallet failed: ${readableError(error)}.`);\n      renderWalletPanel(`Create game wallet failed: ${readableError(error)}.`);\n      return null;\n    }\n  }\n\n  async function continueLocalWalletLogin() {\n    try {\n      const module = await loadLocalWalletModule();\n      const wallet = module.getLocalGameWalletRecord?.({ includeSecret: true });\n      if (!wallet?.address) {\n        renderWalletPanel(\"No local game wallet exists in this browser. Create one first.\");\n        setStatus(\"No local game wallet exists in this browser.\");\n        return null;\n      }\n      applyWalletSession(wallet.address, \"NiceChunk Game Wallet\");\n      renderWalletPanel(`Using game wallet ${shortAddress(wallet.address)}.`, wallet);\n      setStatus(`Using NiceChunk game wallet ${shortAddress(wallet.address)}.`);\n      appendChainEvent(`Using local game wallet ${shortAddress(wallet.address)} for chain session signing.`);\n      return wallet;\n    } catch (error) {\n      setStatus(`Continue game wallet failed: ${readableError(error)}.`);\n      appendChainEvent(`Continue game wallet failed: ${readableError(error)}.`);\n      renderWalletPanel(`Continue game wallet failed: ${readableError(error)}.`);\n      return null;\n    }\n  }",
+      "explanation": "Play 创建流程在存储后会立即应用钱包会话，只显示保存和充值建议。Play 继续流程会请求包含私钥的记录，并在地址存在时应用会话。两个函数都不会检查完整登录页的备份框、imported source 分支、地址与私钥关系或 0.1 SOL 最低余额。之后的链上与 RPC 检查仍可能拒绝操作。",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "加载本地模块，创建并保存钱包，立即应用会话，再显示备份与充值建议，但不强制执行二者。"
+        },
+        {
+          "lines": "11-17",
+          "meaning": "报告创建失败并返回 null；不会尝试恢复之前的钱包。"
+        },
+        {
+          "lines": "19-27",
+          "meaning": "加载包含私钥的现有记录，并且只要求地址非空就继续。"
+        },
+        {
+          "lines": "28-32",
+          "meaning": "把已存地址应用为当前会话，向钱包面板展示本地记录，并提示它将用于签名。"
+        },
+        {
+          "lines": "33-39",
+          "meaning": "报告继续流程失败并返回 null；这个函数中没有备份或余额分支。"
+        }
+      ]
+    },
+    {
+      "title": "会话清理只移除绑定字段，不会删除 Game Wallet 记录",
+      "language": "JavaScript",
+      "source": "src/walletSession.js",
+      "code": "export function clearWalletConnection() {\n  localStorage.removeItem(walletSessionKeys.walletAddress);\n  localStorage.removeItem(walletSessionKeys.walletName);\n  localStorage.removeItem(walletSessionKeys.walletBoundAt);\n}\n\nexport function clearWalletSession() {\n  clearWalletConnection();\n  localStorage.removeItem(walletSessionKeys.username);\n  clearWalletRuntimeCaches();\n}",
+      "explanation": "当前选中的连接有自己的地址、名称、绑定时间、用户名与按钱包划分的运行时缓存。两个清理函数都没有引用 nicechunk.localGameWallet.address 或 nicechunk.localGameWallet.secretKey。因此，Disconnect 可以结束当前会话，而单独保存的所有者私钥仍对同一浏览器源可用。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "移除当前选中钱包地址、钱包标签与绑定时间戳，然后完成连接清理。"
+        },
+        {
+          "lines": "7-11",
+          "meaning": "完整会话清理还会移除用户名与按钱包划分的运行时缓存，但仍不会调用 clearLocalGameWallet。"
+        }
+      ]
+    },
+    {
+      "title": "Copy 会把私钥写入操作系统剪贴板",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "async function copyGameWalletField(value, kind) {\n  if (!value) return;\n  try {\n    await navigator.clipboard.writeText(value);\n    statusLine.textContent = kind === \"privateKey\"\n      ? t(\"login.gameWallet.statusPrivateKeyCopied\")\n      : t(\"login.gameWallet.statusAddressCopied\");\n  } catch {\n    statusLine.textContent = t(\"login.gameWallet.statusCopyFailed\");\n  }\n}",
+      "explanation": "按钮会请求浏览器 Clipboard API 写入所给值，并报告调用是否失败。它不会读回该值、根据复制的私钥推导地址、清除剪贴板历史、控制剪贴板同步，也不能证明玩家创建了持久的离线备份。",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "遇到空字段时直接忽略，而不是向剪贴板写入空值。"
+        },
+        {
+          "lines": "3-7",
+          "meaning": "把确切值写入剪贴板，并针对私钥或公开地址显示不同的成功文案。"
+        },
+        {
+          "lines": "8-11",
+          "meaning": "Clipboard API 拒绝时显示复制失败；之后不会验证内容，也不会清理剪贴板。"
+        }
+      ]
+    },
+    {
+      "title": "本地模式让所有者自身充当会话权限",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const tx = new Transaction();\n  if (!profileAccount?.data?.length) {\n    tx.add(createInitializePlayerInstruction(owner, playerProfile, \"\"));\n  }\n  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: owner,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));\n\n  await signAndSendKeypairTransaction(keypair, tx, conn);\n  const balanceLamports = await conn.getBalance(owner, \"confirmed\").catch(() => null);\n  markGameplaySessionReady(owner, owner, balanceLamports);\n  updateGameplaySessionStatusCache(owner, createLocalGameWalletStatus(owner, balanceLamports, expiresAt));\n  return { keypair, expiresAt, localGameWallet: true };",
+      "explanation": "外围函数已经根据本地 Provider 设置 owner，并加载同一组 Game Wallet Keypair。这段源码会按需初始化缺失的 profile，写入 sessionAuthority 就是 owner 自身的 PlayerSession，使用该 Keypair 签名，并以 owner、owner 缓存就绪状态。PDA 可以限制受支持的玩家指令，但不会把长期所有者私钥变成独立的临时密钥。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "准备一笔交易，并且只在公开的 player-profile 账户不存在时添加初始化指令。"
+        },
+        {
+          "lines": "5-11",
+          "meaning": "创建或刷新 PlayerSession，在 owner 与 sessionAuthority 两个角色中使用同一公钥。"
+        },
+        {
+          "lines": "13-17",
+          "meaning": "使用本地 Game Wallet Keypair 签名，读取所有者的 confirmed 余额，缓存所有者即权限方的就绪状态，再返回同一组 Keypair。"
+        }
+      ]
+    },
+    {
+      "title": "Keypair 支付手续费、签名、发送并等待 confirmed",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {\n  transaction.feePayer = signer.publicKey;\n  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n  transaction.recentBlockhash = blockhash;\n  transaction.lastValidBlockHeight = lastValidBlockHeight;\n  transaction.sign(signer);\n  const signature = await sendRawTransactionWithLogs(conn, transaction.serialize(), \"keypair\");\n  await confirmTransactionByHttpPolling(conn, { signature, blockhash, lastValidBlockHeight }, \"confirmed\");\n  return signature;\n}",
+      "explanation": "本地 Keypair 会成为手续费支付方，取得近期的 confirmed blockhash，为准备好的交易签名，再发送序列化字节。随后客户端轮询该签名，直到达到 confirmed 条件或发生错误。这个函数不会弹出外部钱包窗口，而且不能把 confirmed 改称为 finalized。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "使用签名者地址作为手续费支付方，并附加近期 blockhash 及其最后有效区块高度。"
+        },
+        {
+          "lines": "6-7",
+          "meaning": "应用所有者 Keypair 签名，并发送序列化后的已签名交易字节。"
+        },
+        {
+          "lines": "8-10",
+          "meaning": "以 confirmed 承诺级别轮询返回的签名，之后将其返回；这段源码不会等待 finalized。"
+        }
+      ]
+    },
+    {
+      "title": "只有绑定地址匹配时才会选择本地 Provider",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function connectedWalletProvider({ prompt = false } = {}) {\n  const storedWallet = localStorage.getItem(storageWalletKey);\n  const localGameWallet = getLocalGameWalletProvider();\n  if (localGameWallet?.publicKey && storedWallet === localGameWallet.publicKey.toBase58()) {\n    return localGameWallet;\n  }",
+      "explanation": "当前选中钱包地址与 Game Wallet 记录分开读取。构造 Provider 时会根据已存私钥推导公钥。只有完全匹配才会选择本地 Provider。由于前面的记录读取器与登录余额门槛都不执行这项比较，损坏的地址字段可能在登录时看似可用，却在之后的签名器选择中失败。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "读取当前浏览器绑定，并独立根据已存 Game Wallet 私钥重建 Provider。"
+        },
+        {
+          "lines": "4-6",
+          "meaning": "只有私钥推导出的公钥与当前绑定地址完全相等时，才返回本地签名器。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "src/localGameWallet.js",
+      "claim": "定义四个 localStorage 键、生成与导入 Keypair 的路径、Base58 规范化、宽松 JSON 转换、直接签名 Provider、无操作的 disconnect，以及一个没有已审核运行时或产品调用方的导出 clear 函数。"
+    },
+    {
+      "path": "login/login.js",
+      "claim": "显示 created 私钥、隐藏 imported 私钥、重置备份复选框、执行完整登录页 100,000,000 lamports 的 confirmed 最低门槛、绑定已存地址，并在不清除 Game Wallet 记录的情况下断开。"
+    },
+    {
+      "path": "login/index.html",
+      "claim": "提供 Create 与 Import 控件、可见的备份复选框和复制字段、低余额警告与 Disconnect 控件，但没有 Delete 或 Forget Game Wallet 控件。"
+    },
+    {
+      "path": "public/login/locales/en.json",
+      "claim": "定义完整登录页使用的玩家可见备份、低余额、导入钱包、0.1 SOL、复制与 ready 文案。"
+    },
+    {
+      "path": "src/walletSession.js",
+      "claim": "把当前选中钱包绑定键与本地 Game Wallet 键分开，并清除地址、名称、绑定时间、用户名与指定运行时缓存前缀，同时保留内置私钥。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "只有在私钥推导出的公钥匹配已存会话地址时才选择本地 Provider，发送由本地 Keypair 签名的交易，并使用同一把本地密钥作为所有者与玩家会话权限。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "提供独立的游戏内 Create 与 Use local wallet 路径，无需完整登录页的备份复选框或最低余额就应用会话，并在 Play 钱包面板中显示返回的私钥。"
+    },
+    {
+      "path": "play/index.html",
+      "claim": "在 Play 中提供 Create、Use local wallet、Disconnect、地址与私钥复制控件，但没有只删除钱包的 Delete 控件。"
+    },
+    {
+      "path": "scripts/audit-wallet-flows.mjs",
+      "claim": "使用确定性的模拟 RPC 响应，检查构建后的本地 Game Wallet 创建流程、临时备份复选框、99,999,999 与 100,000,000 lamports 边界、会话清理、保留的四字段记录，以及重新显示的 created 私钥；它不测试导入、覆盖、不匹配、真实充值、交易签名或删除。"
+    },
+    {
+      "path": "docs/wallet-flow-audit.md",
+      "claim": "说明浏览器审计只创建短期隔离的测试密钥、从不记录其私钥，并使用模拟 RPC 数据；它不能证明真实余额、备份安全、交易签名、提交、确认、恢复或存储隔离。"
+    },
+    {
+      "path": "play/tests/play-auth-session.test.mjs",
+      "claim": "测试当前身份与运行时缓存清理，同时保留无关存储，但不会直接执行本地 Game Wallet 模块或其四个键。"
+    },
+    {
+      "path": "play/tests/local-game-wallet.test.mjs",
+      "claim": "直接检查生成与导入的密钥材料、Base58 规范化、默认省略私钥、单笔与批量交易 partial-sign、无操作 disconnect 后记录仍保留，以及精确删除四个钱包字段；它不会把已知的宽松 JSON 或静默覆盖行为固化为预期。"
+    },
+    {
+      "path": "play/tests/session-funding-boundary-copy.test.mjs",
+      "claim": "防止把 Play 充值目标描述为托管、交易支出边界或授权上限，并要求本地钱包文案明确说明未经加密的同源存储边界。"
+    },
+    {
+      "path": "package.json",
+      "claim": "定义了聚焦本地 Game Wallet 的测试命令，并在发布验证中同时包含这项测试与构建后的浏览器钱包流程审计。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "钱包登录与安全",
+      "summary": "把这把浏览器持有的密钥与外部钱包进行比较：外部钱包自行保管私钥，并分别请求受支持的批准。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家会话与临时权限",
+      "summary": "了解外部钱包路径如何授权一把独立临时密钥，以及本地 Game Wallet 为什么改为直接使用所有者密钥。"
+    },
+    {
+      "slug": "four-truth-layers",
+      "href": "/docs/four-truth-layers/",
+      "title": "四层事实",
+      "summary": "把浏览器存储、准备好的签名、已提交交易与经过验证的链上状态分别放在各自证据层中理解。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "“玩家、钱包与控制”学习路径导航",
+    "heading": {
+      "eyebrow": "继续“玩家与钱包”路径",
+      "title": "下一步：区分 Seed 消息证明与链上付款",
+      "summary": "下一篇指南会沿着公开钱包地址，追踪一次确切消息签名与一条中心化 SQLite 登记，再说明为什么页面显示的 100 NCK 不能证明代币已经到账。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "wallet-login-and-safety",
+        "title": "钱包登录与安全",
+        "summary": "回顾外部钱包连接会暴露什么，以及 connect、消息批准与交易批准为什么彼此独立。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "seed-whitelist-and-message-signatures",
+        "title": "Seed 白名单签名、中心化登记与 NCK 证据",
+        "summary": "了解一段确切的钱包消息能证明什么、中心化 Seed 服务保存什么，以及在声称收到 NCK 前还需要哪些链上证据。"
+      }
+    ]
+  }
+}

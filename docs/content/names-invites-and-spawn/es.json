@@ -1,0 +1,966 @@
+{
+  "_meta": {
+    "language": "es",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-names-invites-and-spawn-es-51a1d004e5bc48aa",
+    "contentHash": "51a1d004e5bc48aa"
+  },
+  "kind": "topic",
+  "slug": "names-invites-and-spawn",
+  "shortTitle": "Names, Invites, and Spawn",
+  "seo": {
+    "title": "Names, Invite Records, and Candidate Spawn | NiceChunk Docs",
+    "description": "Learn why a NiceChunk name index, an invited-wallet registration, and a browser-side candidate spawn are three separate outcomes, who signs each action, and what the current Play entry actually uses."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL 05 · NAMES, INVITES, AND SPAWN",
+    "title": "A unique name, an invite entry, and a spawn hint are three different results",
+    "summary": "NiceChunk currently carries three ideas through the character journey that are easy to mistake for one promise. A UsernameIndex is a program-owned lookup for one canonical name that persists because the current program exposes no close or release path. An InviteIndex row is a public record appended by the invited wallet into an inviter's paged list. A candidate spawn is browser data calculated from editable URL hints. They have different addresses, signers, storage, failure modes, and readers. The current production Play entry does not consume the pending invite-spawn record, so neither a shared link nor a successful invite append proves where the character will appear.",
+    "readingTime": "27 min read",
+    "visual": {
+      "src": "/docs/media/names-invites-and-spawn-overview-v1.webp",
+      "alt": "In a generated NiceChunk teaching scene grounded in the canonical villager models and real Chunk.js terrain, the girl stands beside a stone name marker, the boy stands by a separate wooden record cabinet, and an empty cyan ground frame sits farther away on the grass.",
+      "caption": "The stone marker, wooden cabinet, and empty cyan frame deliberately occupy three separate places. They represent a UsernameIndex, an InviteIndex page, and a candidate spawn. The props are teaching metaphors made from the game's villagers, real terrain reference, and baked-material language; they are not account decoders, wallet controls, signatures, PDAs, on-chain coordinates, or proof that Play applied a spawn.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "If I follow an invite link, choose a unique name, and register successfully, what has actually been proved—and where will I start?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 5 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Implemented boundary",
+        "value": "Editable URL hints · name lookup persistent under the current program · invited-wallet-signed paged record · browser draft · current Play startup"
+      },
+      {
+        "label": "Reviewed",
+        "value": "16 July 2026 · current dirty working tree, Player Program source, focused runtime tests, real production Play capture, and finalized Devnet observations"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Invite link",
+        "meaning": "An ordinary URL whose query can carry ref, guardian, and guardianRegion text. Anyone who can edit or rebuild the URL can change those fields; the URL contains no inviter signature or secret capability."
+      },
+      {
+        "term": "Referrer",
+        "meaning": "The public wallet address read from ref, invite, or inviter. The character and login paths may later try to append the current wallet to that address's InviteIndex pages."
+      },
+      {
+        "term": "Guardian Region",
+        "meaning": "A pair of integer Region coordinates. The current candidate-spawn helper maps the Region center into world coordinates using the 100-by-100-Chunk Guardian Region size and the 16-block Chunk size."
+      },
+      {
+        "term": "Canonical name",
+        "meaning": "The player name after only ASCII A through Z are changed to lowercase. Other accepted characters are left unchanged before SHA-256 is calculated."
+      },
+      {
+        "term": "UsernameIndex",
+        "meaning": "A 256-byte Player Program account addressed by the canonical name hash. It links that name address to an owner, PlayerProfile, GlobalConfig, original spelling, and slots."
+      },
+      {
+        "term": "InviteIndex",
+        "meaning": "A 2,688-byte append-only page for one inviter and one page number. Its 64 fixed records contain only an invited wallet address and registration slot."
+      },
+      {
+        "term": "Registration slot",
+        "meaning": "The Solana slot number written beside an invited wallet when the append instruction executes. It is not a timestamp, reward state, acceptance message, or spawn coordinate."
+      },
+      {
+        "term": "PDA",
+        "meaning": "A predictable program-owned account address derived from public seeds. A PDA has no wallet private key; the program checks that callers supplied the expected address."
+      },
+      {
+        "term": "Page",
+        "meaning": "One fixed-size InviteIndex account. Normal clients fill 64 rows before deriving the next page, but the current program does not make continuous page order an unconditional invariant."
+      },
+      {
+        "term": "Invited-wallet signature",
+        "meaning": "The append instruction requires the wallet being recorded to sign. That proves this wallet authorized the submitted append; it does not prove the inviter signed that individual row."
+      },
+      {
+        "term": "Candidate spawn",
+        "meaning": "A position and camera suggestion calculated in the browser from Region information and terrain height. Character creation does not include those coordinates in its Player transaction."
+      },
+      {
+        "term": "Pending invite spawn",
+        "meaning": "A wallet-scoped localStorage draft written after character confirmation. The save helper catches storage errors and reports no success result, and the current production Play entry does not read it."
+      },
+      {
+        "term": "Saved Play position",
+        "meaning": "A different, wallet-agnostic localStorage record used by the current Play entry when no query pose or forced Guardian spawn is present. It uses the fixed nicechunk.chunkjs.playable.position.v2 key."
+      },
+      {
+        "term": "Genesis default",
+        "meaning": "The current Play fallback at the center of Region zero: world X 800 and Z 800 before terrain height is resolved. It is used when no higher-priority query or saved Play position wins."
+      },
+      {
+        "term": "Rent-exempt minimum",
+        "meaning": "The point-in-time lamport balance needed for an account of a given size. Paying that funding does not itself grant the payer a close instruction or an automatic refund."
+      },
+      {
+        "term": "Confirmed read",
+        "meaning": "The commitment used by the current browser helpers for name and invite pages. It describes the RPC observation level, not a reservation, signature, finalized result, or guarantee about a later transaction."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "The link supplies editable hints, not authority",
+      "body": "ref, guardian, and guardianRegion are public query text. They can help the browser choose an inviter and candidate Region, but they are not signed by the inviter and are not trusted credentials."
+    },
+    {
+      "title": "A name index persists under the current program, but is not an invite row",
+      "body": "The canonical name selects one 256-byte UsernameIndex. Changing the Profile name can create another index, but the current program has no path that automatically closes or releases the old one."
+    },
+    {
+      "title": "The invited wallet appends itself",
+      "body": "Each InviteIndex page holds 64 wallet-and-slot rows. The invited wallet signs the append and may fund a newly rolled page; the inviter does not sign every row, and the contract does not scan for duplicate wallets."
+    },
+    {
+      "title": "A saved candidate is not the current Play start",
+      "body": "The candidate spawn is a best-effort browser draft. Current Play chooses a query pose, its own saved local position, or the Genesis default; it never includes the pending invite-spawn record in that choice."
+    }
+  ],
+  "sections": [
+    {
+      "id": "invite-links-are-editable-hints",
+      "eyebrow": "PUBLIC URL TEXT AND CANDIDATE REGION",
+      "title": "An invite link tells the browser what to try; it does not prove who issued it",
+      "paragraphs": [
+        "The current parser reads a referrer from ref, invite, or inviter; a Guardian identifier from guardian or guardianId; and a Region from guardianRegion, region, a coordinate-looking Guardian value, or separate guardianX and guardianY fields. These are ordinary URL query parameters. A player, chat app, redirector, or copied link can change them before the page opens. There is no signature over the URL, no nonce, no expiry, no server-issued capability, and no contract instruction that authenticates those strings merely because the page received them.",
+        "There is also a concrete empty-query boundary. parseInviteParams first defaults guardianId to genesis. Its hasInvite expression then tests that already-defaulted value, so hasInvite becomes true even when the URL supplied no invite fields. Separately, parseGuardianRegionParams converts two missing coordinate strings with Number(\"\"), producing integer zero for each and returning Region 0:0. The focused tests deliberately record this current behavior. It should be understood as an implementation defect or fallback leak, not evidence that every ordinary visit was invited by Genesis.",
+        "Character creation calculates a candidate spawn whether or not a valid referrer exists. It prefers the parsed Region, otherwise tries to resolve the Guardian identifier from the public registry with a 2.5-second timeout, and otherwise uses Region 0:0. For Region r, the helper chooses the center Chunk of a 100-by-100 Region, multiplies by the 16-block Chunk size, asks the current world generator for surface height, and places Y 1.01 above that surface. This is deterministic browser math over the configuration it loaded; it is absent from the character transaction.",
+        "Only later, after the character transaction returns, does the page treat ref as a proposed inviter wallet and try a separate InviteIndex append. A malformed public key, missing first page, self-invite, rejected wallet request, program error, or RPC failure can make that attempt remain pending or failed while the character already exists. The browser also stores a local invite receipt label, but that label is not an InviteIndex field and cannot turn an edited URL into an inviter-signed statement."
+      ],
+      "facts": [
+        {
+          "label": "Public inputs",
+          "value": "ref · guardian · guardianRegion",
+          "detail": "They are editable URL text and may be copied, shortened, reordered, or replaced without an inviter signature."
+        },
+        {
+          "label": "Current empty-query result",
+          "value": "hasInvite true · Region 0:0",
+          "detail": "Defaulting genesis and converting empty coordinate strings to zero currently leak an invite-looking fallback into a plain visit."
+        },
+        {
+          "label": "Region geometry",
+          "value": "100 × 100 Chunks · 16 blocks per Chunk",
+          "detail": "The candidate uses the Region center and a locally calculated surface height."
+        },
+        {
+          "label": "Authentication in the URL",
+          "value": "None",
+          "detail": "No inviter signature, secret token, nonce, expiry, or chain receipt is embedded or verified by this parser."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Read the hints",
+          "body": "The browser normalizes whichever supported query names are present and carries them across login and character-creation redirects."
+        },
+        {
+          "title": "Calculate a candidate",
+          "body": "The browser resolves or falls back to a Region, computes its center, and calculates a terrain-height-based position locally."
+        },
+        {
+          "title": "Approve separate actions",
+          "body": "The owner first approves character creation. If a valid referrer remains, the invited wallet is then asked to approve a different invite-append transaction."
+        },
+        {
+          "title": "Judge each result separately",
+          "body": "A character signature, invite signature, local receipt, and applied Play start are four different observations; one does not silently stand in for the others."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-editable-hint-v2.webp",
+        "alt": "In a generated NiceChunk teaching scene, the canonical villager girl rearranges three loose blank wooden pieces with simple geometric pegs while the canonical boy holds another unsealed piece; an empty cyan ground frame remains separate in the grass.",
+        "caption": "The loose, swappable wooden pieces represent editable public URL hints. Nothing is sealed, signed, locked, or connected to the empty ground frame. These game-grounded props are metaphors, not real query controls, authenticated invite data, Guardian proof, or a guaranteed destination.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Never treat ref as an inviter-signed voucher",
+        "body": "The later append proves what the invited wallet authorized. If a reward system ever needs proof that a particular inviter issued the invitation, it needs an additional authenticated design; the current URL and row do not provide that proof."
+      }
+    },
+    {
+      "id": "name-index-is-not-invite-ledger",
+      "eyebrow": "GLOBAL NAME LOOKUP AND HISTORICAL OCCUPANCY",
+      "title": "UsernameIndex makes a name unique, but it neither tracks invitations nor releases old names",
+      "paragraphs": [
+        "A proposed nonempty name is normalized and hashed before its account address is derived. Only ASCII uppercase letters are lowered, so Alice and aLiCe share one hash and one UsernameIndex. The PDA seeds contain the fixed player-name-v1 prefix and the 32-byte hash; they do not contain the owner wallet. That makes the address global within the Player Program rather than one private name slot per player. A confirmed lookup can report that the account is missing or already owned by this wallet, but only an accepted transaction creates or validates the record.",
+        "The account is exactly 256 bytes. Its header and fixed fields store magic, version, bump, initialized state, owner, PlayerProfile, GlobalConfig, the 32-byte canonical hash, display-name byte length, created slot, and updated slot. The final 96 bytes hold the original accepted spelling padded with zeros. The contract accepts at most 32 characters from underscore, ASCII letters and digits, or U+4E00 through U+9FFF, so 32 three-byte Chinese characters fit that 96-byte stored spelling region.",
+        "When the expected UsernameIndex already belongs to the Player Program, the program validates the hash, GlobalConfig, owner, and PlayerProfile and returns. It does not rewrite the original spelling or updated slot. If the same address names a different owner or profile, the instruction fails with UsernameAlreadyTaken. This is why the index is useful for uniqueness, but it also means the record is historical ownership evidence rather than a guaranteed mirror of the player's current display fields.",
+        "Changing a Profile name writes the new name and then ensures the new UsernameIndex inside the same atomic instruction. If the later index check fails, Solana rolls the entire instruction back. If it succeeds, however, there is no close or release of the earlier index. Clearing the Profile name likewise omits an index account and leaves every earlier name address untouched. A wallet can therefore occupy several names it used over time. UsernameIndex contains no inviter, invited-wallet row, Guardian, Region, spawn, reward, or status field, and it cannot substitute for InviteIndex.",
+        "The finalized Devnet rent query observed 2,672,640 lamports, or 0.002672640 SOL, for 256 bytes on 16 July 2026. The payer funds a new index or a shortfall during creation, but the current Player Program exposes no UsernameIndex close instruction. Calling that balance a refundable deposit would promise a recovery path that the implemented contract does not provide."
+      ],
+      "facts": [
+        {
+          "label": "Address identity",
+          "value": "SHA-256 of ASCII-lowercased name",
+          "detail": "The owner is stored inside the account but is not one of the name PDA seeds."
+        },
+        {
+          "label": "Account size",
+          "value": "256 bytes",
+          "detail": "The last 96 bytes retain the original display spelling; the hash uses the canonical spelling."
+        },
+        {
+          "label": "Rename behavior",
+          "value": "New index ensured · old index retained",
+          "detail": "No current tag automatically releases, transfers, or closes the earlier UsernameIndex."
+        },
+        {
+          "label": "Observed minimum",
+          "value": "0.002672640 SOL",
+          "detail": "A finalized point-in-time Devnet rent-exempt minimum, not a transaction fee or automatic refund."
+        },
+        {
+          "label": "Invitation fields",
+          "value": "None",
+          "detail": "A UsernameIndex cannot prove an invite, append signature, candidate Region, or reward status."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-name-index-v2.webp",
+        "alt": "In a generated NiceChunk teaching scene, the canonical girl holds one cyan current marker beside the upper orange plaque of a stone registry while both the upper and lower plaques remain occupied; the canonical boy watches and a separate empty wooden cabinet stands far away.",
+        "caption": "The girl's single cyan marker represents selecting the newer current name while both fitted name positions remain occupied. The detached empty cabinet represents the separate invite ledger. These plain physical props are explanatory metaphors, not actual hashes, account bytes, owner proofs, close controls, or evidence that the pictured cabinet cells match storage layout.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Owned once is not the same as displayed now",
+        "body": "To learn the current player name, read and validate the current Profile or Appearance field for the owner. A surviving UsernameIndex proves the program accepted that owner-and-profile relationship for the name address; it does not automatically prove the name is still displayed."
+      }
+    },
+    {
+      "id": "invited-wallet-appends-the-record",
+      "eyebrow": "PAGED PUBLIC RECORDS, SIGNERS, AND LIMITS",
+      "title": "The invited wallet signs one append into the inviter's page; the inviter does not sign every row",
+      "paragraphs": [
+        "InviteIndex has a different seed, address formula, byte layout, signer, and purpose from UsernameIndex. One page is derived from invite-index-v1, the inviter's 32-byte public key, and a little-endian u32 page number. Its 128-byte header stores identity and page metadata. Sixty-four fixed 40-byte records follow, each containing exactly one 32-byte invited wallet and one 8-byte registration slot. The account contains no name, Guardian, Region, candidate spawn, local receipt, reward entitlement, claim state, transfer amount, or inviter signature per row.",
+        "The inviter normally opens page zero first. Tag 10 requires a writable signing payer, but only page zero requires payer and inviter to be the same address. For pages above zero, any payer can initialize the supplied inviter's correct PDA. The instruction also returns early after validating a page already owned by the Player Program. It never checks that the preceding page exists or is full before independently creating a higher page.",
+        "Tag 11 makes the invited wallet the required writable signer and rejects only invited equal to inviter. The inviter account is read as a public address and does not sign. If a requested page above zero is missing, the invited wallet can fund and create it only after the program validates that the immediately preceding page is full. But that continuity check sits entirely inside the missing-page branch. A page pre-created through tag 10 is already program-owned, so append skips the preceding-page test and writes to that page. Continuous 0, 1, 2 paging is therefore the normal client plan, not an unconditional contract invariant.",
+        "The append routine reads count, rejects a full page, writes the invited key and slot at offset 128 plus count times 40, increments count, and updates the page slot. It never searches this page or any other page for the wallet. The current browser first reads pages and performs a best-effort duplicate check, but that read and append are separate network operations, two concurrent attempts can race, and rows outside its scan are invisible to that check. The contract prevents self-invite but does not prevent duplicate registration.",
+        "Current invite registration and alternate-panel call paths request 16 page addresses, and the reader stops at the first missing, invalid, or not-full page. That means the alternate invite panel can expose at most 1,024 fetched rows, even though fetchInviteIndexPages can accept a larger request of up to 64 pages. After 16 full fetched pages, the registration path constructs page index 16 and can append there, but its next scan still covers only indexes 0 through 15. It keeps selecting index 16 without seeing its count; once that hidden page fills, the current rollover path cannot naturally choose page 17. Gaps and pre-created high pages can also stay invisible because the reader stops early.",
+        "At the finalized Devnet snapshot, the Player Program had one observed InviteIndex page at HMbG3jiBpBfFEQmggb5gGyvXhsQzTuCy3zttNSXCpiX. Page zero contained two different wallets in two rows, used 2 of 64 slots, held exactly 19,599,360 lamports, and had no later page through the audit's derived page-63 check. That observation is useful evidence of current state, not proof that duplicates or gaps are impossible. The deployed ELF matched the retained 172,880-byte local artifact, while dirty source still cannot be called reproducibly deployed merely from that match."
+      ],
+      "facts": [
+        {
+          "label": "Page bytes",
+          "value": "2,688 = 128 + 64 × 40",
+          "detail": "Each row is only an invited public key plus registration slot."
+        },
+        {
+          "label": "Append signer",
+          "value": "Invited wallet",
+          "detail": "The inviter is supplied as a non-signing address for each append."
+        },
+        {
+          "label": "Protocol duplicate scan",
+          "value": "None",
+          "detail": "The client attempts a prior read-and-check, but the program's append itself does not enforce uniqueness."
+        },
+        {
+          "label": "Current browser scan",
+          "value": "16 pages · 1,024 nominal rows",
+          "detail": "The helper stops early at a gap or partial page and cannot see index 16 in its default read."
+        },
+        {
+          "label": "Observed page minimum",
+          "value": "0.019599360 SOL",
+          "detail": "Finalized Devnet minimum for 2,688 bytes at the recorded query, with no InviteIndex close path implemented."
+        },
+        {
+          "label": "Observed live rows",
+          "value": "2 unique wallets · page 0 only",
+          "detail": "A dated snapshot at finalized slots, not a lifetime count or a uniqueness guarantee."
+        }
+      ],
+      "steps": [
+        {
+          "title": "Inviter opens page zero",
+          "body": "The current first-page helper asks the inviter wallet to sign and fund its page-zero PDA before invitees can append."
+        },
+        {
+          "title": "Invitee reads visible pages",
+          "body": "The browser fetches up to sixteen predictable page addresses, stops at the first boundary, and checks the fetched rows for its own wallet."
+        },
+        {
+          "title": "Invitee approves append",
+          "body": "The invited wallet signs tag 11. If normal rollover must create a missing page, that same invited wallet also funds the new page."
+        },
+        {
+          "title": "Readers reconstruct meaning",
+          "body": "A reader may separately fetch Appearance to display a name, but the fixed InviteIndex row itself remains just wallet plus slot."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-invited-wallet-appends-v1.webp",
+        "alt": "In a generated NiceChunk teaching scene, the canonical boy presses his own cyan-highlighted token into a large paged wooden cabinet while the canonical girl observes with hands away; an identical boy token and a separate later cabinet are also visible.",
+        "caption": "The boy acting while the girl keeps her hands away represents the invited wallet signing its own append while the inviter does not sign that row. Matching tokens represent the lack of contract-level duplicate scanning, and the detached cabinet represents an independently existing higher page. The cabinet grid is intentionally only a visual paging metaphor: its pictured cell count is not technical evidence. The exact implemented capacity is the 64-row formula and source shown below.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Registered is not automatically reward-eligible",
+        "body": "The client decoder adds the display label registered, but the account stores no status field or reward logic. Any future reward system must define its own authenticated inviter proof, duplicate policy, page continuity, eligibility checks, and settlement rules before treating these rows as payouts."
+      }
+    },
+    {
+      "id": "candidate-spawn-is-not-play-position",
+      "eyebrow": "LOCAL DRAFT, CURRENT STARTUP, AND POSITION AUTHORITY",
+      "title": "Character creation saves a candidate spawn, but current Play never puts it into the startup choice",
+      "paragraphs": [
+        "After the owner-signed character transaction returns, character creation writes ordinary character cache fields and calls storePendingInviteSpawn with the candidate position, yaw, camera pitch, Region, referrer, and Guardian identifier. That helper uses a wallet-scoped nicechunk.inviteSpawn.v1.<wallet> key, adds storedAt, catches any localStorage exception, and returns no success value. A full, blocked, disabled, or privacy-restricted storage implementation can therefore discard the draft while the page continues. The candidate is not a Player Program account and is not part of tag 8.",
+        "A consumer function exists in src/player/inviteSpawn.js. It reads the wallet-scoped draft, removes it before parsing, and returns either the stored position or a recalculated Region center. It has no age or expiry check. Its catch block calls localStorage.removeItem again outside another nested guard, so a storage implementation that throws on both read and removal can still let the cleanup exception escape. The focused tests record single-use behavior, malformed cleanup, and this double-failure boundary.",
+        "Defining a consumer does not prove that the active game calls it. The current production entry is play/main.js. Its imports include its own saved-position helper and pose parser, but not consumePendingInviteSpawn. At module startup it chooses queryPose, otherwise the wallet-agnostic saved Play position, otherwise a fixed Genesis center. Direct x, y, and z query values can then override axes. A forced Guardian-start flag skips the saved position but still falls through to the hard-coded Region-zero default. The pending invite-spawn key never appears in that selection.",
+        "The dated production capture at https://nicechunk.com/play/ used the then-current production runtime, the nicechunk-mainnet-001 world seed, and explicit X 800 and Z 800 at the Genesis center. The retained image is a real game-canvas capture, not generated teaching art. A later current-runtime browser recheck at 15:03:35 UTC on 16 July 2026 stored a sentinel pending-spawn value before boot; that value remained afterward, the page exposed no invite panel, three canvases were present, and no console or page error was observed. Those dated observations match the source boundary but do not prove what every future build will do.",
+        "Play later starts an asynchronous Profile and Appearance refresh. That can update identity presentation and provide public Profile position data to the interface, but the audited startup does not teleport the already-created player object to that fetched Profile. Normal local movement uses a different saved-position key, and current chain position writes are gated to accepted resource-mine saves. An invite append, local receipt, Profile refresh, and actual position are therefore separate state transitions."
+      ],
+      "facts": [
+        {
+          "label": "Pending key",
+          "value": "nicechunk.inviteSpawn.v1.<wallet>",
+          "detail": "Wallet-scoped best-effort draft written after character confirmation."
+        },
+        {
+          "label": "Current Play saved key",
+          "value": "nicechunk.chunkjs.playable.position.v2",
+          "detail": "A different wallet-agnostic local position selected before the game boots."
+        },
+        {
+          "label": "Current startup priority",
+          "value": "Query pose → saved Play position → Genesis",
+          "detail": "Pending invite spawn is absent; per-axis x, y, and z query parameters can override the resulting coordinates."
+        },
+        {
+          "label": "Genesis center",
+          "value": "X 800 · Z 800",
+          "detail": "Half of 100 Chunks multiplied by 16 blocks for both axes."
+        },
+        {
+          "label": "Draft expiry",
+          "value": "No age check",
+          "detail": "A runtime that does call the consumer can accept an old draft unless another layer clears it."
+        },
+        {
+          "label": "Current production consumption",
+          "value": "Not implemented in play/main.js",
+          "detail": "An alternate src/main.js path consumes it, but that is not the reviewed production Play entry."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/names-invites-and-spawn-candidate-not-applied-v2.webp",
+        "alt": "In one continuous generated NiceChunk landscape, the canonical girl stands beside an empty cyan candidate square and an unused tile in a wooden tray, while the canonical boy stands far away from behind on pale stepped Genesis terrain.",
+        "caption": "The empty cyan ground frame and unused tray tile remain in the same continuous world while the boy stands separately on pale terrain grounded in the dated real Genesis capture. Their physical separation represents a candidate draft that is absent from the current startup choice. This generated scene is not a browser trace, teleport attempt, account position, guarantee that storage succeeded, or proof that every player starts at Genesis when a query or saved Play position exists.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "The current pending spawn is a dead handoff in production Play",
+        "body": "Character creation can calculate and attempt to store it, and another source entry can consume it, but the reviewed production play/main.js neither imports nor calls that consumer. Until the active entry explicitly validates and applies the draft, documentation and UI must not promise invite-based placement."
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "READ THE IMPLEMENTATION",
+    "title": "Derive each address, inspect each signer, and keep browser state outside contract claims",
+    "summary": "The formulas and exact source excerpts below turn the visual lesson into reproducible checks. They show how URL text becomes an unauthenticated hint, how names and invite pages derive different PDAs, how fixed bytes are laid out, why duplicate and page-continuity claims have limits, and why the current Play startup cannot apply a draft it never reads."
+  },
+  "formulas": [
+    {
+      "title": "Canonical name and UsernameIndex address",
+      "expression": "canonical(n) = ASCII-lowercase(n); h(n) = SHA256(UTF8(canonical(n))); UsernameIndex(n) = PDA_Player([\"player-name-v1\", h(n)])",
+      "ariaLabel": "Canonical n is n with ASCII uppercase letters lowered. h of n is SHA-256 of the UTF-8 canonical name. UsernameIndex is the Player Program PDA from player-name-v1 and the hash.",
+      "explanation": "The owner wallet is not a seed, so everyone derives the same address for Alice and alice. Ownership is checked in the stored bytes when the instruction executes.",
+      "terms": [
+        {
+          "symbol": "n",
+          "meaning": "The trimmed proposed player name."
+        },
+        {
+          "symbol": "ASCII-lowercase",
+          "meaning": "Change only ASCII A through Z to a through z; leave other UTF-8 characters unchanged."
+        },
+        {
+          "symbol": "PDA_Player",
+          "meaning": "Solana program-address derivation under the Player Program ID."
+        }
+      ]
+    },
+    {
+      "title": "UsernameIndex fixed storage",
+      "expression": "256 bytes = 160 bytes header-and-fields + 96 bytes original display-name region",
+      "ariaLabel": "A UsernameIndex uses 256 bytes: 160 bytes of header and fixed fields plus 96 bytes for the original display name region.",
+      "explanation": "The account also stores the canonical 32-byte hash in the fixed region. The original spelling is retained separately and is not automatically rewritten on a same-index validation.",
+      "terms": [
+        {
+          "symbol": "160",
+          "meaning": "Magic, version, bump, state, three public keys, name hash, length, slots, and padding."
+        },
+        {
+          "symbol": "96",
+          "meaning": "Maximum UTF-8 bytes retained for the accepted display spelling."
+        }
+      ]
+    },
+    {
+      "title": "Invite page address",
+      "expression": "InvitePage(inviter, i) = PDA_Player([\"invite-index-v1\", inviter32, u32LE(i)])",
+      "ariaLabel": "Invite page for an inviter and page i is the Player Program PDA from invite-index-v1, the inviter public key bytes, and the little-endian unsigned 32-bit page number.",
+      "explanation": "Changing either the inviter or page number selects a different predictable account. A predictable address does not prove the page exists, is continuous, or was opened by the inviter.",
+      "terms": [
+        {
+          "symbol": "inviter32",
+          "meaning": "The inviter's 32-byte Solana public key."
+        },
+        {
+          "symbol": "u32LE(i)",
+          "meaning": "The page number encoded as four little-endian bytes."
+        }
+      ]
+    },
+    {
+      "title": "InviteIndex page and row layout",
+      "expression": "pageBytes = 128 + 64 × 40 = 2,688; rowOffset(k) = 128 + 40k, for 0 ≤ k < 64",
+      "ariaLabel": "Page bytes equal 128 plus 64 times 40, which is 2,688. Row k starts at 128 plus 40 k for k from zero through 63.",
+      "explanation": "Every row is one 32-byte wallet plus one 8-byte registration slot. The illustration's wooden cubbies are not a countable storage diagram; this formula and the source constants are the technical boundary.",
+      "terms": [
+        {
+          "symbol": "128",
+          "meaning": "Fixed page header."
+        },
+        {
+          "symbol": "40",
+          "meaning": "One invited-wallet and registration-slot record."
+        },
+        {
+          "symbol": "k",
+          "meaning": "The zero-based row selected by the current count."
+        }
+      ]
+    },
+    {
+      "title": "Normal contiguous paging convention",
+      "expression": "page(k) = floor(k / 64); row(k) = k mod 64",
+      "ariaLabel": "For normal contiguous paging, global entry k goes to the floor of k divided by 64, and its row is k modulo 64.",
+      "explanation": "This is the intended client organization when pages are created only during rollover. Tag 10 can pre-create a higher page without proving prior pages are full, so this formula is not an unconditional current contract invariant.",
+      "terms": [
+        {
+          "symbol": "k",
+          "meaning": "A conceptual zero-based entry number in a gap-free ledger."
+        },
+        {
+          "symbol": "mod",
+          "meaning": "Remainder after division by 64."
+        }
+      ]
+    },
+    {
+      "title": "Candidate Region-center position",
+      "expression": "x = (regionX × 100 + 50) × 16; z = (regionY × 100 + 50) × 16; y = surfaceHeight(x, z) + 1.01",
+      "ariaLabel": "Candidate x is region X times 100 plus 50, multiplied by 16. Candidate z uses region Y the same way. Candidate y is surface height plus 1.01.",
+      "explanation": "The 100 comes from Guardian Region size in Chunks and 16 from Chunk size in blocks. This is local candidate math; no InviteIndex row stores these coordinates.",
+      "terms": [
+        {
+          "symbol": "regionX, regionY",
+          "meaning": "Integer Guardian Region coordinates."
+        },
+        {
+          "symbol": "surfaceHeight",
+          "meaning": "The current browser world generator's terrain-height result at that X and Z."
+        }
+      ]
+    },
+    {
+      "title": "Current production Play startup",
+      "expression": "spawnState = queryPose ?? savedPlayPosition ?? Genesis(800, 800); pendingInviteSpawn is not an operand",
+      "ariaLabel": "Current spawn state is query pose if present, otherwise saved Play position, otherwise Genesis at 800, 800. Pending invite spawn is not part of the expression.",
+      "explanation": "Direct x, y, and z query parameters can then override axes. The Profile refresh starts later and does not retroactively change this startup expression.",
+      "terms": [
+        {
+          "symbol": "??",
+          "meaning": "Choose the first value that is not null or undefined."
+        },
+        {
+          "symbol": "savedPlayPosition",
+          "meaning": "The separate nicechunk.chunkjs.playable.position.v2 browser record."
+        }
+      ]
+    },
+    {
+      "title": "Observed Devnet storage minima",
+      "expression": "R(256) = 2,672,640 lamports; R(2,688) = 19,599,360 lamports; 1 SOL = 1,000,000,000 lamports",
+      "ariaLabel": "At the recorded Devnet query, 256 bytes required 2,672,640 lamports and 2,688 bytes required 19,599,360 lamports. One SOL is one billion lamports.",
+      "explanation": "These are finalized point-in-time minimum-balance queries. They are not transaction fees, reward values, or promises that a player can close the account and recover the balance.",
+      "terms": [
+        {
+          "symbol": "R(L)",
+          "meaning": "Observed minimum balance for an account of L bytes."
+        },
+        {
+          "symbol": "lamport",
+          "meaning": "The smallest native SOL unit."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The parser defaults genesis before it computes hasInvite",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function parseInviteParams(input = typeof window !== \"undefined\" ? window.location.search : \"\") {\n  const params = input instanceof URLSearchParams ? input : new URLSearchParams(String(input || \"\"));\n  const referrer = firstParam(params, [inviteRefParam, \"invite\", \"inviter\"]);\n  const guardianId = firstParam(params, [inviteGuardianParam, \"guardianId\"]) || \"genesis\";\n  const region = parseGuardianRegionParams(params);\n  return {\n    referrer: normalizeParam(referrer),\n    guardianId: normalizeParam(guardianId) || \"genesis\",\n    region,\n    hasInvite: Boolean(normalizeParam(referrer) || normalizeParam(guardianId) || region),\n  };\n}",
+      "explanation": "guardianId is already genesis when the URL contains no Guardian field, so the Boolean expression is true on an empty query. Nothing in this function verifies an inviter signature or capability.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Normalize URL input, read public referrer aliases, and replace a missing Guardian with genesis."
+        },
+        {
+          "lines": "5-11",
+          "meaning": "Return normalized fields; the already-nonempty default makes hasInvite true even without supplied invite text."
+        }
+      ]
+    },
+    {
+      "title": "Missing coordinate strings currently become Region zero",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "function parseGuardianRegionParams(params) {\n  const explicit = firstParam(params, [inviteGuardianRegionParam, \"region\"]);\n  const parsedExplicit = parseRegionPair(explicit);\n  if (parsedExplicit) return parsedExplicit;\n  const guardian = firstParam(params, [inviteGuardianParam, \"guardianId\"]);\n  const parsedGuardian = parseRegionPair(guardian);\n  if (parsedGuardian) return parsedGuardian;\n  const x = Number(firstParam(params, [\"guardianX\", \"regionX\"]));\n  const y = Number(firstParam(params, [\"guardianY\", \"regionY\"]));\n  if (Number.isInteger(x) && Number.isInteger(y)) return { regionX: x, regionY: y };\n  return null;\n}",
+      "explanation": "firstParam returns an empty string for each missing coordinate. JavaScript Number converts that empty string to zero, and zero is an integer, so a plain visit currently returns Region 0:0.",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "Prefer explicit pair text, then a coordinate-looking Guardian value."
+        },
+        {
+          "lines": "8-11",
+          "meaning": "Convert separate coordinate fields; the missing-string conversion is the empty-query defect."
+        }
+      ]
+    },
+    {
+      "title": "The candidate spawn is local Region-center math",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function guardianSpawnStateForRegion(region, { surfaceHeight, yaw = Math.PI * 0.25, cameraPitch = -0.42 } = {}) {\n  const normalized = normalizeGuardianRegion(region) ?? genesisGuardianRegion();\n  const centerChunkX = normalized.regionX * GUARDIAN_REGION_SIZE + GUARDIAN_REGION_SIZE / 2;\n  const centerChunkZ = normalized.regionY * GUARDIAN_REGION_SIZE + GUARDIAN_REGION_SIZE / 2;\n  const x = centerChunkX * chunkSize;\n  const z = centerChunkZ * chunkSize;\n  const ground = typeof surfaceHeight === \"function\" ? surfaceHeight(x, z) : 0;\n  const y = Number.isFinite(ground) ? ground + 1.01 : 1.01;\n  return {\n    position: { x, y, z },\n    yaw,\n    cameraPitch,\n    guardianRegion: normalized,\n  };\n}",
+      "explanation": "The helper returns an ordinary JavaScript object from public Region input and local terrain math. It does not read an InviteIndex, sign a transaction, or update PlayerProfile position.",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "Normalize or fall back to Genesis, choose the Region center in Chunks, then convert to block coordinates."
+        },
+        {
+          "lines": "7-14",
+          "meaning": "Resolve local ground height and return position plus camera hints."
+        }
+      ]
+    },
+    {
+      "title": "The client hashes only ASCII case before deriving the name PDA",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function canonicalPlayerNameHash(playerName) {\n  const { normalized } = encodePlayerName(playerName);\n  const canonical = normalized.replace(/[A-Z]/g, (char) => char.toLowerCase());\n  const bytes = Buffer.from(canonical, \"utf8\");\n  const subtle = globalThis.crypto?.subtle;\n  if (!subtle) throw new Error(\"WebCrypto SHA-256 is unavailable.\");\n  const digest = await subtle.digest(\"SHA-256\", bytes);\n  return Buffer.from(new Uint8Array(digest));\n}",
+      "explanation": "The browser and program use the same narrow case rule. SHA-256 produces the 32-byte seed, but hashing does not reserve an account or reveal who owns it.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Validate and trim the name, lower only ASCII uppercase letters, and encode UTF-8 bytes."
+        },
+        {
+          "lines": "5-8",
+          "meaning": "Require WebCrypto, calculate SHA-256, and return the digest bytes used for PDA derivation."
+        }
+      ]
+    },
+    {
+      "title": "The name PDA has no owner seed",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function deriveUsernameIndexPdaForName(playerName) {\n  const nameHash = await canonicalPlayerNameHash(playerName);\n  return PublicKey.findProgramAddressSync(\n    [Buffer.from(usernameIndexSeed), nameHash],\n    playerProgramId,\n  );\n}",
+      "explanation": "Every caller derives the same Player Program address from the fixed seed and canonical name hash. The owner relationship must therefore be validated from account contents.",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "Calculate the canonical name hash."
+        },
+        {
+          "lines": "3-6",
+          "meaning": "Derive under the Player Program with only the fixed name seed and hash."
+        }
+      ]
+    },
+    {
+      "title": "An existing UsernameIndex must match owner and Profile",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_owner_or_available(\n        data: &[u8],\n        owner: &Pubkey,\n        player_profile: &Pubkey,\n        global_config: &Pubkey,\n        name_hash: &[u8; 32],\n    ) -> ProgramResult {\n        if data.len() != Self::LEN || data[0..8] != USERNAME_INDEX_MAGIC {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if read_u16(data, 8) != USERNAME_INDEX_VERSION {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::NAME_HASH_OFFSET..Self::NAME_HASH_OFFSET + 32] != name_hash {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::GLOBAL_CONFIG_OFFSET..Self::GLOBAL_CONFIG_OFFSET + 32]\n            != global_config.as_ref()\n        {\n            return Err(NicechunkPlayerError::InvalidUsernameIndexData.into());\n        }\n        if &data[Self::OWNER_OFFSET..Self::OWNER_OFFSET + 32] != owner.as_ref() {\n            return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n        }\n        if &data[Self::PLAYER_PROFILE_OFFSET..Self::PLAYER_PROFILE_OFFSET + 32]\n            != player_profile.as_ref()\n        {\n            return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n        }\n        Ok(())\n    }",
+      "explanation": "A program-owned index is accepted only when its format, hash, configuration, owner, and Profile relationship all match. The function validates; it does not rewrite spelling, release a prior index, or inspect invitations.",
+      "walkthrough": [
+        {
+          "lines": "1-16",
+          "meaning": "Check the fixed account identity, version, canonical hash, and GlobalConfig."
+        },
+        {
+          "lines": "17-29",
+          "meaning": "Treat a different stored owner or PlayerProfile as taken; accept only the matching relationship."
+        }
+      ]
+    },
+    {
+      "title": "Changing Profile name ensures a new index but closes no old index",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let clock = Clock::get()?;\n    let mut data = player_profile.try_borrow_mut_data()?;\n    PlayerProfile::write_name(&mut data, player_name, clock.slot)?;\n    drop(data);\n    if let (Some(system_program_account), Some(username_index)) =\n        (system_program_account, username_index)\n    {\n        ensure_username_index_current(\n            authority,\n            username_index,\n            system_program_account,\n            program_id,\n            authority.key,\n            player_profile.key,\n            global_config.key,\n            player_name,\n            &clock,\n        )?;\n    }\n    Ok(())",
+      "explanation": "The instruction writes the current Profile name and then ensures the supplied new-name index. Solana rolls both back if the later check fails. On success, this path never receives or closes the earlier UsernameIndex, so its lamports and ownership remain.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Write the proposed current name and update slot in the borrowed Profile data."
+        },
+        {
+          "lines": "5-18",
+          "meaning": "For a nonempty name, create or validate only the supplied current-name index."
+        },
+        {
+          "lines": "19",
+          "meaning": "Return without any earlier-name account or close operation in this instruction."
+        }
+      ]
+    },
+    {
+      "title": "Invite pages have a fixed 64-by-40-byte record area",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "pub const INVITE_INDEX_MAGIC: [u8; 8] = *b\"NCKINV01\";\npub const INVITE_INDEX_VERSION: u16 = 1;\npub const INVITE_INDEX_SEED: &[u8] = b\"invite-index-v1\";\npub const INVITE_INDEX_CAPACITY: usize = 64;\npub const INVITE_INDEX_HEADER_LEN: usize = 128;\npub const INVITE_INDEX_RECORD_LEN: usize = 40;",
+      "explanation": "The constants define the identity and exact storage math. A visual cabinet is only a metaphor; the implemented page is 128 header bytes plus 64 fixed records.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Name the on-chain format, version, and PDA seed."
+        },
+        {
+          "lines": "4-6",
+          "meaning": "Fix capacity, header length, and record length used by pack, validate, and append."
+        }
+      ]
+    },
+    {
+      "title": "Append writes the next wallet and slot without deduplication",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn append(dst: &mut [u8], invited: &Pubkey, updated_slot: u64) -> ProgramResult {\n        if dst.len() != Self::LEN || dst[0..8] != INVITE_INDEX_MAGIC {\n            return Err(NicechunkPlayerError::InvalidInviteIndexData.into());\n        }\n        let count = read_u16(dst, Self::COUNT_OFFSET) as usize;\n        if count >= INVITE_INDEX_CAPACITY {\n            return Err(NicechunkPlayerError::InviteIndexPageFull.into());\n        }\n        let offset = Self::RECORDS_OFFSET + count * INVITE_INDEX_RECORD_LEN;\n        dst[offset..offset + 32].copy_from_slice(invited.as_ref());\n        dst[offset + 32..offset + 40].copy_from_slice(&updated_slot.to_le_bytes());\n        dst[Self::COUNT_OFFSET..Self::COUNT_OFFSET + 2]\n            .copy_from_slice(&((count + 1) as u16).to_le_bytes());\n        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())\n    }",
+      "explanation": "After format and capacity checks, append writes directly at the count-selected offset. No line scans the current or other pages for the invited public key.",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "Validate page identity, read count, and stop only when capacity is exhausted."
+        },
+        {
+          "lines": "9-15",
+          "meaning": "Write the 32-byte wallet and 8-byte slot, increment count, and update the page slot."
+        },
+        {
+          "lines": "16-17",
+          "meaning": "Return success without a duplicate-wallet branch."
+        }
+      ]
+    },
+    {
+      "title": "Tag 10 restricts page zero but can independently open higher pages",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !payer.is_signer || !payer.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if !invite_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }\n    if page_index == 0 && payer.key != inviter.key {\n        return Err(NicechunkPlayerError::InviteFirstPageRequiresInviter.into());\n    }\n    require_key_eq(\n        system_program_account.key,\n        &system_program::ID,\n        NicechunkPlayerError::InvalidSystemProgram,\n    )?;\n    require_key_eq(\n        global_config.owner,\n        &NICECHUNK_CORE_PROGRAM_ID,\n        NicechunkPlayerError::InvalidGlobalConfigOwner,\n    )?;\n\n    let (expected_invite_index, bump) = invite_index_pda(program_id, inviter.key, page_index);\n    require_key_eq(\n        invite_index.key,\n        &expected_invite_index,\n        NicechunkPlayerError::InvalidInviteIndexPda,\n    )?;\n    if invite_index.owner == program_id {\n        let data = invite_index.try_borrow_data()?;\n        return InviteIndex::validate(&data, inviter.key, global_config.key, page_index);\n    }",
+      "explanation": "The payer signs, and page zero alone binds payer to inviter. For a correct higher-page PDA, this excerpt has no previous-page check. An already-created page is simply validated and returned.",
+      "walkthrough": [
+        {
+          "lines": "1-9",
+          "meaning": "Require a signing payer and writable page; require inviter self-funding only for page zero."
+        },
+        {
+          "lines": "10-26",
+          "meaning": "Validate system, config owner, and the inviter-plus-page PDA."
+        },
+        {
+          "lines": "27-30",
+          "meaning": "If the page already exists under the Player Program, validate it without any continuity test."
+        }
+      ]
+    },
+    {
+      "title": "Tag 11 requires the invited wallet—not the inviter—to sign",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !invited.is_signer || !invited.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if invited.key == inviter.key {\n        return Err(NicechunkPlayerError::InvalidInviteSelf.into());\n    }\n    if !invite_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }",
+      "explanation": "The wallet being recorded must sign and can pay for rollover. The inviter is compared as a public key for self-invite but is not required to be a signer in this account check.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Require the invited account to sign and be writable."
+        },
+        {
+          "lines": "4-9",
+          "meaning": "Reject self-invite and require the target page to be writable."
+        }
+      ]
+    },
+    {
+      "title": "The previous-full rule runs only when the target page is missing",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if invite_index.owner != program_id {\n        if page_index == 0 {\n            return Err(NicechunkPlayerError::InviteFirstPageRequiresInviter.into());\n        }\n        if accounts.len() != 6 {\n            return Err(NicechunkPlayerError::InvitePreviousPageRequired.into());\n        }\n        let previous_invite_index = next_account_info(account_info_iter)?;\n        let previous_page_index = page_index.saturating_sub(1);\n        let (expected_previous, _) = invite_index_pda(program_id, inviter.key, previous_page_index);\n        require_key_eq(\n            previous_invite_index.key,\n            &expected_previous,\n            NicechunkPlayerError::InvalidInviteIndexPda,\n        )?;\n        require_key_eq(\n            previous_invite_index.owner,\n            program_id,\n            NicechunkPlayerError::InvalidInviteIndexData,\n        )?;\n        let previous_data = previous_invite_index.try_borrow_data()?;\n        if !InviteIndex::is_full(\n            &previous_data,\n            inviter.key,\n            global_config.key,\n            previous_page_index,\n        )\n        .map_err(|_| NicechunkPlayerError::InvalidInviteIndexData)?\n        {\n            return Err(NicechunkPlayerError::InvitePreviousPageNotFull.into());\n        }\n        drop(previous_data);\n        if invite_index.owner != &system_program::ID || invite_index.data_len() != 0 {\n            return Err(NicechunkPlayerError::InvalidSystemAccount.into());\n        }\n        create_or_allocate_invite_index_pda(\n            invited,\n            invite_index,\n            system_program_account,\n            program_id,\n            inviter.key,\n            page_index,\n            bump,\n        )?;\n        let clock = Clock::get()?;\n        {\n            let mut data = invite_index.try_borrow_mut_data()?;\n            InviteIndex::pack_empty(\n                &mut data,\n                &InviteIndexInitArgs {\n                    bump,\n                    inviter: inviter.key,\n                    global_config: global_config.key,\n                    page_index,\n                    created_slot: clock.slot,\n                },\n            )?;\n        }\n    }\n\n    let clock = Clock::get()?;\n    let mut data = invite_index.try_borrow_mut_data()?;\n    InviteIndex::validate(&data, inviter.key, global_config.key, page_index)?;\n    InviteIndex::append(&mut data, invited.key, clock.slot)",
+      "explanation": "Normal rollover checks and funds a missing higher page only after the prior page is full. If tag 10 already made the target Player-owned, the outer if is false and execution jumps to validate and append, bypassing continuity.",
+      "walkthrough": [
+        {
+          "lines": "1-31",
+          "meaning": "For a missing page, forbid page zero, demand the previous page, validate it, and require it to be full."
+        },
+        {
+          "lines": "32-58",
+          "meaning": "Require an untouched System account, let the invited wallet fund it, and pack the new page."
+        },
+        {
+          "lines": "61-64",
+          "meaning": "For both new and already-existing pages, validate the target and append; an existing high page reached this point without the prior-full branch."
+        }
+      ]
+    },
+    {
+      "title": "The browser reader scans a bounded contiguous prefix",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchInviteIndexPages(inviterAddress, { maxPages = 16 } = {}) {\n  if (!inviterAddress) return { inviter: \"\", pages: [], entries: [], capacity: inviteIndexCapacity };\n  const inviter = typeof inviterAddress === \"string\" ? new PublicKey(inviterAddress) : inviterAddress;\n  const pageCount = Math.max(1, Math.min(64, Math.floor(Number(maxPages) || 16)));\n  const pageKeys = Array.from({ length: pageCount }, (_value, index) => deriveInviteIndexPda(inviter, index)[0]);\n  const accounts = await getNicechunkConnection().getMultipleAccountsInfo(pageKeys, \"confirmed\");\n  const pages = [];\n  const entries = [];\n  let sawMissingAfterData = false;\n  for (let index = 0; index < pageKeys.length; index += 1) {\n    const account = accounts[index];\n    if (!account?.data?.length || !account.owner.equals(playerProgramId)) {\n      if (pages.length) sawMissingAfterData = true;\n      if (!pages.length || sawMissingAfterData) break;\n      continue;\n    }\n    const page = decodeInviteIndex(account.data, {\n      publicKey: pageKeys[index],\n      inviter,\n      pageIndex: index,\n      programId: account.owner,\n    });\n    if (!page) break;\n    pages.push(page);\n    for (const entry of page.entries) entries.push(entry);\n    if (page.count < inviteIndexCapacity) break;\n  }",
+      "explanation": "The default request derives only indexes 0 through 15 and stops at a missing, invalid, or not-full page. A valid page beyond that stopping point can exist without appearing in the returned ledger.",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "Clamp the requested count and fetch one predictable prefix at confirmed."
+        },
+        {
+          "lines": "7-16",
+          "meaning": "Walk in order and stop as soon as a missing boundary is observed."
+        },
+        {
+          "lines": "17-26",
+          "meaning": "Decode, accumulate, and stop again when the current page is not full."
+        }
+      ]
+    },
+    {
+      "title": "Client deduplication is a read-before-write convenience",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const current = await fetchInviteIndexPages(inviter, { maxPages: 16 });\n  if (!current.pages.length) {\n    return { submitted: false, reason: \"invite-first-page-required\", inviter: inviter.toBase58() };\n  }\n  const invitedWallet = provider.publicKey.toBase58();\n  if (current.entries.some((entry) => String(entry.invitedWallet || entry.wallet || \"\") === invitedWallet)) {\n    return {\n      submitted: false,\n      reason: \"already-registered\",\n      invited: invitedWallet,\n      inviter: inviter.toBase58(),\n      capacity: inviteIndexCapacity,\n    };\n  }\n  let targetPage = current.pages.find((page) => page.count < inviteIndexCapacity);\n  if (!targetPage) {\n    const nextIndex = current.pages.length;\n    const [publicKey] = deriveInviteIndexPda(inviter, nextIndex);\n    targetPage = { pageIndex: nextIndex, publicKey: publicKey.toBase58(), count: 0 };\n  }",
+      "explanation": "The browser checks only rows returned by the bounded read, then separately submits later. This avoids common repeats but cannot provide atomic or protocol-wide uniqueness, and nextIndex is based only on the number of visible pages.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Read at most sixteen pages and require a visible first page."
+        },
+        {
+          "lines": "5-14",
+          "meaning": "Return early when the invited wallet appears in the fetched prefix."
+        },
+        {
+          "lines": "15-20",
+          "meaning": "Use a visible partial page or derive the next index from visible page count."
+        }
+      ]
+    },
+    {
+      "title": "The decoder invents the display status registered",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const entries = [];\n  for (let index = 0; index < count; index += 1) {\n    const offset = inviteIndexHeaderLength + index * inviteIndexRecordLength;\n    const invited = new PublicKey(data.subarray(offset, offset + 32)).toBase58();\n    entries.push({\n      invitedWallet: invited,\n      wallet: invited,\n      pageIndex: storedPageIndex,\n      index,\n      createdSlot: data.readBigUInt64LE(offset + 32).toString(),\n      status: \"registered\",\n    });\n  }",
+      "explanation": "The bytes provide the wallet and slot. status is a JavaScript label attached during decoding, not a field that the program packed or a reward state that the account can enforce.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "For each stored count, calculate the fixed record offset and read the public key."
+        },
+        {
+          "lines": "5-12",
+          "meaning": "Build a display object and add a registered label that was not stored in the row bytes."
+        }
+      ]
+    },
+    {
+      "title": "Pending-spawn storage is best effort and consumption is single use",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function storePendingInviteSpawn(walletAddress, payload) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !payload) return;\n  try {\n    localStorage.setItem(inviteSpawnStorageKey(wallet), JSON.stringify({\n      ...payload,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Spawn still works from the chain PDA if local storage is unavailable.\n  }\n}\n\nexport function consumePendingInviteSpawn(walletAddress, { surfaceHeight } = {}) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet) return null;\n  const key = inviteSpawnStorageKey(wallet);\n  try {\n    const raw = localStorage.getItem(key);\n    if (!raw) return null;\n    localStorage.removeItem(key);\n    const parsed = JSON.parse(raw);\n    const state = parsed?.position\n      ? {\n          position: parsed.position,\n          yaw: Number.isFinite(Number(parsed.yaw)) ? Number(parsed.yaw) : Math.PI * 0.25,\n          cameraPitch: Number.isFinite(Number(parsed.cameraPitch)) ? Number(parsed.cameraPitch) : -0.42,\n          guardianRegion: normalizeGuardianRegion(parsed.guardianRegion),\n        }\n      : guardianSpawnStateForRegion(parsed?.guardianRegion, { surfaceHeight });\n    return state;\n  } catch {\n    localStorage.removeItem(key);\n    return null;\n  }\n}",
+      "explanation": "Saving catches failures and returns no persistence signal. A caller that uses the consumer removes before parsing and performs no storedAt age check; cleanup can itself throw if storage removal fails inside the catch.",
+      "walkthrough": [
+        {
+          "lines": "1-12",
+          "meaning": "Attempt a wallet-scoped JSON write with storedAt, then silently continue on failure."
+        },
+        {
+          "lines": "14-31",
+          "meaning": "Read once, remove immediately, parse a stored position or recalculate from Region, and return it."
+        },
+        {
+          "lines": "32-35",
+          "meaning": "Try removal again on failure; the second removal is not protected by another nested catch."
+        }
+      ]
+    },
+    {
+      "title": "Current Play chooses query, its own saved position, or Genesis",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "const queryPose = parsePoseText(params.get(\"pose\") || \"\", { minViewDistance: 2, maxViewDistance: PLAYABLE_MAX_VIEW_DISTANCE });\nconst PLAYABLE_WORLD_SEED = \"nicechunk-mainnet-001\";\nconst PLAYABLE_TEXTURE_TILE_SIZE = 32;\nconst viewDistance = clampInt(Number(params.get(\"view\")) || queryPose?.viewDistance || DEFAULT_PLAY_VIEW_DISTANCE, 2, PLAYABLE_MAX_VIEW_DISTANCE);\nconst meshBudgetMs = clampInt(Number(params.get(\"budget\")) || DEFAULT_MESH_BUDGET_MS, 2, 14);\nconst POSITION_STORAGE_KEY = \"nicechunk.chunkjs.playable.position.v2\";\nconst POSITION_SAVE_INTERVAL_MS = 650;\nconst FRAME_MINIMAP_UPDATE_MS = 250;\nconst FRAME_ACTION_HIT_UPDATE_MS = 90;\nconst forceGuardianSpawn = params.get(\"guardianSpawn\") === \"1\" || params.get(\"spawn\") === \"guardian\";\nconst defaultGuardianSpawn = {\n  worldX: (GENESIS_GUARDIAN_REGION_SIZE_CHUNKS / 2) * 16,\n  worldY: undefined,\n  worldZ: (GENESIS_GUARDIAN_REGION_SIZE_CHUNKS / 2) * 16,\n  localOffsetX: 0.5,\n  localOffsetY: 0,\n  localOffsetZ: 0.5,\n  controlYaw: Math.PI * 0.25,\n  avatarYaw: Math.PI * 0.25,\n  cameraPitch: -0.42,\n};\nconst savedSpawn = (queryPose || hasSpawnParam(params) || forceGuardianSpawn) ? null : loadSavedPlayerPosition({ storageKey: POSITION_STORAGE_KEY, seed: PLAYABLE_WORLD_SEED });\nconst spawnState = queryPose ?? savedSpawn ?? defaultGuardianSpawn;\nconst spawnX = spawnCoord(params, \"x\", spawnState?.worldX ?? 0);\nconst spawnYOverride = spawnCoordOrNull(params, \"y\", spawnState?.worldY);\nconst spawnZ = spawnCoord(params, \"z\", spawnState?.worldZ ?? 0);\nconst spawnFlightEnabled = Boolean(spawnState?.flightEnabled || params.get(\"fly\") === \"1\" || params.get(\"flight\") === \"1\");",
+      "explanation": "The active startup expression never references the wallet-scoped pending invite key or its consumer. Genesis X and Z resolve to 50 times 16, or 800, when no higher-priority state wins.",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "Parse optional pose and runtime controls, then define a separate Play position key and forced-default flag."
+        },
+        {
+          "lines": "11-21",
+          "meaning": "Construct the fixed Region-zero center and camera defaults."
+        },
+        {
+          "lines": "22-27",
+          "meaning": "Skip saved state for explicit queries or forced default, choose query then saved then Genesis, and finally apply axis and flight query values."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "src/player/inviteSpawn.js",
+      "claim": "Defines editable invite parameter parsing, the current empty-query Region-zero behavior, Guardian Region center math, wallet-scoped pending-spawn and receipt keys, best-effort saving, single-use consumption, and the no-expiry and cleanup boundaries."
+    },
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "Carries invite hints through redirects, calculates a candidate before the character call, writes browser caches after character confirmation, separately attempts InviteIndex registration, and redirects even when invite registration did not submit."
+    },
+    {
+      "path": "login/login.js",
+      "claim": "Attempts the same separate invite registration for an already-created character and stores a browser receipt whose pending or registered label is not an InviteIndex field."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Derives UsernameIndex and InviteIndex PDAs, performs confirmed name and paged invite reads, decodes fixed layouts, applies bounded client deduplication, initializes page zero, constructs the invited-wallet append, and exposes point-in-time rent queries."
+    },
+    {
+      "path": "src/play/features/profile/invitePanel.js",
+      "claim": "Contains the alternate profile invite panel that creates share links, initializes page zero, requests at most sixteen InviteIndex pages, paginates fetched entries, and labels values for display; this panel is not present in the audited current production Play entry."
+    },
+    {
+      "path": "play/index.html",
+      "claim": "Defines the current production Play interface audited for invite-panel presence; the expected profileInviteOpen and profileInvitePanel elements are absent."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Is the current production Play entry, selects query pose, separate saved Play position, or Genesis before boot, starts Profile refresh later, and neither imports nor calls consumePendingInviteSpawn."
+    },
+    {
+      "path": "play/position-persistence.js",
+      "claim": "Reads and writes the distinct wallet-agnostic saved Play position, validates version and world seed, throttles writes, and catches ordinary storage failures."
+    },
+    {
+      "path": "src/main.js",
+      "claim": "Contains an alternate startup path that does consume the pending invite spawn, demonstrating why a consumer's existence elsewhere must not be attributed to play/main.js."
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Routes name, invite-page initialization, and invite append tags; verifies account addresses and signers; requires the inviter for page zero; allows independent higher-page initialization; checks previous-full only while append creates a missing page; and exposes no UsernameIndex or InviteIndex close path."
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Defines exact name and invite seeds, lengths, layouts, validation, fixed 64-row page capacity, wallet-plus-slot append, narrow accepted name range, and absence of duplicate scanning in InviteIndex append."
+    },
+    {
+      "path": "programs/nicechunk_player/src/errors.rs",
+      "claim": "Defines explicit self-invite, first-page, previous-page, full-page, invalid-data, and name-taken errors while providing no duplicate-registration error."
+    },
+    {
+      "path": "target/deploy/nicechunk_player.so",
+      "claim": "The retained 172,880-byte artifact matched the finalized Devnet ProgramData ELF hash in the dated audit; that byte match does not prove dirty source reproducibility."
+    },
+    {
+      "path": "docs/audits/names-invites-and-spawn-devnet-2026-07-16.json",
+      "claim": "Records finalized Devnet program identity, deployed ELF comparison, rent minima, the complete observed InviteIndex scan, derived page-zero-through-63 continuity check, two current rows, source hashes, production runtime boundary, and explicit interpretation limits."
+    },
+    {
+      "path": "play/tests/names-invites-and-spawn.test.mjs",
+      "claim": "Locks seven current local behaviors: empty-query fallback, Region priority and serialization, center math, wallet-scoped storage, single consumption, malformed cleanup, and the cleanup rethrow when both storage read and removal fail."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "Provides the canonical NiceChunk villager boy model used as an identity reference for all generated teaching images."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "Provides the canonical NiceChunk villager girl model used as an identity reference for all generated teaching images."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "CONTINUE THE PLAYER AND WALLET PATH",
+      "title": "Next, inspect the public PlayerProfile without mixing in nearby records",
+      "summary": "Names, invite rows, browser drafts, and startup position are separate. The next reviewed guide opens the owner-linked PlayerProfile itself and distinguishes its identity, pointers, coordinates, and history from Appearance, name indexes, Backpack items, progress PDAs, and local interface cards."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "character-creation",
+        "title": "Character Creation",
+        "summary": "Review the owner-signed transaction that creates or updates Profile, Appearance, and UsernameIndex before the later invite and browser handoffs examined here."
+      },
+      {
+        "label": "Next reviewed guide",
+        "slug": "player-profile",
+        "title": "PlayerProfile PDAs",
+        "summary": "Learn which public identity, equipment pointers, position, and history fields live in PlayerProfile and which nearby records remain separate."
+      }
+    ]
+  },
+  "related": [
+    {
+      "slug": "character-creation",
+      "href": "/docs/character-creation/",
+      "title": "Character Creation",
+      "summary": "Follow the earlier name lookup, fixed model choice, owner-signed three-record transaction, local caches, and separate post-confirmation handoffs."
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDAs",
+      "summary": "Inspect the owner-linked public Profile that remains distinct from the name and invite indexes explained here."
+    },
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "Wallet Login and Safety",
+      "summary": "Review why a public link, wallet connection, message signature, transaction signature, submission, and confirmation provide different evidence."
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "Player Sessions and Temporary Authority",
+      "summary": "Compare the invited wallet's owner signature with later narrowly delegated gameplay actions from a temporary session authority."
+    }
+  ]
+}

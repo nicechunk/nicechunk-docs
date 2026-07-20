@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-resource-drop-rules-devnet-audit",
+  "capturedAt": "2026-07-15T05:52:32.353Z",
+  "cluster": "devnet",
+  "captureEnvironment": {
+    "repositoryHead": "662ea5a88dc155c42b09b5dc968b97b3a7f29818",
+    "worktreeDirty": true,
+    "node": "v22.22.2",
+    "solanaCli": "solana-cli 1.18.26 (src:c2b35002; feat:3241752014, client:Agave)"
+  },
+  "rpc": {
+    "endpoint": "https://explorer-api.devnet.solana.com",
+    "method": "getMultipleAccounts",
+    "commitment": "finalized",
+    "encoding": "base64",
+    "apiVersion": "4.2.0-beta.1",
+    "solanaCoreVersion": "4.2.0-beta.1",
+    "featureSet": 4119855713,
+    "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "contextSlot": 476371044,
+    "contextBlockTimeUnix": 1784094737,
+    "contextBlockTime": "2026-07-15T05:52:17.000Z",
+    "accountOrder": [
+      "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA",
+      "Hf3MpkMq5E3f6uCR1RQKLw2DiC4TgcvhDkmuSvttdhHT",
+      "CHtBvv7ggCe5PAJKhDL84sdEZRwwJZ4U82kMNESJzend",
+      "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB",
+      "FBdf5NXSL7R7YQK52j8sc4NeuJ2i9qjfYt4TyRdq9SR2",
+      "3Tvp6ww1uzXTUKk183acPjvAk8AiK5oNXPiHAijHE56r",
+      "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"
+    ]
+  },
+  "derivations": {
+    "globalConfig": {
+      "programId": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu",
+      "seeds": ["global-config"],
+      "address": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "bump": 253
+    },
+    "activeResourceDropTable": {
+      "programId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "seeds": ["resource-drops-v2", "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"],
+      "address": "Hf3MpkMq5E3f6uCR1RQKLw2DiC4TgcvhDkmuSvttdhHT",
+      "bump": 254
+    },
+    "activeSurfaceDecorationTable": {
+      "programId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "seeds": ["surface-decor-v1", "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"],
+      "address": "CHtBvv7ggCe5PAJKhDL84sdEZRwwJZ4U82kMNESJzend",
+      "bump": 254
+    },
+    "shadowGameResourceDropTable": {
+      "programId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "seeds": ["resource-drops-v2", "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"],
+      "address": "FBdf5NXSL7R7YQK52j8sc4NeuJ2i9qjfYt4TyRdq9SR2",
+      "bump": 255
+    },
+    "missingGameSurfaceDecorationTable": {
+      "programId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "seeds": ["surface-decor-v1", "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"],
+      "address": "3Tvp6ww1uzXTUKk183acPjvAk8AiK5oNXPiHAijHE56r",
+      "bump": 255
+    }
+  },
+  "activeRuntime": {
+    "clientContext": "src/chain/nicechunkChain.js gameContext",
+    "miningProgramId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+    "miningInstructionTag": 8,
+    "instructionIsNamespaced": false,
+    "resourceDropTable": "Hf3MpkMq5E3f6uCR1RQKLw2DiC4TgcvhDkmuSvttdhHT",
+    "surfaceDecorationTable": "CHtBvv7ggCe5PAJKhDL84sdEZRwwJZ4U82kMNESJzend",
+    "backpackProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+    "backpackInstructionNamespace": 1,
+    "resourceDropTableAccountIndex": 7,
+    "surfaceDecorationTableAccountIndex": 8,
+    "backpackProgramAccountIndex": 9,
+    "backpackAccountIndex": 10,
+    "systemProgramAccountIndex": 11,
+    "clientReadinessCacheTtlMs": 600000
+  },
+  "accounts": {
+    "chunkProgram": {
+      "address": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1141440,
+      "executable": true,
+      "dataLength": 36,
+      "dataSha256": "02c7114500a43179f854cad62ab5f73e34b602c48021debbcb071e00e4d7375e",
+      "dataBase64": "AgAAABujhMRLHGcfiXBU2z0I1xaWX4K7u0sZJcRoK5BeFDlV",
+      "programDataAddress": "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA"
+    },
+    "chunkProgramData": {
+      "address": "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1914535920,
+      "executable": false,
+      "dataLength": 274949,
+      "dataSha256": "f99d4da7a73ad4a22ab91513857a9fafead82f57c99072cb62910b5451b04da6",
+      "metadataBase64": "AwAAALdmYBwAAAAAAX7In2OqLxzeDb+t63T2LqFNnbPJWdkb7g3v9pUZ7MxM",
+      "decoded": {
+        "upgradeableLoaderStateTag": 3,
+        "lastDeploySlot": "476079799",
+        "upgradeAuthorityOption": 1,
+        "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "elfOffset": 45,
+        "elfLengthFromSectionTable": 214816,
+        "elfSha256": "4e1b5ff815c30bfb3864ea8aab61cdbbdce6fbf4f146b21c44b8bf8be4ec41c4",
+        "elfAllocationLength": 274904,
+        "zeroPaddingLength": 60088
+      }
+    },
+    "activeResourceDropTable": {
+      "address": "Hf3MpkMq5E3f6uCR1RQKLw2DiC4TgcvhDkmuSvttdhHT",
+      "owner": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "lamports": 6925200,
+      "executable": false,
+      "dataLength": 867,
+      "dataSha256": "8051b2a530a3afdf1088f8d5d0dc1c57eff4c46cc056bc48d6a5bebc6cfbccc2",
+      "dataBase64": "TkNLRFJQMDIC/iUAAAAAAA4AFAAjAKD/CAAKAP8BAQA1DAAAzxACDwAUABQAwP8MAAQA/wECADUMAADPEAIEABQACgCA/+7/NwD/AQMANQwAAM8QAgsADAAsARIAoAAAAAQABABAHwAARPoMDQAMANwACACgAAAACAAFAEAfAABE+gwEAAwAKACA/+D/PAD/AQYAQB8AAET6DAgAEwA8APT/CgAAAAgABwBeGgBAfmoEJQATAC0A+P8OAAAACAAIAF4aAEB+agQHABMAIwD2/wgAAAAKAAkAXhoAQH5qBA8AEwAZAPD/EgAAABAACgBeGgBAfmoELgAsAAQB6P8DAAAABAALAMQJAAAS6wIFACwANwDo/wIAAAADAAwAxAkAABLrAgcALAAtAO7/AgAAAAUADQDECQAAEusCLgAtAIIA4P8GAAAACAAOAGUEAABoPAEGAC0AKADk/wQAAAAGAA8AZQQAAGg8AQUALQAjAOT/BAAAAAYAEABlBAAAaDwBCAAhACYC+/8IAAAAAwARokoEAACCiwEHACEAQAH7/wgAAAADABKiSgQAAIKLASUAIQAEAf3/CgAAAAQAE6JKBAAAgosBFwAnAEAB+P88AAAADAAUtMQEAAA2bgEWACcAoAD4/zwAAAAMABW0xAQAADZuASUAJwC0APj/JAAAAAgAFrTEBAAANm4BAQAdACADAgAoAAAAAgAXgBoGAEDyvAEJAB0AhAP8/zAAAAADABiAGgYAQPK8AQkAHwBAAfr/NAAAAAMAGQBQRgAAJM8bBQAfANwA+P80AAAAAwAaAFBGAAAkzxsPAB8AtAD2/ywAAAAFABsAUEYAACTPGwkAJACgAPr/NAAAAAQAHKAPAADAFQwABQAkAGQA+P84AAAABAAdoA8AAMAVDAAOACQAPAD4/zIAAAAIAB6gDwAAwBUMABYAGgAEAfj/SAAAAAoAH4C5KgBgujEOGAAaANwA+P9aAAAACgAggLkqAGC6MQ4PABoAbgD0/zQAAAAMACGAuSoAYLoxDhYAGwBLAPj/KAAAAAgAIsDduwCA4ftgGAAbAEEA+P9AAAAACAAjwN27AIDh+2AlABsANwD4/xwAAAAHACTA3bsAgOH7YAgAGwAtAPj/EgAAAAYAJcDduwCA4ftg",
+      "decoded": {
+        "magic": "NCKDRP02",
+        "version": 2,
+        "bump": 254,
+        "ruleCount": 37,
+        "reservedHex": "0000000000",
+        "rulesLength": 851,
+        "rulesSha256": "5fc213f6ed94777fbc0aeaa99cbea53282743a03d8f27e7498de2b9ef6be55ca",
+        "patchPayloadLength": 852,
+        "patchPayloadSha256": "82ef49417a2af105116391a76ec55177e342461c5ea5909d5ff880b106c73880"
+      }
+    },
+    "activeSurfaceDecorationTable": {
+      "address": "CHtBvv7ggCe5PAJKhDL84sdEZRwwJZ4U82kMNESJzend",
+      "owner": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "lamports": 18819840,
+      "executable": false,
+      "dataLength": 2576,
+      "dataSha256": "368f9d4ce0e1d7e7860e121023af57d1a00b0679559b08b1289f645321ac9216"
+    },
+    "gameProgram": {
+      "address": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1141440,
+      "executable": true,
+      "dataLength": 36,
+      "dataSha256": "fb2fa2fec08ce0ea758be24f98482deec6ee274bbfe1ef36c58eb640ff9881ba",
+      "dataBase64": "AgAAAIrJVPOCXSZNolMYws17W41hlvf7SV12tlF56sj5FPpK",
+      "programDataAddress": "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB"
+    },
+    "gameProgramData": {
+      "address": "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 3091277040,
+      "executable": false,
+      "dataLength": 444021,
+      "dataSha256": "acdbbf8c59e9953485372d20a0e76be78c62adfd8d0f6f607ccc646aaa751987",
+      "metadataBase64": "AwAAAGp1XRwAAAAAAX7In2OqLxzeDb+t63T2LqFNnbPJWdkb7g3v9pUZ7MxM",
+      "decoded": {
+        "upgradeableLoaderStateTag": 3,
+        "lastDeploySlot": "475886954",
+        "upgradeAuthorityOption": 1,
+        "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "elfOffset": 45,
+        "elfLengthFromSectionTable": 396592,
+        "elfSha256": "3f401182d800cf2d30204d2ac4c2f326645bdd4e6d13c0c304b6d6f46f2eb5d3",
+        "elfAllocationLength": 443976,
+        "zeroPaddingLength": 47384
+      }
+    },
+    "shadowGameResourceDropTable": {
+      "address": "FBdf5NXSL7R7YQK52j8sc4NeuJ2i9qjfYt4TyRdq9SR2",
+      "owner": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "lamports": 6925200,
+      "executable": false,
+      "dataLength": 867,
+      "dataSha256": "75001404296a41d7c472622ece02d3be643f77f490a711b6f8f5c7a0f1db18dc",
+      "dataBase64": "TkNLRFJQMDIC/yUAAAAAAA4AFAAjAKD/CAAKAP8BAQA1DAAAzxACDwAUABQAwP8MAAQA/wECADUMAADPEAIEABQACgCA/+7/NwD/AQMANQwAAM8QAgsADAAsARIAoAAAAAQABABAHwAARPoMDQAMANwACACgAAAACAAFAEAfAABE+gwEAAwAKACA/+D/PAD/AQYAQB8AAET6DAgAEwA8APT/CgAAAAgABwBeGgBAfmoEJQATAC0A+P8OAAAACAAIAF4aAEB+agQHABMAIwD2/wgAAAAKAAkAXhoAQH5qBA8AEwAZAPD/EgAAABAACgBeGgBAfmoELgAsAAQB6P8DAAAABAALAMQJAAAS6wIFACwANwDo/wIAAAADAAwAxAkAABLrAgcALAAtAO7/AgAAAAUADQDECQAAEusCLgAtAIIA4P8GAAAACAAOAGUEAABoPAEGAC0AKADk/wQAAAAGAA8AZQQAAGg8AQUALQAjAOT/BAAAAAYAEABlBAAAaDwBCAAhACYC+/8IAAAAAwARokoEAACCiwEHACEAQAH7/wgAAAADABKiSgQAAIKLASUAIQAEAf3/CgAAAAQAE6JKBAAAgosBFwAnAEAB+P88AAAADAAUtMQEAAA2bgEWACcAoAD4/zwAAAAMABW0xAQAADZuASUAJwC0APj/JAAAAAgAFrTEBAAANm4BAQAdACADAgAoAAAAAgAXgBoGAEDyvAEJAB0AhAP8/zAAAAADABiAGgYAQPK8AQkAHwBAAfr/NAAAAAMAGQBQRgAAJM8bBQAfANwA+P80AAAAAwAaAFBGAAAkzxsPAB8AtAD2/ywAAAAFABsAUEYAACTPGwkAJACgAPr/NAAAAAQAHKAPAADAFQwABQAkAGQA+P84AAAABAAdoA8AAMAVDAAOACQAPAD4/zIAAAAIAB6gDwAAwBUMABYAGgAEAfj/SAAAAAoAH4C5KgBgujEOGAAaANwA+P9aAAAACgAggLkqAGC6MQ4PABoAbgD0/zQAAAAMACGAuSoAYLoxDhYAGwBLAPj/KAAAAAgAIsDduwCA4ftgGAAbAEEA+P9AAAAACAAjwN27AIDh+2AlABsANwD4/xwAAAAHACTA3bsAgOH7YAgAGwAtAPj/EgAAAAYAJcDduwCA4ftg",
+      "decoded": {
+        "magic": "NCKDRP02",
+        "version": 2,
+        "bump": 255,
+        "ruleCount": 37,
+        "reservedHex": "0000000000",
+        "rulesLength": 851,
+        "rulesSha256": "5fc213f6ed94777fbc0aeaa99cbea53282743a03d8f27e7498de2b9ef6be55ca",
+        "patchPayloadLength": 852,
+        "patchPayloadSha256": "82ef49417a2af105116391a76ec55177e342461c5ea5909d5ff880b106c73880"
+      }
+    },
+    "missingGameSurfaceDecorationTable": {
+      "address": "3Tvp6ww1uzXTUKk183acPjvAk8AiK5oNXPiHAijHE56r",
+      "account": null
+    },
+    "globalConfig": {
+      "address": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "owner": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu",
+      "lamports": 2930160,
+      "executable": false,
+      "dataLength": 293,
+      "dataSha256": "ce91a041f2bffe884f847f5b73c6d1511a6f911adc8e42d5a9d248b6d8829b5c"
+    }
+  },
+  "localComparison": {
+    "ruleSource": {
+      "path": "src/data/resourceDropRules.js",
+      "fileSha256": "3859143a92b1e655de06874159b16d129040f72a0590c268c6f8892b6387e3cf",
+      "ruleCount": 37,
+      "dropTypeCount": 12,
+      "sourceBlockTypeCount": 16,
+      "chanceBpsRange": [10, 900],
+      "volumeMm3Range": [4000, 1627120000],
+      "encodedPatchPayloadLength": 852,
+      "encodedPatchPayloadSha256": "82ef49417a2af105116391a76ec55177e342461c5ea5909d5ff880b106c73880",
+      "encodedRuleBytesSha256": "5fc213f6ed94777fbc0aeaa99cbea53282743a03d8f27e7498de2b9ef6be55ca",
+      "matchesActiveTableRules": true,
+      "matchesShadowTableRules": true
+    },
+    "artifacts": {
+      "target/deploy/nicechunk_chunk.so": {
+        "length": 214816,
+        "sha256": "4e1b5ff815c30bfb3864ea8aab61cdbbdce6fbf4f146b21c44b8bf8be4ec41c4",
+        "matchesDeployedElf": true
+      },
+      "target/deploy/nicechunk_game.so": {
+        "length": 396592,
+        "sha256": "3f401182d800cf2d30204d2ac4c2f326645bdd4e6d13c0c304b6d6f46f2eb5d3",
+        "matchesDeployedElf": true
+      }
+    },
+    "sourceFiles": {
+      "sdk/nicechunk-chunk.ts": "1fad03371733ff1578675b8589c1486b289bca82898fa77e80559896496b10b5",
+      "programs/nicechunk_chunk/src/lib.rs": "21a6714f941e12c7ea529aa55076f6aa9a3ec14b51da6009df8ac233565caa17",
+      "programs/nicechunk_chunk/src/state.rs": "10d34c21659b6bbcc9df0dba4c41ecfd198267bde8a8bc3aa7a3d32e019ccefe",
+      "programs/nicechunk_chunk/src/civilization_adapter.rs": "d77942a87af6d6f10bf27e3439ef69af5edd29bb3fc59dc88343829310ae66e5",
+      "src/chain/nicechunkChain.js": "1f084225cf10510c8060e24d99e2a812e5d7aa360fa83fb46959637df6df7982",
+      "play/play-chain-backpack.js": "ddfc8bd61a142185e88249bdc64bc56e49c5ad8101aa9c44466e9021bff1a09e",
+      "play/main.js": "7277ddc58cd59a186431ad72c87aa609a957b126934e727a56a77731705125d8",
+      "scripts/civilization-resource-drops-e2e.ts": "17a8fc6345da5a9c7c8ad70efd19fad222aa7beb53aa3a158de76c31e787415c"
+    },
+    "heroImage": {
+      "path": "docs/media/resource-drop-rules-overview-v1.webp",
+      "width": 1774,
+      "height": 887,
+      "length": 283512,
+      "sha256": "453d93e7e23eac19ffb447aaf8ccfd6b7130f11adbe39aabd310bb110ae66e7f"
+    }
+  },
+  "scopeNotes": [
+    "The active browser mining context sends tag 8 directly to the standalone Chunk Program, so its ResourceDropTable is derived under the Chunk Program ID. The Game Program-owned table is not an account of that transaction.",
+    "The two ResourceDropTable accounts have identical 851-byte rule bodies at the captured slot. Their full account hashes differ because the header stores a different PDA bump.",
+    "The current civilization-resource-drops E2E script explicitly targets the Game Program-owned table. A successful run of that script does not update the table read by the current standalone Chunk mining path.",
+    "The E2E script's missing-table fallback uses the Civilization power authority as payer, while tag 7 initialization requires the different GlobalConfig development wallet. The recorded shadow table already exists, so the audited current path skips that incompatible fallback.",
+    "The active ResourceDropTable raw bytes are embedded in this audit. Full ProgramData bytes are not embedded; deployed ELF hashes were computed from finalized RPC bytes using the ELF section table length and can be reproduced by querying the recorded ProgramData addresses.",
+    "The current local Chunk and Game artifacts match their deployed ELF hashes, but both programs retain the recorded upgrade authority. Artifact parity is a snapshot, not immutability.",
+    "The resource resolver uses no transaction slot, wallet address, nonce, signature, or browser RNG. Its result still depends on the deployed program, ordered table bytes, canonical program seed, coordinate, generated source block, and player Exploration XP.",
+    "ResourceDropTable v2 stores no revision or updated slot. A governed table version must be identified by an observed finalized slot plus its account or rule-body hash.",
+    "A matched exploration extra is a lossy secondary Backpack append. The required base mined-block append can succeed while the secondary item is omitted for capacity; Exploration XP still increments when the resolver produced the extra.",
+    "The browser refreshes the full Backpack PDA after confirmed mining. Local pending reward groups describe planned base rewards and are not authoritative evidence that an extra rule matched.",
+    "Normal multi-block tree felling uses tag 9 without ResourceDropTable resolution. Support-collapse blocks use the table only when submitted through reward-bearing tag 8; non-reward removals use tag 5."
+  ]
+}

@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="nicechunk-in-one-picture" data-docs-static-source="036d882591a321eaebea6a8520846e6954c26291a8ceebb33e79b5179afee6a0">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/nicechunk-in-one-picture.json" />
+    <meta name="nicechunk:source-sha256" content="036d882591a321eaebea6a8520846e6954c26291a8ceebb33e79b5179afee6a0" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/nicechunk-in-one-picture/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="See how the browser, Chunk.js, Guardian, Solana programs, PDAs, deterministic world generation, player models, materials, and buildings cooperate without pretending that every frame is on chain." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk in One Picture: A Player-First System Map" />
+    <meta property="og:description" content="See how the browser, Chunk.js, Guardian, Solana programs, PDAs, deterministic world generation, player models, materials, and buildings cooperate without pretending that every frame is on chain." />
+    <meta property="og:url" content="https://nicechunk.com/docs/nicechunk-in-one-picture/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/nicechunk-in-one-picture-overview-v1.webp" />
+    <meta property="og:image:alt" content="In an educational scene based on the canonical villager and real Chunk.js river-bend references, the boy strikes a still-present stone voxel while the girl inspects a recovered mineral and a voxel cottage stands on a distant foundation." />
+    <title>NiceChunk in One Picture: A Player-First System Map</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/nicechunk-in-one-picture/#article",
+  "url": "https://nicechunk.com/docs/nicechunk-in-one-picture/",
+  "name": "NiceChunk is four cooperating layers, not one giant chain game",
+  "description": "See how the browser, Chunk.js, Guardian, Solana programs, PDAs, deterministic world generation, player models, materials, and buildings cooperate without pretending that every frame is on chain.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "NiceChunk is four cooperating layers, not one giant chain game",
+  "mainEntityOfPage": "https://nicechunk.com/docs/nicechunk-in-one-picture/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One mining swing crosses four unequal layers",
+    "Guardian lets nearby players react without becoming the judge",
+    "There is no single NiceChunk save file",
+    "Trust the exact handoff, not a reassuring label"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/nicechunk-in-one-picture/#one-action-four-jobs",
+      "name": "One mining swing crosses four unequal layers"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/nicechunk-in-one-picture/#guardian-relay",
+      "name": "Guardian lets nearby players react without becoming the judge"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/nicechunk-in-one-picture/#separate-records",
+      "name": "There is no single NiceChunk save file"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/nicechunk-in-one-picture/#verify-exact-handoff",
+      "name": "Trust the exact handoff, not a reassuring label"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-overview-v1.webp",
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-action-layers-v1.webp",
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-guardian-relay-v1.webp",
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-separate-records-v1.webp",
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-honest-boundary-v2.webp",
+    "https://nicechunk.com/docs/media/nicechunk-in-one-picture-action-layers-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>NiceChunk in One Picture</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">START HERE 01 · THE WHOLE SYSTEM</p>
+<h1>NiceChunk is four cooperating layers, not one giant chain game</h1>
+<p class="docs-hero-summary">The browser and Chunk.js make play immediate, Guardian relays nearby activity, Solana programs check narrowly defined shared records, and deterministic reconstruction turns public inputs plus validated records into the world you see. These are four different jobs: the device gives feedback, the relay carries news, programs judge supported writes, and reconstruction draws the result.</p>
+<span class="docs-reading-time">16 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In an educational scene based on the canonical villager and real Chunk.js river-bend references, the boy strikes a still-present stone voxel while the girl inspects a recovered mineral and a voxel cottage stands on a distant foundation." decoding="async" height="887" loading="eager" src="/docs/media/nicechunk-in-one-picture-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Read the scene as four jobs, not four glowing status badges: the boy receives immediate device feedback, nearby activity can be relayed, shared records need program checks, and the mineral, terrain, characters, and cottage are reconstructed for display. Cyan and warm light are explanatory artwork, not in-game proof markers.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">What parts of NiceChunk work together when I play?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Start here · Step 1 of 6</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Current network</dt>
+<dd>Solana Devnet</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>15 July 2026 · current code version and dated deployment evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Voxel</dt>
+<dd>One block-sized cell at an integer x, y, z world coordinate. Think of it as one addressable cube in the landscape.</dd></div>
+<div class="docs-guide-term"><dt>Deterministic reconstruction</dt>
+<dd>Two clean clients using the same public world inputs calculate the same untouched terrain instead of downloading a save file containing every block.</dd></div>
+<div class="docs-guide-term"><dt>Guardian</dt>
+<dd>A regional low-latency messenger for nearby movement, chat, equipment, digging cues, and building announcements. It is not the final judge of shared state.</dd></div>
+<div class="docs-guide-term"><dt>Solana program</dt>
+<dd>Public rule code that checks one supported instruction. It can read and write only through the accounts supplied to that instruction.</dd></div>
+<div class="docs-guide-term"><dt>On-chain account</dt>
+<dd>A block of data stored on Solana. Here account means a program-owned data record, not a website login account.</dd></div>
+<div class="docs-guide-term"><dt>PDA</dt>
+<dd>A Program Derived Address: a predictable on-chain account address made from fixed labels, other inputs, and a program ID. It has no private key.</dd></div>
+<div class="docs-guide-term"><dt>Wallet, signer, and session key</dt>
+<dd>A wallet is the player's main signing authority. A signer proves control of an allowed key. An authorized temporary session key is a limited game key created under wallet-approved rules.</dd></div>
+<div class="docs-guide-term"><dt>RPC read</dt>
+<dd>A request from the browser to a Solana node for current account data. The client must still check the returned address, owning program, and bytes.</dd></div>
+<div class="docs-guide-term"><dt>confirmed and finalized</dt>
+<dd>Solana commitment stages. This client stops at confirmed; finalized is the stronger later stage, so the two words are not interchangeable.</dd></div>
+<div class="docs-guide-term"><dt>Program ID</dt>
+<dd>The public address of one deployed Solana program. It is part of PDA derivation and tells an explorer which rule engine handled an instruction.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Fast feedback is a preview, not a receipt</strong>
+<p>Movement, camera control, collision, a pickaxe swing, target outlines, durability updates, and a reversible placement preview can appear immediately. Mining also records a pending action locally while its target remains present. Those effects prove only that this browser ran the interaction.</p></article>
+<article class="docs-key-point"><strong>Guardian carries news; it does not settle it</strong>
+<p>A regional Guardian can relay nearby movement, chat, equipment, digging, and building hints. It does not execute the Solana program or make the relayed claim final.</p></article>
+<article class="docs-key-point"><strong>Program proof is narrow; the picture is rebuilt</strong>
+<p>A successful transaction shows that every instruction it contains completed without error under the supplied accounts and signatures. Each program instruction checks only its own defined scope; terrain, characters, materials, and the three-dimensional surfaces used for drawing are still reconstructed by the game runtime.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#one-action-four-jobs">One mining swing crosses four unequal layers</a></li>
+<li><a href="#guardian-relay">Guardian lets nearby players react without becoming the judge</a></li>
+<li><a href="#separate-records">There is no single NiceChunk save file</a></li>
+<li><a href="#verify-exact-handoff">Trust the exact handoff, not a reassuring label</a></li>
+<li><a href="#technical-details">The screen has an order of precedence; proof needs an extra check</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="one-action-four-jobs"><p class="docs-eyebrow">THE PLAYER LOOP</p>
+<h2>One mining swing crosses four unequal layers</h2>
+<p class="docs-prose">Imagine the boy in the illustration striking one stone block. Chunk.js first decides which voxel is under the pointer, whether the tool can reach it, and whether the moving tool box actually touches it. The tool animation, target outline, contact-count state, and locally recorded tool wear can update at frame speed on this device; during the current mining submission path, the target block itself remains present until the action is accepted. The current Play runtime does not produce a mining contact sound or contact-chip particle effect.</p>
+<p class="docs-prose">For a supported shared action, the browser then submits an integer coordinate and the required on-chain data accounts with a wallet or an authorized temporary session key. Think of the wallet as the main authority and the session key as a limited game key. The Chunk program derives and reads the relevant records, independently recalculates the generated block, checks rules and protection, and writes only if every instruction in the transaction succeeds. The current client waits for confirmed rather than finalized, applies or rolls back the local pending action, then reads the affected PDA records again.</p>
+<p class="docs-prose">The system still has four jobs even though the list below has five moments: reconstruction happens once before the action to draw the starting world and again after validation to show newly read shared records.</p>
+<ol class="docs-steps"><li><strong>Reconstruct the starting world</strong>
+<p>Chunk.js combines the configured seed, version, integer coordinates, model bytes, baked materials, and fetched rule or state accounts into a playable scene.</p></li>
+<li><strong>React locally</strong>
+<p>Movement, aiming, collision, tool contact, the target outline, and durability updates keep mining responsive while its target remains. Other actions, such as ordinary placement, can also show a reversible pending delta without claiming a shared write.</p></li>
+<li><strong>Relay nearby activity</strong>
+<p>Guardian may deliver a fast regional hint so another player can see motion, chat, equipment, or an action cue without waiting for an on-chain round trip.</p></li>
+<li><strong>Validate the supported action</strong>
+<p>A Solana program checks the exact signer, accounts, PDAs, rules, and action data that belong to its instruction; it does not validate the whole rendered frame.</p></li>
+<li><strong>Read shared records again</strong>
+<p>After a successful confirmed result, the browser starts new reads for the affected PDA data and rebuilds the scene from the responses it accepts. Starting a new request does not guarantee the newest possible answer. A failure removes the mining pending state and returns the tool durability that was deducted locally for that rejected attempt.</p></li></ol>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and Chunk.js river-bank reference, the boy&#39;s cyan pickaxe contact leaves the target voxel present while the girl inspects a mineral beside an older cavity." decoding="async" height="887" loading="lazy" src="/docs/media/nicechunk-in-one-picture-action-layers-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The current target remains present. The cyan cubes are a teaching metaphor for local collision and durability handling; the current runtime does not spawn mining contact chips or a contact sound. The older cavity and held mineral represent a result that can be reconstructed after successful program checks and validated PDA reads.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A changed screen is not a transaction receipt</strong>
+<p>The picture may change because of local preview, a manual Confirm control, a Guardian hint, or a verified PDA refresh. The visible result alone does not identify which path produced it.</p></aside></section>
+<section class="docs-content-section" id="guardian-relay"><p class="docs-eyebrow">FAST MULTIPLAYER, LIMITED AUTHORITY</p>
+<h2>Guardian lets nearby players react without becoming the judge</h2>
+<p class="docs-prose">Play discovers nearby Guardian endpoints from registered Region accounts. Within a covered area, Guardian accepts only bounded message shapes, forwards activity near the player, rejects stale or out-of-order sequences, and limits how quickly messages can arrive. It then relays temporary activity such as movement, chat, equipment presentation, digging cues, or building announcements.</p>
+<p class="docs-prose">That speed solves a different problem from Solana. The current Guardian greeting includes a wallet public key but does not challenge the sender to sign with that wallet, so the greeting alone does not prove control of the matching private key. A relayed digging action can update the receiver's render delta before an RPC read. Treat the message as timely news; treat a successfully executed instruction followed by a validated PDA read as evidence for persistent shared state.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Browser</span>
+<strong>Immediate</strong>
+<p>Owns input, camera, physics, animation, pending edits, turning blocks into drawable surfaces, materials, and most presentation.</p></article>
+<article class="docs-fact"><span>Guardian</span>
+<strong>Realtime relay</strong>
+<p>Moves bounded nearby messages and discovery hints; it is not a replacement for program execution.</p></article>
+<article class="docs-fact"><span>Solana</span>
+<strong>Narrow shared checks</strong>
+<p>One instruction validates its supplied accounts and signers, then stores only the fields defined by that program.</p></article>
+<article class="docs-fact"><span>Reconstruction</span>
+<strong>Repeatable picture</strong>
+<p>Public inputs and validated records become terrain, models, materials, water, buildings, and inventory presentation.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a scene based on the real Chunk.js river-bend reference, the canonical boy mines on the near bank while the canonical girl notices and waves from the opposite bank, with no authority device between them." decoding="async" height="887" loading="lazy" src="/docs/media/nicechunk-in-one-picture-guardian-relay-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The girl can react quickly because nearby activity was relayed across the Region. Her wave shows awareness, not settlement: no line, machine, or symbol in this generated scene proves that a Solana instruction succeeded or a PDA changed.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Fast news can still be useful</strong>
+<p>Guardian does not need to settle assets to improve multiplayer presence. Its value is low-latency, region-bounded delivery; the page keeps that useful job separate from persistent authority.</p></aside></section>
+<section class="docs-content-section" id="separate-records"><p class="docs-eyebrow">PROGRAMS AND PDAS</p>
+<h2>There is no single NiceChunk save file</h2>
+<p class="docs-prose">A program is a public rule engine. A PDA is a predictable on-chain data address that the relevant program can use for one kind of record; it is not a login account and has no private key. Ordinary players can think of the programs as separate clerks: each clerk accepts a particular form, checks particular signatures and records, and cannot rewrite another clerk's notebook merely because the screen places their results side by side.</p>
+<p class="docs-prose">Core holds the root world settings. Player holds identity, appearance, lookup indexes, equipment pointers, and temporary sessions. Chunk holds generated-world removals and world rule tables. The Game program routes Backpack, Smelting, and Market instructions. Building holds foundations and the bytes needed to reconstruct buildings. Guardian holds registry and Region endpoint discovery, while Civilization holds governance rules, signatures, vote counts, receipts, and power records.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Player Program</span>
+<strong>Who you are</strong>
+<p>Profile, Appearance, name and invite indexes, equipment pointers, and temporary PlayerSession records.</p></article>
+<article class="docs-fact"><span>Chunk Program</span>
+<strong>What changed in the world</strong>
+<p>Broken generated coordinates, mining progress, mutable drop or decoration rules, and foundation Chunk indexes.</p></article>
+<article class="docs-fact"><span>Game Program</span>
+<strong>What you own or exchange</strong>
+<p>Routes the current Backpack, Smelting, and Market namespaces, each with its own instruction and account rules.</p></article>
+<article class="docs-fact"><span>Building and Guardian</span>
+<strong>What is reconstructed or discovered</strong>
+<p>Building bytes and protection live in Building accounts; realtime endpoint discovery lives in Guardian Region accounts.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a settlement scene based on the Chunk.js river reference, the canonical boy stands beside a mined cavity, the girl holds a separate mineral, and a voxel cottage occupies its own rectangular foundation." decoding="async" height="887" loading="lazy" src="/docs/media/nicechunk-in-one-picture-separate-records-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The player identity, mined coordinate, owned mineral record, and building bytes can all be shown in one scene without becoming one save file. Their program-owned accounts remain separate even when reconstruction places the results beside one another.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>The same PDA label can still produce different accounts</strong>
+<p>A PDA address also includes its program ID. Chunk mining progress and Game-routed Smelting progress use the same fixed player-progress label under different programs, so they are separate accounts and must not be presented as one automatic total. This derivation label is not a wallet recovery phrase or secret seed.</p></aside></section>
+<section class="docs-content-section" id="verify-exact-handoff"><p class="docs-eyebrow">CHECK IT YOURSELF</p>
+<h2>Trust the exact handoff, not a reassuring label</h2>
+<p class="docs-prose">Words such as connected, confirmed, active, verified, or on chain are useful only when the page says who produced the label and what was checked. For a real mining result, the strongest current check combines a successful Chunk instruction on Devnet with newly requested confirmed RPC responses for the correctly derived ChunkBroken and Backpack PDAs, checking each address, owning program, byte format, and claimed value. A new request is not automatically the newest possible answer or proof of which transaction caused the bytes.</p>
+<p class="docs-prose">The same discipline reveals honest limits. The current client stops waiting at Solana commitment confirmed rather than finalized. The manual Confirm control can move local pending data into an internal collection named chainDeltas, and Guardian can apply a digging hint to that same render layer. Ordinary block placement currently returns chain-placement-disabled. None of those convenient labels or collection names should be silently upgraded into stronger proof.</p>
+<ol class="docs-steps"><li><strong>Rebuild an untouched place</strong>
+<p>Entry: open /play/ in two private or incognito windows so neither reuses the other's in-memory edits, and use the minimap coordinate readout to move both players to the same untouched integer x, y, z area. Action: compare the terrain steps, trees, shoreline, and water. Success: both clients draw the same untouched scene. A mismatch means the inputs, version, coordinate, or loaded rules differ; a match demonstrates deterministic reconstruction only, not an account write.</p></li>
+<li><strong>Verify one real mine</strong>
+<p>Entry: in /play/, connect a wallet, create or equip a Backpack, and fund the authorized game session shown by the Session control. Action: mine one supported generated block and wait for the event feed to report ON CHAIN, then fully reload the page. Success at the player-UI level: the coordinate remains missing and the reward returns from the chain Backpack after reload. For an independent program check, open a full transaction signature from approved diagnostic tooling in Solana Explorer with cluster=devnet and verify the configured Chunk Program ID GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj. Current limitation: the event feed displays only a shortened signature, and a temporary session—not necessarily the connected wallet—signs mining, so wallet activity or a wallet-address search may not expose that transaction. Without the full signature and PDA addresses, reload persistence is useful evidence but not a complete independent audit.</p></li>
+<li><strong>Test the placement boundary</strong>
+<p>Entry: select an ordinary placeable block in /play/ while the wallet is connected and keep the chain event feed visible. Action: place it, observe chain-placement-disabled, and optionally press the manual Confirm control. Success for the documented boundary: this screen can keep the local result, but the wallet has no matching placement signature, a second clean client cannot read a placement PDA, and a reload removes the local-only placement. If a matching Devnet transaction or recoverable placement PDA appears, this page is stale and should be reported.</p></li>
+<li><strong>Compare Guardian with RPC</strong>
+<p>Entry: open two clients in one Guardian-covered Region and confirm that both show the regional connection. Action: move or dig in one client, watch the other react quickly, and then fully reload the receiving client after its RPC refresh. Success: movement can arrive without any transaction, while a mined coordinate persists after the full reload only when chain-backed data is read again. The current session can retain an unobserved Guardian digging gap even when an ordinary account refresh does not contain it, so the full reload matters. If approved diagnostic tooling supplies the full signature, compare it and the affected PDA reads in Devnet Explorer; the ordinary event feed's shortened signature is not enough for that independent check. A relay cue that disappears after the reload was news, not a receipt.</p></li>
+<li><strong>Check the protected-foundation guard</strong>
+<p>Entry: aim at a foundation voxel that the loaded Building records mark as protected. Action: press the mining control. Success: the normal client reports that the block is protected and stops before starting the pickaxe animation, so there is no contact spark, missing voxel, reward, or signature. This local guard improves feedback but is not the authority: if stale data or a modified client submits the request anyway, the Chunk program independently reads the foundation protection and must reject it.</p></li></ol>
+<ul class="docs-bullets"><li>The currently configured Solana cluster is Devnet, even though the file name and world seed contain mainnet wording.</li>
+<li>The transaction helper waits for commitment confirmed; this page does not claim finalized or irreversible settlement.</li>
+<li>Non-tree surface decorations remain disabled until Play fetches a valid SurfaceDecorationTable PDA; bundled defaults are not production authority.</li>
+<li>A successful instruction proves only its exact program, signers, supplied accounts, checks, and writes—not the camera, hand path, particles, or every other program's state.</li>
+<li>For a foundation already known to this client, Play blocks mining before the swing animation; the Chunk program repeats the protection check so stale or modified clients cannot rely on bypassing that local guard.</li></ul>
+<figure class="docs-section-visual"><img alt="In a scene based on the canonical villagers and Chunk.js river reference, the boy stops with his pickaxe lowered before a protected cottage foundation while the girl inspects the intact edge; there are no chips, sparks, gaps, or rewards." decoding="async" height="887" loading="lazy" src="/docs/media/nicechunk-in-one-picture-honest-boundary-v2.webp" width="1774" />
+<figcaption class="docs-visual-caption">The loaded client recognizes the protected foundation before the swing animation and stops locally, so nothing strikes the stone. That quick guard is helpful rather than authoritative: the Chunk program independently checks foundation protection again if any stale or modified client still submits a request.</figcaption></figure>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>The useful question is always specific</strong>
+<p>Ask: which program ran, which accounts and signers did it check, what bytes did it write, at which commitment did the client stop waiting, and can another client derive and read the same PDA result?</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">ONE COORDINATE, READ HONESTLY</p>
+<h2>The screen has an order of precedence; proof needs an extra check</h2>
+<p>The formula describes which block the current Chunk.js scene draws. The short source excerpts then show local render precedence, independent mining checks, Guardian's unverified hint path, program-specific PDAs, confirmed commitment, and the disabled ordinary-placement boundary.</p></div>
+<figure class="docs-section-visual docs-technical-visual"><img alt="In a teaching scene derived from the canonical villagers and Chunk.js river-bank reference, the boy&#39;s current target remains present while the girl holds a mineral beside an older cavity." decoding="async" height="887" loading="lazy" src="/docs/media/nicechunk-in-one-picture-action-layers-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">This technical section explains the same scene in code: a current mining target can remain visible while feedback plays, a previously accepted removal can be reconstructed later, and neither cyan nor warm light is an actual chain-status signal.</figcaption></figure>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>The visible block at one integer coordinate</h3>
+<div aria-label="At one block coordinate, the screen uses a local pending change first, then a stored render delta, then the untouched block reconstructed from all public world inputs." class="docs-formula-expression" role="math"><code>B_screen(p) = first_defined(P_pending(p), D_render(p), G(worldInputs, p))</code></div>
+<p class="docs-technical-explanation">first_defined means 'take the first value that exists.' For example, at one coordinate a placement preview can temporarily cover a stored removal; without either edit, Chunk.js draws the generated base block. D_render is deliberately not named chain proof: the current internal chainDeltas map can also receive a manual local confirmation or a Guardian action hint. A shared claim needs a successful signed instruction plus a new confirmed RPC response whose expected account address, owning program, byte format, and claimed value are validated; merely starting a new request does not guarantee the newest possible answer.</p>
+<dl class="docs-formula-terms"><dt>B_screen(p)</dt>
+<dd>The block that this client currently draws at coordinate p.</dd>
+<dt>p</dt>
+<dd>One integer world coordinate, written as x, y, z.</dd>
+<dt>first_defined(...)</dt>
+<dd>Read left to right and use the first available block answer.</dd>
+<dt>P_pending(p)</dt>
+<dd>A local proposed change that can still be confirmed or rolled back.</dd>
+<dt>D_render(p)</dt>
+<dd>The delta currently used by ChunkState when drawing the coordinate; its internal collection name is not independent proof of where the data came from.</dd>
+<dt>worldInputs</dt>
+<dd>The public seed, generation version, Chunk size, sea level, height limits, and other generator configuration needed to reproduce the base world.</dd>
+<dt>G(worldInputs, p)</dt>
+<dd>The untouched base block reconstructed from all required public world inputs. Non-tree surface decorations are a separate PDA-selected layer.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js draws the first block source that exists</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">chunk.js/chunk/chunk-state.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  getFinalBlock(localX, localY, localZ) {
+    if (!containsLocal(localX, localY, localZ, this)) return BLOCK_ID.air;
+    if (!this.pendingDeltas.size &amp;&amp; !this.chainDeltas.size) return this.getBaseBlock(localX, localY, localZ);
+    const key = deltaKey(localX, localY, localZ, this.chunkSize);
+    const pending = this.pendingDeltas.get(key);
+    if (pending) return pending.blockId;
+    const chain = this.chainDeltas.get(key);
+    if (chain) return chain.blockId;
+    return this.getBaseBlock(localX, localY, localZ);
+  }</code></pre>
+<p class="docs-technical-explanation">Read this from top to bottom. A pending local edit hides everything below it. If there is no pending edit, the runtime tries its stored render delta; if neither edit source exists, it falls back to the generated block. The variable named chain does not verify its own origin, so the client must separately obtain and validate a current PDA snapshot before calling that result shared state.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>The function asks for the final block at one local x, y, z coordinate inside a Chunk.</p></li>
+<li><strong>2</strong>
+<p>A coordinate outside this Chunk is treated as air here; another Chunk is responsible for its own cells.</p></li>
+<li><strong>3</strong>
+<p>When there are no pending edits and no stored render deltas, the generated base block can be returned immediately.</p></li>
+<li><strong>4-6</strong>
+<p>The coordinate is converted to a lookup key. If a reversible local edit exists at that key, its block wins first.</p></li>
+<li><strong>7-9</strong>
+<p>Otherwise the function tries the stored render delta, then falls back to the generated base block if no delta exists.</p></li>
+<li><strong>10</strong>
+<p>The closing brace ends this one-coordinate decision.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The mining program independently recalculates the block</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let block_id = generated_block_id_at(global_config_view, &amp;generated_args);
+    if args.expected_block_id != block_id {
+        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());
+    }
+    if matches!(block_id, BLOCK_AIR | BLOCK_WATER | BLOCK_BEDROCK) {
+        return Err(NicechunkChunkError::UnmineableBlock.into());
+    }</code></pre>
+<p class="docs-technical-explanation">The browser may submit, in effect, 'I mined this kind of block here.' The program computes its own answer for that coordinate. A mismatch fails, and air, water, or bedrock fails even when the browser asks to mine it. The complete instruction also checks protection, account addresses, sessions, duplicates, rule tables, the Backpack, and state writes; some of those checks occur before this excerpt and some occur after it.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>The program calculates the generated block for the coordinate from validated world configuration and instruction arguments.</p></li>
+<li><strong>2-4</strong>
+<p>The browser's expected block ID must equal the program's answer. If it does not, the instruction stops with GeneratedBlockMismatch and writes nothing.</p></li>
+<li><strong>5-7</strong>
+<p>Even a matching answer is rejected when the generated block is air, water, or bedrock, because those targets are not mineable.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>A Guardian digging message can change rendering before RPC</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    if (event.action !== 3 || !chunks?.applyChainDelta) return;
+    const worldX = Math.trunc(event.x);
+    const worldY = Math.trunc(event.y);
+    const worldZ = Math.trunc(event.z);
+    chunks.applyChainDelta([{ worldX, worldY, worldZ, blockId: BLOCK_ID.air }]);
+    onWorldChanged({ type: "guardian-dig", worldX, worldY, worldZ, localPlayerId: event.localPlayerId });</code></pre>
+<p class="docs-technical-explanation">This receiver treats Guardian action 3 as a fast digging hint and applies air to the render-delta layer. The callback lets Play invalidate that Chunk and request an independent RPC refresh. Nothing in this excerpt verifies a transaction signature or PDA owner, so the hint remains news rather than settlement.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Ignore messages that are not the digging action, or stop if the loaded world cannot accept a render delta.</p></li>
+<li><strong>2-4</strong>
+<p>Convert the message's coordinates to integer world cells.</p></li>
+<li><strong>5</strong>
+<p>Temporarily draw air at that cell through the same internal render-delta collection used for other resolved-looking changes. The collection name does not prove the source.</p></li>
+<li><strong>6</strong>
+<p>Notify Play that a Guardian hint changed the world view; Play separately schedules a Chunk PDA refresh.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The same progress label stays separate under different programs</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function derivePlayerProgressPdaForContext(owner, context = gameContext) {
+  return derivePlayerProgressPdaForProgram(owner, context.chunkProgramId);
+}
+
+function deriveSmeltingPlayerProgressPdaForContext(owner, context = gameContext) {
+  return derivePlayerProgressPdaForProgram(owner, context.smeltingProgramId);
+}</code></pre>
+<p class="docs-technical-explanation">Both callers use the same derivation helper and player-progress label, but one supplies the Chunk Program ID and the other supplies the Smelting Program ID. Because a program ID is part of PDA derivation, the two results are different accounts rather than one automatically merged progress total.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-3</strong>
+<p>The mining-side helper derives the player's progress address under the configured Chunk Program ID.</p></li>
+<li><strong>4</strong>
+<p>The blank line separates two independent address choices; it does not join their data.</p></li>
+<li><strong>5-7</strong>
+<p>The smelting-side helper derives progress under the configured Smelting Program ID, producing a separate PDA even for the same player and label bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The transaction helper stops waiting at confirmed</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {
+  transaction.feePayer = signer.publicKey;
+  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+  transaction.recentBlockhash = blockhash;
+  transaction.lastValidBlockHeight = lastValidBlockHeight;
+  transaction.sign(signer);
+  const signature = await sendRawTransactionWithLogs(conn, transaction.serialize(), "keypair");
+  await confirmTransactionByHttpPolling(conn, { signature, blockhash, lastValidBlockHeight }, "confirmed");
+  return signature;
+}</code></pre>
+<p class="docs-technical-explanation">The helper signs and sends a transaction, then polls until Solana reports confirmed. It does not ask this path to wait for finalized, so the page keeps those commitment stages separate.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-2</strong>
+<p>Start the helper and make the authorized session key pay this transaction's network fee.</p></li>
+<li><strong>3-5</strong>
+<p>Fetch a recent confirmed blockhash and its expiry height, then attach both to the transaction.</p></li>
+<li><strong>6-7</strong>
+<p>Sign with the authorized key and send the serialized transaction to Solana, receiving a transaction signature.</p></li>
+<li><strong>8</strong>
+<p>Poll status until the signature reaches confirmed. The requested word is visibly confirmed, not finalized.</p></li>
+<li><strong>9-10</strong>
+<p>Return the signature to the caller and end the helper.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The normal client stops a protected swing before animation</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/mining-controller.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    if (miningPlan.blocks?.some?.((block) =&gt; isBlockProtected(block)) || isBlockProtected(targetHit)) {
+      onStatus("This block is protected by a foundation.");
+      return null;
+    }
+    const duration = Math.max(1, swingDurationMs);</code></pre>
+<p class="docs-technical-explanation">Before creating the active swing, the normal client checks the target and every block in a multi-block mining plan against its loaded foundation protection data. A protected result returns immediately, so the animation-duration line is reached only for a locally allowed target.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Ask whether the direct target or any block in the planned mining action is inside a foundation the client currently knows is protected.</p></li>
+<li><strong>2-3</strong>
+<p>Show the player a protected-foundation message and return null, which stops this action before an active pickaxe swing is created.</p></li>
+<li><strong>4-5</strong>
+<p>Only an unprotected result leaves the condition and proceeds to calculate the swing duration.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Chunk program independently repeats foundation protection</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let (chunk_x, chunk_z, local_x, local_z) = args.chunk_coords(global_config_view)?;
+    reject_foundation_protected_block(
+        program_id,
+        foundation_chunk,
+        global_config,
+        chunk_x,
+        chunk_z,
+        &amp;args,
+    )?;</code></pre>
+<p class="docs-technical-explanation">Client feedback is never the authority. If stale local data or a modified client still submits a mine, the Chunk instruction derives the target's Chunk coordinates and calls its own foundation-protection check before accepting the generated block or writing a removal.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Derive the target's Chunk and local coordinates from already validated instruction arguments and world configuration.</p></li>
+<li><strong>2-9</strong>
+<p>Pass the program, supplied foundation index, global configuration, Chunk coordinates, and mining arguments to the independent protection check. The question mark stops the instruction on any protection error.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Ordinary block placement currently stops before submission</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function recordBlockPlacementOnChain(_target, _renderType, _toolSlot = 0) {
+  return { submitted: false, reason: "chain-placement-disabled" };
+}</code></pre>
+<p class="docs-technical-explanation">The exported function exists so the client can call one stable interface, but its current result explicitly says that no ordinary placement transaction was submitted. A local preview or manual Confirm action cannot turn this return value into a placement PDA.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Play can call the ordinary placement adapter with a target, render type, and selected tool slot. The leading underscores show that this implementation does not currently use them.</p></li>
+<li><strong>2</strong>
+<p>Return submitted false with the exact reason chain-placement-disabled; no signed placement transaction is built here.</p></li>
+<li><strong>3</strong>
+<p>The closing brace ends the disabled adapter.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Defines the current world inputs, Devnet cluster, and configured program addresses used by the client.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Connects the wallet entry, Chunk.js runtime, scene inputs, player model, Guardian, chain-backed controllers, and post-hint RPC refreshes.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/world/world-generator.js</code>
+<p>Reconstructs the base block answer from the world seed, integer coordinates, and generator configuration.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/chunk/chunk-state.js</code>
+<p>Defines base, pending, and render-delta precedence plus local confirm and rollback behavior.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/avatar-mesh.js</code>
+<p>Loads canonical NCM villager boxes, centers the model, builds body groups, and attaches held tools.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/renderer/texture-array-manager.js</code>
+<p>Bakes deterministic material tiles and uploads the texture array used by the Chunk.js renderer.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Separates local preview, wallet-needed, submitting, automatic confirmation, skipped submission, and rollback paths.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Builds signed gameplay transactions, waits for confirmed commitment, and currently disables ordinary block placement submission.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Validates mining accounts and sessions, recalculates the block, checks protection and duplicates, resolves rules, and writes accepted results.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-chunk-deltas.js</code>
+<p>Derives, owner-checks, decodes, and applies RPC snapshots of ChunkBroken accounts to the loaded world.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian-registry.js</code>
+<p>Discovers current regional Guardian endpoints from canonical Region PDA scans.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Handles nearby transient activity and shows that a Guardian digging hint can affect rendering before RPC refresh.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/app.cpp</code>
+<p>Implements Guardian connection, region, sequence, area-of-interest, rate, and message forwarding boundaries.</p></article>
+<article class="docs-evidence-item"><code>play/play-surface-decoration-sync.js</code>
+<p>Keeps non-tree surface decorations disabled until a valid PDA-backed rule table has been fetched.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/global-config-genesis-devnet-2026-07-15.json</code>
+<p>Records dated Devnet observations used to separate source claims from deployment claims.</p></article></div></section>
+<nav aria-label="Start-here learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE START-HERE PATH</p>
+<h2>Learn what each observation can actually prove</h2>
+<p>The next guide follows the same mining coordinate through local feedback, a Guardian hint, a confirmed instruction, and a clean reconstruction without treating those observations as equal.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/four-truth-layers/"><span class="docs-path-navigation-label">Next reviewed guide</span>
+<strong>Four Truth Layers: What Each Observation Proves</strong>
+<p>Learn why two screens can agree before one clean client has evidence for a shared removed coordinate.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

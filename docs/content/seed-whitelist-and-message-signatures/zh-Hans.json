@@ -1,0 +1,750 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-seed-whitelist-and-message-signatures-zh-Hans-a6564179202f7e85",
+    "contentHash": "a6564179202f7e85"
+  },
+  "kind": "topic",
+  "slug": "seed-whitelist-and-message-signatures",
+  "shortTitle": "Seed 签名与奖励证据",
+  "seo": {
+    "title": "Seed 白名单签名、中心化登记与 NCK 证据",
+    "description": "了解 NiceChunk Seed 消息签名能证明什么、中心化 SQLite 服务保存什么，以及为什么页面显示的 100 NCK 并不等于链上付款。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制权 03 · 消息证明",
+    "title": "Seed 签名可以登记意愿，但不会把 NCK 送进钱包",
+    "summary": "Seed 页面会请外部钱包签署一段确切的 UTF-8 活动消息。浏览器先检查 Ed25519 签名，中心化 Seed API 再检查一次，随后该 API 把登记写入 SQLite。这条路径不会创建 Solana 交易，不会调用 NiceChunk 或 SPL Token 程序，也不会移动任何 NCK。在正确的链上代币账户、成功转账和转账后的余额提供相反证据之前，页面显示的 100 NCK 只是活动元数据。",
+    "readingTime": "阅读约 24 分钟",
+    "visual": {
+      "src": "/docs/media/seed-whitelist-and-message-signatures-overview-v1.webp",
+      "alt": "这幅教学场景根据 NiceChunk 标准村民与真实 Chunk.js 山坡参考生成：男孩在开放式登记棚递出几块朴素的异形木片，女孩在格柜记录旁进行比对，溪流对面的一块金色体素仍嵌在地里。",
+      "caption": "异形木片和格柜是“确切消息证明”与“中心化登记”的教学比喻；远处仍嵌在地里的体素表示尚未移动的价值。它们都不是真实的钱包对象、签名、数据库记录、代币账户、交易、奖励或余额证据。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "Seed 白名单签名能证明什么？服务器会保存什么？为什么页面显示的 100 NCK 不等于链上付款？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制权 · 15 步中的第 3 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "不懂编程或区块链的普通玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "外部钱包消息签名 · 中心化 Python API · SQLite 登记 · 没有 Solana 交易"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 15 日 · 当前工作树、7 项聚焦状态测试，以及可复现的模拟浏览器 Seed 流程验收"
+      }
+    ],
+    "terms": [
+      {
+        "term": "钱包 Provider",
+        "meaning": "钱包应用或扩展对外提供的接口。Seed 会请求它连接，之后再请求它签署消息字节；整个过程都不会要求钱包把私钥导出给页面。"
+      },
+      {
+        "term": "公钥或钱包地址",
+        "meaning": "连接后返回的公开 Solana 标识。任何知道该地址的人都能查询公开链上数据；在当前实现中，也能查询公开的 Seed 状态接口。"
+      },
+      {
+        "term": "私钥",
+        "meaning": "用于生成有效签名的秘密信息。在这条流程中，它始终留在外部钱包里。绝不要在 Seed 页面输入私钥或助记词。"
+      },
+      {
+        "term": "连接（Connect）",
+        "meaning": "允许页面读取所选公开地址。连接不等于消息签名，不等于交易签名，也不能证明之后仍可使用同一个钱包。"
+      },
+      {
+        "term": "Solana 集群与 Devnet",
+        "meaning": "集群是一套彼此独立的 Solana 账本。客户端以 Devnet 为目标，但分离式 Ed25519 消息签名本身并不是 Devnet 交易，签署的消息里也没有集群字段。"
+      },
+      {
+        "term": "挑战消息（Challenge）",
+        "meaning": "中心化 Seed API 为一次签名尝试准备的确切纯文本消息。它包含活动、钱包、nonce、签发时间、客户端提交的 origin、用途，以及“不授权交易”的声明。"
+      },
+      {
+        "term": "活动 ID（Campaign ID）",
+        "meaning": "写入挑战消息的服务器配置标签。它标识一条中心化活动记录，不是 Solana 程序地址、PDA、mint 或交易。"
+      },
+      {
+        "term": "Nonce（一次性随机值）",
+        "meaning": "用于区分不同挑战的一次性新随机值。服务器使用由 24 个随机字节生成、适合放入 URL 的 token，并把它作为挑战记录的主键。"
+      },
+      {
+        "term": "签发时间与 TTL",
+        "meaning": "挑战的签发时间和有效期。源码默认有效 600 秒，但环境设置可以修改；响应中的 expiresAt 只属于该次确切挑战。"
+      },
+      {
+        "term": "Origin 字符串",
+        "meaning": "由请求正文发送并写进消息的页面地址。服务器目前没有把它绑定到可信的 Host 或 Origin 请求头，因此它只能证明签过哪段文字。"
+      },
+      {
+        "term": "确切的 UTF-8 字节",
+        "meaning": "完整消息的字节表示。只要改动一个字符、换行、钱包地址或 nonce，字节就会变化，保存消息的比对或签名检查便应失败。"
+      },
+      {
+        "term": "Ed25519",
+        "meaning": "Solana 密钥和这份分离式消息证明所使用的公钥签名算法。验证时会同时检查公钥、确切消息字节与签名。"
+      },
+      {
+        "term": "signMessage",
+        "meaning": "一种钱包方法：签署消息字节，但不构建或提交 Solana 交易。不过，这份签名仍表示签名者同意验证方所接受的那段确切消息。"
+      },
+      {
+        "term": "分离式签名",
+        "meaning": "与消息分开保存的 64 字节签名。只有把它与公钥及完全相同的字节一起检查时，它才有意义。"
+      },
+      {
+        "term": "浏览器验证",
+        "meaning": "浏览器提交登记前，TweetNaCl 会检查钱包返回的签名。这能及早发现不匹配，却不能证明服务器已经接受或保存任何内容。"
+      },
+      {
+        "term": "服务器验证",
+        "meaning": "Python API 会先检查已保存的挑战、有效期、是否用过、钱包、确切消息和 Ed25519 签名，再写入登记。"
+      },
+      {
+        "term": "重放防护",
+        "meaning": "nonce、过期时间和 used_at 字段用于阻止普通情况下重复使用同一挑战。它们不能证明一个钱包只对应一个真人，而且当前的消费步骤不是原子的比较并设置操作。"
+      },
+      {
+        "term": "SQLite",
+        "meaning": "Seed API 使用的中心化文件数据库。服务器运营方可以维护、备份、修改或删除其中的记录；这些记录不是 Solana 账户。"
+      },
+      {
+        "term": "插入或更新（Upsert）",
+        "meaning": "新钱包会插入一条记录；同一钱包再次签名时则更新已有记录。当前数据表让 wallet 在全局范围唯一，而不是按“活动 + wallet”组合唯一。"
+      },
+      {
+        "term": "registered",
+        "meaning": "成功 join 后中心化数据库中的当前状态。它不代表已经获得资格、通过反滥用审核、完成结算、完成转账或已经收到代币。"
+      },
+      {
+        "term": "活动奖励元数据",
+        "meaning": "中心化 reward_nck 整数与页面展示的活动数量。它们描述的是活动拟定数量，既没有标识 SPL mint，也不能证明付款。"
+      },
+      {
+        "term": "SPL NCK 付款证据",
+        "meaning": "一项真实的代币到账主张，需要给出集群、确切 NCK mint、按 6 位小数计算的最小单位、钱包拥有的代币账户、成功的 Token Program 交易，以及交易后的链上余额。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "连接会在任何证明之前共享地址",
+      "body": "Seed 会在本地保存返回的公开地址，并立即查询公开状态接口。它不会收到外部钱包的私钥，而仅凭一个地址也不能证明当前控制权。"
+    },
+    {
+      "title": "同一段确切消息会被检查两次",
+      "body": "钱包签署服务器给出的 UTF-8 挑战消息。浏览器先验证以便尽早反馈；服务器在接受登记前，还会独立检查已保存的挑战和签名。"
+    },
+    {
+      "title": "Registered 只表示中心化 SQLite 中有一条记录",
+      "body": "服务会保存钱包、签名、确切消息、nonce、状态、奖励元数据、IP、User-Agent 和时间戳。它不保存私钥，也不创建 Solana 账户。"
+    },
+    {
+      "title": "页面显示的 NCK 不等于钱包已收到 NCK",
+      "body": "当前 Seed 路径里没有 mint、代币账户、转账指令、RPC 提交、交易回执或余额读取。真实付款需要这些证据。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "address-before-proof",
+      "eyebrow": "连接与地址边界",
+      "title": "钱包尚未签署任何内容，Connect 就已经共享公开地址",
+      "paragraphs": [
+        "玩家按下 Connect 后，Seed 会选用检测到的第一个受支持注入式钱包，并调用 provider.connect。玩家批准后，Provider 返回一个公钥。页面会把该地址写入 Seed 专用本地键，也会写入网站共享的钱包绑定，随后针对该地址发起一次公开的 GET 状态查询。因此，在玩家请求或签署挑战之前，服务器已经能看到正在查询哪个地址。",
+        "这一步连接不会导出外部钱包私钥，不会签署消息，不会创建交易或支付手续费，也不能证明持续控制权。即使没有连接任何钱包 Provider，浏览器 localStorage 中的地址也可能在刷新后继续存在。当前修正后的状态逻辑会区分缓存地址、活动的 Provider 连接，以及由同一钱包的成功 status 或 join 响应确认的登记。本地缓存始终是可编辑的浏览器数据，绝不是独立证据。",
+        "页面会尝试检测钱包网络，或把钱包切换到 Solana Devnet。有些 Provider 无法报告网络或不支持切换；网络辅助函数会明确返回“未知且未验证”，Seed 页面现在也会如实显示为未验证。更重要的是，这套登记 API 从不查询 Solana RPC，之后的消息里也没有集群或 mint。界面偏好 Devnet，不能被描述成已经完成链上 Devnet 登记。",
+        "状态接口是公开的，不要求钱包签名。任何知道地址的人，都可以查询该接口返回的登记 ID、活动、钱包标签、状态、奖励数字和时间戳。Guardian 中继与确定性世界重建均不参与连接、挑战签名、中心化登记或付款证据。"
+      ],
+      "facts": [
+        {
+          "label": "Connect 返回",
+          "value": "一个公开地址",
+          "detail": "它不会返回外部钱包私钥，也不会预先批准之后的消息。"
+        },
+        {
+          "label": "浏览器本地状态",
+          "value": "Seed 地址与共享钱包绑定",
+          "detail": "当前代码会写入 nicechunk.seed.wallet，以及共享的 nicechunk.walletAddress、walletName 和 walletBoundAt 字段。"
+        },
+        {
+          "label": "首次服务器查询",
+          "value": "按地址 GET 状态",
+          "detail": "它发生在连接之后、签署挑战之前；该接口本身不要求提供钱包控制权证明。"
+        },
+        {
+          "label": "不参与",
+          "value": "Solana RPC、Guardian 与世界重建",
+          "detail": "它们都不会认证这次连接，也不会把连接变成共享游戏状态或代币状态。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-address-before-proof-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩在开放式棚屋柜台展示一块镂切木片，一只关闭的盒子留在他身后，女孩则空着双手观察。",
+        "caption": "可见木片代表公开地址；关闭的盒子代表从未跨过柜台的秘密。两者都只是教学比喻，并非钱包对象。这幅场景不能证明 Provider 正在连接、私钥一定安全、签名有效、服务器已有记录、所在集群是 Devnet、发生过交易或付款。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Seed 活动不等于钱包助记词",
+        "body": "此页面只应请求钱包连接，以及批准一段可读的 signMessage 消息。绝不要把助记词、私钥、钱包密码或密钥文件粘贴到活动页面或客服消息中。"
+      }
+    },
+    {
+      "id": "exact-message-two-verifications",
+      "eyebrow": "挑战与签名边界",
+      "title": "钱包签署一段确切消息，浏览器与服务器再分别验证",
+      "paragraphs": [
+        "中心化 API 会验证提交的钱包地址能否解码为 32 字节，根据 24 个随机字节创建适合放入 URL 的随机 nonce，记录服务器时间，再逐行构建消息。挑战默认有效 600 秒，但以服务器环境设置为准。挑战记录会立即写入钱包、完整消息、签发与过期时间、IP 字符串和 User-Agent；即使玩家之后取消钱包弹窗，这条记录也已产生。",
+        "批准前，请完整阅读钱包消息：活动、钱包、nonce、签发时间、origin、用途，以及“该签名不授权交易或转账”的声明。origin 行由客户端 JSON 提供，目前不会与可信的 Host 或 Origin 请求头进行核对。钱包名称也不属于签名文本。因此，签名证明的是对这些原样字节的同意，并不表示服务器已经独立认证消息中展示的每个元数据字段。",
+        "浏览器使用 TextEncoder 编码返回的消息，请 provider.signMessage 签署这些字节，把结果转换为 64 个签名字节，再使用 TweetNaCl 与钱包公钥进行验证。只有通过本地检查后，它才会 POST 钱包、钱包名称、nonce、完整消息及 Base58 签名。随后服务器加载已保存的 nonce，拒绝不存在、已使用、已过期、钱包不匹配、消息不匹配或签名无效的挑战，并再次执行 Ed25519 验证。",
+        "有效签名表示：对应私钥为这些确切字节生成了签名。只有服务器同时接受尚未过期的挑战时，才能进一步说明这次提交在挑战有效窗口内到达该服务；签名本身不包含可信时间戳。它可以支持中心化服务作出登记决定，却不能识别唯一真人、证明永久所有权、创建 Solana 交易、包含指令或账户、支付手续费、生成 blockhash 或区块浏览器回执、调用程序或移动资金。只要另一个系统愿意接受同一份已签消息，消息签名仍可能产生实际影响，因此应认真阅读，不能把它当成无害装饰。"
+      ],
+      "steps": [
+        {
+          "title": "核对活动与钱包",
+          "body": "确认活动文字符合预期，并确认完整钱包地址与你打算使用的账户一致。"
+        },
+        {
+          "title": "阅读 nonce、时间、origin 与用途",
+          "body": "任何一行缺失或不符合预期时都应取消。请记住，当前 origin 只是被签署的字符串，不是服务器认证过的域名证明。"
+        },
+        {
+          "title": "确认请求类型",
+          "body": "钱包应展示一项可读的消息签名，而不是交易、代币授权、SOL 转账或索取秘密信息的请求。"
+        },
+        {
+          "title": "不确定就拒绝并重新开始",
+          "body": "被拒绝或已过期的挑战可以换成新挑战。绝不要批准自己无法检查或解释的字节。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "新鲜度输入",
+          "value": "随机 nonce 加过期时间",
+          "detail": "它们用于区分不同尝试，并限制普通情况下重放同一已存挑战；它们并不保证一个钱包只对应一个真人。"
+        },
+        {
+          "label": "第一次检查",
+          "value": "浏览器中的 TweetNaCl",
+          "detail": "它只能在本地证明签名、确切消息和公钥互相匹配，不能证明 API 已经提交记录。"
+        },
+        {
+          "label": "接受检查",
+          "value": "Python Ed25519 验证",
+          "detail": "中心化服务还会检查 nonce 是否存在、是否用过、是否过期、钱包是否相等，以及消息是否与保存内容完全相等。"
+        },
+        {
+          "label": "缺少的交易组成部分",
+          "value": "没有指令、账户、手续费、blockhash 或 RPC 发送",
+          "detail": "64 字节分离式签名看起来很“技术”，但这条路径从不会变成 Solana 交易。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-exact-message-two-verifications-v2.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩把唯一一块实心 T 形木片举在两块相同 T 形镂空板中的第一块上方，女孩在同一张工作台旁检查第二块；第一块边缘为青色，第二块为绿色。",
+        "caption": "唯一的实心 T 形木片与两个完全相同的镂空，表示同一组确切消息关系分别由浏览器与服务器检查。它们不是密码学设备，边缘颜色也不能证明签名有效、origin 可信、时间可信、服务器已提交、发生过交易或付款。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Origin 行只能证明签过哪些文字，不能证明请求真正来自哪里",
+        "body": "当前服务器会把客户端提供的 origin 字符串复制进挑战，却没有将其绑定到允许列表或可信请求头。请独立核对浏览器中的真实地址和钱包弹窗。"
+      }
+    },
+    {
+      "id": "central-record-and-privacy",
+      "eyebrow": "中心化存储与隐私边界",
+      "title": "Registered 是可维护的 SQLite 记录，不是不可变的链上账户",
+      "paragraphs": [
+        "服务中有两张中心化数据表。挑战记录保存 nonce、钱包、确切消息、issued_at、expires_at、可选的 used_at、IP 与 User-Agent。白名单记录保存自增 ID、活动 ID、全局唯一的钱包、钱包名称、签名、确切消息、唯一 nonce、状态、reward_nck、IP、User-Agent、created_at 和 updated_at。它不保存私钥。两张表中的任何内容都不是 Solana PDA 或代币账户。",
+        "通过服务器验证后，新钱包会插入一条白名单记录。同一钱包再次签名时，会用新的钱包名称、签名、消息、nonce、状态、IP、User-Agent 与更新时间覆盖已有记录，同时保留原始 ID 和 created_at。当前更新会强制把状态改回 registered。唯一约束只作用于 wallet，而不是 campaign 加 wallet；更新也不会替换 campaign_id，尽管响应会报告当前配置的活动。在让这套数据库安全表示多个活动或之后的结算状态之前，这些细节都必须处理清楚。",
+        "公开状态接口按 wallet 查找记录，不要求签名，并只返回有限字段。浏览器也会缓存登记摘要。修正后的客户端只信任成功的 status 或 join 响应，而且响应中的 entry wallet 必须与当前钱包完全一致；null 结果、请求失败、断开连接或切换钱包都会撤销页面上的确认。客户端不会要求返回状态必须等于 registered，也不会比对活动 ID。因此，这里的“确认”只表示中心化服务通过 status 或 join 返回了一条同地址记录，并不表示该记录属于当前活动，更不代表资格、结算或付款。这能防止旧缓存或伪造的本地缓存显示成 registered，但最终画面仍只是对中心化服务的观察，不是独立证明或链上证明。",
+        "隐私边界在签名前就已经出现：创建挑战时便会保存请求元数据。仓库中没有挑战清理任务、用户删除路径或明确的保留期限。User-Agent 由客户端控制，服务又把 X-Forwarded-For 的第一个值当作 IP，因此保存的字符串不能可靠证明唯一真人或真实来源地址。运营方可以维护或修改 SQLite 数据库。因此，registered 只表示该中心化服务目前存在一条由它报告为 registered 的记录。"
+      ],
+      "facts": [
+        {
+          "label": "挑战数据",
+          "value": "钱包、确切消息、时间、IP 与 User-Agent",
+          "detail": "这条记录在钱包签名前就已存在；即使玩家拒绝弹窗，它也可能继续保留。"
+        },
+        {
+          "label": "登记数据",
+          "value": "签名、消息、nonce、状态、奖励元数据与请求元数据",
+          "detail": "私钥不会被保存，但已签声明和可用于识别请求的数据会被保存。"
+        },
+        {
+          "label": "重复 join",
+          "value": "更新该钱包的已有记录",
+          "detail": "它保留原始 ID 与创建时间，覆盖之后的证明字段，并且目前会把状态重置为 registered。"
+        },
+        {
+          "label": "公开查询",
+          "value": "按已知钱包地址查询状态",
+          "detail": "读取接口给出的活动、标签、状态、奖励数字与时间时，不需要签名。"
+        },
+        {
+          "label": "源码中缺失的策略",
+          "value": "没有保留期限、清理任务或用户删除路径",
+          "detail": "当前仓库也没有 Seed 数据库结构迁移，或与静态构建绑定、可复现的服务单元。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-central-record-and-privacy-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：女孩把一个朴素的木质记录盒放进普通开放格柜，男孩在旁观察，一块用过的异形木片则放在浅托盘里。",
+        "caption": "伸手可及的格柜代表由运营方维护的 SQLite 存储，托盘代表使用后被放到一旁的挑战。它们只是教学比喻，并非真实服务器对象。这幅场景不能证明数据库已经提交、存在保留策略、IP 可信、用户身份唯一、存在链上账户、达到最终确认、获得资格或完成付款。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "把五种活动状态严格分开",
+        "body": "registered 不等于 qualified；qualified 不等于 settled；settled 不等于 transferred；transferred 也不等于观察到钱包当前代币余额。当前 Seed 实现只提供第一个中心化状态。"
+      }
+    },
+    {
+      "id": "displayed-nck-not-payment",
+      "eyebrow": "代币与付款证据边界",
+      "title": "页面显示 100 NCK，不代表钱包里已经有 100 NCK",
+      "paragraphs": [
+        "当前活动页在钱包连接前就显示 100 NCK。SQLite 结构把 reward_nck 的默认整数设为 100，join 响应又把 rewardNck: 100 写死。这三处都只是中心化展示或数据字段。Seed 代码没有标识 NCK mint，没有导入 SPL Token 库，没有推导代币账户、读取代币余额、构建 mint 或转账指令、提交 RPC 交易、保存交易签名或等待确认。页面显示的 0.01 SOL 参考值在 Seed 中同样没有对应的购买或 SOL 付款路径。",
+        "源码没有实现首批名额数量、排序规则、活动结束条件、资格算法、反滥用决策、结算状态机或付款任务。数据库中有 registered，却没有任何代码路径建立 qualified、settled、transferred 或 received。活动文案可以描述计划分配，但不能把它说成有保证、可强制执行、已经发送或已经能在钱包中看到。",
+        "真实的 NCK 核验必须从正确集群与确切 mint 开始。当前 Devnet NCK mint 是 HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo，使用 6 位小数。因此，100 个完整 NCK 等于 100,000,000 个最小单位。即使算式正确，它也不是付款证据：接收方还需要一个由登记钱包拥有、对应此 mint 的代币账户，一笔成功的 Token Program 转账，在明确 commitment 下的交易签名与 slot，以及转账后的余额观察。",
+        "Marketplace 程序展示了真实 NCK 移动路径应有的样子：检查 NCK mint、Token Program 以及来源与目标代币账户的 owner，读取并拆分挂单中已经保存的最小单位价格，调用 transfer_checked，再调用 Token Program。更早的完整代币到最小单位换算由客户端在创建挂单价格时完成。Seed 不会调用这两条路径中的任何一条。同一公开地址可以同时存在于 Devnet 与 Mainnet Beta，并在两套账本上拥有不同余额；因此，仅仅证明某个地址或 mint 在某处存在远远不够。"
+      ],
+      "steps": [
+        {
+          "title": "明确集群与 mint",
+          "body": "不要只接受“NCK”这个名称。应核对目标 Solana 集群与完整 mint 地址。"
+        },
+        {
+          "title": "找到钱包拥有的代币账户",
+          "body": "确认该代币账户使用此 mint，而且它的 owner 是登记的钱包地址。"
+        },
+        {
+          "title": "检查一笔成功转账",
+          "body": "真实回执会给出交易签名、Token Program 指令、来源、目标、以最小单位表示的数量、slot 与 commitment。"
+        },
+        {
+          "title": "读取转账后的链上余额",
+          "body": "比较正确代币账户转账前后的余额。活动卡片、数据库数字或浏览器缓存都不能替代这项观察。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "当前已实现状态",
+          "value": "registered",
+          "detail": "中心化 SQLite 中存在一条记录，其中可能包含 reward_nck = 100。这条路径没有实现之后的资格或付款状态。"
+        },
+        {
+          "label": "Devnet NCK 标识",
+          "value": "HSnWF5...PQPo · 6 位小数",
+          "detail": "这个确切 mint 属于 Seed 之外的链上实现；Seed 数据结构和消息都没有绑定它。"
+        },
+        {
+          "label": "100 个完整 NCK",
+          "value": "100,000,000 个最小单位",
+          "detail": "6 位小数决定了这项换算。即使数字与单位都正确，仍不能证明发生过转账。"
+        },
+        {
+          "label": "最低限度的回执证据",
+          "value": "Mint、代币账户、交易与余额",
+          "detail": "在声称收到 NCK 前，所有证据都必须与登记钱包及明确说明的集群相匹配。"
+        },
+        {
+          "label": "不参与",
+          "value": "Guardian 与确定性世界重建",
+          "detail": "无论中继消息还是地形生成，都不能证明 SPL 代币付款。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/seed-whitelist-and-message-signatures-displayed-nck-not-payment-v1.webp",
+        "alt": "这幅教学场景根据标准村民与真实 Chunk.js 山坡参考生成：男孩和女孩在近岸查看一个完全空着的木箱，水对面的一块金色体素仍嵌在石头里。",
+        "caption": "空木箱表示目前没有展示到账证据；远处仍嵌在石中的体素表示价值尚未移动。两者都只是教学比喻，不是 NCK mint、代币账户、转账或余额。场景本身既不能证明未付款，也不能证明已付款；必须由明确的链上记录来证明。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "先看链上证据，再说已经收到",
+        "body": "真实的到账主张需要正确集群、确切 NCK mint、钱包拥有的代币账户、成功的转账交易、最小单位数量、slot 或 commitment，以及转账后的余额。这次 Seed 登记一项都没有提供。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "沿着证据往下看",
+    "title": "八段源码把地址、签名字节、中心化存储与代币移动逐一分开",
+    "summary": "公式列出确切的接受条件，以及当前缺少哪些付款证据。逐字源码展示连接与状态查询、挑战构建、浏览器签名、服务器验证、SQLite 字段、重复登记、修正后的本地状态信任边界，以及仅用于对比的真实 SPL 转账路径。"
+  },
+  "formulas": [
+    {
+      "title": "确切的挑战消息",
+      "expression": "message = title + campaign + wallet + nonce + issuedAt + clientSuppliedOrigin + purpose + noTransactionStatement",
+      "ariaLabel": "挑战消息由标题、活动、钱包、nonce、签发时间、客户端提供的 origin、用途与不授权交易声明按确切行拼接而成。",
+      "explanation": "服务器用换行符拼接这些字段，钱包签署由此产生的 UTF-8 字节。钱包名称、IP、User-Agent、Solana 集群、NCK mint、代币账户和奖励数量都不在签名文本中。Origin 虽然出现在字节里，但目前只是从客户端 JSON 复制而来，并没有根据请求主机进行认证。",
+      "terms": [
+        {
+          "symbol": "nonce",
+          "meaning": "根据 24 个随机字节生成、适合放入 URL 的新 token，并作为挑战键保存。"
+        },
+        {
+          "symbol": "issuedAt",
+          "meaning": "由服务器创建的 UTC 文本时间；过期时间会另存为整数时间戳。"
+        },
+        {
+          "symbol": "clientSuppliedOrigin",
+          "meaning": "客户端请求正文中的原样字符串。它是被签署的文字，不是独立验证过的来源证据。"
+        },
+        {
+          "symbol": "+",
+          "meaning": "表示按确切顺序用换行符拼接，不是算术加法。"
+        }
+      ]
+    },
+    {
+      "title": "中心化服务的接受条件",
+      "expression": "accepted = exists(nonce) AND unused AND now <= expiresAt AND storedWallet = wallet AND storedMessage = message AND Ed25519Verify(wallet, UTF8(message), signature)",
+      "ariaLabel": "当 nonce 存在、尚未使用且未过期，保存的钱包和消息与提交值相等，并且 Ed25519 使用钱包公钥验证了 UTF-8 消息上的签名时，中心化服务才会接受。",
+      "explanation": "这是已经实现的服务器接受边界。浏览器会先做类似的密码学检查，但只有服务器检查能够引导其写入 SQLite。该表达式不包含 Solana 集群、RPC、程序、账户、交易、手续费、确认、资格、反滥用决策或代币转账。",
+      "terms": [
+        {
+          "symbol": "exists(nonce)",
+          "meaning": "中心化 SQLite 中必须已经存在一条匹配的挑战记录。"
+        },
+        {
+          "symbol": "unused",
+          "meaning": "读取时，该记录的 used_at 字段必须为空。之后的当前更新并不是原子的比较并设置操作。"
+        },
+        {
+          "symbol": "storedMessage = message",
+          "meaning": "提交文本所表示的每个字节都必须与服务器保存的挑战文本一致。"
+        },
+        {
+          "symbol": "Ed25519Verify",
+          "meaning": "对公钥、确切 UTF-8 字节与分离式签名进行密码学验证。"
+        }
+      ]
+    },
+    {
+      "title": "登记元数据不是付款证据",
+      "expression": "registered AND reward_nck = 100 != qualified != settled != SPL transfer != wallet token balance increased",
+      "ariaLabel": "registered 且 reward NCK 等于 100，并不等于 qualified、settled、完成 SPL 转账或钱包代币余额增加。",
+      "explanation": "左侧是中心化数据库状态。右侧的观察需要明确的活动决策，以及之后与之匹配的 Solana 证据。按 6 位小数计算，100 个完整 NCK 等于 100,000,000 个最小单位，但算式和展示文字不能证明这些单位已经移动。",
+      "terms": [
+        {
+          "symbol": "registered",
+          "meaning": "中心化白名单记录当前报告的状态是 registered。"
+        },
+        {
+          "symbol": "reward_nck = 100",
+          "meaning": "一个中心化整数默认值与响应字段，没有附带 mint、代币账户、转账签名或余额。"
+        },
+        {
+          "symbol": "SPL transfer",
+          "meaning": "一条成功的 Token Program 指令：针对确切 mint，在已验证的代币账户之间移动最小单位。"
+        },
+        {
+          "symbol": "wallet token balance increased",
+          "meaning": "之后在明确集群上，对正确且由钱包拥有的代币账户进行的余额观察。"
+        },
+        {
+          "symbol": "!=",
+          "meaning": "表示两种状态不能互换，也不能拿前一种状态当作后一种状态的证据。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "连接会保存地址，并立即查询中心化状态",
+      "language": "JavaScript",
+      "source": "seed/seed.js",
+      "code": "const result = await wallet.provider.connect();\n    const publicKey = publicKeyToString(result?.publicKey || wallet.provider.publicKey);\n    if (!publicKey) throw new Error(\"Missing wallet public key.\");\n    const walletChanged = publicKey !== seedState.wallet;\n    seedState = transitionSeedWallet(seedState, publicKey);\n    seedState = {\n      ...seedState,\n      provider: wallet.provider,\n      walletName: wallet.name,\n      error: \"\",\n    };\n    bindSeedWalletEvents(wallet.provider, wallet.name);\n    if (walletChanged) clearStoredSeedEntry();\n    localStorage.setItem(seedWalletStorageKey, publicKey);\n    await ensureSeedWalletNetwork(wallet.provider);\n    persistConnectedWallet({ walletAddress: publicKey, walletName: wallet.name });\n    await refreshEntryStatus(publicKey);",
+      "explanation": "这段当前客户端源码从玩家选择 Connect 之后开始。它接收公钥、改变本地状态、保存 Seed 地址、应用共享钱包绑定，再查询中心化状态接口。这里不会签署消息或交易。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "请求外部 Provider 连接，把返回的公钥转换成文本，并在地址缺失时拒绝继续。"
+        },
+        {
+          "lines": "4-11",
+          "meaning": "检测账户变化，通过状态转换清除之前对登记状态的信任，接入当前活动 Provider，并监听之后的账户变化或断开事件。"
+        },
+        {
+          "lines": "12-17",
+          "meaning": "按需清除过期登记，保存地址，尝试执行客户端网络策略，更新共享绑定，再按公开地址查询中心化登记。"
+        }
+      ]
+    },
+    {
+      "title": "服务器创建并保存确切挑战",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "now = int(time.time())\n        nonce = secrets.token_urlsafe(24)\n        issued_at = utc_now_iso()\n        message = \"\\n\".join([\n            \"NiceChunk Seed Whitelist Registration\",\n            f\"Campaign: {CAMPAIGN_ID}\",\n            f\"Wallet: {wallet}\",\n            f\"Nonce: {nonce}\",\n            f\"Issued At: {issued_at}\",\n            f\"Origin: {origin}\",\n            \"Purpose: Bind this wallet and join the NiceChunk public beta seed whitelist.\",\n            \"This signature does not authorize a transaction or transfer funds.\",\n        ])\n        with sqlite3.connect(DB_PATH) as db:\n            db.execute(\n                \"INSERT INTO seed_challenges(nonce,wallet,message,issued_at,expires_at,ip,user_agent) VALUES(?,?,?,?,?,?,?)\",\n                (nonce, wallet, message, now, now + CHALLENGE_TTL_SECONDS, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300]),\n            )",
+      "explanation": "服务器会创建新鲜度数据、构建完整可读消息，并在钱包签名前写入一条中心化挑战记录。origin 变量此前来自客户端 JSON；这段源码不会根据请求主机认证它。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "获取整数形式的服务器时间，根据 24 个随机字节生成适合放入 URL 的随机 nonce，并格式化 UTC 签发时间。"
+        },
+        {
+          "lines": "4-13",
+          "meaning": "把标题、活动、钱包、nonce、签发时间、客户端提供的 origin、用途和不授权交易声明，拼成以换行符分隔的确切文本。"
+        },
+        {
+          "lines": "14-18",
+          "meaning": "返回挑战前，先在 SQLite 中保存 nonce、钱包、确切消息、签发与过期时间、IP 字符串和 User-Agent。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器签署确切字节，并在 join 前验证",
+      "language": "JavaScript",
+      "source": "seed/seed.js",
+      "code": "const encodedMessage = new TextEncoder().encode(challenge.message);\n    const signResult = await seedState.provider.signMessage(encodedMessage, \"utf8\");\n    const signature = signatureToBytes(signResult);\n    if (!signature?.length) throw new Error(\"Missing wallet signature.\");\n    if (!nacl.sign.detached.verify(encodedMessage, signature, bs58.decode(seedState.wallet))) {\n      throw new Error(\"Local wallet signature verification failed.\");\n    }\n    setSeedMessage(\"SUBMITTING REGISTRATION\", \"Signature verified locally. Submitting your seed user registration...\");\n    const result = await apiPost(\"/api/seed/join\", {\n      wallet: seedState.wallet,\n      walletName: seedState.walletName || selectedWallet?.name || \"Solana Wallet\",\n      nonce: challenge.nonce,\n      message: challenge.message,\n      signature: bs58.encode(signature),\n    });",
+      "explanation": "TextEncoder 生成钱包要签署的字节。TweetNaCl 使用当前公钥验证同一组字节。只有完成这些步骤后，钱包、未经签名的钱包标签、nonce、完整消息与 Base58 签名才会被发送到中心化 join 接口。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "把 API 消息编码为 UTF-8，请求 signMessage，规范化钱包返回结果，并要求签名字节不能为空。"
+        },
+        {
+          "lines": "5-7",
+          "meaning": "在本地验证消息、分离式签名与解码后钱包公钥；若不匹配，则在 join 前停止。"
+        },
+        {
+          "lines": "8-15",
+          "meaning": "报告本地验证结果，再提交中心化登记输入。整个过程没有交易对象、指令、手续费支付方或 RPC 提交。"
+        }
+      ]
+    },
+    {
+      "title": "服务器强制检查挑战状态与 Ed25519 签名",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "now = int(time.time())\n        with sqlite3.connect(DB_PATH) as db:\n            db.row_factory = sqlite3.Row\n            challenge = db.execute(\"SELECT * FROM seed_challenges WHERE nonce=?\", (nonce,)).fetchone()\n            if not challenge:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_not_found\"})\n            if challenge[\"used_at\"]:\n                return json_response(self, 409, {\"ok\": False, \"error\": \"challenge_used\"})\n            if challenge[\"expires_at\"] < now:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_expired\"})\n            if challenge[\"wallet\"] != wallet or challenge[\"message\"] != message:\n                return json_response(self, 400, {\"ok\": False, \"error\": \"challenge_mismatch\"})\n            try:\n                Ed25519PublicKey.from_public_bytes(public_key).verify(signature_bytes, message.encode(\"utf-8\"))\n            except InvalidSignature:\n                return json_response(self, 401, {\"ok\": False, \"error\": \"signature_invalid\"})",
+      "explanation": "中心化服务会独立作出决定。它加载 nonce，检查普通重放与过期条件，要求钱包和完整消息相等，并验证分离式签名。即使通过这段检查，也只是获准继续执行中心化数据库写入。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "读取当前服务器时间，并根据参数绑定的 nonce 加载完整挑战记录。"
+        },
+        {
+          "lines": "5-12",
+          "meaning": "不存在、已使用和已过期会分别返回不同错误；钱包不匹配或消息不匹配则共用同一个 challenge_mismatch 错误。"
+        },
+        {
+          "lines": "13-16",
+          "meaning": "使用提交的钱包公钥验证提交的 UTF-8 消息上的 64 字节签名，并拒绝无效签名。"
+        }
+      ]
+    },
+    {
+      "title": "SQLite 保存证明、请求元数据与奖励数字",
+      "language": "SQL",
+      "source": "seed_api.py",
+      "code": "CREATE TABLE IF NOT EXISTS seed_whitelist_entries (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                campaign_id TEXT NOT NULL,\n                wallet TEXT NOT NULL UNIQUE,\n                wallet_name TEXT,\n                signature TEXT NOT NULL,\n                message TEXT NOT NULL,\n                nonce TEXT NOT NULL UNIQUE,\n                status TEXT NOT NULL DEFAULT 'registered',\n                reward_nck INTEGER NOT NULL DEFAULT 100,\n                ip TEXT,\n                user_agent TEXT,\n                created_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            )",
+      "explanation": "这张表是 Seed 流程的登记依据。它保存一条中心化记录和一个奖励元数据整数，却没有 mint、代币账户、最小单位数量、付款交易、slot、commitment 或代币余额字段。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "创建一张中心化数据表，其中包含自增 ID、活动标签，以及在所有活动中全局唯一的钱包。"
+        },
+        {
+          "lines": "5-8",
+          "meaning": "保存钱包标签、分离式签名、确切的已签消息和唯一 nonce。"
+        },
+        {
+          "lines": "9-10",
+          "meaning": "把中心化状态默认为 registered，把中心化奖励元数据整数默认为 100。"
+        },
+        {
+          "lines": "11-15",
+          "meaning": "保存 IP、User-Agent、创建时间与更新时间。该数据结构中没有来源数据保留规则或用户删除规则。"
+        }
+      ]
+    },
+    {
+      "title": "重复登记会更新同一条记录，并消费该挑战",
+      "language": "Python",
+      "source": "seed_api.py",
+      "code": "existing = db.execute(\"SELECT id,created_at FROM seed_whitelist_entries WHERE wallet=?\", (wallet,)).fetchone()\n            if existing:\n                db.execute(\n                    \"UPDATE seed_whitelist_entries SET wallet_name=?, signature=?, message=?, nonce=?, status='registered', ip=?, user_agent=?, updated_at=? WHERE wallet=?\",\n                    (wallet_name, signature, message, nonce, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300], created_at, wallet),\n                )\n                entry_id = existing[\"id\"]\n                first_created = existing[\"created_at\"]\n            else:\n                cursor = db.execute(\n                    \"INSERT INTO seed_whitelist_entries(campaign_id,wallet,wallet_name,signature,message,nonce,ip,user_agent,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)\",\n                    (CAMPAIGN_ID, wallet, wallet_name, signature, message, nonce, client_ip(self), self.headers.get(\"user-agent\", \"\")[:300], created_at, created_at),\n                )\n                entry_id = cursor.lastrowid\n                first_created = created_at\n            db.execute(\"UPDATE seed_challenges SET used_at=? WHERE nonce=?\", (now, nonce))\n            db.commit()",
+      "explanation": "已知钱包会被更新，而不是再次插入。当前更新会替换证明与请求元数据，把状态重置为 registered，保留原始 ID 和创建时间，并且不更新 campaign_id。随后，它把挑战标记为已使用，并提交这些中心化写入。",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "只按 wallet 查询；对于已有记录，覆盖钱包标签、证明、nonce、状态、IP、User-Agent 与更新时间，同时保留最初的 ID 与创建时间。"
+        },
+        {
+          "lines": "9-15",
+          "meaning": "对于新钱包，插入当前活动与证明字段，再保存新记录 ID 和首次创建时间。"
+        },
+        {
+          "lines": "16-17",
+          "meaning": "把挑战标记为已使用并提交。读取检查与 used 更新并不是同一条比较并设置语句，因此不能证明并发情况下只会执行一次。"
+        }
+      ]
+    },
+    {
+      "title": "修正后的浏览器只信任匹配的服务器响应",
+      "language": "JavaScript",
+      "source": "seed/seed-state.js",
+      "code": "export function confirmSeedEntry(state, entry, source) {\n  const cleared = clearSeedEntryConfirmation(state);\n  if (!confirmedEntrySources.has(source) || !entryMatchesSeedWallet(entry, state.wallet)) {\n    return cleared;\n  }\n  return {\n    ...cleared,\n    entry,\n    entryConfirmation: source,\n    statusCheck: source === seedEntryConfirmation.status ? \"confirmed\" : state.statusCheck,\n  };\n}\n\nexport function applySeedStatusPayload(state, payload) {\n  if (payload?.ok !== true) return clearSeedEntryConfirmation(state, \"failed\");\n  if (!payload.entry) return clearSeedEntryConfirmation(state, \"empty\");\n  const confirmed = confirmSeedEntry(state, payload.entry, seedEntryConfirmation.status);\n  return isSeedRegistrationConfirmed(confirmed)\n    ? confirmed\n    : clearSeedEntryConfirmation(confirmed, \"failed\");\n}",
+      "explanation": "之前的页面可能把任何本地登记显示为 registered，包括属于另一个钱包的记录。修正后的纯状态转换会先清除旧信任，只接受来自 status 或 join、且 entry wallet 与当前钱包完全一致的结果。这能改进页面显示，却不会把中心化响应变成链上证据。",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "清除之前的全部登记确认，并拒绝不可信来源，或 wallet 与当前钱包不同的登记。"
+        },
+        {
+          "lines": "6-11",
+          "meaning": "只有带有可信响应来源时才保留登记，并在适当情况下记录已确认的状态查询。"
+        },
+        {
+          "lines": "14-20",
+          "meaning": "把失败或空的状态载荷视为没有确认；非空响应必须经过确切钱包匹配，若测试失败则再次清除。"
+        }
+      ]
+    },
+    {
+      "title": "真实 SPL 移动会调用 transfer_checked",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "fn transfer_nck<'a>(\n    source_token: &AccountInfo<'a>,\n    destination_token: &AccountInfo<'a>,\n    nck_mint: &AccountInfo<'a>,\n    owner: &AccountInfo<'a>,\n    token_program: &AccountInfo<'a>,\n    amount: u64,\n) -> ProgramResult {\n    let ix = spl_token::instruction::transfer_checked(\n        token_program.key,\n        source_token.key,\n        nck_mint.key,\n        destination_token.key,\n        owner.key,\n        &[],\n        amount,\n        NCK_DECIMALS,\n    )\n    .map_err(|_| NicechunkMarketError::InvalidInstruction)?;\n    invoke(\n        &ix,\n        &[\n            source_token.clone(),\n            nck_mint.clone(),\n            destination_token.clone(),\n            owner.clone(),\n            token_program.clone(),\n        ],\n    )\n}",
+      "explanation": "这段 Marketplace 辅助函数只用于对比，并不属于 Seed。调用方会先验证确切 NCK mint、Token Program 与代币账户 owner。辅助函数随后使用来源、目标、mint、权限方、数量和小数位构建受检查转账，并调用 Token Program。Seed 中没有对应调用。",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "明确要求来源代币账户、目标代币账户、mint、签名 owner、Token Program，以及整数形式的最小单位数量。"
+        },
+        {
+          "lines": "9-18",
+          "meaning": "使用这些账户、数量与 NCK_DECIMALS 构建 transfer_checked，使指令绑定到该 mint 的单位精度。"
+        },
+        {
+          "lines": "19-29",
+          "meaning": "带上全部必要账户调用 Token Program。只有交易成功执行后，才能进一步主张余额发生变化。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "seed/seed.js",
+      "claim": "实现钱包检测与连接、Seed 与共享浏览器绑定、挑战请求、signMessage、本地 TweetNaCl 验证、中心化 join、公开状态刷新，以及修正后的登记显示边界。"
+    },
+    {
+      "path": "seed/seed-state.js",
+      "claim": "定义纯状态转换，用于区分缓存地址、活动 Provider、匹配的 status 或 join 响应、空状态、失败、钱包变化与未验证的网络结果。"
+    },
+    {
+      "path": "seed/tests/seed-state.test.mjs",
+      "claim": "覆盖 7 个聚焦案例：不可信缓存记录、确切钱包匹配、可信响应来源、钱包切换、空状态或失败状态、缓存状态与连接状态的区别，以及未验证网络。"
+    },
+    {
+      "path": "scripts/audit-seed-flow.mjs",
+      "claim": "运行 10 个模拟 Chromium 场景，覆盖伪造缓存、空状态与失败响应、钱包切换、断开连接、迟到响应、未知或可观测网络，以及永久挂起的状态请求；整个过程不会生成或打印私钥。"
+    },
+    {
+      "path": "seed/index.html",
+      "claim": "包含活动展示页面；其中显示的分配数量与启动参考值，必须与登记证据及代币证据严格分开。"
+    },
+    {
+      "path": "seed_api.py",
+      "claim": "定义中心化服务配置、挑战与白名单数据结构、挑战消息构建、Ed25519 验证、登记 upsert、公开状态、管理员列表、保存的请求元数据，以及写死的响应奖励。"
+    },
+    {
+      "path": "nginx.site.conf",
+      "claim": "把公开 Seed 与邀请 API 路由代理到 8787 端口的本地 Python 服务，从而明确中心化服务部署边界。"
+    },
+    {
+      "path": "src/solanaNetwork.js",
+      "claim": "展示客户端要求的 Devnet 策略，以及 Provider 无法报告或切换网络时明确的“未知或未验证”分支。"
+    },
+    {
+      "path": "src/walletSession.js",
+      "claim": "定义共享浏览器钱包地址、名称和绑定时间字段，Seed 连接也会更新这些字段。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/cluster_config.rs",
+      "claim": "列出各集群专属的 NCK mint 常量，包括用于对比真实代币路径的当前 Devnet mint。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "展示一条真实 NCK 付款路径：在调用 SPL transfer_checked 前先验证 mint、Token Program 与代币账户。Seed 不会调用它。"
+    },
+    {
+      "path": "programs/nicechunk_core/src/state.rs",
+      "claim": "定义 NCK 的 6 位小数和以最小单位表示的创世供应量；这能支持单位换算，却不能证明向任何玩家付款。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "游戏链适配器会导入 Solana 与 SPL Token 基础组件，并明确 Devnet NCK mint；Seed 缺少这些机制，正是关键对比。"
+    },
+    {
+      "path": "docs/wallet-flow-audit.md",
+      "claim": "记录浏览器钱包绑定与本地状态清理，作为背景资料；它并不审计 Seed signMessage 或中心化 Seed API。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "钱包登录与安全",
+      "summary": "回顾为什么 Connect、消息批准与交易批准互不相同，以及为什么绝不能共享外部钱包秘密。"
+    },
+    {
+      "slug": "local-game-wallet-backup-and-risk",
+      "href": "/docs/local-game-wallet-backup-and-risk/",
+      "title": "本地 Game Wallet：备份、签名与恢复",
+      "summary": "把这份外部钱包消息证明，与另一套由浏览器持有私钥的 Game Wallet 模型进行对比。"
+    },
+    {
+      "slug": "marketplace-listings",
+      "href": "/docs/marketplace-listings/",
+      "title": "Marketplace 挂单 PDA",
+      "summary": "查看一条真正验证付款账户并调用代币移动的链上路径。"
+    },
+    {
+      "slug": "global-config-genesis",
+      "href": "/docs/global-config-genesis/",
+      "title": "GlobalConfig 创世配置",
+      "summary": "了解被接受的 NCK mint 标识与小数精度记录在哪里，同时不要把这些配置误认为已经向玩家付款。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制权学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，把本地钱包绑定转化为由 owner 签名的角色请求",
+      "summary": "这条 Seed 流程只向中心化活动服务证明一段确切消息。下一篇已审核指南会沿着当前角色页面，依次讲解不预留名称的检查、两个固定模型、一笔 Player 交易、浏览器缓存尝试，以及可选的第二笔邀请交易。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "local-game-wallet-backup-and-risk",
+        "title": "本地 Game Wallet：备份、签名与恢复",
+        "summary": "回顾另一套内置 Game Wallet 如何保存完整签名秘密，以及它的托管风险为何不同于这份外部钱包消息证明。"
+      },
+      {
+        "label": "下一篇已审核指南",
+        "slug": "character-creation",
+        "title": "角色创建",
+        "summary": "了解 owner 钱包究竟签署什么、首次创建能建立哪三条公开记录，以及哪些缓存、邀请与出生点步骤仍彼此独立。"
+      }
+    ]
+  }
+}

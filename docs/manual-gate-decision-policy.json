@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-29",
+  "repository": "nicechunk",
+  "policy": {
+    "reviewReadyDecision": "Manual gates may remain deferred when the repository claim is limited to public review readiness and the gate is clearly documented as not yet evidenced.",
+    "releaseClaimDecision": "A manual gate blocks any release, production, runtime, hardware, wallet, network scale, or hosted CI claim that depends on that gate until evidence is recorded for the exact commit.",
+    "forbiddenSubstituteEvidence": [
+      "estimates",
+      "screenshots from another commit",
+      "generic platform claims",
+      "private logs that cannot be reviewed",
+      "unredacted secrets, wallet keys, server addresses, or raw production logs"
+    ]
+  },
+  "gates": [
+    {
+      "id": "workflow-scope",
+      "releaseClaim": "Hosted GitHub Actions coverage",
+      "deferWhen": "A credential with workflow scope is unavailable and local equivalent commands are documented.",
+      "blocksWhen": "A repository claims hosted CI coverage for the reviewed commit.",
+      "evidence": "Published workflow file and hosted run for the reviewed commit, or explicit deferred wording."
+    },
+    {
+      "id": "solana-integration",
+      "releaseClaim": "Executable on-chain behavior beyond unit tests",
+      "deferWhen": "The release does not claim local-validator, devnet, or BPF artifact readiness.",
+      "blocksWhen": "Program, SDK, PDA, account layout, instruction, or chain-facing behavior is claimed as release-ready.",
+      "evidence": "BPF build output plus local-validator or devnet transaction logs tied to the commit."
+    },
+    {
+      "id": "visual-baseline",
+      "releaseClaim": "Visual correctness beyond smoke-tested route rendering",
+      "deferWhen": "The release only claims built route smoke coverage.",
+      "blocksWhen": "A browser route, layout, visual asset, localization, or screenshot quality claim is release-critical.",
+      "evidence": "Desktop and mobile screenshots tied to commit and viewport dimensions."
+    },
+    {
+      "id": "real-wallet",
+      "releaseClaim": "Real wallet extension, mobile deep-link, network switching, or transaction signing behavior",
+      "deferWhen": "The release only claims no-wallet and mock-provider UI coverage.",
+      "blocksWhen": "A release claim depends on real Phantom, Solflare, Backpack, mobile wallet, network switching, or signing behavior.",
+      "evidence": "Wallet version, browser/device, network, approval artifacts, transaction signature when applicable, and redacted logs."
+    },
+    {
+      "id": "fourier-gpu",
+      "releaseClaim": "Fourier Pickaxe runtime visual quality, GPU proof-search speed, or screenshot evidence",
+      "deferWhen": "The release only claims documentation-first review coverage.",
+      "blocksWhen": "A review or release claims GPU rendering quality, performance, proof-search throughput, or visual fidelity.",
+      "evidence": "GPU model, browser version, fixture source, screenshots, proof-search duration, and responsiveness notes."
+    },
+    {
+      "id": "guardian-soak",
+      "releaseClaim": "Networked Guardian scale, slow-client backpressure, or production host capacity",
+      "deferWhen": "The release only claims deterministic local Guardian core-load coverage.",
+      "blocksWhen": "A release claim depends on networked scale, adverse-client handling, production sizing, or operational capacity.",
+      "evidence": "Soak profile, client count, message rate, host profile, backpressure behavior, failure summary, and rollback notes."
+    }
+  ]
+}

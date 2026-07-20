@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="global-config-genesis" data-docs-static-source="acd3b59ba266ef3da31ff13e74f01fb56bae7b1e68cd40b5e104e8bcd20b5abc">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/global-config-genesis.json" />
+    <meta name="nicechunk:source-sha256" content="acd3b59ba266ef3da31ff13e74f01fb56bae7b1e68cd40b5e104e8bcd20b5abc" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/global-config-genesis/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Inspect NiceChunk&#39;s Core Program, 293-byte GlobalConfig PDA, NCK mint constraints, current Devnet drift, downstream field use, and upgrade boundary." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="GlobalConfig Genesis: Fixed Bytes, NCK Mint, and Enforcement Boundaries | NiceChunk" />
+    <meta property="og:description" content="Inspect NiceChunk&#39;s Core Program, 293-byte GlobalConfig PDA, NCK mint constraints, current Devnet drift, downstream field use, and upgrade boundary." />
+    <meta property="og:url" content="https://nicechunk.com/docs/global-config-genesis/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/global-config-genesis-overview-v1.webp" />
+    <meta property="og:image:alt" content="The dark-haired NiceChunk villager boy lowers a removable dark program cartridge onto a brass machine while the orange-haired villager girl surveys an exact voxel terrain model; a cyan genesis crystal remains locked in a separate glass vault beside richly baked coastal blocks and the game&#39;s level blue water surface." />
+    <title>GlobalConfig Genesis: Fixed Bytes, NCK Mint, and Enforcement Boundaries | NiceChunk</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/global-config-genesis/#article",
+  "url": "https://nicechunk.com/docs/global-config-genesis/",
+  "name": "One sealed root account does not make every runtime rule immutable",
+  "description": "Inspect NiceChunk's Core Program, 293-byte GlobalConfig PDA, NCK mint constraints, current Devnet drift, downstream field use, and upgrade boundary.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "One sealed root account does not make every runtime rule immutable",
+  "mainEntityOfPage": "https://nicechunk.com/docs/global-config-genesis/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "GlobalConfig is first an address anchor, then a data account",
+    "Instruction zero allocates once and writes constants chosen by the build",
+    "NCK identity is a mint key plus five byte-level checks",
+    "The account records identity, hashes, economics, geometry, and time in one layout",
+    "Each dependent program chooses a different GlobalConfig view",
+    "The account, current world source, and local Core artifact have diverged",
+    "Verify the account, mint, program, and every consumer as separate layers"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#root-address",
+      "name": "GlobalConfig is first an address anchor, then a data account"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#one-time-initialization",
+      "name": "Instruction zero allocates once and writes constants chosen by the build"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#nck-mint",
+      "name": "NCK identity is a mint key plus five byte-level checks"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#binary-record",
+      "name": "The account records identity, hashes, economics, geometry, and time in one layout"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#consumer-boundaries",
+      "name": "Each dependent program chooses a different GlobalConfig view"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#devnet-drift",
+      "name": "The account, current world source, and local Core artifact have diverged"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/global-config-genesis/#verification-boundary",
+      "name": "Verify the account, mint, program, and every consumer as separate layers"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/global-config-genesis-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>GlobalConfig Genesis</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">CORE PROGRAM / GLOBAL CONFIG</p>
+<h1>One sealed root account does not make every runtime rule immutable</h1>
+<p class="docs-hero-summary">GlobalConfig is the shared address anchor for NiceChunk's public state and a compact record of genesis-era values. The current repository Core Program can initialize that 293-byte PDA only from compiled constants and accepts an exact-supply, authority-free NCK mint at initialization, but each dependent program decides which bytes it actually enforces. A dated Devnet audit also shows that the stored world fields, current Chunk.js world, local Core artifact, and upgradeable deployed program are not one interchangeable source of truth.</p>
+<span class="docs-reading-time">18 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The dark-haired NiceChunk villager boy lowers a removable dark program cartridge onto a brass machine while the orange-haired villager girl surveys an exact voxel terrain model; a cyan genesis crystal remains locked in a separate glass vault beside richly baked coastal blocks and the game&#39;s level blue water surface." decoding="async" height="887" loading="eager" src="/docs/media/global-config-genesis-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>The address is the strongest shared root</strong>
+<p>Player, Chunk, Building, Guardian, and Smelting state commonly bind to the same Core-derived GlobalConfig public key. Backpack reward authentication and Market listing creation also consult that root transiently without storing it in their own records.</p></article>
+<article class="docs-key-point"><strong>Stored, sealed, and enforced are different claims</strong>
+<p>The account stores a sealed byte and the current Core source exposes no update instruction, but the deployed Core Program still has an upgrade authority. A field is an active rule only when the program handling a transaction reads and checks it.</p></article>
+<article class="docs-key-point"><strong>The current world deliberately overrides legacy bytes</strong>
+<p>The audited Devnet account still says sea level 2, maximum terrain height 160, and maximum build Y 256. Current Chunk and Building source instead use compiled world constants, and the browser preserves the raw values only as diagnostics before applying the same canonical override.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#root-address">GlobalConfig is first an address anchor, then a data account</a></li>
+<li><a href="#one-time-initialization">Instruction zero allocates once and writes constants chosen by the build</a></li>
+<li><a href="#nck-mint">NCK identity is a mint key plus five byte-level checks</a></li>
+<li><a href="#binary-record">The account records identity, hashes, economics, geometry, and time in one layout</a></li>
+<li><a href="#consumer-boundaries">Each dependent program chooses a different GlobalConfig view</a></li>
+<li><a href="#devnet-drift">The account, current world source, and local Core artifact have diverged</a></li>
+<li><a href="#verification-boundary">Verify the account, mint, program, and every consumer as separate layers</a></li>
+<li><a href="#technical-details">Five equations separate the root account from the rules that actually execute</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="root-address"><p class="docs-eyebrow">ONE SHARED NAMESPACE</p>
+<h2>GlobalConfig is first an address anchor, then a data account</h2>
+<p class="docs-prose">The Core Program ID and the single seed global-config derive one stable public key. On Devnet that PDA is 46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f with bump 253. Player profiles and sessions, broken-chunk records, foundations and buildings, Guardian registry and regions, and Smelting PlayerProgress either store this key or include it in their seeds. Backpack reward authentication reads the supplied root transiently. Market uses it during listing creation to validate PlayerProfile and equipment relationships, while Listing state, listing seeds, and the purchase flow do not contain it.</p>
+<p class="docs-prose">That makes the public key a strong namespace boundary: an account from another world root should not be interchangeable just because its other fields look plausible. It does not mean every consumer reads all 293 bytes. Several current programs validate only owner, length, magic, or address relationships; others read one field; some replace legacy world fields with current constants.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Core Program</span>
+<strong>9EhM...QHu</strong>
+<p>The program ID compiled into current Core, SDK, and dependent program configuration.</p></article>
+<article class="docs-fact"><span>Devnet GlobalConfig</span>
+<strong>46bT...Y5f · bump 253</strong>
+<p>A 293-byte Core-owned PDA derived only from the fixed seed and Core Program ID.</p></article>
+<article class="docs-fact"><span>Namespace role</span>
+<strong>Root public key</strong>
+<p>Dependent PDAs bind to the address even when their transition does not consume the stored economic or terrain fields.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A PDA seed proves derivation, not semantics</strong>
+<p>Anyone can independently derive the same address. Trust in a transition still depends on the account owner, data format, executing program, actual field checks, and deployment state.</p></aside></section>
+<section class="docs-content-section" id="one-time-initialization"><p class="docs-eyebrow">CURRENT CORE SOURCE</p>
+<h2>Instruction zero allocates once and writes constants chosen by the build</h2>
+<p class="docs-prose">The current repository Core dispatcher accepts exactly one byte: zero. Initialization requires four accounts: a writable signer payer, the writable derived GlobalConfig PDA, the cluster-specific NCK mint, and the System Program. The payer cannot submit a seed, fee, world height, wallet, or hash in instruction data; the program writes compiled constants plus the observed genesis slot, timestamp, and derived bump.</p>
+<p class="docs-prose">Initialization is dust-safe. A prefunded system-owned zero-data PDA is topped up to rent exemption if needed, allocated, and assigned with the PDA signer seeds. A Core-owned account is rejected as already initialized, while a non-system owner or existing data is rejected. The account's sealed byte is written as one, but no downstream cryptographic mechanism is attached to that byte.</p>
+<ol class="docs-steps"><li><strong>Validate the address and mint</strong>
+<p>Re-derive GlobalConfig, require the configured SPL Token mint, and inspect the current supply against the genesis predicate plus both disabled authorities.</p></li>
+<li><strong>Create or adopt the empty PDA</strong>
+<p>Create a zero-lamport account or safely allocate a prefunded system account after topping up rent.</p></li>
+<li><strong>Pack one exact layout</strong>
+<p>Write all constants, verify the writer stopped at byte 293, and leave no current Core update instruction.</p></li></ol>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>The initializer cannot choose genesis values</strong>
+<p>In current source, semantic fields are imported constants rather than decoded instruction arguments. That source-level property is separate from proving which binary is deployed.</p></aside></section>
+<section class="docs-content-section" id="nck-mint"><p class="docs-eyebrow">CLUSTER-LOCAL TOKEN INVARIANT</p>
+<h2>NCK identity is a mint key plus five byte-level checks</h2>
+<p class="docs-prose">The devnet feature selects HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo instead of the mainnet mint. Core initialization requires that account to be owned by the legacy SPL Token Program, initialized, configured with six decimals, and carrying exactly one billion displayed NCK in base units at that moment. Both authority COptions must be zero.</p>
+<p class="docs-prose">The finalized Devnet snapshot at slot 476,367,811 still matched those conditions: an 82-byte mint account, supply 1,000,000,000,000,000, six decimals, no mint authority, and no freeze authority. This proves the current token account cannot inflate or freeze through those SPL Token controls. Holders can still burn tokens, so the supply can fall. The snapshot also does not prove that every price field in GlobalConfig is charged by a live instruction, nor that no separate token program or market can represent another asset.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Displayed supply</span>
+<strong>1,000,000,000 NCK</strong>
+<p>Exactly 10^15 base units at six decimals in the audited Devnet mint.</p></article>
+<article class="docs-fact"><span>Mint authority</span>
+<strong>None</strong>
+<p>The SPL Token COption tag is zero, so the current mint exposes no authority that can increase supply.</p></article>
+<article class="docs-fact"><span>Freeze authority</span>
+<strong>None</strong>
+<p>The mint exposes no authority that can freeze token accounts through the legacy SPL Token mechanism.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>No mint authority is narrower than fixed economics</strong>
+<p>Mint bytes can prove the current supply, its upper bound, and disabled authorities. Starter-pack prices, pass limits, fee splits, staking, rewards, and marketplace behavior require separate executing instructions that read and enforce their fields.</p></aside></section>
+<section class="docs-content-section" id="binary-record"><p class="docs-eyebrow">293 LITTLE-ENDIAN BYTES</p>
+<h2>The account records identity, hashes, economics, geometry, and time in one layout</h2>
+<p class="docs-prose">Offsets zero through 11 hold NCKCFG01, version one, bump, and the sealed byte. The next 73 bytes hold the mint, decimals, supply, and development wallet. World ID and a 32-byte seed follow, then three 32-byte hashes intended to describe terrain configuration, resource rules, and the client world configuration. Sale, Guardian, fee, vertical-world, region, mining-cooldown, and creation fields fill the remaining bytes.</p>
+<p class="docs-prose">A 32-byte hash is only a commitment if verifiers know the exact preimage encoding and compare it. The local generator uses a recursively key-sorted JSON serialization before SHA-256, but the account stores no schema identifier, source path, or canonicalization version. The current resource-rule hash still matches config/resource_rules_v1.json, a placeholder fixture with no authoritative rules; that equality does not prove the live ResourceDropTable or SurfaceDecorationTable PDAs. The audited world seed, terrain hash, and client-world hash do not match the current generated files.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Header</span>
+<strong>NCKCFG01 · version 1</strong>
+<p>Current consumers generally use length and magic as their minimum format gate.</p></article>
+<article class="docs-fact"><span>Hash envelope</span>
+<strong>3 x 32 bytes</strong>
+<p>Terrain, resource rules, and client-world commitments without an embedded preimage codec version.</p></article>
+<article class="docs-fact"><span>Observed genesis</span>
+<strong>Slot 468,886,752</strong>
+<p>The account stores Unix time 2026-06-12T09:01:13Z and a slot shortly after the recorded Core deployment slot.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Decoding is not verification of the hash preimage</strong>
+<p>The SDK can recover all three 32-byte values. Proving what they commit to still requires the exact source objects, stable serialization procedure, and a fresh equality check.</p></aside></section>
+<section class="docs-content-section" id="consumer-boundaries"><p class="docs-eyebrow">FIELD-BY-FIELD ENFORCEMENT</p>
+<h2>Each dependent program chooses a different GlobalConfig view</h2>
+<p class="docs-prose">Current Chunk source validates the 293-byte envelope, reads the development wallet, and substitutes the current world seed, chunk size, vertical range, terrain ceiling, and sea level. Current Building source similarly validates length and magic but uses compiled 16, -32, and 320 geometry. Current repository Guardian source validates Core ownership, length, and magic for its registry namespace, then uses its own compiled 100-chunk region size instead of the stored value 64; deployment parity for that source is not established here. Backpack reads the stored chunk size when authenticating a ChunkBroken producer. Market calculates a one-percent fee from its own constant rather than reading GlobalConfig's market-fee field.</p>
+<p class="docs-prose">Player is the important counterexample: its current GlobalConfig view reads world ID, minimum build Y, and maximum build Y from the account. Position updates therefore follow the legacy stored maximum of 256 even though current Chunk and Building source use 320. Smelting uses the supplied root key to derive and bind PlayerProgress, while RecipeTable identity and layout do not contain GlobalConfig. A single label such as global configuration cannot summarize these different trust boundaries.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Chunk and Building</span>
+<strong>Compiled current geometry</strong>
+<p>The account remains a valid root and format gate while legacy terrain bytes are overridden.</p></article>
+<article class="docs-fact"><span>Player position</span>
+<strong>Stored min/max Y</strong>
+<p>Current source reads offsets 263 and 265, leaving a 256-versus-320 vertical boundary.</p></article>
+<article class="docs-fact"><span>Marketplace fee</span>
+<strong>Compiled 100 bps</strong>
+<p>The stored field is also 100 bps today, but equality of values is not evidence that Market read the account field.</p></article>
+<article class="docs-fact"><span>Guardian region size</span>
+<strong>Current source 100 · stored 64</strong>
+<p>Current repository Guardian derivation and records use their program constant rather than the legacy Core field; this is a source claim until deployment parity is established.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Presence in an account list does not prove a field was consumed</strong>
+<p>An instruction may use GlobalConfig as a PDA seed, owner check, magic gate, or cross-account namespace while ignoring its economic and terrain values. Verification must follow the exact read offsets and branches.</p></aside></section>
+<section class="docs-content-section" id="devnet-drift"><p class="docs-eyebrow">DATED DEVNET SNAPSHOT</p>
+<h2>The account, current world source, and local Core artifact have diverged</h2>
+<p class="docs-prose">At finalized slot 476,367,811 on 2026-07-15, the GlobalConfig account was Core-owned, 293 bytes, version one, sealed, and rent-exempt. Its raw seed was ba1a9d446157c537af58fc5ff53a28422cdc6ab3dd88daa24095db3bd9c0f041; it stored maximum build Y 256, maximum terrain height 160, and sea level 2. The current generated configuration instead uses the padded text seed nicechunk-mainnet-001, maximum build Y 320, maximum terrain height 240, and sea level 96. Only the hash of the local placeholder resource-rule fixture among the three audited hashes still matched; that file is not the live ResourceDropTable or SurfaceDecorationTable state.</p>
+<p class="docs-prose">The upgradeable Core Program points to ProgramData CT1fyW3Yp9XZ1h4AdKRchr9gdqKcimxxAKVQjGBmtUyh, reports last deployment at slot 468,886,701, and retains authority 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud. Its dumped 87,824-byte code hashed to 726326aa288f8ee05a5d9203326c90bab5fa7384ade4666bb838766016532e5c. The local target artifact had the same length but hash d72ae5d355083f98fbbe9553e5195bd94cb90353295e6733de6e3c12ce586404 and predates the current modified state source, so neither the artifact nor source is proven byte-identical to deployment.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Legacy account world</span>
+<strong>maxY 256 · terrain 160 · sea 2</strong>
+<p>Raw decoded bytes, retained for namespace and selective field use rather than current Chunk generation.</p></article>
+<article class="docs-fact"><span>Current canonical world</span>
+<strong>maxY 320 · terrain 240 · sea 96</strong>
+<p>Compiled into current Chunk and Building source and applied by the browser chain adapter.</p></article>
+<article class="docs-fact"><span>Core deployment parity</span>
+<strong>Not established</strong>
+<p>Deployed and local artifacts have equal length but different SHA-256 values; current source changed after the local artifact.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Drift is visible instead of silently normalized away</strong>
+<p>The current browser preserves chainWorldSeedHex and chainSeaLevel before overriding runtime values. The account can therefore remain inspectable without being misrepresented as the current terrain authority.</p></aside></section>
+<section class="docs-content-section" id="verification-boundary"><p class="docs-eyebrow">WHAT A VERIFIER CAN CONCLUDE</p>
+<h2>Verify the account, mint, program, and every consumer as separate layers</h2>
+<p class="docs-prose">A strong account check derives the PDA, requires Core ownership, verifies length, magic, version, bump, and field offsets, then separately fetches the NCK mint and validates its program owner, supply, decimals, initialization, and disabled authorities. A source audit can prove that the current repository initializer packs constants and has no update tag. A deployment audit must additionally inspect ProgramData, dump the deployed code, and reproduce its hash from a controlled build before treating that source as executable truth.</p>
+<p class="docs-prose">Finally, inspect the transition that matters. Terrain verification follows Chunk's current GlobalConfigView and generator. Player movement follows Player's view. Building geometry follows Building's compiled view. Marketplace settlement follows its own fee constant. The same root address organizes all of them, but it does not collapse those independent programs, artifacts, and authorities into one immutable contract.</p>
+<ol class="docs-steps"><li><strong>Verify the root account</strong>
+<p>Derive the PDA and decode all 293 bytes with owner, magic, layout, bump, and snapshot slot evidence.</p></li>
+<li><strong>Verify the external accounts</strong>
+<p>Inspect the NCK mint plus the upgradeable Program and ProgramData accounts instead of trusting stored public keys.</p></li>
+<li><strong>Trace the consuming transition</strong>
+<p>Identify exactly which offsets or compiled constants the program handling the action reads, then verify its deployed binary separately.</p></li></ol>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>This is an auditable root, not a blanket decentralization certificate</strong>
+<p>GlobalConfig makes important identities and historical parameters public. Current Devnet authority, binary drift, legacy bytes, and selective downstream reads remain part of the trust model.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">ADDRESS, BYTES, SUPPLY, AND TRUST</p>
+<h2>Five equations separate the root account from the rules that actually execute</h2>
+<p>The first three equations cover deterministic addressing, the exact binary envelope, and the NCK mint invariant. The final two expose the runtime override and the extra condition required before a sealed account can support a protocol-level immutability claim.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>One program-scoped root address</h3>
+<div aria-label="(GlobalConfig, bump) = findProgramAddress([utf8(&quot;global-config&quot;)], CoreProgram); Devnet bump = 253" class="docs-formula-expression" role="math"><code>(GlobalConfig, bump) = findProgramAddress([utf8("global-config")], CoreProgram); Devnet bump = 253</code></div>
+<p class="docs-technical-explanation">The seed is constant, but a PDA is also scoped by its program ID. The audited Core Program derives 46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f; many dependent PDAs include that public key to bind their own state to the same world namespace.</p>
+<dl class="docs-formula-terms"><dt>CoreProgram</dt>
+<dd>The Core Program public key 9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu.</dd>
+<dt>global-config</dt>
+<dd>The sole UTF-8 seed used by the current Core SDK and program.</dd>
+<dt>bump</dt>
+<dd>The off-curve derivation byte stored at GlobalConfig offset 10.</dd></dl></article>
+<article class="docs-formula"><h3>The binary layout closes at exactly 293 bytes</h3>
+<div aria-label="LEN = 12 + 32 + 1 + 8 + 32 + 2 + 32 + 3*32 + 2*8 + 2 + 4 + 8 + 7*2 + 9*2 + 2*8 = 293" class="docs-formula-expression" role="math"><code>LEN = 12 + 32 + 1 + 8 + 32 + 2 + 32 + 3*32 + 2*8 + 2 + 4 + 8 + 7*2 + 9*2 + 2*8 = 293</code></div>
+<p class="docs-technical-explanation">The sum follows the actual little-endian field sequence: header, mint, supply, wallet, world identity, seed, three hashes, sale limits, Guardian stake, seven basis-point fields, nine geometry and radius fields, genesis slot, and timestamp. A decoder that consumes more or fewer bytes is not reading this account format.</p>
+<dl class="docs-formula-terms"><dt>3*32</dt>
+<dd>Terrain configuration, resource-rule, and client-world hash fields.</dd>
+<dt>7*2</dt>
+<dd>Guardian tax, protocol fee, market fee, slash, and three SOL allocation basis-point fields.</dd>
+<dt>9*2</dt>
+<dd>Chunk, section, vertical bounds, sea level, Guardian region and radius, and mining cooldown fields.</dd></dl></article>
+<article class="docs-formula"><h3>The initializer accepts one exact supply and leaves only downward burns</h3>
+<div aria-label="S_cap = 1,000,000,000 * 10^6 = 10^15; acceptInit = initialized AND decimals=6 AND supply=S_cap AND mintAuthority=None AND freezeAuthority=None; thereafter S(t)&lt;=S_cap" class="docs-formula-expression" role="math"><code>S_cap = 1,000,000,000 * 10^6 = 10^15; acceptInit = initialized AND decimals=6 AND supply=S_cap AND mintAuthority=None AND freezeAuthority=None; thereafter S(t)&lt;=S_cap</code></div>
+<p class="docs-technical-explanation">Core initialization checks the SPL Token mint account bytes before writing GlobalConfig. The July 15 Devnet snapshot still satisfies all five predicates. With no mint authority the legacy SPL Token supply cannot rise, although holders can burn tokens and reduce it below the initialization value.</p>
+<dl class="docs-formula-terms"><dt>10^6</dt>
+<dd>Six decimal places, or one million base units per displayed NCK.</dd>
+<dt>S_cap</dt>
+<dd>The accepted initialization supply and permanent upper bound, 1,000,000,000,000,000 base units.</dd>
+<dt>None</dt>
+<dd>A zero COption tag in the SPL Token mint-authority or freeze-authority field.</dd></dl></article>
+<article class="docs-formula"><h3>Runtime world values are an explicit override, not the raw account</h3>
+<div aria-label="C_runtime = override(C_chain, seed=&quot;nicechunk-mainnet-001&quot;, chunk=16, minY=-32, maxY=320, maxTerrain=240, sea=96)" class="docs-formula-expression" role="math"><code>C_runtime = override(C_chain, seed="nicechunk-mainnet-001", chunk=16, minY=-32, maxY=320, maxTerrain=240, sea=96)</code></div>
+<p class="docs-technical-explanation">Current Chunk source reads only the legacy account's development wallet and substitutes compiled world constants. The browser keeps chainWorldSeedHex and chainSeaLevel for diagnostics, then applies the same current values. In the audited account, C_chain still has maxY 256, maxTerrain 160, and sea 2.</p>
+<dl class="docs-formula-terms"><dt>C_chain</dt>
+<dd>The 293 bytes decoded directly from the audited GlobalConfig account.</dd>
+<dt>C_runtime</dt>
+<dd>The world parameters passed into current Chunk.js and canonical Chunk generation.</dd>
+<dt>override</dt>
+<dd>A deliberate field replacement in both the JavaScript chain adapter and current Chunk Program source.</dd></dl></article>
+<article class="docs-formula"><h3>A sealed byte is only one term in an immutability claim</h3>
+<div aria-label="protocolImmutable =&gt; accountUpdatePath=None AND coreUpgradeAuthority=None AND dependentUpgradeAuthorities=None AND consumersEnforceCommittedFields" class="docs-formula-expression" role="math"><code>protocolImmutable =&gt; accountUpdatePath=None AND coreUpgradeAuthority=None AND dependentUpgradeAuthorities=None AND consumersEnforceCommittedFields</code></div>
+<p class="docs-technical-explanation">The current account has sealed=1 and current Core source exposes only initialization, yet Devnet ProgramData names an upgrade authority. Dependent programs can also compile their own values or retain their own authorities. Therefore the implication's right-hand side is not currently proven.</p>
+<dl class="docs-formula-terms"><dt>accountUpdatePath</dt>
+<dd>Any instruction in deployed code capable of rewriting the program-owned GlobalConfig bytes.</dd>
+<dt>dependentUpgradeAuthorities</dt>
+<dd>Authorities for the programs that interpret GlobalConfig during Player, Chunk, Building, Market, or other actions.</dd>
+<dt>consumersEnforceCommittedFields</dt>
+<dd>A field-by-field source and deployment check proving that stored values actually gate the relevant transition.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Current Core source dispatches only instruction zero</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_core/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn process_instruction(
+    program_id: &amp;Pubkey,
+    accounts: &amp;[AccountInfo],
+    instruction_data: &amp;[u8],
+) -&gt; ProgramResult {
+    if instruction_data != [0] {
+        return Err(NicechunkError::InvalidInstruction.into());
+    }
+
+    initialize_global_config(program_id, accounts)
+}</code></pre>
+<p class="docs-technical-explanation">In the current repository source every payload except the one-byte zero tag is rejected. This proves the source has no update, pause, withdraw, or mutation dispatcher; deployment parity must still be checked separately.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Initialization rejects a mint with supply or authority drift</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_core/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub fn validate_nck_mint(mint_data: &amp;[u8]) -&gt; ProgramResult {
+    // SPL Token Mint layout:
+    // 0..36   mint_authority: COption&lt;Pubkey&gt;
+    // 36..44  supply: u64
+    // 44      decimals: u8
+    // 45      is_initialized: bool
+    // 46..82  freeze_authority: COption&lt;Pubkey&gt;
+    if mint_data.len() &lt; 82 {
+        return Err(NicechunkError::InvalidNckMint.into());
+    }
+    if mint_data[44] != NCK_DECIMALS {
+        return Err(NicechunkError::InvalidNckDecimals.into());
+    }
+    if mint_data[45] != 1 {
+        return Err(NicechunkError::InvalidNckMint.into());
+    }
+    if read_u64_le(&amp;mint_data[36..44]) != NCK_GENESIS_SUPPLY {
+        return Err(NicechunkError::InvalidNckGenesisSupply.into());
+    }
+    if read_u32_le(&amp;mint_data[0..4]) != 0 || read_u32_le(&amp;mint_data[46..50]) != 0 {
+        return Err(NicechunkError::InvalidNckAuthority.into());
+    }
+    Ok(())
+}</code></pre>
+<p class="docs-technical-explanation">The mint public key is selected by the cluster build, then its SPL Token bytes must match decimals, supply, initialization, and two disabled authorities before GlobalConfig can be created.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>GlobalConfig bytes come from compiled constants</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_core/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        writer.bytes(&amp;CONFIG_MAGIC)?;
+        writer.u16(CONFIG_VERSION)?;
+        writer.u8(global_config_bump)?;
+        writer.u8(1)?;
+        writer.pubkey(&amp;NCK_MINT)?;
+        writer.u8(NCK_DECIMALS)?;
+        writer.u64(NCK_GENESIS_SUPPLY)?;
+        writer.pubkey(&amp;DEVELOPMENT_WALLET)?;
+        writer.u16(WORLD_ID)?;
+        writer.bytes(&amp;WORLD_SEED)?;
+        writer.bytes(&amp;TERRAIN_CONFIG_HASH)?;
+        writer.bytes(&amp;RESOURCE_RULE_HASH)?;
+        writer.bytes(&amp;CLIENT_WORLD_CONFIG_HASH)?;
+        writer.u64(STARTER_PACK_PRICE_LAMPORTS)?;
+        writer.u64(GENESIS_PASS_PRICE_LAMPORTS)?;
+        writer.u8(STARTER_PACK_MAX_PER_WALLET)?;
+        writer.u8(GENESIS_PASS_MAX_PER_WALLET)?;
+        writer.u32(GENESIS_PASS_MAX_SUPPLY)?;
+        writer.u64(GUARDIAN_STAKE_AMOUNT)?;
+        writer.u16(GUARDIAN_TAX_BPS)?;
+        writer.u16(PROTOCOL_FEE_BPS)?;
+        writer.u16(MARKET_FEE_BPS)?;
+        writer.u16(SLASH_BPS)?;
+        writer.u16(SOL_TO_LIQUIDITY_BPS)?;
+        writer.u16(SOL_TO_REWARD_BPS)?;
+        writer.u16(SOL_TO_DEVELOPMENT_BPS)?;
+        writer.u16(CHUNK_SIZE)?;
+        writer.u16(SECTION_HEIGHT)?;
+        writer.i16(MIN_BUILD_Y)?;
+        writer.i16(MAX_BUILD_Y)?;
+        writer.i16(MAX_TERRAIN_HEIGHT)?;
+        writer.i16(SEA_LEVEL)?;
+        writer.u16(GUARDIAN_REGION_SIZE_CHUNKS)?;
+        writer.u16(GUARDIAN_REALTIME_RADIUS_CHUNKS)?;
+        writer.u16(MINE_COOLDOWN_SLOTS)?;
+        writer.u64(genesis_slot)?;
+        writer.i64(created_at)?;</code></pre>
+<p class="docs-technical-explanation">The payer supplies accounts and rent, not arbitrary configuration values. Every semantic field except the observed slot, timestamp, and PDA bump is selected by the program build.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Current Chunk source treats legacy terrain bytes as an identity anchor</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">impl GlobalConfigView {
+    pub fn unpack(data: &amp;[u8]) -&gt; Result&lt;Self, NicechunkChunkError&gt; {
+        if data.len() != GLOBAL_CONFIG_LEN || data[0..8] != GLOBAL_CONFIG_MAGIC {
+            return Err(NicechunkChunkError::InvalidGlobalConfigData);
+        }
+        // Player/Profile/Backpack PDAs still bind to this account address, but
+        // all generated block results come from the current chunk.js world.
+        Ok(Self {
+            development_wallet: Pubkey::new_from_array(
+                data[GLOBAL_CONFIG_DEVELOPMENT_WALLET_OFFSET
+                    ..GLOBAL_CONFIG_DEVELOPMENT_WALLET_OFFSET + 32]
+                    .try_into()
+                    .map_err(|_| NicechunkChunkError::InvalidGlobalConfigData)?,
+            ),
+            world_seed: CANONICAL_WORLD_SEED,
+            chunk_size: CANONICAL_CHUNK_SIZE,
+            min_build_y: CANONICAL_MIN_BUILD_Y,
+            max_build_y: CANONICAL_MAX_BUILD_Y,
+            max_terrain_height: CANONICAL_MAX_TERRAIN_HEIGHT,
+            sea_level: CANONICAL_SEA_LEVEL,
+        })
+    }
+}</code></pre>
+<p class="docs-technical-explanation">Chunk still requires the correct account format and uses its development wallet, but canonical generation comes from current compiled constants. Merely decoding seaLevel from the Core account would describe the legacy value, not the block generator used by this source.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser preserves raw diagnostics before applying the same override</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function applyCanonicalChunkWorldConfig(config) {
+  if (!config || typeof config !== "object") return config;
+  return {
+    ...config,
+    chainWorldSeedHex: config.worldSeed ? Buffer.from(config.worldSeed).toString("hex") : config.worldSeedHex,
+    chainSeaLevel: Number.isFinite(config.seaLevel) ? Number(config.seaLevel) : null,
+    worldSeed: Buffer.from(canonicalChunkWorldConfig.worldSeedHex, "hex"),
+    worldSeedHex: canonicalChunkWorldConfig.worldSeedHex,
+    chunkSize: canonicalChunkWorldConfig.chunkSize,
+    sectionHeight: canonicalChunkWorldConfig.sectionHeight,
+    minBuildY: canonicalChunkWorldConfig.minBuildY,
+    maxBuildY: canonicalChunkWorldConfig.maxBuildY,
+    maxTerrainHeight: canonicalChunkWorldConfig.maxTerrainHeight,
+    seaLevel: canonicalChunkWorldConfig.seaLevel,
+    canonicalSource: "chunk-v4",
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The chain adapter does not silently discard drift. It exposes the account's raw seed and sea level under diagnostic fields, then returns the current Chunk configuration to gameplay callers. The string chunk-v4 is only this adapter's source label; the current Chunk.js world generator independently defaults to generation version 5.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_core/src/lib.rs</code>
+<p>Declares the Core Program, dispatches only tag zero in current source, validates four initialization accounts, handles dust-safe PDA allocation, and checks the SPL Token mint bytes.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_core/src/state.rs</code>
+<p>Defines the 293-byte layout, compiled genesis constants, exact field order, sealed byte, three hashes, economic values, world geometry, and byte writer.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_core/src/cluster_config.rs</code>
+<p>Selects distinct devnet, testnet, and mainnet NCK mint public keys and the compiled development wallet.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_core/src/errors.rs</code>
+<p>Enumerates the invalid instruction, PDA, mint, account-owner, authority, allocation, and packing failures used by Core source.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_core/Cargo.toml</code>
+<p>Defines the cluster feature set and shows devnet as the default Core build feature.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-core.ts</code>
+<p>Derives GlobalConfig, builds the four-account initialization instruction, decodes every byte through offset 293, and rejects wrong length or magic.</p></article>
+<article class="docs-evidence-item"><code>scripts/init-global-config.ts</code>
+<p>Builds instruction zero for the selected cluster and exits when the Core-owned GlobalConfig account already exists.</p></article>
+<article class="docs-evidence-item"><code>scripts/verify-global-config.ts</code>
+<p>Fetches the derived account, checks its owner and configured NCK mint, then exposes decoded values and hashes for inspection.</p></article>
+<article class="docs-evidence-item"><code>scripts/generate-global-config.ts</code>
+<p>Constructs current local world inputs, applies stable key-sorted JSON serialization, hashes three preimages, and emits the initialization reference data.</p></article>
+<article class="docs-evidence-item"><code>scripts/generated-global-config.json</code>
+<p>Records the current local padded world seed, three expected hashes, canonical geometry, prices, limits, fees, and Guardian parameters.</p></article>
+<article class="docs-evidence-item"><code>scripts/core-script-utils.ts</code>
+<p>Selects RPC, Core program, payer, and cluster-local NCK mint inputs for initialization and verification scripts.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_core.ts</code>
+<p>Checks the exact GlobalConfig PDA, generated constants, every documented byte range, genesis supply scaling, fee-split total, and current local sea level.</p></article>
+<article class="docs-evidence-item"><code>docs/nicechunk_core_genesis.md</code>
+<p>Documents the original one-time genesis design, instruction accounts, full binary layout, cluster build policy, verification steps, and dust-safety rationale.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Loads and decodes GlobalConfig, preserves raw chain seed and sea-level diagnostics, overrides current world fields, and derives dependent gameplay PDAs from the root key.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Validates the legacy GlobalConfig envelope, reads its development wallet, substitutes current canonical world constants, and uses the root address across Chunk state.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Validates Core ownership for supplied GlobalConfig and routes the resulting view into mining, foundations, rules, and progress transitions.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Reads world ID and stored minimum and maximum build Y from GlobalConfig while binding profiles, appearances, sessions, usernames, and invites to its key.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Uses the stored vertical bounds for position updates and the stored world ID when initializing or migrating player state.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Validates GlobalConfig length and magic and reads its stored chunk size when authenticating a signed ChunkBroken reward producer.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines Backpack records plus PlayerProfile and PlayerSession views used to authenticate owner and session relationships without treating GlobalConfig as inventory payload.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/state.rs</code>
+<p>Validates the GlobalConfig envelope but substitutes compiled chunk size and vertical bounds for current Building geometry.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/building.rs</code>
+<p>Applies the Building GlobalConfig view to BuildSite surface and active building height validation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/lib.rs</code>
+<p>Requires Core ownership for the root account and threads its program-specific view through building creation and indexing.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/lib.rs</code>
+<p>Uses GlobalConfig as the registry and region namespace while its direct validator checks Core ownership, exact length, and magic.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/state.rs</code>
+<p>Stores the root public key in Guardian registry and region layouts and validates that relationship independently of legacy terrain bytes.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/lib.rs</code>
+<p>Computes the current one-percent fee from a compiled constant and uses a supplied GlobalConfig key only while validating PlayerProfile equipment relationships during listing creation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_market/src/state.rs</code>
+<p>Defines the 216-byte Listing layout and seller-scoped PDA; neither the record nor its seeds retain GlobalConfig.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/lib.rs</code>
+<p>Uses the supplied GlobalConfig public key in PlayerProgress derivation and recipe execution without treating every stored Core field as a smelting rule.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/state.rs</code>
+<p>Stores GlobalConfig in PlayerProgress, while RecipeTable layout and its table-ID PDA remain independent of that root.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-player.ts</code>
+<p>Derives the same Core root for Player instructions and decodes the GlobalConfig public key stored in profiles, appearances, and sessions.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-chunk.ts</code>
+<p>Includes GlobalConfig in ChunkBroken, foundation, resource-rule, and surface-rule PDA derivations and instruction account lists.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-guardian.ts</code>
+<p>Derives registry, treasury-authority, region, and neighbor PDAs from the supplied GlobalConfig public key.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-building.ts</code>
+<p>Derives BuildSite, manifest, shard, and Guardian blueprint authority addresses from GlobalConfig and foundation identity.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-smelting.ts</code>
+<p>Derives RecipeTable from its table ID independently, then uses the supplied Core root only to derive PlayerProgress for execution.</p></article>
+<article class="docs-evidence-item"><code>src/world/config.js</code>
+<p>Defines the current client world vertical range and sea level consumed by local generation and the global-config generator.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Supplies the current public world seed and world metadata used by the local configuration generator.</p></article>
+<article class="docs-evidence-item"><code>config/resource_rules_v1.json</code>
+<p>Provides the placeholder local resource-rule preimage whose SHA-256 still matches the audited account's resource-rule hash; it contains no authoritative rules and is not either live rule-table PDA.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/world/world-generator.js</code>
+<p>Defines the current Chunk.js default generation version as 5, independently of the chain adapter's legacy chunk-v4 source label.</p></article>
+<article class="docs-evidence-item"><code>tests/worldgen_golden.ts</code>
+<p>Locks representative current world generation inputs and sea level independently of the legacy account's raw world values.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_player_chunk.ts</code>
+<p>Checks that Player and Chunk SDK instructions and decoded state consistently carry the derived GlobalConfig public key.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_building.ts</code>
+<p>Exercises GlobalConfig-scoped BuildSite, manifest, shard, and blueprint authority derivations in the current Building SDK.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/global-config-genesis-devnet-2026-07-15.json</code>
+<p>Persists the finalized-slot account bytes and decoded GlobalConfig and NCK fields, compressed full ProgramData plus its ELF digest, rent thresholds, source-file digests, and the dated local-artifact comparison used by this guide.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

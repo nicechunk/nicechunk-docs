@@ -1,0 +1,793 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-skills-xp-and-progress-derived-audit",
+  "cluster": "devnet",
+  "derivedFrom": {
+    "path": "docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json",
+    "sha256": "7b1e0482198617169145014523e834934dfe6a882b81dde965269136daea4b36",
+    "schemaVersion": 1,
+    "kind": "nicechunk-displayed-stats-vs-enforced-effects-devnet-audit",
+    "capturedAt": "2026-07-18T02:23:54.207Z",
+    "commitment": "confirmed",
+    "sharedContextSlot": 477044477,
+    "contextBlockTime": "2026-07-18T02:23:52.000Z",
+    "programIds": {
+      "playerProgram": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "chunkProgram": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "gameProgram": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7"
+    }
+  },
+  "derivation": {
+    "mode": "offline-deterministic",
+    "evidenceFileCount": 1,
+    "evidenceFiles": [
+      "docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json"
+    ],
+    "generator": "scripts/derive-skills-xp-progress-audit.mjs",
+    "writeCommand": "node scripts/derive-skills-xp-progress-audit.mjs",
+    "checkCommand": "node scripts/derive-skills-xp-progress-audit.mjs --check",
+    "networkRequests": 0,
+    "wallClockInputs": 0,
+    "browserFormula": "stepXp(targetLevel) = round(xpBase * 10 * targetLevel^xpGrowth); totalXp(level) = sum(stepXp(1..level))",
+    "browserMergeRule": "effectiveXp(skill) = max(behaviorDerivedXp, browserStoredXp, suppliedChainXp)",
+    "numericRepresentation": "Snapshot u64 XP is retained as decimal strings for exactness; level comparisons use BigInt.",
+    "keyOwnerSelection": "canonical PlayerProfile owners present in both canonical Chunk Progress and canonical Game/Smelting Progress arrays"
+  },
+  "browserThresholds": [
+    {
+      "id": "precisionGathering",
+      "name": "Precision Gathering",
+      "xpBase": 90,
+      "xpGrowth": 1.52,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        900,
+        2581,
+        4780,
+        7402,
+        10391,
+        13710,
+        17330,
+        21229,
+        25392,
+        29802
+      ],
+      "totalXpByLevel": [
+        0,
+        900,
+        3481,
+        8261,
+        15663,
+        26054,
+        39764,
+        57094,
+        78323,
+        103715,
+        133517
+      ]
+    },
+    {
+      "id": "burden",
+      "name": "Burden",
+      "xpBase": 130,
+      "xpGrowth": 1.58,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1300,
+        3887,
+        7376,
+        11620,
+        16532,
+        22051,
+        28132,
+        34740,
+        41845,
+        49425
+      ],
+      "totalXpByLevel": [
+        0,
+        1300,
+        5187,
+        12563,
+        24183,
+        40715,
+        62766,
+        90898,
+        125638,
+        167483,
+        216908
+      ]
+    },
+    {
+      "id": "smelting",
+      "name": "Smelting",
+      "xpBase": 120,
+      "xpGrowth": 1.56,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1200,
+        3538,
+        6660,
+        10433,
+        14777,
+        19638,
+        24977,
+        30761,
+        36966,
+        43569
+      ],
+      "totalXpByLevel": [
+        0,
+        1200,
+        4738,
+        11398,
+        21831,
+        36608,
+        56246,
+        81223,
+        111984,
+        148950,
+        192519
+      ]
+    },
+    {
+      "id": "forging",
+      "name": "Forging",
+      "xpBase": 140,
+      "xpGrowth": 1.6,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1400,
+        4244,
+        8119,
+        12865,
+        18386,
+        24613,
+        31498,
+        39001,
+        47089,
+        55735
+      ],
+      "totalXpByLevel": [
+        0,
+        1400,
+        5644,
+        13763,
+        26628,
+        45014,
+        69627,
+        101125,
+        140126,
+        187215,
+        242950
+      ]
+    },
+    {
+      "id": "craftsmanship",
+      "name": "Craftsmanship",
+      "xpBase": 180,
+      "xpGrowth": 1.66,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1800,
+        5688,
+        11150,
+        17976,
+        26035,
+        35237,
+        45513,
+        56807,
+        69074,
+        82276
+      ],
+      "totalXpByLevel": [
+        0,
+        1800,
+        7488,
+        18638,
+        36614,
+        62649,
+        97886,
+        143399,
+        200206,
+        269280,
+        351556
+      ]
+    },
+    {
+      "id": "swiftness",
+      "name": "Swiftness",
+      "xpBase": 110,
+      "xpGrowth": 1.5,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1100,
+        3111,
+        5716,
+        8800,
+        12298,
+        16167,
+        20372,
+        24890,
+        29700,
+        34785
+      ],
+      "totalXpByLevel": [
+        0,
+        1100,
+        4211,
+        9927,
+        18727,
+        31025,
+        47192,
+        67564,
+        92454,
+        122154,
+        156939
+      ]
+    },
+    {
+      "id": "exploration",
+      "name": "Exploration",
+      "xpBase": 125,
+      "xpGrowth": 1.57,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1250,
+        3711,
+        7014,
+        11019,
+        15642,
+        20826,
+        26529,
+        32716,
+        39361,
+        46442
+      ],
+      "totalXpByLevel": [
+        0,
+        1250,
+        4961,
+        11975,
+        22994,
+        38636,
+        59462,
+        85991,
+        118707,
+        158068,
+        204510
+      ]
+    },
+    {
+      "id": "stamina",
+      "name": "Stamina",
+      "xpBase": 105,
+      "xpGrowth": 1.5,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1050,
+        2970,
+        5456,
+        8400,
+        11739,
+        15432,
+        19446,
+        23759,
+        28350,
+        33204
+      ],
+      "totalXpByLevel": [
+        0,
+        1050,
+        4020,
+        9476,
+        17876,
+        29615,
+        45047,
+        64493,
+        88252,
+        116602,
+        149806
+      ]
+    },
+    {
+      "id": "strength",
+      "name": "Strength",
+      "xpBase": 145,
+      "xpGrowth": 1.59,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1450,
+        4365,
+        8317,
+        13141,
+        18738,
+        25040,
+        31994,
+        39562,
+        47710,
+        56412
+      ],
+      "totalXpByLevel": [
+        0,
+        1450,
+        5815,
+        14132,
+        27273,
+        46011,
+        71051,
+        103045,
+        142607,
+        190317,
+        246729
+      ]
+    },
+    {
+      "id": "appraisal",
+      "name": "Appraisal",
+      "xpBase": 160,
+      "xpGrowth": 1.62,
+      "levelCap": 10,
+      "stepXpByTargetLevel": [
+        0,
+        1600,
+        4918,
+        9485,
+        15117,
+        21700,
+        29156,
+        37426,
+        46465,
+        56233,
+        66699
+      ],
+      "totalXpByLevel": [
+        0,
+        1600,
+        6518,
+        16003,
+        31120,
+        52820,
+        81976,
+        119402,
+        165867,
+        222100,
+        288799
+      ]
+    }
+  ],
+  "contractThresholds": [
+    {
+      "skillId": "precisionGathering",
+      "xpDomain": "Chunk Program PlayerProgress.precision_gathering_xp",
+      "programIdKey": "chunkProgram",
+      "programId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "levelCap": 10,
+      "totalXpByLevel": [
+        0,
+        900,
+        3481,
+        8261,
+        15663,
+        26054,
+        39764,
+        57094,
+        78323,
+        103715,
+        133517
+      ],
+      "matchesBrowserThresholds": true
+    },
+    {
+      "skillId": "smelting",
+      "xpDomain": "Game/Smelting Program PlayerProgress.smelting_xp",
+      "programIdKey": "gameProgram",
+      "programId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "levelCap": 10,
+      "totalXpByLevel": [
+        0,
+        1200,
+        4738,
+        11398,
+        21831,
+        36608,
+        56246,
+        81223,
+        111984,
+        148950,
+        192519
+      ],
+      "matchesBrowserThresholds": true
+    },
+    {
+      "skillId": "forging",
+      "xpDomain": "Player Program PlayerProfile.forging_xp",
+      "programIdKey": "playerProgram",
+      "programId": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "levelCap": 10,
+      "totalXpByLevel": [
+        0,
+        250,
+        900,
+        2100,
+        4000,
+        6800,
+        10700,
+        16000,
+        23000,
+        32000,
+        45000
+      ],
+      "matchesBrowserThresholds": false
+    },
+    {
+      "skillId": "exploration",
+      "xpDomain": "Chunk Program PlayerProgress.exploration_xp",
+      "programIdKey": "chunkProgram",
+      "programId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "levelCap": 10,
+      "totalXpByLevel": [
+        0,
+        1250,
+        4961,
+        11975,
+        22994,
+        38636,
+        59462,
+        85991,
+        118707,
+        158068,
+        204510
+      ],
+      "matchesBrowserThresholds": true
+    }
+  ],
+  "profileRefreshRecoveryMatrix": [
+    {
+      "skillId": "precisionGathering",
+      "contractXpDomain": "Chunk Program PlayerProgress.precision_gathering_xp",
+      "currentProfileRefreshSource": "Chunk Program PlayerProgress.precision_gathering_xp",
+      "recovery": "authoritative-xp-recovered"
+    },
+    {
+      "skillId": "burden",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    },
+    {
+      "skillId": "smelting",
+      "contractXpDomain": "Game/Smelting Program PlayerProgress.smelting_xp",
+      "currentProfileRefreshSource": "Chunk Program PlayerProgress.smelting_xp",
+      "recovery": "wrong-program-domain"
+    },
+    {
+      "skillId": "forging",
+      "contractXpDomain": "Player Program PlayerProfile.forging_xp",
+      "currentProfileRefreshSource": "Player Program PlayerProfile.forging_xp",
+      "recovery": "authoritative-xp-recovered"
+    },
+    {
+      "skillId": "craftsmanship",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    },
+    {
+      "skillId": "swiftness",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    },
+    {
+      "skillId": "exploration",
+      "contractXpDomain": "Chunk Program PlayerProgress.exploration_xp",
+      "currentProfileRefreshSource": "Chunk Program PlayerProgress.exploration_xp",
+      "recovery": "authoritative-xp-recovered"
+    },
+    {
+      "skillId": "stamina",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    },
+    {
+      "skillId": "strength",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    },
+    {
+      "skillId": "appraisal",
+      "contractXpDomain": null,
+      "currentProfileRefreshSource": null,
+      "recovery": "no-current-chain-xp-field"
+    }
+  ],
+  "keyOwners": [
+    {
+      "owner": "6Pt43KKwUiDV7zDc1bxQ6hRiUbpy7XFDVsQcbM9dUeiT",
+      "evidenceAccounts": {
+        "playerProfile": "3qCedE8JNFRowitmrBJWz21krKDert2Mw3jfm7G6qQfL",
+        "chunkProgress": "C825ajhcAZPw7RPX3vkVqRTuCDFz5VdSrgCMch44LLbi",
+        "gameSmeltingProgress": "8WfFdxGdeJxPAVgJtDBRBXeCaZ2t2oVaKD4gVYTNndez"
+      },
+      "authoritativeXp": {
+        "precisionGathering": "7522",
+        "smelting": "7",
+        "forging": "225",
+        "exploration": "0"
+      },
+      "currentProfileRecoveredChainXpObject": {
+        "precisionGathering": "7522",
+        "forging": "225"
+      },
+      "skillLevels": {
+        "precisionGathering": {
+          "authoritativeXp": "7522",
+          "currentProfileRecoveredXp": "7522",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 2,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 2,
+          "contractLevelFromAuthoritativeXp": 2,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "smelting": {
+          "authoritativeXp": "7",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": false,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "forging": {
+          "authoritativeXp": "225",
+          "currentProfileRecoveredXp": "225",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "exploration": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        }
+      }
+    },
+    {
+      "owner": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF",
+      "evidenceAccounts": {
+        "playerProfile": "ATpDygKjemrfJ1N3easHdPyrYsbsc9uRdwxkwkXFZerE",
+        "chunkProgress": "5eXwrh9qiWfUcbDkpGtZcsAQADfNWFVpbpLusqepqyvK",
+        "gameSmeltingProgress": "J5mN6WgN9Ygq7Cz58Bq4u3Q8iFcixw3xoYqrp7FF2bn5"
+      },
+      "authoritativeXp": {
+        "precisionGathering": "12",
+        "smelting": "26",
+        "forging": "0",
+        "exploration": "0"
+      },
+      "currentProfileRecoveredChainXpObject": {
+        "precisionGathering": "12"
+      },
+      "skillLevels": {
+        "precisionGathering": {
+          "authoritativeXp": "12",
+          "currentProfileRecoveredXp": "12",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "smelting": {
+          "authoritativeXp": "26",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": false,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "forging": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "exploration": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        }
+      }
+    },
+    {
+      "owner": "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx",
+      "evidenceAccounts": {
+        "playerProfile": "Fg3uciieVCdbUxd48teicxedirwo4sZwuzwwLDTA7tF9",
+        "chunkProgress": "53NrhWyKAeEza8TGW5iPqbKPWiE6ywDdBkBk5ZMNjNVg",
+        "gameSmeltingProgress": "2sVwgJ9cr3DHuUKGcNRkRy8qUFe3M11hhnyuENyjWseF"
+      },
+      "authoritativeXp": {
+        "precisionGathering": "1678",
+        "smelting": "29",
+        "forging": "1875",
+        "exploration": "4"
+      },
+      "currentProfileRecoveredChainXpObject": {
+        "precisionGathering": "1678",
+        "forging": "1875",
+        "exploration": "4"
+      },
+      "skillLevels": {
+        "precisionGathering": {
+          "authoritativeXp": "1678",
+          "currentProfileRecoveredXp": "1678",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 1,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 1,
+          "contractLevelFromAuthoritativeXp": 1,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "smelting": {
+          "authoritativeXp": "29",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": false,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "forging": {
+          "authoritativeXp": "1875",
+          "currentProfileRecoveredXp": "1875",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 1,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 1,
+          "contractLevelFromAuthoritativeXp": 2,
+          "browserAndContractLevelMatchForAuthoritativeXp": false,
+          "currentProfileBrowserLevelMatchesContractLevel": false
+        },
+        "exploration": {
+          "authoritativeXp": "4",
+          "currentProfileRecoveredXp": "4",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        }
+      }
+    },
+    {
+      "owner": "FZ9yUYFqfytjcawY7kvRcuxPxrWfvLsVGoP6muvrK6RC",
+      "evidenceAccounts": {
+        "playerProfile": "69iVPJQxJs1RVMWtn8Cx3czgEoH8JcDxgorLqQB4FnVz",
+        "chunkProgress": "2E3Kh3C82aqnUGiTX2iVpEEmHEX87n4cNoCiW1Xyc1sC",
+        "gameSmeltingProgress": "DqnBV4m4QAJaSMkYDFgo7u9VScnFGJXPBMnnfS5fAYH7"
+      },
+      "authoritativeXp": {
+        "precisionGathering": "26",
+        "smelting": "0",
+        "forging": "0",
+        "exploration": "0"
+      },
+      "currentProfileRecoveredChainXpObject": {
+        "precisionGathering": "26"
+      },
+      "skillLevels": {
+        "precisionGathering": {
+          "authoritativeXp": "26",
+          "currentProfileRecoveredXp": "26",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "smelting": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "forging": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        },
+        "exploration": {
+          "authoritativeXp": "0",
+          "currentProfileRecoveredXp": "0",
+          "xpRecoveredExactly": true,
+          "browserLevelFromAuthoritativeChainXpOnly": 0,
+          "browserLevelFromCurrentProfileRecoveredChainXpOnly": 0,
+          "contractLevelFromAuthoritativeXp": 0,
+          "browserAndContractLevelMatchForAuthoritativeXp": true,
+          "currentProfileBrowserLevelMatchesContractLevel": true
+        }
+      }
+    }
+  ],
+  "summary": {
+    "canonicalProfiles": 11,
+    "canonicalChunkProgressAccounts": 4,
+    "canonicalGameSmeltingProgressAccounts": 9,
+    "keyOwnersWithProfileAndBothProgressDomains": 4,
+    "keyOwnersWithSmeltingXpRecoveryMismatch": 3,
+    "keyOwnersWhoseSmeltingLevelMatchesDespiteXpMismatch": 3,
+    "keyOwnersWithForgingBrowserContractLevelMismatch": 1,
+    "forgingBrowserContractMismatchOwners": [
+      "EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx"
+    ]
+  },
+  "thresholdBoundaryChecks": {
+    "forgingBrowserLevelAt45000Xp": 4,
+    "forgingBrowserLevelAt45014Xp": 5,
+    "forgingContractLevelAt45000Xp": 10
+  },
+  "interpretationBoundaries": [
+    "The recorded upstream JSON and its SHA-256 are the only account-observation evidence used by this derivation; the generator performs no RPC or other network request.",
+    "Browser and contract threshold rules are deterministic constants declared in the generator. The upstream account bytes supply observed XP values, not proof of those executable rules.",
+    "Browser levels in keyOwners are chain-XP-only projections. Local behavior counters and browser-stored XP were not captured, so these values are not a claim about any player's complete visible effective level.",
+    "The current Profile recovery projection models the reviewed refresh path: Precision, the Chunk-layout Smelting field, and Exploration come from Chunk Progress, while Forging comes from PlayerProfile. It does not read the Game/Smelting Progress account.",
+    "The live browser converts supplied chain u64 values to JavaScript Number. Every observed XP value in this snapshot is below 2^53, but a larger future value could lose display precision; this derivation retains exact decimal strings and compares them with BigInt.",
+    "An equal displayed level does not prove equal XP recovery. Three key owners remain Smelting level zero on both paths even though the current Profile refresh omits their nonzero Game/Smelting XP.",
+    "The snapshot is a dated same-context confirmed Devnet observation, not a permanent population total, a Mainnet Beta claim, or proof that current source files reproduce deployed BPF binaries."
+  ],
+  "selfChecks": {
+    "upstreamSha256MatchesPinnedValue": true,
+    "allProgramQueriesShareOneContext": true,
+    "browserThresholdTableCount": 10,
+    "contractThresholdTableCount": 4,
+    "keyOwnerCount": 4,
+    "precisionSmeltingExplorationBrowserTablesMatchContracts": true,
+    "forgingBrowserTableDiffersFromContract": true,
+    "passed": true
+  }
+}

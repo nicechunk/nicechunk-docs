@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="rule-pdas" data-docs-static-source="387e0e85a78c86894c801fba221e4fe438bfd92761923af3a0665cdb54bd717f">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/rule-pdas.json" />
+    <meta name="nicechunk:source-sha256" content="387e0e85a78c86894c801fba221e4fe438bfd92761923af3a0665cdb54bd717f" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/rule-pdas/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Understand how the SurfaceDecorationTable PDA drives deterministic, face-bound non-tree decorations and eligible mining rewards without item-specific branches in the chunk program." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Rule PDAs and Surface Decorations" />
+    <meta property="og:description" content="Understand how the SurfaceDecorationTable PDA drives deterministic, face-bound non-tree decorations and eligible mining rewards without item-specific branches in the chunk program." />
+    <meta property="og:url" content="https://nicechunk.com/docs/rule-pdas/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/rule-pdas-overview-v2.webp" />
+    <meta property="og:image:alt" content="The NiceChunk villager girl scans a cotton plant with a glowing rule tablet while the villager boy receives a reward cube; colored rule rows, a highlighted grass top face, and a separate tree volume visualize the PDA flow." />
+    <title>NiceChunk Rule PDAs and Surface Decorations</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/rule-pdas/#article",
+  "url": "https://nicechunk.com/docs/rule-pdas/",
+  "name": "Surface life comes from a rulebook the program can read",
+  "description": "Understand how the SurfaceDecorationTable PDA drives deterministic, face-bound non-tree decorations and eligible mining rewards without item-specific branches in the chunk program.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Surface life comes from a rulebook the program can read",
+  "mainEntityOfPage": "https://nicechunk.com/docs/rule-pdas/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "A PDA is an addressed account, not an invisible promise",
+    "Every rule answers the same small set of questions",
+    "Only the canonical top face can match a row",
+    "Revision 2 adds cotton and five separate flower colors",
+    "The renderer may predict; current chain state decides",
+    "A threshold-met Civilization receipt can replace the whole table"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#what-is-rule-pda",
+      "name": "A PDA is an addressed account, not an invisible promise"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#generic-rule-row",
+      "name": "Every rule answers the same small set of questions"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#matching-flow",
+      "name": "Only the canonical top face can match a row"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#current-devnet-rules",
+      "name": "Revision 2 adds cotton and five separate flower colors"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#client-and-program",
+      "name": "The renderer may predict; current chain state decides"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/rule-pdas/#rule-updates",
+      "name": "A threshold-met Civilization receipt can replace the whole table"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/rule-pdas-overview-v2.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Rule PDAs</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 02 · MUTABLE WORLD RULES</p>
+<h1>Surface life comes from a rulebook the program can read</h1>
+<p class="docs-hero-summary">Plants, flowers, shrubs, cactus models, moss, lichen, mushrooms, and pebbles are resolved from a fetched SurfaceDecorationTable PDA. Ordered numeric rows match canonical top surfaces, while Chunk.js supplies the models and the chunk program independently decides whether a matching drop is eligible during reward mining.</p>
+<span class="docs-reading-time">10 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The NiceChunk villager girl scans a cotton plant with a glowing rule tablet while the villager boy receives a reward cube; colored rule rows, a highlighted grass top face, and a separate tree volume visualize the PDA flow." decoding="async" height="887" loading="eager" src="/docs/media/rule-pdas-overview-v2.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Rules, not hard-coded species</strong>
+<p>The on-chain matcher works with numeric support, height, roll, drop, and flag fields. It has no cotton, mushroom, or flower-name branch.</p></article>
+<article class="docs-key-point"><strong>Rendering fails closed</strong>
+<p>The play renderer starts with an empty rule set and has no bundled production fallback. A missing, empty, invalid, or unavailable table leaves non-tree decorations hidden; reward mining is stricter and rejects an unavailable table.</p></article>
+<article class="docs-key-point"><strong>The renderer predicts; the program decides</strong>
+<p>The renderer uses its last successfully fetched revision. Reward mining reads the current program-owned table and does not bind the transaction to a client-supplied revision or decoration identity.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#what-is-rule-pda">A PDA is an addressed account, not an invisible promise</a></li>
+<li><a href="#generic-rule-row">Every rule answers the same small set of questions</a></li>
+<li><a href="#matching-flow">Only the canonical top face can match a row</a></li>
+<li><a href="#current-devnet-rules">Revision 2 adds cotton and five separate flower colors</a></li>
+<li><a href="#client-and-program">The renderer may predict; current chain state decides</a></li>
+<li><a href="#rule-updates">A threshold-met Civilization receipt can replace the whole table</a></li>
+<li><a href="#technical-details">One derived account feeds an ordered top-face resolver</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="what-is-rule-pda"><p class="docs-eyebrow">THE RULEBOOK</p>
+<h2>A PDA is an addressed account, not an invisible promise</h2>
+<p class="docs-prose">NiceChunk derives the SurfaceDecorationTable from the literal seed surface-decor-v1 and the GlobalConfig public key under the chunk program. The client requests that exact address, checks that the chunk program owns it, then validates the fixed length, magic, version, count, and row fields before compiling the rules.</p>
+<p class="docs-prose">The 16-byte header stores magic, format version, bump, rule count, one reserved byte, and a u32 revision. Each following 20-byte row stores eleven compact fields. The table has no authority field: initialization checks the GlobalConfig development wallet, while later full-table replacements are authorized through the Civilization receipt path.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Rule row</span>
+<strong>20 bytes</strong>
+<p>Four identity and block IDs, two roll bounds, two height bounds, salt, variant, and flags.</p></article>
+<article class="docs-fact"><span>Fixed account</span>
+<strong>2,576 bytes</strong>
+<p>A 16-byte header reserves capacity for at most 128 fixed-size rows.</p></article>
+<article class="docs-fact"><span>Verified devnet snapshot</span>
+<strong>Revision 2 / 43 rows</strong>
+<p>At the current verification snapshot, CHtBvv7ggCe5PAJKhDL84sdEZRwwJZ4U82kMNESJzend matches the checked-in fixture. This is observed devnet state, not an immutable protocol constant.</p></article></div></section>
+<section class="docs-content-section" id="generic-rule-row"><p class="docs-eyebrow">ONE ROW, ONE POSSIBILITY</p>
+<h2>Every rule answers the same small set of questions</h2>
+<p class="docs-prose">A row carries nonzero ruleId and decorationId values, a supporting surface block ID, a candidate drop block ID, an inclusive height range, and a half-open roll band. ruleId must be unique only within the current table; the program does not enforce immutable identities across revisions. A salt selects a repeatable stream, while variant and flags carry compact presentation and behavior choices.</p>
+<p class="docs-prose">The on-chain matcher does not recognize species. Chunk.js maps supported decoration IDs to efficient models, and the current backpack client maps supported drop IDs to registered resources. A syntactically valid unknown ID is not proof that either client mapping exists.</p>
+<ul class="docs-bullets"><li>surfaceBlockId filters the canonical top block of one x, z column. The resolved object sits at y = surfaceY + 1; vertical and newly exposed faces are not candidates.</li>
+<li>rollStartBps and rollEndBps select a half-open band in a 0-9,999 roll space. Overlap is allowed by validation, and the first matching row in stored order wins.</li>
+<li>minY and maxY include both endpoints when they restrict the canonical surface altitude.</li>
+<li>dropBlockId selects the first lossy secondary reward after the required base-block record. It is written only when a backpack slot remains.</li>
+<li>Reward metadata stores (ruleId &lt;&lt; 16) | decorationId. It does not pin the table revision, variant, flags, probability band, or original row contents.</li></ul>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>The table is not a model or block registry</strong>
+<p>The program rejects zero identities and air, water, or bedrock rule blocks, but it does not apply a complete registry whitelist. Chunk.js still needs a model for each decoration ID, and the current packed backpack representation supports registered block IDs below 128. Every drop in the verified 43-row snapshot satisfies that boundary.</p></aside></section>
+<section class="docs-content-section" id="matching-flow"><p class="docs-eyebrow">DETERMINISTIC MATCHING</p>
+<h2>Only the canonical top face can match a row</h2>
+<p class="docs-prose">The program calculates the canonical surface at x and z, rejects the decoration path when water covers it, and rejects it when a generated tree voxel occupies the position immediately above. It then considers rows whose supporting block and inclusive height range match that top surface.</p>
+<p class="docs-prose">Rust hashes the chunk program's fixed canonical seed, the surface coordinate, and each active salt. The GlobalConfig public key anchors the PDA, but the current Rust generator does not read terrain seed or bounds from that account. The browser must use the corresponding canonical inputs when it predicts the same ordered bands.</p>
+<ol class="docs-steps"><li><strong>Find the canonical surface</strong>
+<p>Recalculate surface height h and supporting block b for the requested integer x, z column.</p></li>
+<li><strong>Protect occupied top faces</strong>
+<p>Return no decoration when canonical water is above h or a generated tree voxel exists at h + 1.</p></li>
+<li><strong>Filter generic rows</strong>
+<p>Keep rows with surfaceBlockId equal to b and minY &lt;= h &lt;= maxY.</p></li>
+<li><strong>Resolve the seeded band</strong>
+<p>Hash seed, x, h + 1, z, and salt into 0-9,999, then return the first row whose half-open band contains the roll.</p></li></ol>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Trees remain the spatial exception</strong>
+<p>Trunks and leaves occupy multiple voxel coordinates, so trees are the only natural decoration family in canonical spatial generation and use a separate felling path. Every non-tree surface object must come from a valid fetched table and remain bound to its canonical support face.</p></aside></section>
+<section class="docs-content-section" id="current-devnet-rules"><p class="docs-eyebrow">CURRENT VERIFIED SNAPSHOT</p>
+<h2>Revision 2 adds cotton and five separate flower colors</h2>
+<p class="docs-prose">The currently verified devnet table is revision 2 with 43 rows and is byte-for-byte equal to the checked-in initialization fixture. Its final six rows use grass as the support block, salt 201, the full canonical height range, variant zero, and SHADOW plus MINEABLE flags.</p>
+<p class="docs-prose">These values describe the current account snapshot, not constants embedded in the core matcher. A future valid full-table revision can change them without adding a cotton or flower branch to Rust.</p>
+<ul class="docs-bullets"><li>Cotton: rule 74, decoration 12, drop block 48, band [425,455), conditional probability 0.30%.</li>
+<li>White flower: rule 75, decoration 13, drop block 49, band [455,475), conditional probability 0.20%.</li>
+<li>Yellow flower: rule 76, decoration 14, drop block 50, band [475,495), conditional probability 0.20%.</li>
+<li>Red flower: rule 77, decoration 15, drop block 51, band [495,515), conditional probability 0.20%.</li>
+<li>Blue flower: rule 78, decoration 16, drop block 52, band [515,535), conditional probability 0.20%.</li>
+<li>Pink flower: rule 79, decoration 17, drop block 53, band [535,555), conditional probability 0.20%.</li></ul>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Six rows, not one five-color species</strong>
+<p>Cotton and the five flower colors are six independent outcomes sharing one grass-surface roll stream. They appear only after the canonical top-face, water, tree, height, and band checks all succeed.</p></aside></section>
+<section class="docs-content-section" id="client-and-program"><p class="docs-eyebrow">TWO CONSUMERS, TWO READ TIMES</p>
+<h2>The renderer may predict; current chain state decides</h2>
+<p class="docs-prose">After the world becomes visible, the play runtime fetches the derived PDA, checks its owner and payload, compiles rows by supporting block, and installs them in the Chunk.js workers. It begins empty, fetches once for that startup sync, and may therefore render an older cached revision after a later table update.</p>
+<p class="docs-prose">Reward mining derives and validates the current program-owned table, recalculates the canonical surface, and accepts a decoration only when the mined block is that support and the MINEABLE bit is set. The transaction supplies no expected table revision, rule ID, or decoration ID, so a local flower model cannot force a reward.</p>
+<p class="docs-prose">The base mined-block record is appended first. A matching decoration is queued ahead of any exploration bonus among lossy secondary rewards; if no slot remains after the base record, the decoration is not stored.</p>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>No valid table has two different consequences</strong>
+<p>Rendering stays empty when PDA loading fails. The reward-mining instruction always requires a present, program-owned, decodable SurfaceDecorationTable, even at a face with no decoration, so a missing or invalid table rejects that whole instruction. The separate no-reward mining path does not read this table.</p></aside></section>
+<section class="docs-content-section" id="rule-updates"><p class="docs-eyebrow">CHANGE WITHOUT CORE BRANCHES</p>
+<h2>A threshold-met Civilization receipt can replace the whole table</h2>
+<p class="docs-prose">After initialization, the chunk program accepts a full-table replacement through its Civilization adapter. It validates the exact target program and PDA, the hash of the complete payload, a threshold-met tally, and the executed receipt, then repacks the rows with revision.saturating_add(1). The table itself stores no authority, and a valid update executor is a signer and payer rather than a hard-coded table owner.</p>
+<p class="docs-prose">The existing devnet revision-2 migration is an inspectable 1-of-1 record: total active power, required power, and yes power are all one. That is evidence about this migration, not a protocol requirement or proof of independent multi-party review.</p>
+<p class="docs-prose">The checked-in synchronization script is a one-off revision-1 to revision-2 migration tool. It only accepts the exact 37-row prefix and 43-row target, is dry-run by default, and writes only with --execute. Its publish and sign builders use the legacy Civilization account layout; the current Civilization source requires PowerSnapshot and CitizenPower accounts, so this script is not a generic future updater.</p>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Payload validation is not an old-state lock</strong>
+<p>The chunk program validates row count, unique nonzero rule IDs, nonzero decoration IDs, probability and height order, and forbidden air, water, or bedrock block values. It does not enforce a full registry whitelist or accept an expected previous revision. The migration script's old-revision and prefix checks are off-chain preflight checks, not an on-chain compare-and-swap guard.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">ACCOUNT AND MATCHING MODEL</p>
+<h2>One derived account feeds an ordered top-face resolver</h2>
+<p>The first equation fixes the only valid account address. The second describes the deterministic row selection used after the canonical surface, covering water, and generated-tree occupancy have been calculated.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Surface-decoration table address</h3>
+<div aria-label="T = find_program_address([&quot;surface-decor-v1&quot;, G], P_chunk)" class="docs-formula-expression" role="math"><code>T = find_program_address(["surface-decor-v1", G], P_chunk)</code></div>
+<p class="docs-technical-explanation">The table is fetched at the address derived from the literal table seed and the GlobalConfig public key under the chunk program. Account ownership is checked before its fixed-size payload is decoded.</p>
+<dl class="docs-formula-terms"><dt>T</dt>
+<dd>The unique SurfaceDecorationTable PDA for this GlobalConfig and chunk program.</dd>
+<dt>G</dt>
+<dd>The GlobalConfig account public key used as an address anchor.</dd>
+<dt>P_chunk</dt>
+<dd>The chunk program ID that owns and validates the table.</dd></dl></article>
+<article class="docs-formula"><h3>First matching row</h3>
+<div aria-label="roll_i = H3(S, x, h+1, z, 1200+salt_i) mod 10000; match = first i in table order where surface_i = b AND minY_i &lt;= h &lt;= maxY_i AND start_i &lt;= roll_i &lt; end_i" class="docs-formula-expression" role="math"><code>roll_i = H3(S, x, h+1, z, 1200+salt_i) mod 10000; match = first i in table order where surface_i = b AND minY_i &lt;= h &lt;= maxY_i AND start_i &lt;= roll_i &lt; end_i</code></div>
+<p class="docs-technical-explanation">The resolver runs only when water does not cover h and the canonical tree block at x, h+1, z is air. Rows are evaluated in stored order, so the first eligible half-open band wins; i is not chosen by the numeric rule ID.</p>
+<dl class="docs-formula-terms"><dt>S</dt>
+<dd>The canonical seed used by the matching implementation.</dd>
+<dt>h</dt>
+<dd>The canonical surface height at column x, z.</dd>
+<dt>b</dt>
+<dd>The canonical block ID on that column's top surface.</dd>
+<dt>i</dt>
+<dd>A row position in stored table order.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The play renderer clears a missing table</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-surface-decoration-sync.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      if (!state.found || !state.ruleCount) {
+        compiledRules = compileSurfaceDecorationRules([]);
+        state.applied = Boolean(chunks?.setSurfaceDecorationRules?.([], { revision: 0 }));
+        onRulesChanged({ rules: [], revision: 0 });
+        return { ok: true, found: false, applied: false, ruleCount: 0 };
+      }</code></pre>
+<p class="docs-technical-explanation">Production rendering explicitly installs an empty compiled rule set when the derived account is absent or supplies no rows. The checked-in defaults are not installed as a runtime fallback.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Rust rechecks the support and mineable bit</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        surface_decoration_from_table(global_config_view, &amp;data, args.world_x, args.world_z)?
+            .filter(|entry| {
+                entry.surface_y == args.world_y
+                    &amp;&amp; entry.surface_block_id == block_id
+                    &amp;&amp; entry.flags &amp; SURFACE_DECORATION_FLAG_MINEABLE != 0
+            })</code></pre>
+<p class="docs-technical-explanation">Reward mining resolves the current program-owned table and accepts a decoration only when the mined block is its canonical support and the MINEABLE bit is set. This filter does not guarantee that a secondary backpack slot remains.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>chunk.js/world/surface-decoration-rules.js</code>
+<p>Defines the generic client row schema, empty compiled state, ordered deterministic resolver, supported visual IDs, flags, and current initialization fixture.</p></article>
+<article class="docs-evidence-item"><code>play/play-surface-decoration-sync.js</code>
+<p>Starts the renderer with an empty table, installs fetched PDA rows, and preserves fail-closed rendering when startup synchronization fails.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Derives the SurfaceDecorationTable address, checks program ownership, validates the fixed payload, exposes revision, and requires the account for reward mining.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines the 20-byte rule, fixed-capacity table, generic ordered top-surface matcher, water and tree suppression, and returned match record.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Reads the current program-owned table during reward mining, enforces canonical support and MINEABLE, queues a lossy decoration reward, and applies receipt-backed revisions.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Shows that secondary reward appends stop successfully when backpack capacity has been reached.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_civilization/src/lib.rs</code>
+<p>Defines the current PowerSnapshot, CitizenPower, signature, tally, adapter-authority, and execution-receipt flow used by governable targets.</p></article>
+<article class="docs-evidence-item"><code>scripts/sync-surface-decoration-rules.ts</code>
+<p>Audits the exact 37-row revision-1 to 43-row revision-2 legacy migration, with dry-run inspection and explicit execution.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

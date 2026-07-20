@@ -1,0 +1,425 @@
+{
+  "_meta": {
+    "language": "ja",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-catalog-ja-7e4fbab487435982",
+    "contentHash": "7e4fbab487435982"
+  },
+  "kind": "catalog",
+  "slug": "catalog",
+  "shortTitle": "Technical Guide",
+  "seo": {
+    "title": "NiceChunk Technical Guide",
+    "description": "Explore NiceChunk's GlobalConfig genesis, deterministic world and water plane, rule PDAs, Civilization lifecycle, public player identity, player sessions, verified actions, multi-block extraction, material lifecycle, Backpack, Marketplace, and Smelting PDAs, forging, NCM model codes, buildings, Guardian regions, and Chunk.js performance through evidence-backed guides."
+  },
+  "hero": {
+    "eyebrow": "NICECHUNK TECHNICAL GUIDE",
+    "title": "Understand the world before you trust it",
+    "summary": "NiceChunk combines a fast local game with rules and state that can be independently checked. These guides explain the current implementation in plain language, separate presentation from authority, and point to the source behind every technical claim.",
+    "readingTime": "Choose a learning path · finished pages are published one at a time",
+    "visual": {
+      "src": "/docs/media/catalog-overview-v4.webp",
+      "alt": "The NiceChunk villager boy mines a block while the villager girl scans flowers and cotton beside a forge table, with a supported exact-scale cottage preview visible on the distant hill.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "metrics": [
+    {
+      "source": "readyTopicCount",
+      "label": "Reviewed guides",
+      "detail": "Only source-checked pages appear in the catalog. A listed guide can still be a local release candidate; production publication and its live route are verified separately."
+    },
+    {
+      "value": "2",
+      "label": "Rule boundaries",
+      "detail": "Canonical generated structures and PDA-driven mutable tables have different jobs."
+    },
+    {
+      "value": "1",
+      "label": "Shared forge engine",
+      "detail": "Chunk.js owns the forge codec, editing rules, meshing, tools, and runtime restoration."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "IMPLEMENTATION PRIMER",
+    "title": "Read the state model, then inspect the exact code",
+    "summary": "The equation gives one compact mental model for a rendered block. The snippets below are copied from the current Chunk.js runtime and checked against their source files during every Docs build."
+  },
+  "formulas": [
+    {
+      "title": "One coordinate, three rendering sources",
+      "expression": "B_runtime(p) = firstDefined(pending(p), renderDelta(p), G_current(seed, p))",
+      "explanation": "The first available rendering source wins. A reversible local edit keeps interaction immediate, a stored render delta overrides the base, and the deterministic generator reconstructs an untouched coordinate. The runtime's internal chainDeltas name is not independent chain proof: manual local confirmation and Guardian hints can also reach that collection, so shared-state claims still require a validated PDA read.",
+      "terms": [
+        {
+          "symbol": "B_runtime(p)",
+          "meaning": "The block the local Chunk.js scene renders at integer coordinate p."
+        },
+        {
+          "symbol": "pending(p)",
+          "meaning": "A local transaction preview that can still be confirmed or rolled back."
+        },
+        {
+          "symbol": "renderDelta(p)",
+          "meaning": "The runtime delta currently used for that coordinate. Its collection name does not prove whether it came from a validated RPC snapshot, a manual local confirmation, or a Guardian hint."
+        },
+        {
+          "symbol": "G_current(seed,p)",
+          "meaning": "The current canonical terrain, fluid, or generated-tree voxel. generationVersion is carried in configuration but currently selects no alternate algorithm. PDA-driven surface decorations remain a separate face-bound layer."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The first available layer wins",
+      "language": "JavaScript",
+      "source": "chunk.js/chunk/chunk-state.js",
+      "code": "  getFinalBlock(localX, localY, localZ) {\n    if (!containsLocal(localX, localY, localZ, this)) return BLOCK_ID.air;\n    if (!this.pendingDeltas.size && !this.chainDeltas.size) return this.getBaseBlock(localX, localY, localZ);\n    const key = deltaKey(localX, localY, localZ, this.chunkSize);\n    const pending = this.pendingDeltas.get(key);\n    if (pending) return pending.blockId;\n    const chain = this.chainDeltas.get(key);\n    if (chain) return chain.blockId;\n    return this.getBaseBlock(localX, localY, localZ);\n  }",
+      "explanation": "Pending edits remain separate and reversible. The internal chainDeltas collection overrides the base, while untouched cells fall through to canonical generation. Because local Confirm and Guardian hints can also populate that render layer, a separate validated RPC snapshot is required before calling it shared chain state."
+    },
+    {
+      "title": "Canonical inputs become one block answer",
+      "language": "JavaScript",
+      "source": "chunk.js/world/world-generator.js",
+      "code": "export function getBlockAt(worldSeed, worldX, worldY, worldZ, ruleVersion = DEFAULT_GENERATION_VERSION, options = {}) {\n  const config = createWorldGeneratorConfig({ ...options, worldSeed, generationVersion: ruleVersion });\n  const x = Math.trunc(worldX);\n  const y = Math.trunc(worldY);\n  const z = Math.trunc(worldZ);\n  return blockAtConfig(config, x, y, z);\n}",
+      "explanation": "The public query normalizes the world position to integer voxel coordinates and passes the selected seed and ruleVersion into configuration; the current generator has no version-dependent branch."
+    }
+  ],
+  "catalogHeading": {
+    "eyebrow": "SEVEN PLAYER LEARNING PATHS",
+    "title": "Start with the question you want answered",
+    "summary": "The guide is organized around player questions rather than source-code folders. Existing deep technical pages stay available, while focused beginner pages are published one verified topic at a time."
+  },
+  "groups": [
+    {
+      "pathNumber": 1,
+      "eyebrow": "PATH 1 · START HERE",
+      "title": "See the whole system before learning its names",
+      "summary": "Start with the complete system map, learn what four different observations can prove, then follow one visible action in implementation detail.",
+      "entries": [
+        {
+          "slug": "nicechunk-in-one-picture",
+          "href": "/docs/nicechunk-in-one-picture/",
+          "status": "ready",
+          "readingTime": "16 min",
+          "title": "NiceChunk in One Picture",
+          "summary": "How the browser, Chunk.js, Guardian, Solana programs, PDAs, models, baked materials, and deterministic reconstruction cooperate without pretending every frame is on chain."
+        },
+        {
+          "slug": "four-truth-layers",
+          "href": "/docs/four-truth-layers/",
+          "status": "ready",
+          "readingTime": "12 min",
+          "title": "Four Truth Layers: What Each Observation Proves",
+          "summary": "Why a local response, a Guardian hint, a confirmed instruction, and a clean reconstruction are useful evidence without proving the same thing."
+        },
+        {
+          "slug": "verified-actions",
+          "href": "/docs/verified-actions/",
+          "status": "ready",
+          "readingTime": "8 min",
+          "title": "From Fast Feedback to Verified Action",
+          "summary": "What happens locally, what is submitted, what the program checks, and when the visible world is allowed to commit."
+        }
+      ]
+    },
+    {
+      "pathNumber": 2,
+      "eyebrow": "PATH 2 · PLAYER, WALLET, AND CONTROL",
+      "title": "Understand who owns a character and who may act",
+      "summary": "Start with external-wallet connection and approval safety, compare the browser-held Game Wallet with Seed's exact-message proof and central registration, then follow public identity, temporary authority, separate funding objects, browser policy windows, and Solana chain time without turning a session key into the owner.",
+      "entries": [
+        {
+          "slug": "wallet-login-and-safety",
+          "href": "/docs/wallet-login-and-safety/",
+          "status": "ready",
+          "step": "2.1",
+          "readingTime": "14 min",
+          "title": "Wallet Login and Safety: What Connection Allows",
+          "summary": "Learn what connection shares, how message and transaction approvals differ, what to inspect, and which secrets must never be shared."
+        },
+        {
+          "slug": "local-game-wallet-backup-and-risk",
+          "href": "/docs/local-game-wallet-backup-and-risk/",
+          "status": "ready",
+          "step": "2.2",
+          "readingTime": "24 min",
+          "title": "Local Game Wallet: Backup, Signing, and Recovery",
+          "summary": "See where the browser keeps its full signing secret, how backup and funding gates differ, what it can sign, and why Disconnect is not deletion or recovery."
+        },
+        {
+          "slug": "seed-whitelist-and-message-signatures",
+          "href": "/docs/seed-whitelist-and-message-signatures/",
+          "status": "ready",
+          "step": "2.3",
+          "readingTime": "24 min",
+          "title": "Seed Whitelist Signatures, Central Registration, and NCK Evidence",
+          "summary": "Learn what the NiceChunk Seed message signature proves, what the central SQLite service stores, and why a displayed 100 NCK amount is not an on-chain payment."
+        },
+        {
+          "slug": "character-creation",
+          "href": "/docs/character-creation/",
+          "status": "ready",
+          "step": "2.4",
+          "readingTime": "28 min",
+          "title": "Character Creation: Fixed Models, Three Records, and Local Handoffs",
+          "summary": "Follow wallet binding, a non-reserving name read, two canonical NCM2 choices, and one owner-signed Player transaction—and learn why confirmation, browser caches, invite registration, and the candidate spawn are separate outcomes."
+        },
+        {
+          "slug": "names-invites-and-spawn",
+          "href": "/docs/names-invites-and-spawn/",
+          "status": "ready",
+          "step": "2.5",
+          "readingTime": "27 min",
+          "title": "Names, Invite Records, and Candidate Spawn",
+          "summary": "Learn why a NiceChunk name index, an invited-wallet registration, and a browser-side candidate spawn are three separate outcomes, who signs each action, and what the current Play entry actually uses."
+        },
+        {
+          "slug": "player-profile",
+          "href": "/docs/player-profile/",
+          "status": "ready",
+          "step": "2.6",
+          "readingTime": "24 min",
+          "title": "PlayerProfile PDAs: Identity, Equipment Pointers, and Derived Skills",
+          "summary": "See how the compact Profile, rich Appearance, name claim, Backpack, program-scoped progress, browser fallbacks, and shared forged-item key found in current audited source combine without becoming one all-purpose player record."
+        },
+        {
+          "slug": "player-appearance-codes",
+          "href": "/docs/player-appearance-codes/",
+          "status": "ready",
+          "step": "2.7",
+          "readingTime": "27 min",
+          "title": "PlayerAppearance: Model Codes, Reconstruction, and Safe Fallbacks",
+          "summary": "Follow the 9,612-byte public Appearance record through loose chain storage checks, browser source precedence, NCM2 and NCM4 reconstruction, safe fallback, SDK drift, treasury close, and dated Devnet evidence."
+        },
+        {
+          "slug": "equipment-and-custody",
+          "href": "/docs/equipment-and-custody/",
+          "status": "ready",
+          "step": "2.8",
+          "readingTime": "37 min",
+          "title": "Equipment and Custody: Equipping Selects a Record; Listing Moves It",
+          "summary": "Learn what equipping really changes in NiceChunk, where a forged-item record stays, why several tools can share one key, how local NCF1 rendering differs from chain state, and when a Market listing actually moves custody."
+        },
+        {
+          "slug": "displayed-stats-vs-enforced-effects",
+          "href": "/docs/displayed-stats-vs-enforced-effects/",
+          "status": "ready",
+          "step": "2.9",
+          "readingTime": "42 min",
+          "title": "Displayed Stats vs Enforced Effects: A Number Needs a Consumer",
+          "summary": "Separate stored Profile defaults and browser-derived cards from real consumers in local movement, Chunk mining and Exploration, Smelting, and Backpack Forging."
+        },
+        {
+          "slug": "skills-xp-and-progress",
+          "href": "/docs/skills-xp-and-progress/",
+          "status": "ready",
+          "step": "2.10",
+          "readingTime": "48 min",
+          "title": "Skills, XP, and Progress: How One Action Becomes a Level",
+          "summary": "Follow one action through local counters, browser-held and chain XP, per-skill maximum selection, browser thresholds, program-specific rewards, refresh, and cross-device recovery."
+        },
+        {
+          "slug": "player-sessions",
+          "href": "/docs/player-sessions/",
+          "status": "ready",
+          "step": "2.11",
+          "readingTime": "56 min",
+          "title": "One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key",
+          "summary": "Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what its ordinary session key can still sign, which actions consume the pass, and why refresh, funding, logout, expiry, and Guardian do not sandbox or revoke that key."
+        },
+        {
+          "slug": "session-funding-and-expiry",
+          "href": "/docs/session-funding-and-expiry/",
+          "status": "ready",
+          "step": "2.12",
+          "readingTime": "54 min",
+          "title": "Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time",
+          "summary": "Separate the browser's 0.1 SOL target from owner, session-authority, and PlayerSession-rent balances, then compare browser policy windows with Solana Clock before deciding whether to top up, reuse, refresh, replace, or recover a key."
+        }
+      ]
+    },
+    {
+      "pathNumber": 3,
+      "eyebrow": "PATH 3 · WORLD, TERRAIN, AND MINING",
+      "title": "Follow a coordinate from base terrain to accepted removal",
+      "summary": "Learn which world facts are reconstructed, which living surfaces come from PDA rules, and why trees and support collapses use different settlement models.",
+      "entries": [
+        {
+          "slug": "deterministic-world",
+          "href": "/docs/deterministic-world/",
+          "status": "ready",
+          "readingTime": "7 min",
+          "title": "The Deterministic World",
+          "summary": "How a seed and integer coordinates reconstruct the untouched terrain, while player changes remain separate state."
+        },
+        {
+          "slug": "chunkjs-water",
+          "href": "/docs/chunkjs-water/",
+          "status": "ready",
+          "readingTime": "10 min",
+          "title": "Water: One Level, Many Visible Depths",
+          "summary": "How deterministic beds fill to one sea-level plane while top-only meshes, packed depth, fragment light, and action rules remain separate."
+        },
+        {
+          "slug": "rule-pdas",
+          "href": "/docs/rule-pdas/",
+          "status": "ready",
+          "readingTime": "8 min",
+          "title": "Rule PDAs and Surface Life",
+          "summary": "Why plants and other one-face objects come from a versioned rule table instead of item-specific contract branches."
+        },
+        {
+          "slug": "resource-drop-rules",
+          "href": "/docs/resource-drop-rules/",
+          "status": "ready",
+          "readingTime": "17 min",
+          "title": "ResourceDropTable PDAs: Ordered Exploration Extras",
+          "summary": "How spatial filters, coordinate hashing, Exploration weighting, first-hit order, lossy Backpack writes, and split program scope define current extra drops."
+        }
+      ]
+    },
+    {
+      "pathNumber": 4,
+      "eyebrow": "PATH 4 · BACKPACK, PRODUCTION, AND TRADE",
+      "title": "Trace a resource from ownership to processing and exchange",
+      "summary": "Follow exact Backpack records through Smelting, forging, escrow, payment, delivery, rollback, and the current presentation boundaries.",
+      "entries": [
+        {
+          "slug": "backpack-inventory",
+          "href": "/docs/backpack-inventory/",
+          "status": "ready",
+          "readingTime": "14 min",
+          "title": "Backpack PDAs: Owned Slots and Reconstruction",
+          "summary": "How owner-derived public accounts, trusted append paths, dense deletion, packed block identity, and Chunk.js previews turn authoritative records into a usable inventory."
+        },
+        {
+          "slug": "material-lifecycle",
+          "href": "/docs/material-lifecycle/",
+          "status": "ready",
+          "readingTime": "11 min",
+          "title": "Cotton, Backpack, Cloth, and Forge",
+          "summary": "How a deterministic cotton rule becomes a capacity-sensitive reward, a consumed recipe input, and a forge-ready cloth material."
+        },
+        {
+          "slug": "smelting-recipes",
+          "href": "/docs/smelting-recipes/",
+          "status": "ready",
+          "readingTime": "15 min",
+          "title": "Smelting Recipe PDAs: Whole Slots and Authority Boundaries",
+          "summary": "How supplied recipe tables, exact Backpack records, heat tiers, atomic conversion, per-output yield math, and current client parity gaps define what a smelting transaction really proves."
+        },
+        {
+          "slug": "forging-system",
+          "href": "/docs/forging-system/",
+          "status": "ready",
+          "readingTime": "10 min",
+          "title": "Material-Aware Forging",
+          "summary": "How editable 3D work, inherited material properties, compact NCF1 data, and two on-chain capacity checks fit together."
+        },
+        {
+          "slug": "marketplace-listings",
+          "href": "/docs/marketplace-listings/",
+          "status": "ready",
+          "readingTime": "15 min",
+          "title": "Marketplace Listing PDAs: Escrowed Slots, Split Payments, and Atomic Delivery",
+          "summary": "How seller-derived listing PDAs remove whole Backpack records, split SOL or NCK payments, deliver through a signed market authority, and expose current discovery and cancellation limits."
+        }
+      ]
+    },
+    {
+      "pathNumber": 5,
+      "eyebrow": "PATH 5 · CHARACTER MODELS AND BUILDINGS",
+      "title": "See how compact bytes become visible characters and structures",
+      "summary": "Separate model formats, verified bounds, protected foundations, sharded payloads, Guardian discovery, reconstruction, and collision.",
+      "entries": [
+        {
+          "slug": "ncm-codes",
+          "href": "/docs/ncm-codes/",
+          "status": "ready",
+          "readingTime": "13 min",
+          "title": "NCM Codes: Stored Bytes, Verified Bounds, Rebuilt Geometry",
+          "summary": "How NCM aliases, avatar cuboids, material-aware building commands, chain validation, and Chunk.js reconstruction remain distinct."
+        },
+        {
+          "slug": "verifiable-buildings",
+          "href": "/docs/verifiable-buildings/",
+          "status": "ready",
+          "readingTime": "11 min",
+          "title": "Protected Foundations and Verifiable Buildings",
+          "summary": "How exact-scale NCM3 previews, protected BuildSites, sharded payload checks, Guardian discovery, and Chunk.js reconstruction fit together."
+        }
+      ]
+    },
+    {
+      "pathNumber": 6,
+      "eyebrow": "PATH 6 · GUARDIAN AND MULTIPLAYER",
+      "title": "Keep realtime delivery separate from persistent authority",
+      "summary": "Inspect how Play discovers a bounded regional relay, what nearby messages it carries, and what still needs Solana evidence.",
+      "entries": [
+        {
+          "slug": "guardian-regions",
+          "href": "/docs/guardian-regions/",
+          "status": "ready",
+          "readingTime": "13 min",
+          "title": "Guardian Regions and Bounded Relay",
+          "summary": "How registered 100 x 100 Regions, chain-discovered endpoints, nearby realtime hints, and verified building-index commitments keep relay speed separate from persistent authority."
+        }
+      ]
+    },
+    {
+      "pathNumber": 7,
+      "eyebrow": "PATH 7 · TRUST, GOVERNANCE, AND ENGINE",
+      "title": "Inspect the roots, rule changes, and renderer budgets",
+      "summary": "Use the deepest current references to understand root configuration, caller-supplied governance tallies, atomic adapters, and the limits of high-performance reconstruction.",
+      "entries": [
+        {
+          "slug": "global-config-genesis",
+          "href": "/docs/global-config-genesis/",
+          "status": "ready",
+          "readingTime": "18 min",
+          "title": "GlobalConfig Genesis: Fixed Bytes, NCK Mint, and Enforcement Boundaries",
+          "summary": "How one 293-byte root PDA, an authority-free NCK mint predicate, legacy world fields, selective downstream reads, binary drift, and upgrade authority define the current genesis trust boundary."
+        },
+        {
+          "slug": "civilization-rule-lifecycle",
+          "href": "/docs/civilization-rule-lifecycle/",
+          "status": "ready",
+          "readingTime": "17 min",
+          "title": "Civilization Rule Lifecycle: Centrally Attested Power, Caller-Selected Tallies, and Atomic Adapters",
+          "summary": "How fixed-authority power accounts, signer PDAs, caller-selected tally inputs, execution receipts, and target-program adapters define the current Civilization trust boundary."
+        },
+        {
+          "slug": "chunkjs-performance",
+          "href": "/docs/chunkjs-performance/",
+          "status": "ready",
+          "readingTime": "12 min",
+          "title": "Chunk.js: Rebuild Only What Changed",
+          "summary": "How compact state, dirty rebuilds, Workers, packed meshes, visibility filters, and frame budgets keep the verifiable world responsive."
+        }
+      ]
+    }
+  ],
+  "principlesHeading": {
+    "eyebrow": "HOW TO READ THESE DOCS",
+    "title": "Trust comes from clear boundaries",
+    "summary": "The project is easier to evaluate when every layer says exactly what it does and what it does not do."
+  },
+  "principles": [
+    {
+      "title": "Show the authority",
+      "body": "Every guide identifies whether a result comes from deterministic code, a PDA rule table, a signed transaction, or local presentation."
+    },
+    {
+      "title": "Keep the game responsive",
+      "body": "Selection, animation, previews, and meshing can happen locally without pretending that those visual moments are already shared state."
+    },
+    {
+      "title": "Link claims to code",
+      "body": "Evidence paths at the end of each topic make important statements inspectable instead of asking readers to accept marketing language."
+    }
+  ]
+}

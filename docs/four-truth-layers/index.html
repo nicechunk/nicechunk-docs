@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="four-truth-layers" data-docs-static-source="03c989b692b1f25af3a6451de69c5dce6905639e877c605171e34b269f11fc6e">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/four-truth-layers.json" />
+    <meta name="nicechunk:source-sha256" content="03c989b692b1f25af3a6451de69c5dce6905639e877c605171e34b269f11fc6e" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/four-truth-layers/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn why NiceChunk can react immediately, what Guardian messages prove, what evidence supports one shared removed coordinate, and how a clean reload rebuilds the result." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Four Truth Layers: Reading NiceChunk Evidence" />
+    <meta property="og:description" content="Learn why NiceChunk can react immediately, what Guardian messages prove, what evidence supports one shared removed coordinate, and how a clean reload rebuilds the result." />
+    <meta property="og:url" content="https://nicechunk.com/docs/four-truth-layers/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/four-truth-layers-overview-v1.webp" />
+    <meta property="og:image:alt" content="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, the girl prepares to mine one intact stone voxel while the boy approaches around a distinctive tree." />
+    <title>Four Truth Layers: Reading NiceChunk Evidence</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/four-truth-layers/#article",
+  "url": "https://nicechunk.com/docs/four-truth-layers/",
+  "name": "One screen can show four different kinds of truth",
+  "description": "Learn why NiceChunk can react immediately, what Guardian messages prove, what evidence supports one shared removed coordinate, and how a clean reload rebuilds the result.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "One screen can show four different kinds of truth",
+  "mainEntityOfPage": "https://nicechunk.com/docs/four-truth-layers/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "The first frame belongs to your device",
+    "Another player may hear the news before the world is settled",
+    "A program accepts one narrow claim, not the whole picture",
+    "Refresh is a useful test, not magic proof"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/four-truth-layers/#local-feedback",
+      "name": "The first frame belongs to your device"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/four-truth-layers/#guardian-news",
+      "name": "Another player may hear the news before the world is settled"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/four-truth-layers/#narrow-shared-result",
+      "name": "A program accepts one narrow claim, not the whole picture"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/four-truth-layers/#rebuild-and-test",
+      "name": "Refresh is a useful test, not magic proof"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/four-truth-layers-overview-v1.webp",
+    "https://nicechunk.com/docs/media/four-truth-layers-local-feedback-v1.webp",
+    "https://nicechunk.com/docs/media/four-truth-layers-guardian-news-v1.webp",
+    "https://nicechunk.com/docs/media/four-truth-layers-confirmation-boundary-v1.webp",
+    "https://nicechunk.com/docs/media/four-truth-layers-rpc-reconstruction-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Four Truth Layers</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">START HERE 02 · EVIDENCE, NOT JUST EFFECTS</p>
+<h1>One screen can show four different kinds of truth</h1>
+<p class="docs-hero-summary">NiceChunk can show reversible local feedback and Guardian hints immediately. Evidence for one shared removed coordinate is narrower: the supported transaction must reach the commitment this client waits for, and the expected Chunk record must contain that coordinate when a clean client reads and validates it. Each observation can be honest without proving the same thing.</p>
+<span class="docs-reading-time">12 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, the girl prepares to mine one intact stone voxel while the boy approaches around a distinctive tree." decoding="async" height="887" loading="eager" src="/docs/media/four-truth-layers-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The target is still intact and the pickaxe has not touched it. This opening scene asks what later observations will prove; the natural light and composition are explanatory artwork, not game status indicators.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">Why can the screen react before the shared world changes?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Start here · Step 2 of 6</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Current network</dt>
+<dd>Solana Devnet</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>15 July 2026 · current working tree and local runtime evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Local feedback and pending change</dt>
+<dd>A tool swing, outline, durability update, or temporary proposal calculated on this device. A pending proposal can still be accepted, kept local, or rolled back.</dd></div>
+<div class="docs-guide-term"><dt>Guardian hint</dt>
+<dd>A low-latency nearby message. It can help another client react quickly without proving that a Solana instruction succeeded.</dd></div>
+<div class="docs-guide-term"><dt>Transaction</dt>
+<dd>A signed request sent to Solana. Success is scoped to the exact instructions, accounts, and signers inside that request.</dd></div>
+<div class="docs-guide-term"><dt>Program</dt>
+<dd>On-chain code that checks one instruction and may update only the accounts that instruction is allowed to change.</dd></div>
+<div class="docs-guide-term"><dt>Account and PDA</dt>
+<dd>An account stores bytes. A program-derived address, or PDA, is a predictable account address calculated from agreed inputs rather than a secret key.</dd></div>
+<div class="docs-guide-term"><dt>RPC read</dt>
+<dd>A request to a Solana node for account data. A newly started request is not automatically the newest possible answer and does not prove which transaction caused the bytes.</dd></div>
+<div class="docs-guide-term"><dt>Commitment</dt>
+<dd>A Solana confidence label for a transaction or read. This client currently waits for confirmed, which is not the stronger finalized stage.</dd></div>
+<div class="docs-guide-term"><dt>Rollback</dt>
+<dd>Removing a rejected local proposal and restoring local state such as tool durability that was deducted for that attempt.</dd></div>
+<div class="docs-guide-term"><dt>Clean reconstruction</dt>
+<dd>A full reload or separate client with no old in-memory hints rebuilds untouched terrain from public inputs, then applies validated records instead of downloading one all-purpose save file.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Instant can still be honest</strong>
+<p>A tool swing, target outline, durability update, or pending value truthfully shows that this device responded. It does not claim that a shared account changed.</p></article>
+<article class="docs-key-point"><strong>Two screens can agree on a hint</strong>
+<p>Guardian can make a nearby client react quickly. Agreement between two rendered screens still does not prove program execution or persistence.</p></article>
+<article class="docs-key-point"><strong>Persistence needs the right evidence</strong>
+<p>For one removed coordinate, a confirmed supported instruction and a validated Chunk record containing that coordinate answer different questions: what executed, and what a clean client can rebuild.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#local-feedback">The first frame belongs to your device</a></li>
+<li><a href="#guardian-news">Another player may hear the news before the world is settled</a></li>
+<li><a href="#narrow-shared-result">A program accepts one narrow claim, not the whole picture</a></li>
+<li><a href="#rebuild-and-test">Refresh is a useful test, not magic proof</a></li>
+<li><a href="#technical-details">A confirmed removal and a validated Chunk record answer different questions</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="local-feedback"><p class="docs-eyebrow">DEVICE TRUTH</p>
+<h2>The first frame belongs to your device</h2>
+<p class="docs-prose">When the girl presses the mining control, the browser selects a target, checks reach and protection data already loaded on this device, and animates the tool. When the moving tool box actually touches the voxel, the controller records one contact, deducts local tool durability, and redraws the hotbar. The current Play runtime does not produce a mining contact sound or contact-chip particle effect.</p>
+<p class="docs-prose">On the current automatic mining path, reaching the required contact count creates a pending record, but the target block is not changed to air until that pending action is confirmed. If the wallet is unavailable or submission fails, the mining path can roll back the pending attempt and restore its locally deducted tool damage. When chain sync is deliberately disabled, the interface labels the result as a local preview instead of pretending that a transaction failed or succeeded.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What it proves</span>
+<strong>This device processed the interaction</strong>
+<p>The input, target selection, reach check, tool animation, collision, durability update, and temporary values ran here.</p></article>
+<article class="docs-fact"><span>What it does not prove</span>
+<strong>A shared write</strong>
+<p>No animation frame, outline, label, contact count, or locally deducted durability identifies a successful Solana instruction.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, the girl strikes the same intact stone voxel while a few metaphorical cyan chips appear and the boy remains distant." decoding="async" height="887" loading="lazy" src="/docs/media/four-truth-layers-local-feedback-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The pickaxe has made contact, but the stone still occupies its coordinate. The cyan cubes are a teaching metaphor only: the current runtime does not produce mining contact chips or a contact sound, and cyan is not a confirmation signal in the game.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A convincing animation is not a receipt</strong>
+<p>Local checks improve feedback and prevent obvious mistakes. The program still performs its own checks for any supported shared write.</p></aside></section>
+<section class="docs-content-section" id="guardian-news"><p class="docs-eyebrow">RELAY TRUTH</p>
+<h2>Another player may hear the news before the world is settled</h2>
+<p class="docs-prose">Guardian has a deliberately smaller job: deliver bounded nearby activity with low latency. A receiving client can react to movement, chat, equipment, digging, or building news without waiting for a Solana round trip. For the current digging message, the receiver draws air at the reported coordinate and schedules an independent account refresh.</p>
+<p class="docs-prose">There is an important current-runtime limit: that same session protects the new render delta until an account snapshot has observed the same value. If the next snapshot does not contain the coordinate, it does not immediately clear the unobserved Guardian gap. A full reload or a separate clean client clears the in-memory hint and rebuilds from public inputs plus validated records. Until that clean reconstruction supports the gap, two agreeing screens are still agreeing only about delivered news.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What it proves</span>
+<strong>Nearby news was delivered</strong>
+<p>The receiving client obtained a bounded message and used it for a timely presentation update.</p></article>
+<article class="docs-fact"><span>What it does not prove</span>
+<strong>Settlement or wallet control</strong>
+<p>Guardian does not execute the Chunk instruction, and its current greeting is not a wallet-signature challenge.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, the receiving boy turns toward the distant girl while his client shows one clean voxel gap and faint metaphorical chips." decoding="async" height="887" loading="lazy" src="/docs/media/four-truth-layers-guardian-news-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">This is the receiving client's view after a fast digging hint. The current session may keep this unobserved gap even when an ordinary refresh does not find it; a full reload or separate clean client is the useful correction test. No line, device, or color in this generated scene proves settlement.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Fast news is useful, but this hint can linger</strong>
+<p>Presence feels better when nearby clients react immediately. The honest current boundary is that an unobserved digging hint may remain in this session until a full reload, even after an account refresh that does not contain it.</p></aside></section>
+<section class="docs-content-section" id="narrow-shared-result"><p class="docs-eyebrow">PROGRAM AND ACCOUNT TRUTH</p>
+<h2>A program accepts one narrow claim, not the whole picture</h2>
+<p class="docs-prose">For a supported mine, the client submits an integer coordinate and the required accounts with an allowed signer. The Chunk program independently derives and checks its relevant addresses, validates the session and account relationships, recalculates the generated block, rejects protected or duplicate removals, applies rule tables, and writes only if the transaction succeeds.</p>
+<p class="docs-prose">The current client waits for confirmed rather than finalized. In the automatic path, only a successful submitted result reaches the local pending-confirm step; rejected and exceptional mining paths roll back. For the single-block example on this page, the transaction can support the claim that the Chunk program accepted the removal at that coordinate. It does not by itself audit the camera, the girl's hand path, Guardian news, Backpack rewards, PlayerProgress, saved position, or every transaction in a multi-block collapse.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What the transaction can prove</span>
+<strong>One exact accepted removal</strong>
+<p>For this single-block example, it identifies the invoked instruction, supplied accounts and signers, result, coordinate, and observed commitment.</p></article>
+<article class="docs-fact"><span>What the Chunk account can prove</span>
+<strong>The expected record contains that coordinate</strong>
+<p>A clean client can derive the expected ChunkBroken address, validate its returned account data, and check that the removal coordinate is present.</p></article>
+<article class="docs-fact"><span>What neither one proves here</span>
+<strong>Rewards, progress, position, or a whole collapse</strong>
+<p>Those claims touch other accounts or transactions and must be checked in their own scope.</p></article>
+<article class="docs-fact"><span>Current commitment</span>
+<strong>confirmed</strong>
+<p>The implementation does not wait for finalized on this path, so the page does not call the observation final or irreversible.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, the girl lowers her pickaxe while the boy inspects the same single-voxel gap without particles or status effects." decoding="async" height="887" loading="lazy" src="/docs/media/four-truth-layers-confirmation-boundary-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The story now follows the successful supported-action branch, but the quiet gap is still an illustration rather than a receipt. Evidence comes from the exact program execution and validated accounts; natural daylight does not mean finalized.</figcaption></figure>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Ask what executed and what was read</strong>
+<p>A short status label is weaker than the full question: which program ran, which accounts and signers were supplied, what commitment was reached, and can the affected account be derived and validated again?</p></aside></section>
+<section class="docs-content-section" id="rebuild-and-test"><p class="docs-eyebrow">RECONSTRUCTION TRUTH</p>
+<h2>Refresh is a useful test, not magic proof</h2>
+<p class="docs-prose">Here, a clean client means a full reload or separate client with no old in-memory render hints. It regenerates untouched terrain from the configured seed, version, integer coordinates, and world rules, then applies validated records such as ChunkBroken removals. The picture is an interpretation of those inputs; the program did not validate every tree surface, water pixel, camera angle, or character pose.</p>
+<p class="docs-prose">An account read is useful only when the client asks for the expected address and rejects returned data with the wrong program owner, executable flag, minimum world height, header, version, capacity, or byte length. Even then, it is a confirmed RPC observation of that one account. It is not proof that one RPC node is infallible, not finalized, not automatically tied to one transaction's confirmation slot, and not evidence for the Backpack or every other account.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What clean reconstruction can prove</span>
+<strong>The same scoped inputs rebuild the same result</strong>
+<p>If a clean client validates a ChunkBroken record containing the coordinate, it has evidence for rendering that coordinate as removed.</p></article>
+<article class="docs-fact"><span>What it does not prove</span>
+<strong>Cause, finality, or unrelated accounts</strong>
+<p>The read alone does not identify which transaction caused the bytes, upgrade confirmed to finalized, or verify Backpack rewards and PlayerProgress.</p></article></div>
+<ol class="docs-steps"><li><strong>The pickaxe moves but the target remains</strong>
+<p>Classify this as local feedback. It shows that the interaction ran on this device, not that shared state changed.</p></li>
+<li><strong>A nearby client quickly shows the gap</strong>
+<p>Classify this as a Guardian hint. In the current session it can survive an ordinary refresh even when the account does not show it, so use a full reload or separate clean client before treating persistence as evidence.</p></li>
+<li><strong>A confirmed single-block mine is followed by a valid Chunk read</strong>
+<p>When the expected ChunkBroken record contains the same coordinate, classify that as stronger evidence for this one removed coordinate. It does not silently prove rewards, progress, position, or another block.</p></li>
+<li><strong>Two clean clients draw the same untouched hill</strong>
+<p>Classify this as deterministic reconstruction. It demonstrates reproducible public inputs, not a player transaction.</p></li></ol>
+<ul class="docs-bullets"><li>A changed screen is not automatically a transaction.</li>
+<li>Two agreeing screens are not automatically settled shared state.</li>
+<li>confirmed is not the same observation as finalized.</li>
+<li>An account read must validate the intended address, owning program, executable flag, expected minimum world height, and byte structure.</li>
+<li>Deterministic reconstruction proves only the scope covered by its public inputs and selected records.</li></ul>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js river-bank reference, a clean reverse view shows the same distinctive tree and one persistent voxel gap while the girl and boy return from different directions." decoding="async" height="887" loading="lazy" src="/docs/media/four-truth-layers-rpc-reconstruction-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The reverse camera represents a full reload: public world inputs rebuild the terrain, and a validated ChunkBroken record containing this coordinate keeps exactly one voxel empty. The picture illustrates that scoped result; Guardian news is not the evidence that makes it persist.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Reload persistence is evidence, not a complete independent audit</strong>
+<p>A persistent gap after a clean reload is useful player-facing evidence. An independent audit still needs diagnostic access to the full transaction signature plus correctly derived account addresses, owners, and decoded data; the ordinary event feed shows only a shortened signature.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">READ THE EVIDENCE</p>
+<h2>A confirmed removal and a validated Chunk record answer different questions</h2>
+<p>The formula lists evidence needed to audit one removed coordinate, not a whole mining reward and not a replacement for Solana consensus. The two excerpts show when the automatic client confirms a pending result and which returned Chunk records are rejected before reconstruction.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Evidence needed to audit one removed coordinate</h3>
+<div aria-label="Evidence for one removed coordinate p requires both a confirmed single-block mining transaction for p and a confirmed read of the expected ChunkBroken account containing p." class="docs-formula-expression" role="math"><code>E_removed(p) = T_confirmed(single-block mine at p) ∧ R_confirmed(expected ChunkBroken contains p)</code></div>
+<p class="docs-technical-explanation">The symbol ∧ means 'and.' T_confirmed answers whether this single-block instruction completed under its supplied accounts and signers at the commitment the client observes. R_confirmed answers whether a clean client received and validated the expected ChunkBroken account and found coordinate p in it. The read does not create state or prove which transaction caused those bytes, confirmed is not renamed finalized, and Backpack rewards, PlayerProgress, saved position, and multi-block results need their own evidence.</p>
+<dl class="docs-formula-terms"><dt>E_removed(p)</dt>
+<dd>The evidence needed to audit one coordinate p as a shared recorded removal.</dd>
+<dt>T_confirmed(...) </dt>
+<dd>The exact single-block mining transaction for p reached confirmed or stronger and reported no execution error.</dd>
+<dt>R_confirmed(...) </dt>
+<dd>A confirmed RPC response returned the expected ChunkBroken account, its owner and byte format passed validation, and its decoded removals contain p.</dd>
+<dt>∧</dt>
+<dd>Both sides are required for this coordinate-level audit rule; neither side silently proves unrelated accounts, rewards, or visuals.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The automatic path confirms pending only after the adapter reports success</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      if (result?.submitted) {
+        state.chainMode = "chain-ready";
+        const reconciliation = action === "mine"
+          ? reconcilePendingMineWithChainResult(pending, result.result)
+          : null;
+        if (reconciliation?.droppedCount) {
+          gameState.playerProfile.minedBlocks = Math.max(
+            0,
+            Math.trunc(Number(gameState.playerProfile.minedBlocks) || 0) - reconciliation.droppedCount,
+          );
+          gameState.savePlayerProfile();
+        }
+        if (action === "mine" &amp;&amp; result.result?.partialCollapse) {
+          logPartialCollapseFailure(pending, result);
+        }
+        if (action === "mine" &amp;&amp; result.result?.partialBulkMine) {
+          logPartialBulkMiningFailure(pending, result);
+        }
+        state.chainResults.set(pending.txId, { signature: result.signature, result: result.result });
+        pending.chainSubmitted = true;
+        pending.chainAction = action;
+        pending.chainSignature = result.signature;
+        pending.chainPlayerPositionSaved = Boolean(result.result?.playerPositionSaved);
+        pending.chainResult = result.result ?? null;
+        const confirmed = controls.confirmTx?.(pending.txId);</code></pre>
+<p class="docs-technical-explanation">This is the automatic chain path after the adapter has returned submitted success. The adapter's lower-level send routine waits for confirmed, but that wait is outside this excerpt. This code first reconciles any partial multi-block outcome, stores the returned result and primary display signature, and only then calls confirmTx for the matching local pending action. Other branches roll mining back when the wallet is missing, the adapter rejects submission, or an exception occurs. A separate manual Confirm input remains local-only and is not covered by this branch.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-2</strong>
+<p>Enter this branch only when the adapter reports submitted success, then return the UI to its chain-ready mode.</p></li>
+<li><strong>3-5</strong>
+<p>For mining, compare the proposed blocks with the subset the chain result actually accepted; other actions have no mining reconciliation here.</p></li>
+<li><strong>6-12</strong>
+<p>If a multi-block plan lost blocks during reconciliation, remove those unaccepted blocks from the locally counted mined total.</p></li>
+<li><strong>13-15</strong>
+<p>Report a partly failed support collapse instead of describing the whole plan as one all-or-nothing success.</p></li>
+<li><strong>16-21</strong>
+<p>Store the primary display signature, action kind, position-save result, and returned outcome on the matching pending record. A multi-transaction result can carry additional signatures outside this field.</p></li>
+<li><strong>22</strong>
+<p>Only now ask the mining or placement controller to confirm this exact pending transaction ID locally.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Fresh Chunk data must pass ownership and byte checks</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-chunk-deltas.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      if (account &amp;&amp; expectedOwner &amp;&amp; accountOwnerAddress(account) !== expectedOwner) throw new Error("ChunkBroken account owner does not match the active chunk program.");
+      if (account?.executable) throw new Error("ChunkBroken account cannot be executable.");
+      const deltas = account?.data?.length
+        ? decodeChunkBrokenDeltas(account.data, chunk.chunkX, chunk.chunkZ, chunkSize, expectedMinY)
+        : [];
+      snapshots.push({
+        id: chunk.id ?? chunkId(chunk.chunkX, chunk.chunkZ),
+        chunkX: chunk.chunkX,
+        chunkZ: chunk.chunkZ,
+        expectedChainRevision: chunk.expectedChainRevision,
+        contextSlot: Math.max(0, Math.trunc(Number(contextSlot) || 0)),
+        deltas,
+      });
+    } catch (error) {
+      errors.push({
+        id: chunk.id ?? chunkId(chunk.chunkX, chunk.chunkZ),
+        error: readableError(error),
+      });
+    }</code></pre>
+<p class="docs-technical-explanation">The sync has already derived the expected Chunk account addresses before this excerpt. Each returned account must still belong to the active Chunk program, must be data rather than executable code, and must decode with the expected minimum world height and ChunkBroken format. Only a passing result becomes a queued snapshot; a failure becomes an error instead of trusted terrain data. This validation does not make one RPC node infallible or tie the response to one transaction's confirmation slot.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Reject a returned account when its owning program is not the active Chunk program expected by this client.</p></li>
+<li><strong>2</strong>
+<p>Reject executable program code because a ChunkBroken record must be a data account.</p></li>
+<li><strong>3-5</strong>
+<p>Decode non-empty bytes using the expected Chunk coordinates, size, and world minimum height; an absent account represents no removals for that Chunk.</p></li>
+<li><strong>6-13</strong>
+<p>Only validated data becomes a snapshot carrying its Chunk identity, expected local revision, RPC context slot, and decoded removals.</p></li>
+<li><strong>14-19</strong>
+<p>Any thrown validation or decoding problem is recorded as an error, not inserted into the trusted snapshot list.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Runs target, reach, collision, damage, durability, pending creation, confirmation, and rollback on this device.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Separates local preview, wallet-needed, submitting, successful automatic confirmation, skipped submission, and mining rollback paths.</p></article>
+<article class="docs-evidence-item"><code>play/play-input-actions.js</code>
+<p>Keeps the manual Confirm input separate from automatic chain confirmation, so a local confirmation is not silently called a receipt.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Shows that a Guardian digging hint changes the receiver's render delta and then requests an independent account refresh.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/app.cpp</code>
+<p>Implements bounded regional message delivery, sequence checks, rate limits, and forwarding rather than Solana execution.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Builds supported gameplay transactions, returns real signatures, and waits for confirmed rather than finalized.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Independently validates the mining accounts and session, generated block, protection, duplicates, rules, rewards, and accepted writes.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-chunk-deltas.js</code>
+<p>Derives current Chunk record addresses, fetches confirmed RPC data, validates owner and byte structure, and queues passing snapshots.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/chunk/chunk-state.js</code>
+<p>Defines generated, pending, and render-delta precedence, including the rule that retains an unobserved Guardian-style delta until a snapshot has first observed the same value.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/world/world-generator.js</code>
+<p>Reconstructs untouched world blocks from configured public world inputs and integer coordinates.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Names the current world inputs and the actual Solana Devnet cluster used by the client despite mainnet wording in the product configuration.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/global-config-genesis-devnet-2026-07-15.json</code>
+<p>Provides dated Devnet observations used only where this page makes a deployed-account claim.</p></article></div></section>
+<nav aria-label="Start-here to player-control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE TO PLAYER, WALLET, AND CONTROL</p>
+<h2>Next, learn what wallet connection actually allows</h2>
+<p>With the four evidence labels established, the next guide separates a public address, an off-chain message signature, and an on-chain transaction approval before deeper action flows.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/nicechunk-in-one-picture/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>NiceChunk in One Picture</strong>
+<p>See how the browser, Guardian, programs, accounts, models, materials, and reconstruction cooperate.</p></a>
+<a class="docs-path-navigation-card" href="/docs/wallet-login-and-safety/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Wallet Login and Safety</strong>
+<p>Learn what connection shares, why message and transaction approvals are separate, what to inspect, and which secrets must stay private.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

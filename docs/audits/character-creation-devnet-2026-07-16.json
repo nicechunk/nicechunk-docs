@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-character-creation-devnet-audit",
+  "capturedAt": "2026-07-16T05:52:43Z",
+  "cluster": "devnet",
+  "captureEnvironment": {
+    "repositoryHead": "662ea5a88dc155c42b09b5dc968b97b3a7f29818",
+    "worktreeDirty": true,
+    "node": "v22.22.3",
+    "sourceStatus": {
+      "player_creat/player_creat.js": "modified",
+      "src/chain/nicechunkChain.js": "modified",
+      "programs/nicechunk_player/src/lib.rs": "modified",
+      "programs/nicechunk_player/src/state.rs": "modified",
+      "play/main.js": "untracked",
+      "play/play-chain-player.js": "untracked",
+      "src/main.js": "modified"
+    }
+  },
+  "rpc": {
+    "endpoint": "https://explorer-api.devnet.solana.com",
+    "commitment": "finalized",
+    "encoding": "base64",
+    "apiVersion": "4.2.0-beta.1",
+    "solanaCoreVersion": "4.2.0-beta.1",
+    "featureSet": 4119855713,
+    "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "programAccountContextSlot": 476606427,
+    "programDataContextSlot": 476606588,
+    "programDataContextBlockTimeUnix": 1784181012,
+    "programDataContextBlockTime": "2026-07-16T05:50:12Z",
+    "methods": [
+      "getVersion",
+      "getGenesisHash",
+      "getSlot",
+      "getBlockTime",
+      "getAccountInfo",
+      "getMinimumBalanceForRentExemption"
+    ]
+  },
+  "activeRuntime": {
+    "clientSource": "src/chain/nicechunkChain.js",
+    "playerProgramId": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+    "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+    "upsertAppearanceInstructionTag": 8,
+    "closeAppearanceInstructionTag": 9,
+    "transactionComputeUnitLimit": 240000,
+    "upsertAccountCount": 6,
+    "upsertAccountsInClientOrder": [
+      "owner signer and payer",
+      "PlayerProfile PDA",
+      "PlayerAppearance PDA",
+      "GlobalConfig PDA",
+      "System Program",
+      "UsernameIndex PDA"
+    ],
+    "clientConfirmationCommitment": "confirmed",
+    "appearanceTreasuryAuthorityFromSource": "CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF"
+  },
+  "accounts": {
+    "playerProgram": {
+      "address": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "executable": true,
+      "lamports": 1141440,
+      "dataLength": 36,
+      "dataSha256": "6a0b30c349724947999f468be103079f9a82713eb02bd41ae8b067309bacef02",
+      "dataBase64": "AgAAAD2McepuRZEt6ePnpo/rOwijHVYJvLnPuXhEhegkrWjR",
+      "decoded": {
+        "upgradeableLoaderStateTag": 2,
+        "programDataAddress": "59G5dWb4mmpLdYtRUpH4oM1gDeunVQZ29zLB9wKDzqtU"
+      }
+    },
+    "playerProgramData": {
+      "address": "59G5dWb4mmpLdYtRUpH4oM1gDeunVQZ29zLB9wKDzqtU",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "executable": false,
+      "lamports": 1204448880,
+      "dataLength": 172925,
+      "dataSha256": "9ea56e9feac33008724db9f5a3c4fe324af53860eb5a519382d437872a8b3266",
+      "decoded": {
+        "upgradeableLoaderStateTag": 3,
+        "lastDeploySlot": "474349411",
+        "upgradeAuthorityOption": 1,
+        "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "elfOffset": 45,
+        "elfAllocationLength": 172880,
+        "elfAllocationSha256": "9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a"
+      }
+    }
+  },
+  "storageFundingObservation": {
+    "method": "getMinimumBalanceForRentExemption",
+    "commitment": "finalized",
+    "capturedAt": "2026-07-16T05:49:13Z",
+    "observedSlotImmediatelyBeforeQueries": 476606421,
+    "records": [
+      {
+        "record": "PlayerProfile",
+        "seedUtf8": "player-v7",
+        "dataLength": 773,
+        "minimumLamports": 6270960,
+        "minimumSol": "0.00627096"
+      },
+      {
+        "record": "PlayerAppearance",
+        "seedUtf8": "appearance-v1",
+        "dataLength": 9612,
+        "minimumLamports": 67790400,
+        "minimumSol": "0.06779040"
+      },
+      {
+        "record": "UsernameIndex",
+        "seedUtf8": "player-name-v1",
+        "additionalSeed": "SHA-256 of UTF-8 name after ASCII uppercase letters are lowercased",
+        "dataLength": 256,
+        "minimumLamports": 2672640,
+        "minimumSol": "0.00267264"
+      }
+    ],
+    "missingAllThreeTotalLamports": 76734000,
+    "missingAllThreeTotalSol": "0.07673400",
+    "transactionFeeIncluded": false,
+    "interpretation": "This is the sum of three finalized Devnet rent-exemption queries under the observed schedule. It is not a permanent quote. Existing funded accounts can reduce the lamports added, and transaction fees are separate."
+  },
+  "canonicalModels": [
+    {
+      "role": "current creation-page male model",
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "fileSha256": "72126c96db90f782deb1c4d8f85ccb73e9326e197eb541d5987db165e3937595",
+      "fileBytesIncludingFinalNewline": 354,
+      "trimmedTextCharacters": 353,
+      "trimmedUtf8Bytes": 353,
+      "prefix": "NCM2",
+      "decodedCuboids": 56,
+      "decodedColors": 8,
+      "matchesLiteralInPlayerCreationSource": true
+    },
+    {
+      "role": "current creation-page female model",
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "fileSha256": "bd8fd29262032edcc298a1b7d08bade93d67dcea7cc9255d4da5bba71020b05c",
+      "fileBytesIncludingFinalNewline": 452,
+      "trimmedTextCharacters": 451,
+      "trimmedUtf8Bytes": 451,
+      "prefix": "NCM2",
+      "decodedCuboids": 70,
+      "decodedColors": 10,
+      "matchesLiteralInPlayerCreationSource": true
+    }
+  ],
+  "sourceBehaviorObservation": {
+    "nameRules": {
+      "frontendMaxCharacters": 32,
+      "frontendMaxUtf8Bytes": 300,
+      "frontendPattern": "JavaScript Unicode Script=Han, ASCII letters, digits, or underscore",
+      "contractMaxCharacters": 32,
+      "contractMaxUtf8Bytes": 300,
+      "contractCharacterRange": "underscore, ASCII alphanumeric, or U+4E00 through U+9FFF",
+      "mismatch": "JavaScript Script=Han accepts some Han characters outside the contract range.",
+      "submissionPreflight": {
+        "reusesMatchingAvailableOrOwnedResultWithoutFreshRpcRead": true,
+        "blocksOnlyLiteralAvailableFalseAfterFallbackLookup": true,
+        "nullLookupResultPassesCurrentNotEqualFalseExpression": true,
+        "programStillRepeatsPdaAndOwnerValidation": true
+      }
+    },
+    "modelEnvelope": {
+      "acceptedModelKinds": [
+        1,
+        2
+      ],
+      "maximumModelCodeUtf8Bytes": 2048,
+      "requiredCaseSensitivePrefix": "NCM",
+      "contractDecodesNcmGeometry": false,
+      "contractBindsModelKindToCanonicalFixture": false
+    },
+    "upsertEffects": {
+      "ensuresPlayerProfile": true,
+      "writesProfileName": true,
+      "createsUsernameIndexWhenMissing": true,
+      "validatesExistingSameNameIndexWithoutRewriting": true,
+      "createsOrReusesAppearance": true,
+      "preservesAppearanceCreatedSlotAndTimeOnReuse": true,
+      "repacksEntireAppearance": true,
+      "initializesAllTwelveAppearanceEquipmentRecordsEmpty": true,
+      "releasesEarlierUsernameIndexOnRename": false
+    },
+    "postConfirmationFlow": {
+      "writesUsernameToGlobalCacheOnly": true,
+      "writesUsernameToWalletScopedCache": false,
+      "writesGenderCodeLabelAndCreatedAtToGlobalAndWalletScopedCaches": true,
+      "cacheSetItemCallsHaveLocalTryCatch": false,
+      "characterCacheSequenceCanPartiallyComplete": true,
+      "cacheWriteFailureCanEnterOverallCreationErrorPathAfterChainCommit": true,
+      "browserCanRollbackConfirmedCharacterAfterCacheFailure": false,
+      "attemptsPendingInviteSpawnStorage": true,
+      "pendingInviteSpawnStorageIsBestEffort": true,
+      "pendingInviteSpawnHelperCatchesStorageExceptions": true,
+      "callerCanConfirmPendingInviteSpawnPersisted": false,
+      "attemptsInviteReceiptStorage": true,
+      "inviteReceiptStorageIsBestEffort": true,
+      "inviteReceiptHelperCatchesStorageExceptions": true,
+      "callerCanConfirmInviteReceiptPersisted": false,
+      "inviteRegistrationUsesSeparateTransaction": true,
+      "inviteFailureRollsBackCharacter": false,
+      "currentPlayEntryConsumesPendingInviteSpawn": false,
+      "alternateSrcMainConsumesPendingInviteSpawn": true,
+      "loginGatewayCanTrustWalletScopedCharacterCacheBeforeAppearanceRead": true,
+      "currentPlayEntryStartsAsynchronousProfileAndAppearanceRefresh": true
+    },
+    "appearanceCloseBoundary": {
+      "closeInstructionTag": 9,
+      "requiredSigner": "configured protocol treasury authority",
+      "requiredRecipient": "same configured protocol treasury authority",
+      "playerCanCloseAndReclaimAppearanceInCurrentProgram": false
+    }
+  },
+  "localComparison": {
+    "artifacts": {
+      "target/deploy/nicechunk_player.so": {
+        "length": 172880,
+        "sha256": "9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a",
+        "matchesDeployedProgramDataAllocation": true
+      }
+    },
+    "sourceFiles": {
+      "player_creat/player_creat.js": "85b53d1dba7b39311af7d063c32bcfc022084ecaa342b42d9820b91424fb1514",
+      "player_creat/index.html": "f37024957d621d9ab0f8eefb342941c5543d4ff9cc9605955e3ed19f7cb42e50",
+      "login/login.js": "4cbdd5646e97be62dd7b361f714206ca39241ee28feb3f26911d9f2db631a444",
+      "src/chain/nicechunkChain.js": "4ef9158ce046d3486ef64d314e6a03d45a5db9670c15554f9abf17c3c4406f4d",
+      "src/player/inviteSpawn.js": "7f9a4d32ce9c950a5f7a0b828d743449270072602b723c8fb0bfcca5bd951323",
+      "src/vox/ncm.js": "44af48ef1c45aea1eac30e9f31338c87ccec1d30f79bafc52b53f8c1ca1aa89e",
+      "play/main.js": "7277ddc58cd59a186431ad72c87aa609a957b126934e727a56a77731705125d8",
+      "play/play-chain-player.js": "469086249b800f603aa9119100bb2cd2c971ff9a1ff9ee5de64c219ffb84fd9e",
+      "src/main.js": "05e9d6a2cc94444c6a7f043d5f4cd3c876e43ab346d9021e0250f5716336d88f",
+      "programs/nicechunk_player/src/lib.rs": "35c6871c7af753ca4ca8377bccc880340d97710394780000b6699e9b68e751be",
+      "programs/nicechunk_player/src/state.rs": "f8489f285912fe81c911501566f24667211c86e12002740748045422ae45074b",
+      "programs/nicechunk_player/src/cluster_config.rs": "07dba1f18aae7a3ec19a14ec3b8b265fd8c7ac4b4b941c81df3047c10a6eff04"
+    }
+  },
+  "limitations": [
+    "The finalized RPC observation proves the Player Program account, ProgramData account, upgrade metadata, current rent query results, and equality between the retained local artifact bytes and the deployed ProgramData allocation bytes at the captured slots.",
+    "The Player source files and client source files are modified in a dirty worktree and postdate the retained local artifact. Artifact equality does not prove that the current modified source was used to build the deployed bytes.",
+    "No live character-creation transaction was submitted for this audit, no user wallet or private key was used, and no specific PlayerProfile, PlayerAppearance, or UsernameIndex account was claimed as a test result.",
+    "The account-funding total assumes first creation with all three records missing. A same-name upsert validates rather than rewrites UsernameIndex, while a new name creates another index without releasing the old one. The total excludes transaction fees and does not predict later protocol or Solana rent changes.",
+    "The post-confirmation character-cache writes are sequential and unguarded: the global username write or any later global or wallet-scoped model-field write can throw, leaving an earlier prefix of the cache sequence in place while the page displays failure. The public transaction cannot be rolled back by that browser error.",
+    "Pending-spawn and invite-receipt storage are separate best-effort helpers. Both catch localStorage exceptions and return no persistence result, so their callers cannot prove that either local record was saved merely because execution continued.",
+    "Source behavior claims describe the reviewed files and are separated from deployment claims. Where current client copy implies stronger ownership, generation, completeness, or reclaim guarantees, the documentation records the narrower implemented boundary."
+  ]
+}

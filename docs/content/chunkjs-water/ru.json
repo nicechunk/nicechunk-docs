@@ -1,0 +1,434 @@
+{
+  "_meta": {
+    "language": "ru",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-chunkjs-water-ru-3615e8ff1fe55a78",
+    "contentHash": "3615e8ff1fe55a78"
+  },
+  "kind": "topic",
+  "slug": "chunkjs-water",
+  "shortTitle": "Chunk.js Water",
+  "seo": {
+    "title": "NiceChunk Chunk.js Water: Deterministic Sea Level and Visual Surface",
+    "description": "See how NiceChunk carves deterministic water beds, fills one canonical sea-level plane, packs visual depth into the water mesh, animates only shader light, and keeps mining, collision, and chain authority separate."
+  },
+  "hero": {
+    "eyebrow": "ENGINE 08 · DETERMINISTIC WATER",
+    "title": "The water plane is deterministic; only its light moves",
+    "summary": "Chunk.js first shapes river, lake, coast, and ocean beds through deterministic terrain, then fills every column below the canonical sea level of 96 to one shared plane. A compact column profile preserves that answer, while a top-only visual mesh adds depth tint, ripples, sun light, sparse sparkles, and transparency without moving an authoritative voxel. Rust independently reconstructs the block used by mining validation, where natural water remains unmineable.",
+    "readingTime": "10 min read",
+    "visual": {
+      "src": "/docs/media/chunkjs-water-overview-v3.webp",
+      "alt": "The canonical orange-haired villager girl measures a shallow stepped riverbed while the black-haired villager boy repeats the survey from a pile-supported pier across the same flat, depth-tinted water plane.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "One plane, not a fluid simulation",
+      "body": "River and lake masks lower the deterministic terrain bed. Natural water then fills only columns whose surface lies below sea level 96, always to that same level; it does not flow, spread, refill, or rise independently."
+    },
+    {
+      "title": "Compact state, animated presentation",
+      "body": "One stored water height per horizontal column reconstructs the filled volume. Rendering emits the exposed top surface, converts up to twelve blocks of sampled depth into a packed byte, and moves only fragment shading over the flat geometry."
+    },
+    {
+      "title": "The chain verifies a block, not a wave",
+      "body": "Rust independently reconstructs the canonical block at integer coordinates. A mismatched claimed block fails, natural water is rejected as a mining target, and no wave, sparkle, alpha value, swimming state, or buoyancy result becomes chain state."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "LEVEL, DEPTH, AND FRAGMENT MATH",
+    "title": "One integer plane becomes many visible depths without becoming fluid physics",
+    "summary": "The first two equations define the canonical water answer. The third mirrors the mesher's bounded, smoothed depth byte. The fourth mirrors the three broad fragment waves that alter shading while every water vertex stays fixed."
+  },
+  "formulas": [
+    {
+      "title": "Canonical natural-water level",
+      "expression": "W(x,z) = S if H(x,z) < S; otherwise W(x,z) = none; current canonical S = 96",
+      "explanation": "H is the deterministic terrain surface and S is the shared sea level. The current JavaScript and Rust helpers ignore x and z after H has been resolved: a below-sea column receives exactly S, while a surface at or above S receives no natural water level.",
+      "terms": [
+        {
+          "symbol": "H(x,z)",
+          "meaning": "Canonical terrain surface height at the horizontal coordinate."
+        },
+        {
+          "symbol": "S",
+          "meaning": "Canonical sea level, currently 96."
+        },
+        {
+          "symbol": "W(x,z)",
+          "meaning": "Stored water height for the column, or no-water state."
+        }
+      ]
+    },
+    {
+      "title": "Water-block occupancy and column depth",
+      "expression": "B(x,y,z) = water(17) iff H(x,z) < y <= S; N(x,z) = max(0, S - H(x,z))",
+      "explanation": "Only cells above the terrain surface and at or below the common plane become natural water. N counts the filled water cells in the column. River and lake masks influence H by carving the bed; they do not assign another water elevation.",
+      "terms": [
+        {
+          "symbol": "B(x,y,z)",
+          "meaning": "Canonical generated block at the integer coordinate."
+        },
+        {
+          "symbol": "water(17)",
+          "meaning": "The ordinary natural-water block identifier."
+        },
+        {
+          "symbol": "N(x,z)",
+          "meaning": "Number of generated water cells above the bed in this column."
+        }
+      ]
+    },
+    {
+      "title": "Bounded visual depth encoding",
+      "expression": "d_c=clamp(trunc(d),1,12); u=(d_c-1)/11; s=u*u*(3-2*u); q=round(6*s)/6; A8=150+round(105*q)",
+      "explanation": "The visual sampler caps its search at twelve blocks, smooths the normalized result, quantizes q in one-sixth increments, and writes 150 through 255 into the packed AO byte. The water shader reinterprets that byte as depth; it is neither physical ambient occlusion nor chain state.",
+      "terms": [
+        {
+          "symbol": "d, d_c",
+          "meaning": "Measured and clamped visual distance from the water-surface block to the first block below it that is neither fluid, air, nor low vegetation."
+        },
+        {
+          "symbol": "q",
+          "meaning": "Smoothed depth quantized into six equal intervals, yielding seven possible levels including both endpoints."
+        },
+        {
+          "symbol": "A8",
+          "meaning": "Packed unsigned byte delivered to the fragment shader as vAo."
+        }
+      ]
+    },
+    {
+      "title": "Three broad fragment waves",
+      "expression": "wave(p,dir,v,f,phase,t)=sin((dot(p,dir)*f+phase+t*v)*pi); r=0.5+0.5*(0.45*w1+0.32*w2+0.23*w3)",
+      "explanation": "The shader evaluates three directions with different speeds, frequencies, and phases, then remaps their weighted sum to r. It uses related gradients for an apparent normal and uses r in color and alpha. There is no vertex displacement, fluid velocity, or authoritative time-varying water coordinate.",
+      "terms": [
+        {
+          "symbol": "p, t",
+          "meaning": "World-space horizontal fragment position and presentation time."
+        },
+        {
+          "symbol": "dir, v, f, phase",
+          "meaning": "One wave's direction, speed, frequency, and fixed phase."
+        },
+        {
+          "symbol": "r",
+          "meaning": "Broad ripple shading signal, nominally between zero and one."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "JavaScript returns only the shared sea-level plane",
+      "language": "JavaScript",
+      "source": "chunk.js/world/world-generator.js",
+      "code": "export function waterLevelAt(config, worldX, worldZ, surface = terrainSurfaceHeight(config, worldX, worldZ)) {\n  const x = Math.trunc(worldX);\n  const z = Math.trunc(worldZ);\n  const cacheKey = `${x},${z},${surface}`;\n  const cached = config.cache?.water?.get(cacheKey);\n  if (cached !== undefined) return cached;\n  let waterLevel = null;\n  if (surface < config.seaLevel) {\n    waterLevel = config.seaLevel;\n  }\n  cacheSetBounded(config.cache?.water, cacheKey, waterLevel);\n  return waterLevel;\n}",
+      "explanation": "The coordinate participates in deterministic terrain generation and cache identity, but the final natural-water choice is binary: the canonical sea level or no water. A similarly named inland-water helper exists elsewhere in the file but has no callers and is not part of this path."
+    },
+    {
+      "title": "The profile path submits only the water top",
+      "language": "JavaScript",
+      "source": "chunk.js/chunk/chunk-mesher.js",
+      "code": "        if (water !== null && water > surface && water >= minY && water < minY + height) {\n          const blockId = chunkState.getFinalBlock(x, water, z);\n          if (isFluidBlock(blockId)) {\n            blockCount += 1;\n            if (shouldUseGradientWaterSurface(chunkState, x, water, z, blockId, getBlockAtWorld, waterDepthCache)) {\n              quadCount += appendWaterSurfaceQuad(chunkState, x, water, z, blockId, getBlockAtWorld, waterDepthCache, positions, indices);\n            } else {\n              addFaceCell(faceGroups, 2, x, water, z, blockId, waterSurfaceDepthAoCached(chunkState, x, water, z, blockId, getBlockAtWorld, waterDepthCache));\n            }\n          }\n          continue;\n        }",
+      "explanation": "The compact profile carries one water height per column. The visual mesher tests the final block at that height and emits face index two, the exposed top, instead of expanding every submerged water cell into geometry."
+    },
+    {
+      "title": "Presentation time derives ripples and an apparent normal",
+      "language": "GLSL",
+      "source": "chunk.js/renderer/shader-manager.js",
+      "code": "  if (layer >= 17.0 && layer <= 20.0) {\n    vec2 p = vWorldXZ;\n    vec2 d1 = normalize(vec2(0.68, 1.0));\n    vec2 d2 = normalize(vec2(-0.92, 0.38));\n    vec2 d3 = normalize(vec2(0.24, -0.98));\n    float w1 = waterWave(p, d1, 0.24, 0.28, 7.0);\n    float w2 = waterWave(p, d2, -0.18, 0.42, 11.0);\n    float w3 = waterWave(p, d3, 0.11, 0.18, 17.0);\n    float ripple = (w1 * 0.45 + w2 * 0.32 + w3 * 0.23) * 0.5 + 0.5;\n    float fineA = waterLine(p, normalize(vec2(0.92, -0.24)), 0.22, 0.018, 0.026, 5.0);\n    float fineB = waterLine(p, normalize(vec2(0.36, 1.0)), 0.34, -0.014, 0.022, 9.0);\n    float fineC = waterLine(p, normalize(vec2(-0.72, 0.42)), 0.48, 0.012, 0.018, 13.0);\n    vec2 grad = d1 * cos((dot(p, d1) * 0.64 + uTime * 0.42) * 3.14159) * 0.64 * 0.45;\n    grad += d2 * cos((dot(p, d2) * 1.12 - uTime * 0.29) * 3.14159) * 1.12 * 0.32;\n    grad += d3 * cos((dot(p, d3) * 0.28 + uTime * 0.17) * 3.14159) * 0.28 * 0.23;\n    vec3 waterNormal = normalize(vec3(-grad.x * 0.34, 1.0, -grad.y * 0.34));",
+      "explanation": "These calculations run in the fragment shader after the flat surface has been meshed. They change the sampled color, apparent normal, highlights, and transparency, but they never write a new world position or water block."
+    },
+    {
+      "title": "Mining re-derives the block and rejects natural water",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let block_id = generated_block_id_at(global_config_view, &generated_args);\n    if args.expected_block_id != block_id {\n        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());\n    }\n    if matches!(block_id, BLOCK_AIR | BLOCK_WATER | BLOCK_BEDROCK) {\n        return Err(NicechunkChunkError::UnmineableBlock.into());\n    }",
+      "explanation": "The submitted expected identifier is not authority. The Chunk Program reconstructs the canonical integer-coordinate block, rejects a mismatch, and explicitly excludes ordinary natural water block 17 from the mining state transition."
+    }
+  ],
+  "sections": [
+    {
+      "id": "carved-bed",
+      "eyebrow": "DETERMINISTIC TERRAIN FIRST",
+      "title": "River and lake masks carve a bed; they do not create another water level",
+      "paragraphs": [
+        "The generation pipeline resolves integer terrain factors before it asks for water. Ocean and coast terms shape the broad profile. River and lake masks flatten floodplains, lower valley cores, and can pull the bed below sea level. Near and beneath the resulting shoreline, the surface material resolves to sand, gravel, clay, or shell bed according to the same deterministic inputs.",
+        "After the bed height H is known, natural water has one answer. If H is below the canonical sea level, the column fills from H+1 through 96; otherwise it receives no water. The current generator does not produce elevated lakes, separate river stages, tides, pressure, sources, sinks, spreading, refill, or dynamic level changes."
+      ],
+      "facts": [
+        {
+          "label": "Canonical sea level",
+          "value": "Y = 96",
+          "detail": "Both current JavaScript defaults and Rust canonical constants use the same integer plane."
+        },
+        {
+          "label": "Filled interval",
+          "value": "H < y <= 96",
+          "detail": "Terrain remains at and below H; ordinary water occupies only the cells above that bed."
+        },
+        {
+          "label": "Horizontal water answers",
+          "value": "96 or none",
+          "detail": "The final current water-level helper has no coordinate-dependent elevation branch."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "An unused helper is not a shipped inland-water system",
+        "body": "world-generator.js contains an inlandWaterLevel function, but the repository has no call site for it. The active waterLevelAt path returns only sea level or no water, so this guide does not portray mountain lakes or independently elevated rivers."
+      }
+    },
+    {
+      "id": "column-and-program",
+      "eyebrow": "COMPACT CLIENT STATE AND PROGRAM RECONSTRUCTION",
+      "title": "One column value carries the volume; Rust rechecks the block",
+      "paragraphs": [
+        "A normal 16 by 16 base profile stores surfaceY and waterY as signed sixteen-bit arrays and surfaceBlock as an unsigned sixteen-bit array. The no-water sentinel is minY minus one. Those three arrays occupy 1,536 bytes before object overhead and optional data, while the final block query reconstructs all water cells from the two heights instead of retaining a dense base-water volume.",
+        "The Rust program independently uses the same below-sea conditional when it reconstructs a block for mining. Chunk.js smoke tests scan below-sea mainnet columns and require ordinary water at sea level 96, while the Rust unit vector asserts ordinary water at (0,96,0) above a surface at 85. These are independent source and representative regression checks, not an exhaustive or formal all-coordinate JavaScript-to-Rust parity proof."
+      ],
+      "facts": [
+        {
+          "label": "Profile cells",
+          "value": "256 columns",
+          "detail": "A 16 by 16 Chunk needs one surface height, water height, and surface block per column."
+        },
+        {
+          "label": "Core profile bytes",
+          "value": "1,536 bytes",
+          "detail": "256 columns multiplied by three two-byte array entries, before maps, objects, trees, deltas, or meshes."
+        },
+        {
+          "label": "Program input",
+          "value": "Integer coordinate",
+          "detail": "The expected client block is compared with a block reconstructed from canonical inputs."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "The shader cannot change the block that mining sees",
+        "body": "Depth color, wave time, alpha, sun light, and sparkles are absent from Rust block reconstruction. The program evaluates the integer world coordinate and rejects the action if the submitted expected block differs."
+      }
+    },
+    {
+      "id": "top-only-mesh",
+      "eyebrow": "VISUAL MESH SURFACE",
+      "title": "The renderer submits an exposed top, not every cell in the water column",
+      "paragraphs": [
+        "For a profile-backed Chunk, the visual mesher jumps directly to waterY, confirms that the final block there is fluid, and emits only top face two. The explicit gradient path writes four vertices on that same top boundary; the grouped path can merge compatible top cells. Dense fallback and delta paths likewise skip a fluid cell when another fluid or opaque solid covers it and never emit submerged internal fluid faces.",
+        "Water belongs to the separate visual mesh and transparent draw pass rather than the opaque terrain mesh. Alpha blending reveals already-rendered bed blocks through the surface, while depth writes are disabled for the visual pass. That is transparency over a flat top, not refraction, reflected scene geometry, a displaced wave mesh, or a volumetric water renderer."
+      ],
+      "facts": [
+        {
+          "label": "Natural surface per flooded column",
+          "value": "One exposed top",
+          "detail": "The compact profile does not expand every submerged water block into visible geometry."
+        },
+        {
+          "label": "Surface position",
+          "value": "Water block top",
+          "detail": "The explicit quad uses the upper Y boundary of the water block and does not animate its vertices."
+        },
+        {
+          "label": "Draw behavior",
+          "value": "Blended visual pass",
+          "detail": "Terrain remains in the opaque pass; the surface contributes color and alpha without writing transparent depth."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Twelve blocks is a visual sampling limit, not a world-depth limit",
+        "body": "The generated column may contain more than twelve water cells. The mesher stops distinguishing bed distances after twelve because the packed depth tint is bounded; it does not truncate canonical water or create a twelve-block collision volume."
+      }
+    },
+    {
+      "id": "packed-depth",
+      "eyebrow": "DEPTH BYTE AND SHORE CONTINUITY",
+      "title": "A bounded bed sample travels through one existing vertex byte",
+      "paragraphs": [
+        "An unchanged generated Chunk can calculate visual depth directly from canonical surface and water heights. When chain or pending deltas exist, the sampler falls back to scanning downward through at most twelve cells, skipping fluids, air, and low vegetation until it finds the first remaining block type. Each result is cached for the mesh build.",
+        "The smoothed, quantized result is encoded as 150 through 255 in the vertex field normally named AO. When a cardinal neighbor differs by at least ten encoded units, the mesher stops using one flat value and averages up to four adjacent exposed same-family water cells at each corner. The renderer lets ordinary and swamp water share corner continuity, keeps toxic water distinct, and skips water-depth encoding for lava. Those are registered compatibility branches only: current canonical JavaScript and Rust natural generation emits ordinary water 17, not swamp water 18, toxic water 19, or lava 20."
+      ],
+      "facts": [
+        {
+          "label": "Depth search cap",
+          "value": "12 cells",
+          "detail": "Unchanged generated terrain uses height math; modified terrain scans no farther than the same cap."
+        },
+        {
+          "label": "Encoded range",
+          "value": "150 to 255",
+          "detail": "The packed byte is decoded by the water fragment path as a shallow-to-deep signal."
+        },
+        {
+          "label": "Corner-gradient trigger",
+          "value": "Delta >= 10",
+          "detail": "A large enough encoded difference replaces the grouped flat-depth top with per-corner depth values."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "The field is named AO, but water gives it another job",
+        "body": "Opaque terrain uses the byte for face shading and ambient information. Water repurposes the same packed channel for visual bed depth, reducing vertex width without claiming that the byte is physical occlusion or authoritative state."
+      }
+    },
+    {
+      "id": "fragment-light",
+      "eyebrow": "TIME-BASED PRESENTATION ONLY",
+      "title": "Color, apparent normal, sun light, and sparkles move across fixed geometry",
+      "paragraphs": [
+        "The fragment shader combines three broad directional sine signals and three fine line masks. Related cosine gradients produce an apparent water normal for sun specular terms. The decoded depth byte selects shore, clear, sea, and deep-blue mixes; camera distance adds a small contribution, and base alpha moves from 0.60 toward 0.82 before ripple and sparkle additions, horizon-haze reduction, and global-opacity multiplication. Fog blends RGB only.",
+        "Clean water also samples three sparse deterministic sparkle-cell scales, then animates each active cell's brightness with presentation time. A separate fine-line sparkle multiplier is present but currently cannot activate: fineA, fineB, and fineC are each at most one, so their 0.16, 0.12, and 0.08 weighted sum is at most 0.36, below smoothstep's 0.58 lower edge. This guide counts the independent cell sparkles and blue sun trail as live, but not that unreachable product."
+      ],
+      "facts": [
+        {
+          "label": "Broad wave signals",
+          "value": "3 directions",
+          "detail": "Their different speeds, frequencies, and phases reduce obvious repetition without changing mesh positions."
+        },
+        {
+          "label": "Base clean-water alpha",
+          "value": "0.60 to 0.82",
+          "detail": "Ripple and active sparkle terms add small values before horizon haze can reduce alpha and overall opacity multiplies it; fog changes color, not alpha."
+        },
+        {
+          "label": "Scene reflection and refraction",
+          "value": "Not implemented",
+          "detail": "The current water path has no reflected scene texture, refraction sample, Fresnel pass, or vertex-wave displacement."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A moving highlight is not a moving water block",
+        "body": "uTime reaches fragment calculations, not canonical generation or water vertex positions. The animation cannot raise a level, move an item, push a player, alter a raycast, or become a chain-verifiable wave."
+      }
+    },
+    {
+      "id": "interaction-boundary",
+      "eyebrow": "RAYCAST, COLLISION, EFFECTS, AND CHAIN",
+      "title": "Water can be seen and targeted, but it is not yet a traversal or fluid system",
+      "paragraphs": [
+        "The block raycaster returns the first non-air, non-pass-through-vegetation cell, so transparent water can stop a mining ray before the bed. The mining controller then rejects every fluid target, and the Chunk Program separately rejects ordinary natural water. Water is liquid and transparent but not blocking, so the player-motion controller does not treat it as a body or ground collision. There is no swimming, buoyancy, underwater drag, breath, drowning, boat physics, or water-current response.",
+        "Movement near a fluid cell can emit a small splash-particle burst after at least 0.10 horizontal movement and an 88-millisecond cooldown; that effect does not update world state. Foundations require level, blocking, non-fluid ground. Normal block placement requires an empty target and excludes fluid items, while the current chain placement entry point is explicitly disabled."
+      ],
+      "steps": [
+        {
+          "title": "Raycast",
+          "body": "The transparent water block is still a hit, so the current targeting path does not pass through it to the bed."
+        },
+        {
+          "title": "Validate",
+          "body": "Client action rules reject fluid mining, dry-ground construction rejects water, and Rust rejects natural-water mining again."
+        },
+        {
+          "title": "Present",
+          "body": "Local movement may create splash particles. The effect itself changes no water cell or inventory or chain account, and it applies no swimming, buoyancy, or current response."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "The fixed survey pier in the artwork is a narrative prop",
+        "body": "It is deliberately anchored to the shore and visible piles so it does not imply a boat. NiceChunk does not currently implement watercraft, floating structures, buoyancy, or a navigation system, and the illustration is not evidence of those features."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "chunk.js/core/constants.js",
+      "claim": "Defines the current default sea level of 96, Chunk dimensions, and the water-surface offset constant."
+    },
+    {
+      "path": "chunk.js/world/world-generator.js",
+      "claim": "Shapes ocean, coast, river, lake, and valley beds; resolves shore materials; fills only below-sea columns to one plane; and stores compact column profiles."
+    },
+    {
+      "path": "chunk.js/tests/smoke.test.mjs",
+      "claim": "Regression-scans natural water for the global plane, absence of suspended water above land, and broad below-sea river columns."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-state.js",
+      "claim": "Reconstructs base water blocks from surface and water column heights; getFinalBlock gives pending deltas first priority, then chain deltas, then that base answer."
+    },
+    {
+      "path": "chunk.js/chunk/chunk-mesher.js",
+      "claim": "Builds the top-only fluid visual mesh, bounded depth sampler, packed depth byte, neighbor-gradient path, and water surface-family rules."
+    },
+    {
+      "path": "chunk.js/renderer/shader-manager.js",
+      "claim": "Implements fragment-only water waves, apparent normals, depth colors, shore blend, sun terms, alpha, fog, sparkle cells, and the currently unreachable fine-line sparkle multiplier."
+    },
+    {
+      "path": "chunk.js/renderer/webgl2-renderer.js",
+      "claim": "Draws visual geometry with alpha blending and disabled depth writes after the opaque terrain pass."
+    },
+    {
+      "path": "chunk.js/world/block-registry.js",
+      "claim": "Defines ordinary water as transparent liquid block 17 without solid, blocking, or mineable flags, while keeping other fluid identities distinct."
+    },
+    {
+      "path": "chunk.js/input/raycast.js",
+      "claim": "Returns the first non-air hit, including water, instead of raycasting through transparent fluid to the bed."
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "Rejects fluid blocks before a mining swing can become a submitted mining action."
+    },
+    {
+      "path": "play/placement-controller.js",
+      "claim": "Requires an air target and excludes fluid or non-blocking block identifiers from placeable inventory choices."
+    },
+    {
+      "path": "play/player-motion-controller.js",
+      "claim": "Uses blocking-block queries for body and ground collision, with no water-specific swimming, buoyancy, drag, breath, or drowning branch."
+    },
+    {
+      "path": "play/play-effects.js",
+      "claim": "Emits rate-limited local splash particles from movement near a fluid cell without mutating water or player state."
+    },
+    {
+      "path": "play/foundation-controller.js",
+      "claim": "Requires level, blocking, non-fluid ground and clear space before a foundation preview can be valid."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Keeps the current ordinary block-placement chain entry point explicitly disabled."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Defines canonical sea level 96, reconstructs ordinary water from the same below-sea rule, and carries representative Rust regression vectors."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Reconstructs the submitted mining coordinate, rejects an expected-block mismatch, and forbids ordinary water as a mined block."
+    },
+    {
+      "path": "play/play-chain-chunk-deltas.js",
+      "claim": "Decodes every accepted ChunkBroken record as an air delta; it carries no fluid level, flow, or replenishment state."
+    }
+  ],
+  "related": [
+    {
+      "slug": "deterministic-world",
+      "href": "/docs/deterministic-world/",
+      "title": "The Deterministic World",
+      "summary": "Start with the seed, integer-coordinate base world, separate deltas, and cross-implementation validation boundary behind each water column."
+    },
+    {
+      "slug": "chunkjs-performance",
+      "href": "/docs/chunkjs-performance/",
+      "title": "Chunk.js: Rebuild Only What Changed",
+      "summary": "See how compact column profiles, visual meshes, Workers, packed vertices, transparent draws, and frame budgets carry the wider world."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "Follow the boundary between local targeting and effects, program reconstruction, accepted ChunkBroken state, and rollback."
+    }
+  ]
+}

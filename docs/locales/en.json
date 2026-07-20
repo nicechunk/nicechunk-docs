@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "en",
+    "label": "English",
+    "version": "docs-locale-en-e0e83ecddaf12b14",
+    "contentHash": "e0e83ecddaf12b14"
+  },
+  "common": {
+    "language": "Language",
+    "comingSoon": "Coming soon",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "NiceChunk home",
+    "primaryNavigationAria": "Primary navigation",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "routes": {
+      "home": "Home",
+      "roadbook": "Roadbook",
+      "worldRules": "World Rules",
+      "resources": "Resources",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "Elements",
+      "fairness": "Fairness",
+      "proofOfFrontier": "Proof",
+      "seed": "Seed",
+      "guardians": "Guardians",
+      "contracts": "Contracts",
+      "civilization": "Civilization",
+      "trust": "Trust",
+      "docs": "Docs",
+      "enterWorld": "Enter World"
+    }
+  },
+  "meta": {
+    "title": "NiceChunk Field Guide",
+    "description": "Player-readable NiceChunk documentation grounded in the running game, public rules, and deployed program behavior."
+  },
+  "accessibility": {
+    "skipContent": "Skip to content"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "FIELD GUIDE",
+    "homeAria": "NiceChunk home"
+  },
+  "navigation": {
+    "aria": "Documentation navigation",
+    "guide": "Guide",
+    "worldRules": "World Rules",
+    "programs": "Programs",
+    "enterWorld": "Enter World"
+  },
+  "status": {
+    "loading": "Loading field guide",
+    "loadingDetail": "Fetching one document in your selected language.",
+    "failed": "This guide page could not be loaded.",
+    "failedDetail": "Check the connection or return to the guide index."
+  },
+  "actions": {
+    "backToIndex": "Back to guide index",
+    "guideIndex": "Field Guide",
+    "openGuide": "Open guide →"
+  },
+  "footer": {
+    "statement": "Built from the running rules and program code. Claims are scoped to what the implementation can prove.",
+    "fairness": "Fairness",
+    "trust": "Trust",
+    "roadmap": "Roadbook"
+  },
+  "translation": {
+    "fallbackTitle": "English source shown",
+    "fallbackBody": "This topic has its own language file, but the reviewed translation is not ready yet. The English source is shown without machine-translated technical claims."
+  },
+  "labels": {
+    "guideMetrics": "Field guide coverage",
+    "breadcrumb": "Breadcrumb",
+    "keyPoints": "Key points",
+    "onThisPage": "On this page",
+    "evidenceEyebrow": "IMPLEMENTATION EVIDENCE",
+    "evidenceTitle": "Where these claims come from",
+    "evidenceIntro": "Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration."
+  },
+  "statusLabels": {
+    "ready": "Reviewed",
+    "preview": "In review",
+    "planned": "Planned"
+  },
+  "calloutLabels": {
+    "note": "How to read this",
+    "boundary": "Implementation boundary",
+    "verified": "What the code guarantees"
+  }
+}

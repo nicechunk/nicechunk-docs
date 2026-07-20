@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="wallet-login-and-safety" data-docs-static-source="d2414a672927fb99058ebc311b9b7f348cb91c9282e308d00da63e7ac2198935">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/wallet-login-and-safety.json" />
+    <meta name="nicechunk:source-sha256" content="d2414a672927fb99058ebc311b9b7f348cb91c9282e308d00da63e7ac2198935" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/wallet-login-and-safety/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn what NiceChunk receives when an external wallet connects, how message and transaction approvals differ, what to inspect, and which secrets must never be shared." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Wallet Login and Safety: What Connection Allows" />
+    <meta property="og:description" content="Learn what NiceChunk receives when an external wallet connects, how message and transaction approvals differ, what to inspect, and which secrets must never be shared." />
+    <meta property="og:url" content="https://nicechunk.com/docs/wallet-login-and-safety/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/wallet-login-and-safety-overview-v1.webp" />
+    <meta property="og:image:alt" content="In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the girl greets the boy with an empty open hand while a closed wooden chest stays beside her." />
+    <title>Wallet Login and Safety: What Connection Allows</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/wallet-login-and-safety/#article",
+  "url": "https://nicechunk.com/docs/wallet-login-and-safety/",
+  "name": "Connecting shares an address, not the secret behind it",
+  "description": "Learn what NiceChunk receives when an external wallet connects, how message and transaction approvals differ, what to inspect, and which secrets must never be shared.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Connecting shares an address, not the secret behind it",
+  "mainEntityOfPage": "https://nicechunk.com/docs/wallet-login-and-safety/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Pressing Connect reveals one public address",
+    "Connect, sign a message, and sign a transaction are separate choices",
+    "Pause and inspect the exact request before approving",
+    "Never share signing secrets, and know what Disconnect cannot undo"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/wallet-login-and-safety/#public-connection",
+      "name": "Pressing Connect reveals one public address"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/wallet-login-and-safety/#separate-approvals",
+      "name": "Connect, sign a message, and sign a transaction are separate choices"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/wallet-login-and-safety/#inspect-the-request",
+      "name": "Pause and inspect the exact request before approving"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/wallet-login-and-safety/#keep-secrets-private",
+      "name": "Never share signing secrets, and know what Disconnect cannot undo"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/wallet-login-and-safety-overview-v1.webp",
+    "https://nicechunk.com/docs/media/wallet-login-and-safety-public-connection-v1.webp",
+    "https://nicechunk.com/docs/media/wallet-login-and-safety-separate-approvals-v1.webp",
+    "https://nicechunk.com/docs/media/wallet-login-and-safety-inspect-request-v1.webp",
+    "https://nicechunk.com/docs/media/wallet-login-and-safety-keep-secrets-private-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Wallet Login and Safety</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL 01 · EXTERNAL WALLET SAFETY</p>
+<h1>Connecting shares an address, not the secret behind it</h1>
+<p class="docs-hero-summary">Connecting Phantom, Solflare, Backpack, or another injected Solana wallet lets NiceChunk request its public address and later ask for separate approvals. It does not give the site your private key, approve a message, approve a transaction, create a character, or make a chain write by itself.</p>
+<span class="docs-reading-time">14 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the girl greets the boy with an empty open hand while a closed wooden chest stays beside her." decoding="async" height="887" loading="eager" src="/docs/media/wallet-login-and-safety-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The greeting represents sharing a public identity; the closed chest represents a signing secret that never changes hands. Both are teaching metaphors, not wallet objects or connection indicators in the game, and this image proves no approval or transaction.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">What does connecting a wallet allow, and what should never be shared?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 1 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Current network</dt>
+<dd>Solana Devnet · client target with best-effort wallet detection</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>15 July 2026 · current working tree and local wallet-flow evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>External wallet</dt>
+<dd>A separate wallet app or browser extension such as Phantom, Solflare, or Backpack. It keeps its signing key and decides whether to approve each supported request.</dd></div>
+<div class="docs-guide-term"><dt>Wallet provider</dt>
+<dd>The interface an installed wallet exposes to a web page. NiceChunk asks this interface to connect, sign a message, or sign a transaction; those are different calls.</dd></div>
+<div class="docs-guide-term"><dt>Public address</dt>
+<dd>The public Solana identifier returned after connection. It is not a spending secret, but anyone who knows it can inspect and link its public activity.</dd></div>
+<div class="docs-guide-term"><dt>Private key</dt>
+<dd>Secret bytes that can create valid signatures for a wallet. Whoever obtains them may be able to control that wallet, so they must never be sent to another person or ordinary connection form.</dd></div>
+<div class="docs-guide-term"><dt>Recovery phrase</dt>
+<dd>A seed phrase that can restore wallet control. Treat it like the wallet itself: never share, photograph, upload, or type it into a site.</dd></div>
+<div class="docs-guide-term"><dt>Connection request</dt>
+<dd>A wallet prompt that lets a site learn the selected public address. It is not a message signature or a Solana transaction.</dd></div>
+<div class="docs-guide-term"><dt>Message signature</dt>
+<dd>A signature over exact bytes, usually readable text. It can prove control of a key for that message, but it does not submit a Solana transaction by itself.</dd></div>
+<div class="docs-guide-term"><dt>Transaction signature</dt>
+<dd>Approval of exact transaction bytes containing instructions and accounts. The signed request still has to be sent and accepted before shared state changes.</dd></div>
+<div class="docs-guide-term"><dt>Origin and domain</dt>
+<dd>The site address that requested an approval. Check it before connecting or signing so a look-alike site does not borrow your trust.</dd></div>
+<div class="docs-guide-term"><dt>Network or cluster</dt>
+<dd>The Solana environment a wallet or RPC is using. This client targets Devnet, but its wallet detection is not a cryptographic cluster proof.</dd></div>
+<div class="docs-guide-term"><dt>Built-in Game Wallet</dt>
+<dd>A separate browser-held key path offered on the login page. It is not the same security model as connecting an external wallet; the next guide explains its storage, signing, backup, deletion, and recovery limits.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>A public address, not a private key</strong>
+<p>The normal external-wallet connection path receives the selected public address and records a local binding. The wallet keeps its signing secret.</p></article>
+<article class="docs-key-point"><strong>Three requests, three decisions</strong>
+<p>Connecting, signing one login message, and signing one transaction use separate wallet operations. One approval does not silently approve the others.</p></article>
+<article class="docs-key-point"><strong>Read first; never reveal secrets</strong>
+<p>Check the real site, request type, message or transaction details, network, amounts, and fees. Never send a recovery phrase, private key, secret-key JSON, or wallet password.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#public-connection">Pressing Connect reveals one public address</a></li>
+<li><a href="#separate-approvals">Connect, sign a message, and sign a transaction are separate choices</a></li>
+<li><a href="#inspect-the-request">Pause and inspect the exact request before approving</a></li>
+<li><a href="#keep-secrets-private">Never share signing secrets, and know what Disconnect cannot undo</a></li>
+<li><a href="#technical-details">Five excerpts keep connection, proof, network guidance, transaction approval, and logout separate</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="public-connection"><p class="docs-eyebrow">CONNECTION BOUNDARY</p>
+<h2>Pressing Connect reveals one public address</h2>
+<p class="docs-prose">When a supported external wallet is installed, NiceChunk calls that wallet provider's connect method. If the player approves, the provider returns a public key. The page then tries to check or switch the wallet toward the client's required Devnet cluster and stores the address, wallet name, and a binding time in this browser. Those local fields let the site remember which public player records to look up.</p>
+<p class="docs-prose">That path does not request a private key, sign a message, sign a transaction, create a chain account, create a character, or prove that the same person still controls the wallet tomorrow. The current desktop mock audit supplies a public key, simple connect and Devnet network stubs, and a deterministic null read for the public Appearance account, but no private key, message signer, or transaction signer; the interface still advances to character creation. NiceChunk's normal external-wallet buttons therefore represent a local connection state, not a server-authenticated login session.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What the page receives</span>
+<strong>A public address and wallet label</strong>
+<p>It stores those values plus a local binding timestamp so later pages can select the same public identity.</p></article>
+<article class="docs-fact"><span>What stays inside the wallet</span>
+<strong>The external wallet's private key</strong>
+<p>The reviewed NiceChunk code requests provider operations and a public key; it does not request an export of the external wallet's private key. This does not certify the wallet extension itself.</p></article>
+<article class="docs-fact"><span>What is not involved</span>
+<strong>Guardian and world reconstruction</strong>
+<p>Guardian does not authenticate this login, and rebuilding terrain says nothing about who controls a wallet.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js hillside reference, the girl and boy recognize each other with separated empty hands while the same closed chest remains behind the girl." decoding="async" height="887" loading="lazy" src="/docs/media/wallet-login-and-safety-public-connection-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The two empty greetings represent recognition of a public address without an object transfer. The chest is only a private-key metaphor and is not a game item; connection alone does not sign a message, send a transaction, or prove continuing wallet control.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Connected is not the same as cryptographically logged in</strong>
+<p>The ordinary injected-wallet path accepts connect plus a public address. Only the separate Phantom mobile helper currently signs and verifies a login challenge, and even that remains browser-local rather than a server session.</p></aside></section>
+<section class="docs-content-section" id="separate-approvals"><p class="docs-eyebrow">APPROVAL BOUNDARY</p>
+<h2>Connect, sign a message, and sign a transaction are separate choices</h2>
+<p class="docs-prose">The current Phantom mobile helper creates readable challenge text containing the site domain, origin, return path, a random nonce, and an issue time. Inside the wallet browser, it asks Phantom to sign those exact message bytes. Back on the page, TweetNaCl verifies that signature against the public key and then stores the same browser binding. No transaction is built, no fee is paid, and no Solana account changes. This message proof is not used by every desktop, Solflare, or Backpack entry path.</p>
+<p class="docs-prose">A later on-chain action is another decision. For a supported transaction, the client prepares a transaction and asks the provider for a separate approval. NiceChunk either sends the signed bytes itself or uses the provider's sign-and-send method, then polls its configured RPC for confirmed. A player can reject that request even after connecting. A returned signature is not yet execution success, and confirmed is not renamed finalized. A Gameplay Session can reduce repeated prompts only after its own owner-approved chain transaction; that narrower temporary-authority system has a separate guide.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Connect</span>
+<strong>Reveal the selected public address</strong>
+<p>No message or transaction signature is implied by this step.</p></article>
+<article class="docs-fact"><span>Sign message</span>
+<strong>Sign exact off-chain bytes</strong>
+<p>The current helper verifies the signed message bytes and separately checks the proof's domain and origin fields in this browser. It does not submit a transaction, but the current verifier does not enforce one-time use or fully reconstruct the challenge text from those fields.</p></article>
+<article class="docs-fact"><span>Sign transaction</span>
+<strong>Approve exact instructions and accounts</strong>
+<p>The request must still be sent and accepted; the current client waits for confirmed, not finalized.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js hillside reference, the girl stands only on the first of three separated natural stone blocks while the boy waits beyond the third and the closed chest remains behind her." decoding="async" height="887" loading="lazy" src="/docs/media/wallet-login-and-safety-separate-approvals-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The three unmarked stones are a teaching metaphor for three separate choices, not buttons or actual wallet states. Standing on the first does not automatically cross the next two, and the closed chest still represents a secret that was never handed over.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not call the mobile helper a strict one-use server session</strong>
+<p>The browser verifies the supplied message signature and separately checks the proof's domain and origin fields. It records a used-nonce marker but does not read it, does not require a pending stored challenge, and does not reject a future or unparsable issuedAt value. Treat this as a browser-local proof check, not a strict recent, domain-bound, one-use server session.</p></aside></section>
+<section class="docs-content-section" id="inspect-the-request"><p class="docs-eyebrow">PLAYER CHECKLIST</p>
+<h2>Pause and inspect the exact request before approving</h2>
+<p class="docs-prose">First check the real site origin. Then identify the request type: connect, sign a readable message, or sign a transaction. For a message, read every line and cancel if the domain, purpose, nonce context, or return path is unexpected. For a transaction, review every detail the wallet displays, including the network, requested action, program, accounts, amounts, transfers, and estimated fee when available. If the wallet does not show enough to understand the request, reject it and use a trusted transaction decoder or explorer before trying again.</p>
+<p class="docs-prose">NiceChunk currently targets Solana Devnet, but its wallet-network check is best effort. It infers a cluster from provider properties or RPC-looking values and tries several wallet switch methods. When the provider reports no detectable network and automatic switching is unsupported, the code can continue with unknown and unverified flags. The project also supports a local HTTPS RPC override and does not currently compare a genesis hash. A network-ready label is therefore useful interface guidance, not cryptographic proof that every wallet and RPC request reached the independently verified cluster you intended.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Connect request</span>
+<strong>No SOL spend by itself</strong>
+<p>It asks for the selected public address and connection permission.</p></article>
+<article class="docs-fact"><span>Message request</span>
+<strong>No chain write by itself</strong>
+<p>It still deserves careful reading because a signature can be reused as evidence wherever a verifier accepts that exact message.</p></article>
+<article class="docs-fact"><span>Transaction request</span>
+<strong>Can change state or move value</strong>
+<p>Review every detail the wallet displays. If the action, accounts, transfers, fee payer, amounts, or network are not understandable, reject and inspect the request with a trusted decoder.</p></article>
+<article class="docs-fact"><span>Network label</span>
+<strong>Best-effort detection</strong>
+<p>The current code has no genesis-hash check and can explicitly mark an unknown provider as unverified.</p></article></div>
+<ol class="docs-steps"><li><strong>Check where the request came from</strong>
+<p>Use the official site and read the origin shown by the wallet. A copied design or familiar logo is not enough.</p></li>
+<li><strong>Name the request type</strong>
+<p>Connect should expose an address; signMessage signs exact bytes; a transaction can change accounts or spend funds.</p></li>
+<li><strong>Read the payload and consequences</strong>
+<p>Review every detail the wallet displays. If the action, program, accounts, transfers, amounts, or fees are hidden or unclear, reject the request and inspect it with a trusted decoder.</p></li>
+<li><strong>Verify the network independently when it matters</strong>
+<p>The client targets Devnet, but an unknown provider can pass an unverified branch. Confirm the wallet network and inspect the resulting signature with a trusted Devnet explorer.</p></li>
+<li><strong>Reject anything unexpected</strong>
+<p>Rejecting an unexpected request avoids approving that request. Reopen the action from the official game only after you understand why the request appeared.</p></li></ol>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js hillside reference, the girl studies one intact stone voxel while a pickaxe rests unused on the grass and the boy waits at a distance." decoding="async" height="887" loading="lazy" src="/docs/media/wallet-login-and-safety-inspect-request-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The intact stone and grounded pickaxe represent pausing before one exact action; they are not a wallet prompt or transaction preview. The real details must be read in the wallet, and nothing in this calm generated scene signals approval, Devnet verification, or success.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Reject is a normal safety control</strong>
+<p>A legitimate game action can usually be requested again if it is still valid. A secret exposed to the wrong request cannot be made private again by closing the popup.</p></aside></section>
+<section class="docs-content-section" id="keep-secrets-private"><p class="docs-eyebrow">SECRET AND LOGOUT BOUNDARY</p>
+<h2>Never share signing secrets, and know what Disconnect cannot undo</h2>
+<p class="docs-prose">Never send a recovery phrase, private key, secret-key JSON array, wallet password, or copied authentication secret to a person, chat, support account, form, or ordinary external-wallet connection flow. A public address is designed to be visible, but it links public activity and balances, so sharing it still has privacy consequences. Do not forward an unexpected signed login proof either; cancel the flow and start again from the official site.</p>
+<p class="docs-prose">The login page also offers a separate built-in NiceChunk Game Wallet that can create or import a browser-held private key. That is not an external-wallet connection. Never import a main wallet there; use only a dedicated low-balance game wallet if you choose that path. The next guide explains its Base58 encoding, browser storage, backup, loss, and same-origin script risks instead of pretending the two wallet models are interchangeable.</p>
+<p class="docs-prose">Disconnect is mostly local cleanup. On the login page it tries to disconnect providers and clears the connection fields. Play logout also clears the username and wallet-scoped runtime caches before returning to login. Provider disconnect is best effort. Neither path reverses completed transactions, erases public history, closes PDAs, immediately revokes an existing on-chain Gameplay Session, returns that Session key's remaining SOL, or deletes the separately stored built-in Game Wallet secret.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Never disclose</span>
+<strong>Recovery phrase, private key, secret JSON, or password</strong>
+<p>Anyone with a usable signing secret may be able to act as that wallet.</p></article>
+<article class="docs-fact"><span>Disconnect changes</span>
+<strong>Local binding and selected runtime caches</strong>
+<p>The exact cleanup differs between the login page and Play logout, and provider disconnect can fail.</p></article>
+<article class="docs-fact"><span>Disconnect does not change</span>
+<strong>Completed chain state and separately stored secrets</strong>
+<p>History, PDAs, existing Session authority until its chain rules stop it, and the built-in Game Wallet record remain separate concerns.</p></article></div>
+<ol class="docs-steps"><li><strong>If a prompt asks for a recovery phrase or external-wallet private key</strong>
+<p>Stop. Do not paste it. Close the page and reopen the official site from a trusted bookmark or typed address.</p></li>
+<li><strong>If you approved only an unfamiliar connection</strong>
+<p>Disconnect in the site and review the wallet's connected-app list. Remember that this does not undo a transaction you separately signed.</p></li>
+<li><strong>If you signed something you do not understand</strong>
+<p>Record the exact message or transaction signature, inspect it with a trusted tool, and move valuable assets if the request granted dangerous authority.</p></li>
+<li><strong>If a recovery phrase or private key was exposed</strong>
+<p>Treat that wallet as compromised. From a trusted device and wallet app, create a fresh wallet and move remaining assets rather than relying on Disconnect.</p></li></ol>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and real Chunk.js hillside reference, the girl walks away carrying the same closed chest while the boy, intact stone, and unused pickaxe remain behind." decoding="async" height="887" loading="lazy" src="/docs/media/wallet-login-and-safety-keep-secrets-private-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The girl keeping the closed chest represents retaining a secret; the chest is not a game wallet item. The unchanged stone and landscape show the separate lesson that leaving or disconnecting does not erase completed shared history, revoke every authority, or delete separately stored keys.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A shared secret is already compromised</strong>
+<p>Disconnect can end a local relationship. It cannot make a copied recovery phrase or private key secret again.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">READ THE REQUEST</p>
+<h2>Five excerpts keep connection, proof, network guidance, transaction approval, and logout separate</h2>
+<p>The formula is a player safety rule, not a cryptographic protocol. The excerpts show the exact external connect path, the mobile message signature, a later transaction signature and confirmed wait, the unverified network branch, and the local logout behavior.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>One wallet does not turn three requests into one permission</h3>
+<div aria-label="Connecting with a public address is not the same operation as signing exact message bytes, and neither is the same operation as signing a transaction containing exact instructions, accounts, and fee payer." class="docs-formula-expression" role="math"><code>Connect(address) ≠ SignMessage(exact bytes) ≠ SignTransaction(exact instructions, accounts, fee payer)</code></div>
+<p class="docs-technical-explanation">The symbol ≠ means 'is not the same operation as.' Connect lets the page learn a public address. SignMessage proves that the wallet signed one exact byte sequence but does not submit a Solana transaction. SignTransaction approves one prepared transaction, which must still be sent and accepted. None of the three asks an external wallet to reveal its private key, and none silently proves the success of a later stage.</p>
+<dl class="docs-formula-terms"><dt>Connect(address)</dt>
+<dd>The provider returns the selected public address after the player accepts a connection request.</dd>
+<dt>SignMessage(exact bytes)</dt>
+<dd>The provider signs one exact off-chain message. Verification proves only that key and message relationship under the verifier's checks.</dd>
+<dt>SignTransaction(...) </dt>
+<dd>The provider signs exact transaction bytes with instructions, accounts, a fee payer, and a recent blockhash; submission and confirmation remain later observations.</dd>
+<dt>≠</dt>
+<dd>Approving one operation does not pre-approve either of the other operations.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The ordinary external-wallet path receives a public key</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">login/login.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function connectWallet(wallet) {
+  selectedWallet = wallet;
+  statusLine.textContent = t("login.status.connecting", { wallet: wallet.name });
+
+  try {
+    const result = await wallet.provider.connect();
+    const publicKey = result?.publicKey || wallet.provider.publicKey;
+    if (!publicKey) throw new Error(t("login.status.publicKeyMissing"));
+
+    await ensureLoginWalletNetwork(wallet.provider);
+    walletAddress = publicKey.toString();
+    persistConnectedWallet({ walletAddress, walletName: wallet.name });
+    await initialize();
+  } catch (error) {
+    statusLine.textContent = loginNetworkErrorMessage(error) || error?.message || t("login.status.connectFailed");
+  }
+}</code></pre>
+<p class="docs-technical-explanation">The page asks the installed provider to connect, requires a returned public key, runs its separate network check, and stores a browser binding before continuing. There is no signMessage or transaction call in this function. The catch path displays a failure rather than inventing a connected address.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-3</strong>
+<p>Remember which wallet button was chosen and tell the player that the provider connection is starting.</p></li>
+<li><strong>5-8</strong>
+<p>Ask the wallet to connect, then accept only a result that exposes a public key.</p></li>
+<li><strong>10-13</strong>
+<p>Run the network check, convert the public key to an address string, store the local binding, and refresh the login state.</p></li>
+<li><strong>14-17</strong>
+<p>If connection or the network step fails, show the error and do not advance this function as a successful connection.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Phantom mobile helper asks for a separate message signature</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">login/login.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const connectResult = await provider.connect();
+    const publicKey = publicKeyToString(connectResult?.publicKey || provider.publicKey);
+    if (!publicKey) throw new Error("Missing wallet public key.");
+    await ensureLoginWalletNetwork(provider);
+
+    const encodedMessage = new TextEncoder().encode(challenge.message);
+    const signResult = await provider.signMessage(encodedMessage, "utf8");
+    const signature = signatureToBytes(signResult);
+    if (!signature?.length) throw new Error("Missing wallet signature.");
+
+    const proof = {
+      version: 1,
+      walletName: "Phantom",
+      publicKey,
+      signature: bs58.encode(signature),
+      challenge,
+    };</code></pre>
+<p class="docs-technical-explanation">This is a different path inside the Phantom wallet browser. It connects, checks the network, encodes the exact challenge message, and explicitly calls signMessage. The resulting local proof contains the public key, signature, and challenge; it contains no private key and creates no Solana transaction. The browser later verifies it with TweetNaCl, subject to the replay and challenge-binding limitations described above.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-4</strong>
+<p>Connect inside the wallet browser, obtain the public address, and run the same best-effort network check.</p></li>
+<li><strong>6-9</strong>
+<p>Turn the exact challenge text into bytes, ask for a message signature, and reject an empty result.</p></li>
+<li><strong>11-17</strong>
+<p>Package only the proof version, wallet label, public key, encoded signature, and original challenge for local verification.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>A later transaction has its own signature and confirmation wait</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  for (const signer of extraSigners) transaction.partialSign(signer);
+
+  if (typeof provider.signTransaction === "function") {
+    const signed = await provider.signTransaction(transaction);
+    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), "wallet");
+    await confirmTransactionByHttpPolling(conn, {
+      signature,
+      blockhash: transaction.recentBlockhash,
+      lastValidBlockHeight: transaction.lastValidBlockHeight,
+    }, "confirmed");
+    return signature;
+  }</code></pre>
+<p class="docs-technical-explanation">This branch runs only after a transaction has been prepared with a fee payer and recent blockhash above the excerpt. Extra signers sign first, then the external provider gets a separate signTransaction request. NiceChunk sends those signed bytes and polls for confirmed before returning the signature. A connection approval does not execute these lines, and this function does not wait for finalized.</p>
+<ol class="docs-code-walkthrough"><li><strong>1</strong>
+<p>Apply any additional signatures the exact instruction requires; this does not replace the wallet owner's signature.</p></li>
+<li><strong>3-5</strong>
+<p>If the wallet supports transaction signing, ask it to sign the prepared bytes and then send the serialized signed transaction.</p></li>
+<li><strong>6-10</strong>
+<p>Poll the returned signature with the prepared blockhash limits until the client's confirmed condition is satisfied or the routine fails.</p></li>
+<li><strong>11-12</strong>
+<p>Only after that wait does this branch return the signature to its caller.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>An unknown wallet network can remain explicitly unverified</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/solanaNetwork.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  onStatus?.({ type: "switching", requiredCluster, detectedCluster });
+  let switchResult = null;
+  try {
+    switchResult = await requestWalletSolanaClusterSwitch(provider, requiredCluster);
+  } catch (error) {
+    if (!detectedCluster &amp;&amp; !isUserRejectedError(error)) {
+      onStatus?.({ type: "ready", requiredCluster, detectedCluster: "" });
+      return {
+        requiredCluster,
+        detectedCluster: "",
+        switched: false,
+        unknown: true,
+        unverified: true,
+        switchUnsupported: error?.code === "unsupported",
+      };</code></pre>
+<p class="docs-technical-explanation">The client first reports that it is trying to switch. If no cluster could be detected and the switch attempt fails for a reason other than player rejection, this branch can report ready while returning unknown and unverified flags. That is a compatibility choice, not a genesis-hash check or proof that the provider and RPC are aligned.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-4</strong>
+<p>Tell the interface a switch is being attempted, then call one of the provider-specific switch methods.</p></li>
+<li><strong>5-7</strong>
+<p>Enter the compatibility branch only when no cluster was detected and the failure was not an explicit player rejection.</p></li>
+<li><strong>8-15</strong>
+<p>Return the required cluster as guidance while honestly marking the detected cluster empty, not switched, unknown, and unverified.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Play logout clears local state and treats provider disconnect as best effort</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function disconnectWallet() {
+    const provider = detectWalletProvider();
+    try {
+      if (provider?.disconnect) {
+        Promise.resolve(provider.disconnect()).catch(() =&gt; {
+          // The local session is already cleared; plugin disconnect is best effort.
+        });
+      }
+    } catch {
+      // Some wallet plugins throw when already disconnected.
+    }
+    clearWalletSession();
+    state.walletAddress = "";
+    state.sessionLamports = getStoredSessionLamports("");
+    resetWalletBalance();
+    dispatchWalletChanged("");
+    globalThis.location?.replace?.(buildWalletLoginUrl({
+      redirectPath: `${globalThis.location?.pathname || "/play/"}${globalThis.location?.search || ""}${globalThis.location?.hash || ""}`,
+      autoConnect: false,
+    }));</code></pre>
+<p class="docs-technical-explanation">Play asks an available provider to disconnect, but failures are deliberately ignored so local logout can continue. It then clears the wallet session, resets local wallet and balance presentation, announces the change, and returns to login. Nothing here submits a revoke or close instruction, deletes the separately stored built-in Game Wallet record, reverses a completed transaction, or returns funds from a temporary Session key.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-10</strong>
+<p>Find the current provider and ask it to disconnect when possible, while treating rejection or an already-disconnected error as non-blocking.</p></li>
+<li><strong>12-16</strong>
+<p>Clear the browser wallet session and wallet-scoped display state, then notify other local components that no wallet is selected.</p></li>
+<li><strong>17-20</strong>
+<p>Return to the login route with a safe local path back to the current game page and without automatic reconnection.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>login/login.js</code>
+<p>Detects external providers, separates ordinary connect from the Phantom mobile message helper, checks the configured network, stores the browser binding, and implements login-page disconnect.</p></article>
+<article class="docs-evidence-item"><code>login/index.html</code>
+<p>Shows the current external-wallet choices and the separately labeled built-in Game Wallet creation and import warnings.</p></article>
+<article class="docs-evidence-item"><code>src/walletSession.js</code>
+<p>Defines wallet binding fields, cleanup, safe same-site redirects, and an event-watcher helper that is not currently wired into the reviewed runtime.</p></article>
+<article class="docs-evidence-item"><code>src/solanaNetwork.js</code>
+<p>Targets Devnet, infers a wallet cluster from provider properties, attempts multiple switch methods, and exposes the unknown unverified compatibility branch.</p></article>
+<article class="docs-evidence-item"><code>src/rpcConfig.js</code>
+<p>Defines the default Devnet RPC choices and permits a locally stored HTTPS override without a genesis-hash validation step.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Separately asks external wallets to approve prepared transactions, either sends signed bytes itself or delegates sign-and-send to the provider, and waits for confirmed; it also implements the distinct Gameplay Session system.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Requires a local wallet binding before Play boots and redirects to login when it is missing.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Manages the Play wallet panel and treats provider disconnect as best effort during local logout.</p></article>
+<article class="docs-evidence-item"><code>play/play-auth-session.js</code>
+<p>Clears identity and wallet-scoped runtime caches and rejects unsafe protocol-relative login return targets.</p></article>
+<article class="docs-evidence-item"><code>src/localGameWallet.js</code>
+<p>Implements the separate browser-held Game Wallet record whose private-key storage, direct signing, backup, and deletion behavior are examined in the dedicated follow-up guide.</p></article>
+<article class="docs-evidence-item"><code>scripts/audit-wallet-flows.mjs</code>
+<p>Checks the built no-wallet state and an injected mock-provider connect path with a deterministic missing-Appearance account response, without using a real extension, private key, message signer, or transaction signer.</p></article>
+<article class="docs-evidence-item"><code>docs/wallet-flow-audit.md</code>
+<p>States exactly what the mock browser audit covers and excludes real extensions, mobile deep links, network switching, live RPC correctness, and transaction signing.</p></article>
+<article class="docs-evidence-item"><code>play/tests/play-auth-session.test.mjs</code>
+<p>Tests binding requirements, wallet-scoped local cleanup, and rejection of an unsafe protocol-relative redirect target.</p></article></div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Next, inspect the built-in Game Wallet before funding it</h2>
+<p>The next guide follows the browser-held secret from creation or import through backup, direct signing, Disconnect, deletion, and recovery limits.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/four-truth-layers/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>Four Truth Layers</strong>
+<p>Review what a local interface, relay hint, transaction, and validated record can each prove.</p></a>
+<a class="docs-path-navigation-card" href="/docs/local-game-wallet-backup-and-risk/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Local Game Wallet: Backup, Signing, and Recovery</strong>
+<p>Follow the built-in key from creation or import through browser storage, backup, direct signing, Disconnect, deletion, and recovery limits.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

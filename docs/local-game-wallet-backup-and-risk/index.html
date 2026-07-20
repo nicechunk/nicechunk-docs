@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="local-game-wallet-backup-and-risk" data-docs-static-source="9ced3cde0cb772eb8731f9f398ceb10532b3f4e68980329b4d0f13f66c808da9">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/local-game-wallet-backup-and-risk.json" />
+    <meta name="nicechunk:source-sha256" content="9ced3cde0cb772eb8731f9f398ceb10532b3f4e68980329b4d0f13f66c808da9" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/local-game-wallet-backup-and-risk/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn how the NiceChunk Game Wallet stores a Base58 secret in browser localStorage, what backup and funding checks really do, and why Disconnect is not Delete." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Local Game Wallet Backup, Signing, and Recovery" />
+    <meta property="og:description" content="Learn how the NiceChunk Game Wallet stores a Base58 secret in browser localStorage, what backup and funding checks really do, and why Disconnect is not Delete." />
+    <meta property="og:url" content="https://nicechunk.com/docs/local-game-wallet-backup-and-risk/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-overview-v1.webp" />
+    <meta property="og:image:alt" content="In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the girl prepares a pickaxe at an open timber camp while one closed wooden box stays on her shelf and the boy waits outside." />
+    <title>Local Game Wallet Backup, Signing, and Recovery</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/#article",
+  "url": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/",
+  "name": "The Game Wallet is a key in this browser, not an encrypted vault",
+  "description": "Learn how the NiceChunk Game Wallet stores a Base58 secret in browser localStorage, what backup and funding checks really do, and why Disconnect is not Delete.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "The Game Wallet is a key in this browser, not an encrypted vault",
+  "mainEntityOfPage": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Creation and import both end as one browser-held Base58 secret",
+    "Verify a recoverable backup before sending even a small balance",
+    "Fewer popups means the browser-held key can sign directly",
+    "Disconnect clears a session; deletion removes only this browser record"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/#browser-held-secret",
+      "name": "Creation and import both end as one browser-held Base58 secret"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/#backup-before-funding",
+      "name": "Verify a recoverable backup before sending even a small balance"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/#one-key-signs-game-actions",
+      "name": "Fewer popups means the browser-held key can sign directly"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/local-game-wallet-backup-and-risk/#disconnect-delete-and-recover",
+      "name": "Disconnect clears a session; deletion removes only this browser record"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-overview-v1.webp",
+    "https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-browser-held-secret-v1.webp",
+    "https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-backup-before-funding-v1.webp",
+    "https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-one-key-signs-game-actions-v1.webp",
+    "https://nicechunk.com/docs/media/local-game-wallet-backup-and-risk-disconnect-delete-and-recover-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Local Game Wallet Backup and Risk</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL 02 · BROWSER-HELD KEY</p>
+<h1>The Game Wallet is a key in this browser, not an encrypted vault</h1>
+<p class="docs-hero-summary">NiceChunk can generate or import one Solana keypair and keep its complete Base58 secret in this site's browser localStorage. That secret is full signing authority for the same Solana address on every cluster, not a NiceChunk-only permission. The current client targets Devnet: use a new dedicated low-balance wallet and Devnet SOL only, never import a main wallet, and understand backup, same-origin access, silent replacement, direct signing, and the limits of Disconnect and deletion before funding it.</p>
+<span class="docs-reading-time">24 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the girl prepares a pickaxe at an open timber camp while one closed wooden box stays on her shelf and the boy waits outside." decoding="async" height="887" loading="eager" src="/docs/media/local-game-wallet-backup-and-risk-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The ordinary closed box represents a browser-held signing secret, and the girl's tool represents the actions it can authorize. They are teaching metaphors rather than game wallet objects or state indicators; this image proves no encryption, completed backup, private-key safety, signature, balance, or chain success.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">How is the built-in Game Wallet stored, backed up, used to sign across Solana clusters, disconnected, deleted, and recovered?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 2 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background who want fewer wallet popups</dd></div>
+<div class="docs-guide-context-item"><dt>Current network</dt>
+<dd>Client target: Solana Devnet · the secret key itself is not cluster-specific</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>15 July 2026 · current working tree, 9 focused key tests, and a built-browser login flow</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Built-in Game Wallet</dt>
+<dd>A Solana keypair created or imported by NiceChunk and held by this browser origin. It is separate from an external wallet extension.</dd></div>
+<div class="docs-guide-term"><dt>Keypair</dt>
+<dd>A mathematically related public address and signing secret. The public half identifies the wallet; the secret half can authorize actions.</dd></div>
+<div class="docs-guide-term"><dt>Wallet provider</dt>
+<dd>The JavaScript interface that supplies a public key and signing methods. The built-in provider reconstructs the local Keypair; an external provider asks a separate wallet app or extension.</dd></div>
+<div class="docs-guide-term"><dt>Solana cluster</dt>
+<dd>A separate Solana network such as Devnet or Mainnet. A private key is not marked Devnet-only: it derives the same public address and signing authority on every cluster.</dd></div>
+<div class="docs-guide-term"><dt>Lamport</dt>
+<dd>The smallest unit of SOL. One SOL is one billion lamports, so the current 100,000,000-lamport login minimum equals 0.1 SOL.</dd></div>
+<div class="docs-guide-term"><dt>PlayerSession PDA</dt>
+<dd>A PDA, or program-derived address, is an on-chain record controlled by a Solana program. PlayerSession describes who may perform supported player actions and until when. In local Game Wallet mode its session authority is the owner itself, not a separate temporary key.</dd></div>
+<div class="docs-guide-term"><dt>Public address</dt>
+<dd>The Base58 Solana address shown for funding and public account lookup. It is safe to inspect publicly but can link activity and balances.</dd></div>
+<div class="docs-guide-term"><dt>Private or secret key</dt>
+<dd>The secret bytes that let software sign as this wallet. NiceChunk stores the complete 64-byte keypair secret under a localStorage key named secretKey.</dd></div>
+<div class="docs-guide-term"><dt>32-byte seed</dt>
+<dd>One accepted raw-byte import form. It is not a 12-word or 24-word recovery phrase. The parser passes these bytes to Keypair.fromSeed and then stores the resulting complete 64-byte secret.</dd></div>
+<div class="docs-guide-term"><dt>64-byte secret key</dt>
+<dd>The other accepted import form and the form emitted by a Solana Keypair. The current code Base58-encodes these 64 bytes for storage and backup.</dd></div>
+<div class="docs-guide-term"><dt>Base58</dt>
+<dd>A text encoding that avoids visually confusing characters. It is not encryption, a password, or protection from scripts that can read the text.</dd></div>
+<div class="docs-guide-term"><dt>JSON secret-key array</dt>
+<dd>A pasted array that the current parser converts with Uint8Array.from. Length 32 or 64 is required, but each element is not strictly checked as an integer from 0 through 255.</dd></div>
+<div class="docs-guide-term"><dt>localStorage</dt>
+<dd>Persistent key-value storage for one browser origin. Same-origin JavaScript can read it, and clearing site data can erase it.</dd></div>
+<div class="docs-guide-term"><dt>Browser origin</dt>
+<dd>The browser's identity boundary for one site address and protocol. Pages on the same origin normally share localStorage; another path on that site is not a separate wallet vault.</dd></div>
+<div class="docs-guide-term"><dt>Same-origin script</dt>
+<dd>JavaScript running with access to the same site origin. Such code can read this wallet's stored Base58 secret; localStorage does not isolate it like a wallet extension.</dd></div>
+<div class="docs-guide-term"><dt>RPC</dt>
+<dd>The network service the client asks for a balance, account data, a recent blockhash, transaction submission, and confirmation status. One RPC response is an observation, not a backup or signing authority.</dd></div>
+<div class="docs-guide-term"><dt>Transaction bytes</dt>
+<dd>The exact serialized request containing instructions, accounts, fee payer, and a recent blockhash. A signature authorizes those bytes; it does not guarantee that the network accepts them.</dd></div>
+<div class="docs-guide-term"><dt>Confirmed and finalized</dt>
+<dd>Two Solana confidence levels. This reviewed signing path waits for confirmed; finalized is a stronger later state, so the page does not use the words interchangeably.</dd></div>
+<div class="docs-guide-term"><dt>Backup confirmation</dt>
+<dd>A login-page checkbox for a newly created wallet. It records no durable proof and cannot know whether the player actually saved a usable backup.</dd></div>
+<div class="docs-guide-term"><dt>Confirmed balance</dt>
+<dd>The RPC balance observed with Solana's confirmed commitment. It is a snapshot, not finalized proof, a spending reserve, or a promise that every future action can pay.</dd></div>
+<div class="docs-guide-term"><dt>Disconnect</dt>
+<dd>Clearing the selected wallet binding and asking an extension provider to disconnect when one exists. It does not delete the built-in Game Wallet secret.</dd></div>
+<div class="docs-guide-term"><dt>Delete and recover</dt>
+<dd>Deleting means removing this browser record or clearing site data; it does not erase every copy or refund a balance. Recovery means reconstructing the same keypair from valid secret material. The reviewed client exposes no server-backed recovery path, so do not assume support can restore it.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Base58 text is stored in plain browser storage</strong>
+<p>Creation and import both end with a complete 64-byte secret encoded as Base58 under nicechunk.localGameWallet.secretKey. No encryption or password layer is applied.</p></article>
+<article class="docs-key-point"><strong>Back up before funding or replacing</strong>
+<p>The full login page asks creators to confirm a backup before continuing, but the checkbox is only self-attestation. Create and Import can silently replace an existing local record.</p></article>
+<article class="docs-key-point"><strong>It is full account authority across clusters</strong>
+<p>The signer does not restrict itself to NiceChunk instructions. The same secret controls the same address on Devnet and Mainnet; the 0.1 SOL gate, action bits, and current interface are not permission caps.</p></article>
+<article class="docs-key-point"><strong>Disconnect, Delete, and Recover are different</strong>
+<p>Disconnect clears session binding fields. Deleting site data removes only browser records, not balances or every copied key. If the last valid secret is lost, assets can remain on chain but become permanently inaccessible.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#browser-held-secret">Creation and import both end as one browser-held Base58 secret</a></li>
+<li><a href="#backup-before-funding">Verify a recoverable backup before sending even a small balance</a></li>
+<li><a href="#one-key-signs-game-actions">Fewer popups means the browser-held key can sign directly</a></li>
+<li><a href="#disconnect-delete-and-recover">Disconnect clears a session; deletion removes only this browser record</a></li>
+<li><a href="#technical-details">Eleven excerpts follow the secret from storage to signing and cleanup</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="browser-held-secret"><p class="docs-eyebrow">STORAGE AND IMPORT BOUNDARY</p>
+<h2>Creation and import both end as one browser-held Base58 secret</h2>
+<p class="docs-prose">Create generates a Solana Keypair. Import accepts trimmed Base58 text or text beginning with an opening bracket for a JSON array. Thirty-two decoded bytes are treated as a seed; sixty-four are treated as a complete secret key. Whichever route succeeds, NiceChunk writes the derived public address, the complete 64-byte secret encoded as Base58, the current millisecond timestamp, and a created-or-imported source label into four separate localStorage entries.</p>
+<p class="docs-prose">Those entries are plain origin storage, not an encrypted wallet file. Base58 changes the alphabet, not who can read the value. A same-origin script can request the secret record, and clearing this site's data can remove the only browser copy. The source label is editable browser data used for interface behavior, not cryptographic provenance. For an imported wallet, createdAt means when this browser stored it, not when that key first existed.</p>
+<p class="docs-prose">The key has no NiceChunk-only or Devnet-only flag. Solana derives the same address from the same secret on Devnet and Mainnet. Importing a main-wallet secret into this Devnet-targeted page therefore exposes the authority that same key has over its Mainnet address, tokens, accounts, and other permissions. Use a newly created dedicated Game Wallet and Devnet SOL only; do not send Mainnet SOL to this flow.</p>
+<p class="docs-prose">The JSON branch is permissive. It calls Uint8Array.from on whatever JSON.parse returns and then checks only the resulting byte length. Values such as 256 wrap to zero and numeric strings are coerced; the code does not require a flat array of integers from 0 through 255. The Base58 and JSON error paths also do not accept a recovery phrase, hexadecimal string, or Base64 value.</p>
+<p class="docs-prose">Create and Import call the same storage routine without checking for an existing record or asking permission to replace it. Four keys are written one after another rather than atomically. A second action can silently overwrite an unbacked wallet, and a storage failure between writes can leave a partial or mismatched record. Reading the record requires an address and secret but does not derive the address from the secret and compare them. Later provider construction derives its public key from the secret, so a corrupted stored address and stored secret can describe different wallets.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Stored secret</span>
+<strong>Base58 of the complete 64-byte Keypair secret</strong>
+<p>A 32-byte seed import is expanded to a Keypair first, so storage still receives the resulting 64-byte secret.</p></article>
+<article class="docs-fact"><span>Stored metadata</span>
+<strong>Address, timestamp, and created/imported label</strong>
+<p>They are four independent localStorage values with no schema version, atomic commit, or authenticated relationship.</p></article>
+<article class="docs-fact"><span>JSON validation</span>
+<strong>Conversion plus length check</strong>
+<p>The current parser does not reject every non-integer, out-of-range, string, nested, or otherwise coerced element before Uint8Array conversion.</p></article>
+<article class="docs-fact"><span>Replacement behavior</span>
+<strong>Last successful Create or Import wins</strong>
+<p>There is no overwrite confirmation or automatic export of the previous secret.</p></article>
+<article class="docs-fact"><span>Cluster boundary</span>
+<strong>The secret is not Devnet-only</strong>
+<p>The current page targets Devnet, but the same secret controls the same public address wherever that key has authority, including Mainnet.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl places one closed wooden box on an exposed shelf inside an open timber shelter while the boy watches from outside." decoding="async" height="887" loading="lazy" src="/docs/media/local-game-wallet-backup-and-risk-browser-held-secret-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The open shelter and ordinary shelf represent storage available to code running in the same site origin; the closed box represents the secret. They are not literal browser objects, and the scene proves no encryption, isolation, completed backup, private-key safety, signature, balance, or chain success.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Never import a main wallet, even for a Devnet test</strong>
+<p>Base58 only makes the bytes printable, and Solana keys are not cluster-specific. Anyone or any same-origin code that obtains this stored text can reconstruct the same full signing key.</p></aside></section>
+<section class="docs-content-section" id="backup-before-funding"><p class="docs-eyebrow">BACKUP AND FUNDING BOUNDARY</p>
+<h2>Verify a recoverable backup before sending even a small balance</h2>
+<p class="docs-prose">After the full login page creates a wallet, it shows the public address and complete Base58 private-key backup, clears the confirmation checkbox, and blocks Continue until the player checks it. The page does not verify a clipboard copy, test a restored key, download a file, or persist the confirmation. A creator can check the box without saving anything. When an unbound created record is shown again later, the secret can be displayed again and the checkbox is reset.</p>
+<p class="docs-prose">The Copy private key button writes the value to the operating system clipboard and reports success or failure. It does not read the clipboard back, verify the reconstructed address, or clear the clipboard later. Clipboard history, clipboard synchronization, and other applications can retain copied text. On a shared browser profile, another person who can use the same origin may also reach the saved record. localStorage is not a reliable cross-device backup: changing device, browser, browser profile, site origin, privacy mode, or site-data settings can make the wallet unavailable, while some profile-backup or synchronization systems may copy browser data in ways this client does not verify.</p>
+<p class="docs-prose">Imported records take another branch: the full login page blanks the private-key field, hides the backup controls, and skips the backup checkbox because the player supplied the key. That does not remove the imported secret from localStorage. The source label controlling this interface branch is local data rather than proof that a safe external backup still exists.</p>
+<p class="docs-prose">The full login Continue path then asks the configured RPC for the stored address's confirmed SOL balance. It requires at least 100,000,000 lamports, or 0.1 SOL, before it stores the wallet session and advances. This is a minimum gate, not an exact required deposit, maximum balance, escrow, spending cap, fee guarantee, or rule that constrains where later transactions can send SOL. A three-decimal formatter can even display a value just below the threshold as 0.100 SOL while the integer comparison still rejects it.</p>
+<p class="docs-prose">The in-game Play wallet panel is a separate path and bypasses both full-login gates. Create immediately writes the wallet and applies a wallet session while merely telling the player to save and fund it. Use local game wallet also applies a session without checking a backup box, source label, or 0.1 SOL balance. That bypass does not make an unfunded transaction succeed and does not bypass any on-chain instruction validation; it only means the login-page safeguards are not universal.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Created-wallet checkbox</span>
+<strong>A temporary self-attestation</strong>
+<p>It is reset whenever the vault is shown and does not prove that a backup exists or is usable.</p></article>
+<article class="docs-fact"><span>Imported-wallet branch</span>
+<strong>Secret hidden and checkbox bypassed</strong>
+<p>The secret remains stored even though the full login page does not show it in that branch.</p></article>
+<article class="docs-fact"><span>0.1 SOL</span>
+<strong>Current full-login minimum</strong>
+<p>It is a confirmed balance comparison against 100,000,000 lamports, not a cap, reserve, escrow, or protocol authorization rule.</p></article>
+<article class="docs-fact"><span>Play wallet panel</span>
+<strong>Applies the session without those two gates</strong>
+<p>It exposes separate Create and Use local wallet actions that do not enforce the backup checkbox or minimum-balance comparison.</p></article>
+<article class="docs-fact"><span>Clipboard and device boundary</span>
+<strong>Copying and persistence are outside the checkbox</strong>
+<p>The client does not clear clipboard history or guarantee storage survives privacy mode, profile changes, site-data cleanup, or device changes.</p></article></div>
+<ol class="docs-steps"><li><strong>Use only a dedicated low-balance Game Wallet</strong>
+<p>The interface warns against importing a main wallet, but code cannot recognize one. Keep valuable assets and long-lived authority elsewhere.</p></li>
+<li><strong>Save the exact secret before funding</strong>
+<p>Store the complete Base58 value through a trusted offline backup process. Do not send it through chat, a cloud form, or support; screenshots and synchronized clipboard history can also leak or replicate it.</p></li>
+<li><strong>Verify the backup without exposing it</strong>
+<p>Use a separate trusted recovery environment to confirm that the saved material reconstructs the same public address. Do not use Import in the currently stored wallet as a test because Import can overwrite that record.</p></li>
+<li><strong>Transfer only the amount you choose to risk</strong>
+<p>Use Devnet SOL only. The current login gate needs at least 0.1 SOL, but it imposes no upper limit and does not limit the key's authority. Low balance is risk reduction advice, not enforcement.</p></li>
+<li><strong>Do not press Create or Import casually</strong>
+<p>Either operation can replace the existing stored key without confirmation. Back up the current wallet and verify the intended address first.</p></li></ol>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl places one plain closed wooden box in a dry stone recess while a second closed box remains under the distant camp shelter and the boy stands between them." decoding="async" height="887" loading="lazy" src="/docs/media/local-game-wallet-backup-and-risk-backup-before-funding-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The two separated closed boxes represent an original secret and a separate recovery copy. They are teaching metaphors, not instructions to duplicate a physical game item; this scene cannot verify that a backup is correct or safe, that no copy leaked, that SOL moved, or that any signature or chain action succeeded.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>The Play panel can skip the full login safeguards</strong>
+<p>Treat the backup checkbox and 0.1 SOL gate as behavior of the full login flow, not a universal requirement enforced by every local-wallet entry point or by the Solana programs.</p></aside></section>
+<section class="docs-content-section" id="one-key-signs-game-actions"><p class="docs-eyebrow">SIGNING AUTHORITY BOUNDARY</p>
+<h2>Fewer popups means the browser-held key can sign directly</h2>
+<p class="docs-prose">When NiceChunk needs the local provider, it reads the stored Base58 secret, reconstructs the Keypair, and returns a provider marked connected. Its connect method simply returns the derived public key. Its transaction methods call partialSign with that Keypair for one transaction or every transaction in a supplied list. There is no external-wallet confirmation prompt in those methods, and disconnect is a no-op.</p>
+<p class="docs-prose">Those transaction methods do not inspect whether the bytes are a NiceChunk mining action. A caller that reaches the signer can ask the key to sign any compatible transaction supplied to it, including transfers, token operations, or owner-authorized instructions, subject to the normal Solana programs and account rules in that transaction. The current UI, 0.1 SOL minimum, PlayerSession action bits, and low-balance advice do not narrow what the owner secret itself can authorize.</p>
+<p class="docs-prose">The current chain adapter also recognizes this provider and can send keypair-signed transactions directly. For the local Game Wallet's player-session setup, the owner public key and session-authority public key are the same key. This avoids funding and storing a second temporary signer, but it also means the Game Wallet secret remains the direct signing authority. Calling the record a session does not turn that long-lived owner key into a server-held session or a narrower extension approval.</p>
+<p class="docs-prose">The PlayerSession PDA can expire or limit the supported player instructions that read it, but that expiry does not rotate, delete, or neutralize the long-lived owner secret. By contrast, the external-wallet path can use a different temporary session key. Local mode returns the Game Wallet Keypair itself and marks that it is not using a separate Gameplay Session signer.</p>
+<p class="docs-prose">This does not mean the key can make every attempted game action succeed. The provider implements a small transaction interface based on partialSign, while the chain adapter contains additional local-key branches. Prepared instructions still face RPC availability, fees, account ownership, PDA derivation, program checks, cooldowns, capacity rules, and confirmation failure. The local key supplies a signature; it does not prove the instruction was correct or accepted.</p>
+<p class="docs-prose">The stored record and provider derive identity differently after corruption. Login balance and binding use the separately stored address without verifying it against the secret. Provider construction derives the public key from the secret, and the chain provider selector later requires the bound session address to equal that derived public key. A mismatch can therefore let login inspect or bind one address but later make the local signer unavailable. It is an integrity failure, not a safe address migration feature.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>What signs</span>
+<strong>The reconstructed browser-held Keypair</strong>
+<p>The secret is decoded each time a provider or direct local Keypair is requested.</p></article>
+<article class="docs-fact"><span>What the player sees</span>
+<strong>No extension approval popup for these local methods</strong>
+<p>The convenience depends on trusting the same-origin application code that prepares transaction bytes and asks the Keypair to sign them.</p></article>
+<article class="docs-fact"><span>What a signature proves</span>
+<strong>That this key signed exact transaction bytes</strong>
+<p>It does not prove correct program behavior, sufficient balance, RPC acceptance, confirmed status, or finalized state.</p></article>
+<article class="docs-fact"><span>Address integrity</span>
+<strong>Not checked when the four-field record is read</strong>
+<p>A safe load would derive the public key from the secret and require it to equal the stored address before using either.</p></article>
+<article class="docs-fact"><span>Signer scope</span>
+<strong>Full authority of that Solana account key</strong>
+<p>The partial-sign method itself does not enforce a NiceChunk-only instruction list, a SOL cap, or a Devnet-only boundary.</p></article>
+<article class="docs-fact"><span>Session expiry</span>
+<strong>Does not expire the owner secret</strong>
+<p>An on-chain PlayerSession record can expire while the same browser-held owner Keypair remains able to sign owner-authorized transactions.</p></article></div>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl raises one pickaxe before one intact stone block while the boy waits aside and one closed wooden box remains on the camp shelf behind her." decoding="async" height="887" loading="lazy" src="/docs/media/local-game-wallet-backup-and-risk-one-key-signs-game-actions-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The girl acting with her own tool represents the browser-held owner key signing one game action without an extension popup; it does not imply that the key is limited to that action. The intact stone freezes the moment before any result, and the scene proves no valid signature, sufficient balance, accepted transaction, confirmed state, or finalized state.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Automatic signing is the feature and the risk</strong>
+<p>A compromised same-origin script that reaches the stored key does not need to defeat an extension popup, and the key is not limited to NiceChunk actions. Keep it new and dedicated, use it only with Devnet, and keep its balance low; move valuable assets and wider authority elsewhere.</p></aside></section>
+<section class="docs-content-section" id="disconnect-delete-and-recover"><p class="docs-eyebrow">LIFECYCLE BOUNDARY</p>
+<h2>Disconnect clears a session; deletion removes only this browser record</h2>
+<p class="docs-prose">The login-page Disconnect button tries to disconnect detected extension providers and then clears the selected wallet address, wallet name, and wallet-bound timestamp. The Play logout path similarly treats provider disconnect as best effort, clears identity and selected runtime caches, and returns to login. The built-in local provider's own disconnect method returns without changing anything. None of these paths deletes the four nicechunk.localGameWallet fields.</p>
+<p class="docs-prose">The local wallet module does export clearLocalGameWallet, which removes the address, secret, timestamp, and source fields. Current repository search finds no reviewed runtime or product control that calls it, and neither wallet panel presents a Delete or Forget Game Wallet button. A player can disconnect and later see or reuse the same saved local record. Clearing browser site data can delete it, but that broad browser action may remove other local NiceChunk state too.</p>
+<p class="docs-prose">Deletion is not revocation, transfer, refund, or guaranteed secure erasure. Disconnecting, clearing site data, or deleting the local record does not move out SOL, tokens, or other assets; undo completed transactions; erase public history; close program accounts; remove browser or clipboard copies elsewhere; or necessarily remove a Keypair already held in live JavaScript memory. If the deleted record was the last valid secret, the on-chain balance and assets remain at the address but may become permanently inaccessible.</p>
+<p class="docs-prose">If the secret was exposed, anyone with a copy may still sign. From a trusted environment, create a fresh wallet and move remaining value and authority rather than relying on Disconnect or local deletion. Removing one browser copy cannot make another person's copy private again.</p>
+<p class="docs-prose">Recovery is deterministic key reconstruction, not an account reset. A correct 32-byte seed or 64-byte secret in accepted Base58 or JSON-array form recreates the corresponding Keypair, and the storage routine saves its complete 64-byte Base58 secret. A wrong format is rejected, but permissive JSON coercion can silently change unusual values. Always verify the recovered public address before treating the wallet as restored. If every valid copy is lost after site data is cleared or a silent overwrite, the reviewed client exposes no server-backed recovery path; players should not assume NiceChunk support can restore the secret.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Disconnect removes</span>
+<strong>Selected connection and session fields</strong>
+<p>Exact cleanup differs between login and Play, but neither path invokes the local Game Wallet clear function.</p></article>
+<article class="docs-fact"><span>Current wallet-only delete UI</span>
+<strong>None</strong>
+<p>The clear function exists in source but has no reviewed runtime or product caller and no player-facing button.</p></article>
+<article class="docs-fact"><span>Browser site-data clearing</span>
+<strong>Can remove the only local secret copy</strong>
+<p>It can also remove unrelated local game state and cannot revoke a secret copied elsewhere.</p></article>
+<article class="docs-fact"><span>Reviewed client recovery path</span>
+<strong>No path exposed by the reviewed client</strong>
+<p>Recovery depends on valid secret material that reconstructs the same public address; do not assume support can restore a lost secret.</p></article></div>
+<ol class="docs-steps"><li><strong>To stop using the wallet in the current session</strong>
+<p>Use Disconnect or logout. Expect the local binding to clear, but expect the built-in secret to remain available in this browser.</p></li>
+<li><strong>To delete the browser copy</strong>
+<p>First verify a safe backup and the intended address, then move or account for any remaining balance. The current product has no dedicated Delete control; clearing site data is broader than wallet-only deletion and is not guaranteed secure erasure.</p></li>
+<li><strong>To recover the same wallet</strong>
+<p>Import the trusted backup and verify that the derived public address exactly matches the address you recorded before sending or signing anything.</p></li>
+<li><strong>To respond to exposure</strong>
+<p>Assume copied secret material remains usable. Create a fresh wallet through a trusted path and move remaining assets or authorities; Disconnect cannot rotate the key.</p></li>
+<li><strong>To avoid accidental replacement</strong>
+<p>Do not use Create or Import as an experiment while a funded local wallet is stored. There is no current overwrite confirmation or automatic previous-key recovery.</p></li></ol>
+<figure class="docs-section-visual"><img alt="In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl and boy walk away from an open timber camp while one plain closed wooden box remains on its exposed shelf and an intact stone block remains beside it." decoding="async" height="887" loading="lazy" src="/docs/media/local-game-wallet-backup-and-risk-disconnect-delete-and-recover-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Walking away while the box remains represents Disconnect leaving the browser-held secret in place; the unchanged stone represents shared history that local cleanup cannot erase. These are teaching metaphors, not product controls or proof of deletion, recovery, revocation, balance, signature, or chain state.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>No backup means no recovery path in the reviewed client</strong>
+<p>If browser storage is cleared or silently replaced and no valid secret copy remains, the key cannot be reconstructed from its public address. The reviewed client exposes no server-backed recovery path, so remaining assets may stay on chain but become permanently inaccessible.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">FOLLOW THE KEY</p>
+<h2>Eleven excerpts follow the secret from storage to signing and cleanup</h2>
+<p>The formulas separate one login-page gate from the key's much wider authority. The verbatim excerpts show creation, import, clearing, permissive byte conversion, direct provider signing, created-versus-imported presentation, the backup and balance gate, the Play bypass, clipboard copying, session cleanup, owner-equals-session authority, confirmed submission, and the stored-address integrity check.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Current full-login Continue gate</h3>
+<div aria-label="The full login page continues only when a stored address exists, either the source is imported or the backup checkbox is checked, and the confirmed balance of the stored address is at least one hundred million lamports." class="docs-formula-expression" role="math"><code>continueLogin = has(record.address) AND (source = imported OR backupBox = checked) AND confirmedBalance(record.address) &gt;= 100,000,000 lamports</code></div>
+<p class="docs-technical-explanation">This is browser-interface policy, not a Solana program rule. The checkbox does not prove a backup, imported records bypass it, and the expression does not verify that record.address matches the public key derived from the stored secret. The threshold is a minimum rather than a cap or reserved budget. The Play wallet panel applies a local session without evaluating this formula.</p>
+<dl class="docs-formula-terms"><dt>record.address</dt>
+<dd>The separately stored Base58 address read from localStorage; this gate does not derive and compare it with the stored secret.</dd>
+<dt>source</dt>
+<dd>The mutable created-or-imported localStorage label used to choose the backup interface branch.</dd>
+<dt>backupBox</dt>
+<dd>The temporary created-wallet checkbox. Checked means only that the player selected it in the current page state.</dd>
+<dt>confirmedBalance</dt>
+<dd>One RPC snapshot at confirmed commitment for the separately stored address.</dd>
+<dt>100,000,000 lamports</dt>
+<dd>Exactly 0.1 SOL, used here as the current full-login minimum and not as an upper limit.</dd></dl></article>
+<article class="docs-formula"><h3>The login minimum is not the key's authority boundary</h3>
+<div aria-label="The Game Wallet secret gives full signing authority for its address on every Solana cluster. The zero point one SOL login gate is neither a spending cap nor a permission cap." class="docs-formula-expression" role="math"><code>GameWalletSecret =&gt; full signing authority for Address on every Solana cluster; 0.1 SOL gate != spending cap != permission cap</code></div>
+<p class="docs-technical-explanation">The same secret derives the same address on Devnet and Mainnet. The local provider applies that Keypair to transaction bytes without checking for a NiceChunk-only instruction. Solana programs still validate the submitted transaction, but the browser gate, low-balance advice, session action bits, and current user interface do not reduce the owner key's cryptographic scope.</p>
+<dl class="docs-formula-terms"><dt>GameWalletSecret</dt>
+<dd>The complete browser-held Keypair secret, stored as Base58 text and capable of producing owner signatures.</dd>
+<dt>Address</dt>
+<dd>The public key derived from the secret. Cluster choice changes which ledger is queried, not the derived address.</dd>
+<dt>full signing authority</dt>
+<dd>The signer itself does not restrict requests to NiceChunk actions; each transaction remains subject to its normal program and account checks.</dd>
+<dt>0.1 SOL gate</dt>
+<dd>A current full-login Devnet balance minimum, not escrow, an automatic transfer, a spending maximum, or an authorization rule.</dd>
+<dt>!=</dt>
+<dd>Means 'is not the same as.' Interface policy must not be mistaken for a cryptographic permission boundary.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Create, Import, and Clear share one local record</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/localGameWallet.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function createLocalGameWallet() {
+  const keypair = Keypair.generate();
+  return storeLocalGameWalletKeypair(keypair, "created");
+}
+
+export function importLocalGameWallet(value) {
+  const keypair = keypairFromSecretInput(value);
+  return storeLocalGameWalletKeypair(keypair, "imported");
+}
+
+export function clearLocalGameWallet() {
+  if (!hasLocalStorage()) return;
+  localStorage.removeItem(localGameWalletKeys.address);
+  localStorage.removeItem(localGameWalletKeys.secretKey);
+  localStorage.removeItem(localGameWalletKeys.createdAt);
+  localStorage.removeItem(localGameWalletKeys.source);
+}</code></pre>
+<p class="docs-technical-explanation">Create generates a Keypair and Import parses one, but both immediately call the same storage routine with only a source label changed. Neither checks whether a wallet already exists, so either can replace the record. Clear removes all four Game Wallet fields, but no reviewed login or Play control calls this exported function.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-4</strong>
+<p>Generate a fresh Solana Keypair and send it directly to the storage routine as created.</p></li>
+<li><strong>6-9</strong>
+<p>Parse the supplied secret material and send the resulting Keypair to the same routine as imported.</p></li>
+<li><strong>11-17</strong>
+<p>The available clear operation removes address, secret, timestamp, and source from browser storage; it does not revoke copies or chain state.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The local provider signs with the reconstructed Keypair</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/localGameWallet.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function getLocalGameWalletProvider() {
+  const keypair = loadLocalGameWalletKeypair();
+  if (!keypair) return null;
+  return {
+    isNiceChunkLocalGameWallet: true,
+    isConnected: true,
+    publicKey: keypair.publicKey,
+    async connect() {
+      return { publicKey: keypair.publicKey };
+    },
+    async disconnect() {
+      return undefined;
+    },
+    async signTransaction(transaction) {
+      transaction.partialSign(keypair);
+      return transaction;
+    },
+    async signAllTransactions(transactions) {
+      for (const transaction of transactions) transaction.partialSign(keypair);
+      return transactions;
+    },
+  };
+}</code></pre>
+<p class="docs-technical-explanation">Provider construction first loads the secret-derived Keypair. The returned object is always marked connected, connect just returns the public key, and disconnect changes no state. Transaction methods partial-sign directly with the Keypair without an extension prompt. This small interface does not promise compatibility with every Solana transaction or wallet operation.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-3</strong>
+<p>Reconstruct the Keypair from stored secret material and refuse to create a provider if loading fails.</p></li>
+<li><strong>4-10</strong>
+<p>Expose a local-provider marker, a fixed connected flag, the derived public key, and a connect result without an external approval step.</p></li>
+<li><strong>11-13</strong>
+<p>Return from disconnect without deleting storage, clearing a binding, or revoking the key.</p></li>
+<li><strong>14-21</strong>
+<p>Apply this Keypair directly to one transaction or each transaction in a list and return the signed object or list.</p></li>
+<li><strong>22-23</strong>
+<p>Finish the provider object and function; no message-signing, event, or delete method is added.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Storage normalizes secrets while JSON elements are coerced</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/localGameWallet.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function storeLocalGameWalletKeypair(keypair, source = "created") {
+  const address = keypair.publicKey.toBase58();
+  const secretKey = bs58.encode(keypair.secretKey);
+  const createdAt = String(Date.now());
+  if (!hasLocalStorage()) throw new Error("Browser local storage is unavailable.");
+  localStorage.setItem(localGameWalletKeys.address, address);
+  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);
+  localStorage.setItem(localGameWalletKeys.createdAt, createdAt);
+  localStorage.setItem(localGameWalletKeys.source, source === "imported" ? "imported" : "created");
+  return { address, secretKey, createdAt, source: source === "imported" ? "imported" : "created" };
+}
+
+function loadLocalGameWalletKeypair() {
+  try {
+    const record = getLocalGameWalletRecord({ includeSecret: true });
+    if (!record?.secretKey) return null;
+    return keypairFromSecretInput(record.secretKey);
+  } catch {
+    return null;
+  }
+}
+
+function keypairFromSecretInput(value) {
+  const raw = String(value || "").trim();
+  if (!raw) throw new Error("Missing private key.");
+  const bytes = raw.startsWith("[") ? Uint8Array.from(JSON.parse(raw)) : bs58.decode(raw);
+  if (bytes.length === 64) return Keypair.fromSecretKey(bytes);
+  if (bytes.length === 32) return Keypair.fromSeed(bytes);
+  throw new Error("Private key must be a Solana 64-byte secret key or 32-byte seed.");
+}</code></pre>
+<p class="docs-technical-explanation">Storage derives the address, encodes the complete Keypair secret, and writes four independent values. Loading ignores the separately stored address and reconstructs from secretKey. The parser chooses JSON by the opening bracket, converts with Uint8Array.from, and then checks length. That accepts valid 32- and 64-byte forms but does not strictly validate every JSON element before coercion.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-5</strong>
+<p>Derive the public address, Base58-encode the complete Keypair secret, stamp the current time, and require browser storage.</p></li>
+<li><strong>6-10</strong>
+<p>Write four separate localStorage entries in sequence and return the same address, secret, timestamp, and normalized source to the caller.</p></li>
+<li><strong>13-21</strong>
+<p>Read a record including its secret and reconstruct a Keypair; any load or parse failure becomes null. The stored address is not compared here.</p></li>
+<li><strong>23-26</strong>
+<p>Trim the supplied text, reject empty input, then choose permissive JSON-to-Uint8Array conversion or Base58 decoding.</p></li>
+<li><strong>27-30</strong>
+<p>Treat 64 bytes as a complete secret, 32 bytes as a seed, and reject every other resulting length.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The full login vault treats created and imported records differently</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">login/login.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function showGameWalletVault(wallet, { source = wallet?.source || "created" } = {}) {
+  gameWalletVaultSource = source === "imported" ? "imported" : "created";
+  if (gameWalletAddress) gameWalletAddress.value = wallet.address || "";
+  if (gameWalletPrivateKey) gameWalletPrivateKey.value = gameWalletVaultSource === "created" ? wallet.secretKey || "" : "";
+  if (gameWalletBackupConfirmed) gameWalletBackupConfirmed.checked = false;
+  if (gameWalletBackupFields) gameWalletBackupFields.hidden = gameWalletVaultSource === "imported";
+  if (copyGameWalletPrivateKey) copyGameWalletPrivateKey.tabIndex = gameWalletVaultSource === "imported" ? -1 : 0;
+  if (continueGameWalletButton) {
+    const i18nKey = gameWalletVaultSource === "imported"
+      ? "login.gameWallet.continueImportedAction"
+      : "login.gameWallet.continueAction";
+    continueGameWalletButton.dataset.i18n = i18nKey;
+    continueGameWalletButton.textContent = t(i18nKey);
+  }
+  if (gameWalletBalanceLine) {
+    gameWalletBalanceLine.classList.remove("warning");
+    gameWalletBalanceLine.textContent = t("login.gameWallet.balanceReady", { address: formatAddress(wallet.address) });
+  }
+  gameWalletVault?.classList.remove("hidden");
+}</code></pre>
+<p class="docs-technical-explanation">The stored source label selects the interface branch. Created shows the returned secret and resets an unchecked confirmation box. Imported blanks the secret field, hides the backup controls, and changes the Continue label, even though the imported secret remains in localStorage. The balance line initially gives an instruction rather than proving a balance.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-4</strong>
+<p>Normalize every source other than imported to created, show the address, and show the secret only for the created branch.</p></li>
+<li><strong>5-7</strong>
+<p>Reset the confirmation box, hide imported backup fields, and remove the imported private-key copy button from keyboard order.</p></li>
+<li><strong>8-14</strong>
+<p>Choose different Continue text for imported and created interface states.</p></li>
+<li><strong>15-20</strong>
+<p>Reset the balance warning, display an instruction containing the formatted address, and reveal the vault.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The full login gate checks a checkbox and a confirmed minimum</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">login/login.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function continueWithGameWallet() {
+  continueGameWalletButton.disabled = true;
+  statusLine.textContent = t("login.gameWallet.statusCheckingBalance");
+  try {
+    const [{ getLocalGameWalletRecord }, { getNicechunkConnection }, { PublicKey }] = await Promise.all([
+      import("../src/localGameWallet.js"),
+      import("../src/chain/nicechunkChain.js"),
+      import("@solana/web3.js"),
+    ]);
+    const record = getLocalGameWalletRecord();
+    if (!record?.address) throw new Error("missing-game-wallet");
+    const source = record.source === "imported" ? "imported" : gameWalletVaultSource;
+    if (source !== "imported" &amp;&amp; !gameWalletBackupConfirmed?.checked) {
+      statusLine.textContent = t("login.gameWallet.statusBackupRequired");
+      gameWalletBackupConfirmed?.focus();
+      return;
+    }
+    const balanceLamports = await getNicechunkConnection().getBalance(new PublicKey(record.address), "confirmed");
+    if (balanceLamports &lt; requiredGameWalletLamports) {
+      const balanceSol = formatSol(balanceLamports);
+      if (gameWalletBalanceLine) {
+        gameWalletBalanceLine.classList.add("warning");
+        gameWalletBalanceLine.textContent = t("login.gameWallet.balanceRequired", { balance: balanceSol });
+      }
+      statusLine.textContent = t("login.gameWallet.statusFundingRequired");
+      return;
+    }
+    walletAddress = record.address;
+    persistConnectedWallet({ walletAddress, walletName: "NiceChunk Game Wallet" });
+    statusLine.textContent = t("login.gameWallet.statusReady");
+    await initialize();</code></pre>
+<p class="docs-technical-explanation">The full login flow reads the record without its secret, trusts the stored address, skips backup confirmation for imported source, and queries that address at confirmed commitment. Only the integer balance comparison controls the 0.1 SOL gate. Passing stores a browser connection; it does not cap the wallet, reserve funds, verify an address-secret match, or prove a later chain action.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-9</strong>
+<p>Disable Continue, announce a balance check, and load the record, connection, and PublicKey dependencies.</p></li>
+<li><strong>10-17</strong>
+<p>Require a stored address and require only created-source interface state to have the temporary checkbox selected. Imported source bypasses it.</p></li>
+<li><strong>18-26</strong>
+<p>Read the separately stored address balance at confirmed commitment and stop below the current lamport threshold.</p></li>
+<li><strong>27-31</strong>
+<p>Persist the stored address as the selected Game Wallet, report ready, and re-enter login initialization.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Play panel applies a local session without the full login gates</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  async function createLocalWalletLogin() {
+    try {
+      const module = await loadLocalWalletModule();
+      if (typeof module.createLocalGameWallet !== "function") throw new Error("Local wallet module does not expose createLocalGameWallet.");
+      const wallet = module.createLocalGameWallet();
+      applyWalletSession(wallet.address, "NiceChunk Game Wallet");
+      renderWalletPanel(`Created game wallet ${shortAddress(wallet.address)}. Save the private key before funding it.`, wallet);
+      setStatus(`Created NiceChunk game wallet ${shortAddress(wallet.address)}. Fund it before real chain mining.`);
+      appendChainEvent(`Created local game wallet ${shortAddress(wallet.address)}. Its private key is stored as unencrypted Base58 text for this browser origin.`);
+      return wallet;
+    } catch (error) {
+      setStatus(`Create game wallet failed: ${readableError(error)}.`);
+      appendChainEvent(`Create game wallet failed: ${readableError(error)}.`);
+      renderWalletPanel(`Create game wallet failed: ${readableError(error)}.`);
+      return null;
+    }
+  }
+
+  async function continueLocalWalletLogin() {
+    try {
+      const module = await loadLocalWalletModule();
+      const wallet = module.getLocalGameWalletRecord?.({ includeSecret: true });
+      if (!wallet?.address) {
+        renderWalletPanel("No local game wallet exists in this browser. Create one first.");
+        setStatus("No local game wallet exists in this browser.");
+        return null;
+      }
+      applyWalletSession(wallet.address, "NiceChunk Game Wallet");
+      renderWalletPanel(`Using game wallet ${shortAddress(wallet.address)}.`, wallet);
+      setStatus(`Using NiceChunk game wallet ${shortAddress(wallet.address)}.`);
+      appendChainEvent(`Using local game wallet ${shortAddress(wallet.address)} for chain session signing.`);
+      return wallet;
+    } catch (error) {
+      setStatus(`Continue game wallet failed: ${readableError(error)}.`);
+      appendChainEvent(`Continue game wallet failed: ${readableError(error)}.`);
+      renderWalletPanel(`Continue game wallet failed: ${readableError(error)}.`);
+      return null;
+    }
+  }</code></pre>
+<p class="docs-technical-explanation">Play creation immediately applies a wallet session after storage and only displays advice to save and fund. Play continuation requests the record including its secret and applies the session when an address exists. Neither function checks the full-login backup box, imported source branch, address-secret relationship, or 0.1 SOL minimum. On-chain and RPC checks can still reject later actions.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-10</strong>
+<p>Load the local module, create and store a wallet, immediately apply the session, and display backup and funding advice without enforcing either.</p></li>
+<li><strong>11-17</strong>
+<p>Report creation failures and return null; no previous-wallet restoration is attempted.</p></li>
+<li><strong>19-27</strong>
+<p>Load an existing record including its secret and require only a nonempty address before proceeding.</p></li>
+<li><strong>28-32</strong>
+<p>Apply the stored address as the selected session, reveal the local record to the wallet panel, and announce signing use.</p></li>
+<li><strong>33-39</strong>
+<p>Report continuation failures and return null; there is no backup or balance branch in this function.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Session cleanup removes binding fields, not the Game Wallet record</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/walletSession.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function clearWalletConnection() {
+  localStorage.removeItem(walletSessionKeys.walletAddress);
+  localStorage.removeItem(walletSessionKeys.walletName);
+  localStorage.removeItem(walletSessionKeys.walletBoundAt);
+}
+
+export function clearWalletSession() {
+  clearWalletConnection();
+  localStorage.removeItem(walletSessionKeys.username);
+  clearWalletRuntimeCaches();
+}</code></pre>
+<p class="docs-technical-explanation">The selected connection has its own address, name, bound time, username, and wallet-scoped runtime caches. Neither cleanup function refers to nicechunk.localGameWallet.address or nicechunk.localGameWallet.secretKey. Disconnect can therefore end the selected session while the separately stored owner secret remains available to the same browser origin.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-5</strong>
+<p>Remove the selected wallet address, wallet label, and binding timestamp, then finish connection cleanup.</p></li>
+<li><strong>7-11</strong>
+<p>Full session cleanup also removes the username and wallet-scoped runtime caches, but still does not call clearLocalGameWallet.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Copy writes the secret to the operating-system clipboard</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">login/login.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function copyGameWalletField(value, kind) {
+  if (!value) return;
+  try {
+    await navigator.clipboard.writeText(value);
+    statusLine.textContent = kind === "privateKey"
+      ? t("login.gameWallet.statusPrivateKeyCopied")
+      : t("login.gameWallet.statusAddressCopied");
+  } catch {
+    statusLine.textContent = t("login.gameWallet.statusCopyFailed");
+  }
+}</code></pre>
+<p class="docs-technical-explanation">The button asks the browser Clipboard API to write the supplied value and reports whether that call failed. It does not read the value back, derive an address from a copied secret, clear clipboard history, control clipboard synchronization, or prove that the player created a durable offline backup.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-2</strong>
+<p>Ignore an empty field rather than writing an empty clipboard value.</p></li>
+<li><strong>3-7</strong>
+<p>Write the exact value to the clipboard and display different success text for a private key or public address.</p></li>
+<li><strong>8-11</strong>
+<p>Display a copy failure when the Clipboard API rejects; no verification or later clipboard cleanup follows.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local mode makes the owner its own session authority</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const tx = new Transaction();
+  if (!profileAccount?.data?.length) {
+    tx.add(createInitializePlayerInstruction(owner, playerProfile, ""));
+  }
+  tx.add(createOrRefreshPlayerSessionInstruction({
+    owner,
+    sessionAuthority: owner,
+    playerProfile,
+    playerSession,
+    expiresAt,
+  }));
+
+  await signAndSendKeypairTransaction(keypair, tx, conn);
+  const balanceLamports = await conn.getBalance(owner, "confirmed").catch(() =&gt; null);
+  markGameplaySessionReady(owner, owner, balanceLamports);
+  updateGameplaySessionStatusCache(owner, createLocalGameWalletStatus(owner, balanceLamports, expiresAt));
+  return { keypair, expiresAt, localGameWallet: true };</code></pre>
+<p class="docs-technical-explanation">The surrounding function has already set owner from the local provider and loaded the same Game Wallet Keypair. This excerpt optionally initializes a missing profile, writes a PlayerSession whose sessionAuthority is the owner itself, signs with that Keypair, and caches readiness under owner, owner. The PDA can limit supported player instructions, but it does not turn the long-lived owner secret into an independent temporary key.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-4</strong>
+<p>Prepare one transaction and add player-profile initialization only when that public account does not exist.</p></li>
+<li><strong>5-11</strong>
+<p>Create or refresh the PlayerSession with the same public key in both owner and sessionAuthority roles.</p></li>
+<li><strong>13-17</strong>
+<p>Sign with the local Game Wallet Keypair, read the owner's confirmed balance, cache owner-as-authority readiness, and return the same Keypair.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Keypair pays, signs, sends, and waits for confirmed</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {
+  transaction.feePayer = signer.publicKey;
+  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+  transaction.recentBlockhash = blockhash;
+  transaction.lastValidBlockHeight = lastValidBlockHeight;
+  transaction.sign(signer);
+  const signature = await sendRawTransactionWithLogs(conn, transaction.serialize(), "keypair");
+  await confirmTransactionByHttpPolling(conn, { signature, blockhash, lastValidBlockHeight }, "confirmed");
+  return signature;
+}</code></pre>
+<p class="docs-technical-explanation">The local Keypair becomes the fee payer, receives a recent confirmed blockhash, signs the prepared transaction, and sends its serialized bytes. The client then polls that signature until its confirmed condition or an error. There is no external-wallet popup in this function, and confirmed must not be renamed finalized.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-5</strong>
+<p>Use the signer address as fee payer and attach a recent blockhash plus its last valid block height.</p></li>
+<li><strong>6-7</strong>
+<p>Apply the owner Keypair signature and send the serialized signed transaction bytes.</p></li>
+<li><strong>8-10</strong>
+<p>Poll the returned signature at confirmed commitment, then return it; this excerpt does not wait for finalized.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The local provider is selected only when the bound address matches</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function connectedWalletProvider({ prompt = false } = {}) {
+  const storedWallet = localStorage.getItem(storageWalletKey);
+  const localGameWallet = getLocalGameWalletProvider();
+  if (localGameWallet?.publicKey &amp;&amp; storedWallet === localGameWallet.publicKey.toBase58()) {
+    return localGameWallet;
+  }</code></pre>
+<p class="docs-technical-explanation">The selected wallet address is read separately from the Game Wallet record. Provider construction derives its public key from the stored secret. Only an exact match chooses the local provider. Because the earlier record reader and login balance gate do not perform that comparison, a damaged address field can appear usable during login and then fail this later signer selection.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-3</strong>
+<p>Read the active browser binding and independently reconstruct a provider from the stored Game Wallet secret.</p></li>
+<li><strong>4-6</strong>
+<p>Return the local signer only when its secret-derived public key exactly equals the active bound address.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>src/localGameWallet.js</code>
+<p>Defines the four localStorage keys, generated and imported Keypair paths, Base58 normalization, permissive JSON conversion, direct signing provider, no-op disconnect, and an exported clear function with no reviewed runtime or product caller.</p></article>
+<article class="docs-evidence-item"><code>login/login.js</code>
+<p>Shows created secrets, hides imported secrets, resets the backup checkbox, enforces the full-login 100,000,000-lamport confirmed minimum, binds the stored address, and disconnects without clearing the Game Wallet record.</p></article>
+<article class="docs-evidence-item"><code>login/index.html</code>
+<p>Provides Create and Import controls, the visible backup checkbox and copy fields, low-balance warnings, and Disconnect controls, but no Delete or Forget Game Wallet control.</p></article>
+<article class="docs-evidence-item"><code>public/login/locales/en.json</code>
+<p>States the player-facing backup, low-balance, imported-wallet, 0.1 SOL, copy, and ready messages used by the full login page.</p></article>
+<article class="docs-evidence-item"><code>src/walletSession.js</code>
+<p>Separates selected wallet binding keys from the local Game Wallet keys and clears address, name, bound time, username, and selected runtime-cache prefixes without deleting the built-in secret.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Selects the local provider only when its secret-derived public key matches the stored session address, sends local Keypair-signed transactions, and uses the same local key as owner and player-session authority.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Exposes separate in-game Create and Use local wallet paths that apply a session without the full-login backup checkbox or balance minimum and shows the returned secret in the Play wallet panel.</p></article>
+<article class="docs-evidence-item"><code>play/index.html</code>
+<p>Provides Create, Use local wallet, Disconnect, address, and private-key copy controls in Play, with no wallet-only Delete control.</p></article>
+<article class="docs-evidence-item"><code>scripts/audit-wallet-flows.mjs</code>
+<p>Checks a built local Game Wallet creation flow, the temporary backup checkbox, 99,999,999-versus-100,000,000-lamport boundary, session cleanup, retained four-field record, and redisplayed created secret with deterministic mocked RPC responses; it does not test import, overwrite, mismatch, live funding, transaction signing, or deletion.</p></article>
+<article class="docs-evidence-item"><code>docs/wallet-flow-audit.md</code>
+<p>Documents that the browser audit creates only an ephemeral isolated test key, never records its secret, uses mocked RPC data, and does not prove live balances, safe backup, transaction signing, submission, confirmation, recovery, or storage isolation.</p></article>
+<article class="docs-evidence-item"><code>play/tests/play-auth-session.test.mjs</code>
+<p>Tests selected identity and runtime-cache cleanup while preserving unrelated storage, but does not directly exercise the local Game Wallet module or its four keys.</p></article>
+<article class="docs-evidence-item"><code>play/tests/local-game-wallet.test.mjs</code>
+<p>Directly checks generated and imported key material, Base58 normalization, default secret omission, single and batch transaction partial-signing, no-op disconnect retention, and exact removal of the four wallet fields without freezing the known permissive JSON or silent-overwrite behavior.</p></article>
+<article class="docs-evidence-item"><code>play/tests/session-funding-boundary-copy.test.mjs</code>
+<p>Prevents the Play funding target from being described as escrow, a transaction spending boundary, or an authorization cap, and requires local-wallet copy to name the unencrypted origin-storage boundary.</p></article>
+<article class="docs-evidence-item"><code>package.json</code>
+<p>Defines the focused local Game Wallet test command and includes it plus the built browser wallet-flow audit in release validation.</p></article></div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Next, distinguish a Seed message proof from an on-chain payment</h2>
+<p>The next guide follows a public wallet address through one exact message signature and a central SQLite registration, then shows why a displayed 100 NCK amount is not evidence that tokens were received.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/wallet-login-and-safety/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>Wallet Login and Safety</strong>
+<p>Review what an external wallet connection reveals and why connect, message approval, and transaction approval remain separate.</p></a>
+<a class="docs-path-navigation-card" href="/docs/seed-whitelist-and-message-signatures/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Seed Whitelist Signatures, Central Registration, and NCK Evidence</strong>
+<p>Learn what one exact wallet message proves, what the central Seed service stores, and which on-chain evidence is still required before saying NCK was received.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

@@ -1,0 +1,1160 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-equipment-and-custody-zh-Hans-065f2d507858f44c",
+    "contentHash": "065f2d507858f44c"
+  },
+  "kind": "topic",
+  "slug": "equipment-and-custody",
+  "shortTitle": "装备与托管",
+  "seo": {
+    "title": "装备与托管：指针、Backpack 与市场挂牌",
+    "description": "了解 NiceChunk 中装备操作究竟改变了什么、锻造物品记录存放在哪里、为什么多件工具可能共用一个键、本地 NCF1 渲染与链上状态有何区别，以及 Market 挂牌何时才真正转移托管位置。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 · 第 8 步",
+    "title": "装备与托管：装备只是选中记录，挂牌才会移动记录",
+    "summary": "装备一件锻造物品，并不会把它移出 Backpack。Player 程序会验证一条记录，并且只把其中 32 字节的 item_pda 复制到 Profile 的 9 个数字槽位之一；这些槽位没有内置身体部位或物品类型规则。在已审核的当前路径中，后续的锻造 XP 调用会强制同一 owner 的每个成功产出都使用该 owner 当前的 Profile PDA，因此不同工具可以共用这个键。画面中可见、可用的工具，仍取决于浏览器快捷栏和通过哈希验证的本地 NCF1 字节。Market 挂牌则会单独保存快照并移除完整的 80 字节记录。本指南以生产环境 /play/ 为准，把较旧的 src/main.js 单独标明，最后给出带日期的 Devnet 证据。",
+    "readingTime": "阅读约 37 分钟",
+    "visual": {
+      "src": "/docs/media/equipment-and-custody-overview-v1.webp",
+      "alt": "生成的体素村庄工坊：标准女孩站在打开的 Backpack 旁，里面放着一件锻造工具；标准男孩把一块青色引用片放入多格墙面装备架，右侧本地排练架上放着一件粗糙、未上色的工具模型。",
+      "caption": "完整工具仍留在打开的 Backpack 中，只有小引用片进入架子，这用来对比库存托管位置与 Profile 引用；右侧的粗糙模型代表本地重建演练。这幅生成场景使用了标准村民、真实 Chunk.js 场景与烘焙材质参考，但其中每件道具、距离、光效和动作都只是教学比喻，不是解码后的账户数据、交易证明，也不是当前界面的截图。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "当我装备、手持、挂牌、取消挂牌或购买一件锻造工具时，真正的物品记录在哪里？我看到的内容中，究竟哪一部分真的在链上？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 15 步中的第 8 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的普通玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "当前含未提交改动的工作树中，Player、Backpack、Market、Chunk、Play、Guardian、SDK、NCF1 与渲染器的行为 · 另有独立的 confirmed Devnet 账户观测"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 18 日 · 源码原文摘录、针对装备的测试、生成图来源记录，以及保留的 confirmed slot 477,030,223 证据"
+      }
+    ],
+    "terms": [
+      {
+        "term": "钱包权限方",
+        "meaning": "必须由对应钱包批准交易的公钥。私有签名密钥绝不能放进 Profile、Backpack、Listing、浏览器消息或客服聊天中。"
+      },
+      {
+        "term": "Solana 账户所有者",
+        "meaning": "Solana 允许修改该账户数据的程序 ID。它与写在账户数据内部的玩家钱包不是一回事。"
+      },
+      {
+        "term": "数据中保存的玩家 owner",
+        "meaning": "保存在 Profile 或 Backpack 字节中的钱包公钥，程序通过检查它来确认与玩家的关系。"
+      },
+      {
+        "term": "PlayerProfile（玩家档案）",
+        "meaning": "一份紧凑的公开玩家账户，保存钱包关系、1 个 GlobalConfig 地址、9 个装备引用、1 个所选 Backpack 引用和进度字段。它不包含完整工具记录或模型几何体。"
+      },
+      {
+        "term": "GlobalConfig（全局配置）",
+        "meaning": "一份共享配置账户；它的地址保存在 PlayerProfile 中，Player、Market 和 Chunk 流程都会检查它，以防止互不相关的账户家族被悄悄混用。"
+      },
+      {
+        "term": "托管",
+        "meaning": "当前由程序控制、保存可用 80 字节库存记录的位置：通常是 Backpack，挂牌期间暂存在 Listing 快照中，取消或购买后再进入目标 Backpack。"
+      },
+      {
+        "term": "Backpack（背包）",
+        "meaning": "一份公开库存账户，包含账户头以及紧密排列的方块或物品记录。装备操作只读取它；挂牌操作则可以从中移除一条记录。"
+      },
+      {
+        "term": "紧密记录数组",
+        "meaning": "有效记录之间没有空位的列表。移除一条记录后，后面的记录都会向前移动，因此 Backpack 索引不是永久身份。"
+      },
+      {
+        "term": "记录索引",
+        "meaning": "当前 Backpack 数组中从 0 开始的位置。它不同于 Profile 装备槽、物品 ID、设计哈希和 PDA。"
+      },
+      {
+        "term": "PDA（程序派生地址）",
+        "meaning": "一个根据程序 ID 和种子字节确定性派生的公开账户地址，它没有私有签名密钥。一个名为 item_pda 的字段，本身不能证明该地址确实存在独有的物品账户。"
+      },
+      {
+        "term": "item_pda",
+        "meaning": "锻造 Backpack 记录中的一个 32 字节字段。当前的装备操作会把它复制到 Profile。在已审核的当前锻造路径中，若锻造成功，后续的锻造 XP 调用会强制传入的 player_profile 必须是 owner 当前的 PDA。因此，该 owner 的多个产出会共用这个字段，它不能唯一标识某一件物品。"
+      },
+      {
+        "term": "装备槽",
+        "meaning": "PlayerProfile 中 9 个 32 字节公钥字段之一。合约只强制索引必须为 0 到 8：它没有为槽位赋予头部、手部或物品类别含义，也允许同一个键出现在多个槽位中。"
+      },
+      {
+        "term": "清空哨兵值",
+        "meaning": "装备指令中的 Backpack 索引 255。它表示向 Profile 槽写入全零公钥，并且不需要 Backpack 账户。"
+      },
+      {
+        "term": "锻造记录",
+        "meaning": "一条 80 字节的 Backpack 物品记录，包含标识符、item_pda、体积、耐久度、品级、等级、品质，以及一个用作设计哈希的 32 位元数据值。"
+      },
+      {
+        "term": "设计哈希",
+        "meaning": "当前对 NCF1 字节计算出的 32 位 FNV-1a 指纹。它帮助浏览器找到匹配的本地呈现数据，但不是具备抗碰撞能力的内容身份。"
+      },
+      {
+        "term": "NCF1",
+        "meaning": "用于重建可见工具的紧凑锻造物体字节格式。当前 Backpack 记录只保存它的 32 位设计哈希，不保存完整 NCF1 载荷。"
+      },
+      {
+        "term": "快捷栏",
+        "meaning": "浏览器当前使用的快速选择栏。它控制本地角色呈现什么，并且可能与链上 Profile 的 9 个引用不同。"
+      },
+      {
+        "term": "AABB 碰撞",
+        "meaning": "一种简单的盒体间接触测试，每个盒体的边始终与世界坐标轴对齐。生产环境采矿会在挥动过程中对工具碰撞盒取样，并在两次取样之间做扫掠检查，避免高速运动在未被发现的情况下直接穿过方块。"
+      },
+      {
+        "term": "本地耐久度",
+        "meaning": "保存在该钱包浏览器快捷栏中的磨损数值。当前生产环境采矿会扣减这个本地数值，并且可以将其恢复；但它提交的 Chunk 指令不会改变锻造 Backpack 记录的链上耐久度。"
+      },
+      {
+        "term": "Guardian 装备消息",
+        "meaning": "在生产环境 Play 中，这是一条实时呈现消息，携带右手物品的类型与变体、锻造标记、设计哈希，以及可选的、通过哈希验证的 NCF1 字节。它既不携带 Profile 装备键，也不携带 Backpack 呈现字段，更不是钱包签名或托管凭证。"
+      },
+      {
+        "term": "富结构装备",
+        "meaning": "PlayerAppearance 内预留的 12 条 576 字节记录。当前 Appearance 打包会把它们重置为空，因此它们不是正在使用的 9 槽装备路径。"
+      },
+      {
+        "term": "Listing（挂牌账户）",
+        "meaning": "一份 216 字节的 Market 账户，可以保存完整的 80 字节来源记录，以及卖家、价格、来源、时间戳、状态和买家历史。"
+      },
+      {
+        "term": "原子交易",
+        "meaning": "一笔 Solana 交易中的指令与程序调用要么全部成功，要么全部回滚。因此，向买家 Backpack 追加失败时，同一笔购买交易中的付款也不会结算。"
+      },
+      {
+        "term": "本地存储",
+        "meaning": "保存在某一台设备上的浏览器数据。它可以恢复 NCF1 字节与快捷栏选择，但可能缺失、被清除或被修改，而且不具备链上权限。"
+      },
+      {
+        "term": "带日期的快照",
+        "meaning": "通过 RPC 在某个 confirmed 上下文 slot 观测到的账户字节。它能显示当时的状态，但不能证明已审核源码恰好生成了已部署的程序二进制。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "装备只复制一个键，Backpack 保持不变",
+      "body": "在完成钱包、Profile、GlobalConfig、Backpack 和锻造记录检查后，Player 程序只会把 record.item_pda 写入一个数字槽位。它不会移除、锁定、预留或修改 Backpack 记录；合约也不强制槽位类型或重复键规则。"
+    },
+    {
+      "title": "当前一个键可能代表多件不同工具",
+      "body": "已审核的锻造流程会先把 player_profile 作为 item_pda 传入，随后在同一笔交易中增加锻造 XP，并强制该 Profile 必须是从 owner 派生的当前 PDA。因此，同一 owner 的多个成功产出可以共用该键，而物品 ID、设计哈希、耐久度、品级、等级、品质和 Backpack 索引仍可以不同。"
+    },
+    {
+      "title": "画面中的手持物来自本地重建",
+      "body": "生产环境 Play 从本地快捷栏中选择工具；要让锻造网格真正可用，必须有匹配且通过哈希验证的 NCF1，击中前还要通过采样与扫掠 AABB 工具碰撞检查。Guardian 只转发画面呈现状态；这两种本地状态都不能证明 Profile 或 Backpack 已改变。"
+    },
+    {
+      "title": "Market 挂牌才是托管位置的转换",
+      "body": "Listing 会把完整的 80 字节记录复制进 Listing，并从紧密排列的 Backpack 中移除原记录。来源为装备时，清空所选 Profile 槽位；来源为 Backpack 时，只有当该记录是物品且确实存在匹配项时，才清空第一个匹配槽位。"
+    },
+    {
+      "title": "不要把生产环境 Play 与较旧的替代市场实现混为一谈",
+      "body": "生产环境 /play/ 加载 play/main.js 和 play/play-market.js：新建挂牌固定使用 Backpack 来源，取消挂牌时则没有提供目标 Backpack。src/main.js 中的装备来源与取消回退代码属于较旧或替代实现。两条路径都没有向玩家提供 set_equipment_slot。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "four-meanings-of-ownership",
+      "eyebrow": "同一个‘拥有’，对应四个不同问题",
+      "title": "‘拥有’并不能说明物品记录在哪里，也不能说明手中会显示什么",
+      "paragraphs": [
+        "玩家常说‘这件工具是我的’，但在实现中必须拆成四句话。第一，Solana 账户有一个程序所有者，只有该程序可以直接修改账户字节。第二，Profile、Backpack 与 Listing 数据可以保存玩家钱包或卖家公钥。第三，完整可用记录有一个当前存放位置。第四，某台设备上的游戏有一个当前呈现选择。这四件事可以彼此一致，但其中任何一件都不能自动证明其余几件。",
+        "在 Solana 层面，Backpack 账户可能归 Backpack Program 或统一 Game Program 所有，而其内部数据把 Alice 的钱包记为玩家 owner。即使没有任何 Profile 装备槽引用其中某条锻造记录，它仍可以属于 Alice 的库存。反过来，Profile 槽里可以保存一个键，但 Alice 笔记本上选中的快捷栏却显示另一件东西。",
+        "钱包签名会授权受支持的改动，但不会加密公开账户字节。程序所有权决定谁能写入，却不表示程序持有人类的钱包。本地网格只能证明浏览器重建并显示了几何体。请用准确措辞回答准确问题：账户所有者、数据中保存的 owner、记录位置，还是画面呈现。",
+        "当前链上装备路径接受归独立 Backpack Program 或统一 Game Program 所有的 Backpack 账户。Market 则取决于构建版本：独立构建指定独立 Backpack Program，统一 Game 构建通过 unified-game feature 编译并指定 Game Program。因此，程序域与 Backpack 内保存的钱包是两个需要分别判断的问题。"
+      ],
+      "facts": [
+        {
+          "label": "写入权限",
+          "value": "Solana account.owner",
+          "detail": "获准修改账户数据的程序。"
+        },
+        {
+          "label": "玩家关系",
+          "value": "数据中保存的钱包键",
+          "detail": "处理器会把这个值与签名玩家或目标玩家比较。"
+        },
+        {
+          "label": "托管位置",
+          "value": "Backpack 记录或 Listing 快照",
+          "detail": "完整 80 字节记录当前所在的位置。"
+        },
+        {
+          "label": "可见选择",
+          "value": "本地快捷栏与重建网格",
+          "detail": "某个浏览器当前在角色手中呈现的内容。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-four-meanings-of-ownership-v1.webp",
+        "alt": "生成的体素工坊：标准女孩在打开的 Backpack 和锻造工具旁拿着一枚木制 owner 插块；标准男孩则在由程序控制的墙面凹槽旁，查看架子上一件粗糙、未上色的工具。",
+        "caption": "墙面凹槽、owner 插块、保存完整记录的打开 Backpack，以及粗糙的本地工具架，分别表示写入权限、数据中保存的玩家关系、托管位置和画面呈现。它们是基于标准村民和真实 Chunk.js 环境参考生成的教学比喻；其形状、姿态和位置都不是程序 ID、签名、账户字节或所有权证明。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "一次只问清一个‘所有权’问题",
+        "body": "截图可以展示画面呈现；RPC 读取可以显示账户所有者与存储字段；经过验证的交易可以改变托管位置。这些观测不能在不加说明的情况下互相替代。"
+      }
+    },
+    {
+      "id": "equipping-copies-a-pointer",
+      "eyebrow": "带签名的选择，只读库存",
+      "title": "装备操作会验证一条锻造记录，然后只复制它的 32 字节引用",
+      "paragraphs": [
+        "装备指令携带两个字节：一个 0 至 8 的 Profile 装备槽，以及一个 Backpack 记录索引。钱包权限方必须签名。Player Program 会验证当前由 owner 派生且可写的 Profile、它与 GlobalConfig 的关系以及目标槽位。普通装备还需要第 4 个账户：一个归允许程序所有的 Backpack，并且长度、magic、版本、数据中保存的钱包 owner、按 ID 派生的 PDA 和紧密索引都必须正确。",
+        "所选记录必须是锻造类别的物品，数量、物品 ID 与 item_pda 都不能为零。当前耐久度必须大于 0 且不超过最大值；品级必须为 1 至 10，等级为 1 至 100，品质为 1 至 10,000 个基点。这个读取器不会再次检查 item_code 是否等于锻造常量、体积是否非零，也不会复查 flags 或设计哈希。这些省略并不意味着任意数据都能写入——Backpack 账户与 PDA 检查仍然有效——但它们确实界定了准确的接受边界。",
+        "完成这些检查后，Player 会把 record.item_pda 写入一个 32 字节的 Profile 字段，并把 Profile 共用的 updated_slot 观测字段更新为当前 Solana slot。Backpack 只被借用来读取；它的字节、物品数量、记录顺序、耐久度和托管位置都不会改变。槽位只是 0 到 8 的数字：合约没有赋予它们头部、右手、护甲或物品类别含义，也不要求每个槽位使用不同的键，因此同一引用可以出现在多个槽位中。",
+        "清空 Profile 槽时，指令使用 Backpack 索引 255，并且只提供 authority、Profile 与 GlobalConfig。Player 会写入默认的全零公钥。清除引用不会销毁工具，因为工具的完整记录从未保存在这个 Profile 字段里。",
+        "仓库中较旧的 TypeScript Player SDK 提供了这条指令的构建器。但无论生产环境 Play，还是较旧的替代实现 src/main.js，都没有调用该构建器，也没有提供另一个链上设置装备操作。因此，不能把这项合约能力说成普通玩家已经可以通过按钮完整使用的流程。"
+      ],
+      "steps": [
+        {
+          "title": "钱包批准一次 Profile 写入",
+          "body": "Player 会检查 authority 签名、由 owner 派生的 Profile 地址、Profile owner 与 GlobalConfig 绑定、可写状态和请求的槽位。"
+        },
+        {
+          "title": "Player 读取并验证一条紧密排列的 Backpack 记录",
+          "body": "检查 Backpack 的程序所有者、PDA、数据中保存的钱包 owner、版本、索引、锻造类别、标识符和有界产出字段时，Backpack 始终保持只读。"
+        },
+        {
+          "title": "只复制一个公钥",
+          "body": "Profile.equipment[slot] 会变为 Backpack.records[index].item_pda；不会移动、锁定或消耗任何 Backpack 字节。"
+        },
+        {
+          "title": "索引 255 只清除引用",
+          "body": "Profile 槽会变为零公钥，不需要 Backpack 账户，也不会删除库存记录。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-equipping-copies-a-pointer-v1.webp",
+        "alt": "生成的体素工坊：一件完整的锻造工具仍清楚地留在标准女孩打开的 Backpack 中，标准男孩则把一块青色小引用片放入多格墙面装备架。",
+        "caption": "工具留在打开的 Backpack 中，只有小引用片进入装备架，这说明 Backpack 验证是只读的，而 Profile 只复制指针。装备架、引用片、光效和村民动作都只是教学比喻；准确的槽位数量、接受字段、账户顺序与签名要求来自已审核源码。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "装备后，Backpack_after 等于 Backpack_before",
+        "body": "这条指令不会修改 Backpack。Profile 引用可以改变，但托管位置、记录字节和记录顺序都不会改变。"
+      }
+    },
+    {
+      "id": "one-key-can-mean-several-tools",
+      "eyebrow": "共享引用，不同记录",
+      "title": "当前锻造可能让多件不同工具获得同一个装备键",
+      "paragraphs": [
+        "当前经验证的锻造流程会接收规范 NCF1 字节，检查设计与材料要求，消耗所选材料记录，计算产出，再以传入的 player_profile.key 作为 item_pda，暂时追加一条锻造记录。随后，它会使用同一个 Profile 调用 Player 来增加锻造 XP。Player 会派生 owner 当前的 Profile PDA，并拒绝其他任何地址；如果这次后续调用失败，Solana 的原子性会回滚前面的追加。因此，已审核的当前锻造流程若成功，使用的是 owner 当前的 Profile 键，不是物品专属账户。",
+        "因此，同一玩家锻造的两件工具可以共用 item_pda，同时在物品 ID、Backpack 索引、设计哈希、体积、耐久度、品级、等级或品质上各不相同。Profile 的 9 个槽只保留共享的 32 字节键，不保留这些区分字段；存在多条匹配记录时，单靠这个指针无法选中唯一记录。",
+        "完整的 Backpack 记录占 80 字节，最后 4 字节保存设计哈希，完整 NCF1 字节则仍留在浏览器存储中。生产环境 Play 用 32 位 FNV-1a 哈希查找候选的本地 NCF1，随后根据预期哈希验证版本、长度和字节，通过后才构建锻造运行时。这条路径中没有持久物品账户保存完整 NCF1 载荷。换到新设备或清空存储后，界面仍可列出链上锻造引用；但若没有匹配的 NCF1，就不应猜测它拥有可用握持点或可信几何体。",
+        "32 位哈希只有 4,294,967,296 种可能值，并不是为密码学身份而设计。它适合在当前呈现流程中用作紧凑查找键与完整性提示，却不能证明任意两个设计在全局范围内唯一。",
+        "共享键还会造成一个具体的 Market 歧义。以装备为来源挂牌时，合约从索引 0 开始扫描 Backpack 记录，并选择第一条带有 Profile 键的物品类型记录。浏览器装备库存则先构建 Map（itemPda 到记录）；重复键会覆盖较早的条目，因此最后保留的是最后一条匹配记录。于是，画面可能预览一件工具，合约却选中另一件。要彻底修复，需要物品唯一身份，或把稳定区分数据纳入匹配规则。"
+      ],
+      "facts": [
+        {
+          "label": "当前锻造 item_pda",
+          "value": "由 owner 派生的当前 PlayerProfile PDA",
+          "detail": "同一 owner 在已审核当前路径中的多个成功产出会共用它；保留的 legacy-v3 键只能作为历史或部署漂移证据。"
+        },
+        {
+          "label": "完整链上记录",
+          "value": "80 字节",
+          "detail": "标识符与产出元数据保存在 Backpack 或 Listing 中，而不是 Profile 中。"
+        },
+        {
+          "label": "呈现指纹",
+          "value": "32 位 FNV-1a 设计哈希",
+          "detail": "紧凑的本地查找键，不是抗碰撞的全局身份。"
+        },
+        {
+          "label": "当前重复匹配方式",
+          "value": "合约取第一条 · 浏览器取最后一条",
+          "detail": "以装备为来源的 Market 选择可能在交易提交前就已经不一致。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-one-key-several-tools-v1.webp",
+        "alt": "生成的体素锻造工坊：两位标准村民正在比较两件外观明显不同、却挂着相同青色键片的锻造工具；工具托盘后方排列着两块平面马赛克设计板和两本合上的笔记本。",
+        "caption": "两件不同工具带着相同键片，把共用 item_pda 的问题直观呈现出来；分开的马赛克板和合上的笔记本则代表各自不同的本地设计数据。工具形状、键片、设计板、笔记本、刻度盘与灯光都是生成的教学比喻；它们不会复现确切哈希、物品 ID、记录字节、NCF1 载荷或已验证的碰撞。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "不要只用 item_pda 作为当前锻造物品身份",
+        "body": "在锻造路径生成物品唯一键之前，应使用完整记录与经过验证的 NCF1 设计哈希核对工具。在开放以装备为来源的挂牌前，应先修正 Market 当前‘合约取第一条、浏览器取最后一条’的行为。"
+      }
+    },
+    {
+      "id": "screen-hand-chain-records-differ",
+      "eyebrow": "PROFILE、APPEARANCE、快捷栏与 GUARDIAN",
+      "title": "角色手中的工具并不是 9 个链上槽位的直接渲染",
+      "paragraphs": [
+        "当前体验中有 4 种看起来都像‘装备’的结构。PlayerProfile 有 9 个 32 字节引用。PlayerAppearance 预留 12 条大得多的富结构装备记录，但当前 Appearance 打包会清空全部 12 条。浏览器游戏状态保存本地快捷栏、选中槽位与 NCF1 呈现数据。Guardian 则发送实时装备消息，供附近玩家呈现。这些结构用途不同，不能合并成一个笼统的‘链上已装备’标签。",
+        "生产环境 Play 会在本地把一条 Backpack 记录放入快捷栏。对于锻造记录，它会复制链上元数据，尝试从本地存储恢复匹配的 NCF1，验证其版本、长度和 FNV-1a 哈希，然后才构建网格。恢复出的几何体和握持点决定工具位置与碰撞部件。选定目标时，首先要求根据工具推导出的触及球与方块相交，随后采样 AABB 与扫掠 AABB 测试还必须在挥动路径上找到真实碰撞。没有匹配 NCF1 时，测试要求链上引用保持不可用，而不是凭空猜出几何体或握持点。",
+        "生产环境的 play/play-guardian.js 只会在载荷通过版本、大小和哈希验证后，发送右手物品的类型与变体、锻造标记、设计哈希，以及可选的 NCF1 字节。它不会发送 Profile 装备键或 Backpack 呈现字段。较旧的替代实现 src/main.js 可以加入已缓存的 Profile 键和 Backpack 相关字段，但两种数据包都不是钱包签名、RPC 证明或托管转移，也不能保证缓存的链上状态仍是最新的。",
+        "生产环境中挥动命中后，浏览器会从按钱包区分的本地快捷栏中扣减耐久度，并保存该本地状态。如果链上提交被禁用、不可用、被拒绝或抛出异常，待处理的采矿会回滚，本地工具损耗也会恢复。然而 play/play-chain-adapter.js 只是把 toolSlotIndex 传给 recordBlockBreakOnChain；该链上 helper 从未读取其 toolSlot 参数。Chunk 处理器会检查 Profile 形状、authority 和 GlobalConfig，但不读取 9 个装备引用，也不会扣减锻造 Backpack 记录的链上耐久度。因此在当前实现中，本地工具磨损与链上物品耐久度是两套独立状态。",
+        "Backpack 选择还有另一条边界。合约可以把 Profile.equippedBackpack 替换为属于同一钱包的另一个有效 Backpack，但它没有定义全零清空哨兵值。生产环境 Play 不会枚举并在玩家拥有的每个 Backpack 之间切换。共享 loader 在回退到 Profile 之前，会先尝试按钱包保存的缓存 Backpack，前提是该缓存账户是当前版本、由统一 Game Program 拥有，且数据中保存了该钱包。Backpack 与 Chunk 奖励路径会验证所提供 Backpack 的 owner 归属，但不要求它等于 Profile.equippedBackpack，因此界面应明确标出最终采用了哪个来源。"
+      ],
+      "bullets": [
+        "Profile 装备：由 Player Program 写入的 9 个公钥引用。",
+        "Appearance 富结构装备：12 条预留记录，当前打包会让它们保持为空。",
+        "本地快捷栏：浏览器选中的呈现与交互来源。",
+        "NCF1 库：通过 32 位设计哈希找到的设备本地完整几何字节。",
+        "生产环境 Guardian：携带手持物品的类型与变体、锻造标记、设计哈希，以及可选的已验证 NCF1——不携带 Profile 键，也不是托管证明。",
+        "采矿碰撞：本地恢复的几何体必须同时通过触及球、采样 AABB 和扫掠 AABB 检查。",
+        "耐久度边界：链上提交失败后，本地快捷栏损耗会恢复；当前 Chunk 采矿既不读取 Profile 槽位，也不修改链上工具耐久度。"
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-screen-hand-chain-records-differ-v1.webp",
+        "alt": "生成的体素河畔游戏场景：标准女孩挥舞锻造工具击打石块，标准男孩站在一个打开的 Backpack、两个空装备架和一个小型本地排练架之间。",
+        "caption": "手持工具、打开的 Backpack、两个空架和小型排练架，分别代表屏幕呈现、托管位置、Profile 引用与本地重建。这幅生成场景使用了标准村民、真实 Chunk.js 场景和烘焙材质参考，但它不能证明快捷栏选择、链上槽位、Guardian 内容、碰撞、耐久度或账户是否最新。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "画面可见、本地已损耗与链上已装备，是三种不同的说法",
+        "body": "可靠的装备界面应当分别标明：Profile 引用、Backpack 记录与链上耐久度、已验证的本地 NCF1、所选快捷栏项与本地耐久度、碰撞结果，以及 Guardian 呈现。"
+      }
+    },
+    {
+      "id": "listing-is-the-custody-transition",
+      "eyebrow": "保存完整记录的类托管存储",
+      "title": "把完整记录移出 Backpack 的是挂牌，而不是装备",
+      "paragraphs": [
+        "创建当前 Market 挂牌时，始终会接收 8 个账户位置：卖家、新 Listing、System Program、Backpack、Backpack Program、PlayerProfile、GlobalConfig 和 Player Program。它始终检查 Player Program ID，但对 Profile 和 GlobalConfig 数据的验证有条件。当直接以 Backpack 为来源时，Market 会复制并移除所选的 80 字节记录；如果它是方块，或者是 item_pda 为零的物品，则会在验证 Profile 之前直接返回“没有装备匹配”。非零 item_pda 的物品才会进入 Profile 验证，而且只有存在匹配槽位时，才清空第一个。当以装备为来源时，Market 会验证 Profile 和 GlobalConfig，读取所选槽位，从索引 0 开始扫描 Backpack，找到第一条具有该键的物品记录，移除它，并且只清空刚才选中的槽位。",
+        "移除操作会让 Backpack 继续紧密排列：后面的每条记录都向索引 0 的方向移动一位，原来最后一个槽位被清空，item_count 随之减少。Listing 会记住来源类型和旧来源索引，但不保存原 Backpack 地址。旧索引只是历史上下文，不是稳定身份。普通 Backpack 丢弃操作使用同一个紧密移除基础函数，但完全不写入 PlayerProfile——即使是经 session 授权的账户形式，也只读取 Profile 来验证 session owner。因此，删除一条正被引用的记录，可能留下失效的装备键；若存在重复键，其他槽位还可能继续含糊地指向剩余记录。",
+        "Listing 为 216 字节，并保存完整的 80 字节来源记录。取消挂牌时，当前 Market 需要 seller、Listing、一个归卖家所有的目标 Backpack、Backpack Program 和 Market authority。它会把已保存记录追加到所提供的有效 Backpack，清空并关闭 Listing 数据，再把 Listing 的 lamports 返还卖家。目标可以是任意符合条件的卖家 Backpack；因为原地址没有被保存，所以不必是最初的来源账户。",
+        "购买时，同一笔交易会验证货币账户，转移 SOL 或 NCK 份额，通过 Market authority 把已保存记录追加到买家提供的 Backpack，并在 Listing 中写入买家与时间、标记为已售。Solana 交易的原子性意味着 Backpack 追加失败或后续程序出错时，这笔交易中较早发生的付款改动也会回滚。已售 Listing 会作为历史保留，而有效物品记录位于买家 Backpack 中。",
+        "生产环境 /play/ 加载 play/main.js，后者会导入 play/play-market.js。这套生产市场实现把新的链上挂牌来源写死为 Backpack，取消调用则省略 sourceInventory。因此，创建路径无法选择装备来源；取消路径在选定有效的卖家目标 Backpack 之前，也无法组成处理器要求的 5 账户恢复调用。",
+        "仓库中的 src/main.js 是较旧或替代路径，不是本次审核的生产环境 /play/ 入口。它会同时根据 Backpack 记录和 Profile 装备槽构建候选项，并在取消挂牌时提供 listing.sourceInventory、另一个已保存 Backpack，或当前已装备的 Backpack。该目标仍可能无法通过 owner 归属、程序域或容量检查；而且由于 Listing 没有保存原地址，它不保证是原来来源。",
+        "较旧的替代预览还会构建一个仅以 item_pda 为键的 Map。由于当前锻造调用可以产生重复键，该 Map 会保留最后一条匹配记录，而 Market 合约的装备来源扫描却会选择第一条。如果不先对齐身份就开放这条替代流程，可能预览的是一件工具，真正被移除的却是另一件。"
+      ],
+      "steps": [
+        {
+          "title": "创建挂牌时先保存快照，再移除记录",
+          "body": "Market 会复制并移除完整、已验证的 80 字节来源记录。来源为装备时，清空所选槽位；来源为 Backpack 时，仅在存在匹配的物品槽位时清空第一个。"
+        },
+        {
+          "title": "取消挂牌会追加到卖家目标 Backpack",
+          "body": "有效的卖家 Backpack 会接收已保存记录；随后 Listing 被清零并关闭，其 lamports 也会返还。"
+        },
+        {
+          "title": "购买会以原子方式付款并追加记录",
+          "body": "付款与向买家 Backpack 追加记录位于同一笔交易中，因此任一环节失败都会让整笔交易回滚。"
+        },
+        {
+          "title": "从生产环境 /play/ 路径开始",
+          "body": "生产环境 play/play-market.js 把创建挂牌固定为 Backpack 来源，并省略取消挂牌的目标。装备来源创建与回退式取消只存在于较旧的替代 src/main.js 路径中。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-listing-is-custody-transition-v1.webp",
+        "alt": "生成的体素村庄市场：一件锻造工具已放在中央敞开的木制挂牌柜中；标准女孩站在空的卖家 Backpack 和托盘旁，标准男孩站在打开的目标 Backpack 旁。",
+        "caption": "中央木柜里的完整工具、已空的卖家一侧和正在等待的目标 Backpack，用来说明 Listing 托管以及后续取消或购买后的恢复。生成的柜子、托盘、秤、村民和路线都只是比喻；来源匹配、付款顺序、记录字节、回滚和 Listing 状态，必须以代码与交易证据为准。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "取消按钮仍需要有效的目标 Backpack",
+        "body": "生产环境 play/play-market.js 当前没有提供目标。较旧的替代实现会提供已记住或当前使用的 Backpack，但它仍必须属于卖家、位于受支持的程序域并有空余容量，而且不保证是原来的来源账户。"
+      }
+    },
+    {
+      "id": "live-devnet-and-safe-claims",
+      "eyebrow": "已保留的 CONFIRMED DEVNET 观测",
+      "title": "实时账户显示 Backpack 记录与锻造产出，但没有有效的 Profile 装备引用",
+      "paragraphs": [
+        "在 2026 年 7 月 18 日、confirmed 上下文 slot 477,030,223 的保留观测中，统一 Game Program 下共发现 10 个当前版本 3 Backpack 账户，数据中属于 8 个不同 owner。其中 9 个非空。它们总计保存 205 条紧密记录：200 个方块、3 件锻造物品、1 份材料和 1 张蓝图。9 个 Backpack 声明容量为 50，还有 1 个历史账户声明容量为 51；每个账户都持有 56,904,960 lamports。这个容量 51 账户创建于 slot 476,437,186，早于保留证据中当前 Game 部署的 slot 476,942,846；因此，它不能证明这次部署仍会创建容量 51 的 Backpack。",
+        "同一上下文在统一 Game Program 下没有发现当前版本 5 Listing。Player Program 下的 15 个 773 字节 Profile 候选账户中，有 11 个是按 owner 派生的规范当前版本 7 Profile。它们的 99 个装备字段全部都是零公钥。这 11 个 Profile 中有 5 个选择了 Backpack；5 个地址都存在于保留的 Backpack 集合中，而且内部保存的 owner 也全部一致。",
+        "3 条锻造 Backpack 记录各自的 item_pda，都指向一个数据中 owner 相同的保留 Profile 候选项。其中 2 条指向 owner 当前的规范版本 7 Profile，与已审核的当前成功锻造路径一致。第 3 条指向较旧、非规范的版本 3 Profile；这只是历史或部署漂移证据，不能证明今天审核的路径会接受旧 Profile，因为后续 Player 锻造 XP 调用会拒绝它，并原子回滚前面的追加。这 3 个键都不是物品独有键，而且该观测仍不能证明源码与已部署二进制程序完全一致。",
+        "这次观测中，独立 Backpack Program 下没有 8,048 字节的 Backpack 账户。另一个独立 Market Program 下有 7 个较旧的版本 3 Listing 账户——6 个仍活动，1 个已售出——而本次审核的当前 Listing 布局是版本 5，生产环境 Play 扫描的是统一 Game 程序域。这些旧账户可用作部署漂移证据，但不能证明当前 216 字节流程已经实际运行过。",
+        "另一份 7 月 16 日 confirmed Player 审计发现，10 个 Appearance 账户中的全部 120 条富结构装备记录都为空；它不属于本 slot 的账户上下文。结合本 slot 的 99 个零 Profile 装备引用与零当前统一 Listing，安全结论必须保持狭窄：保留的观测显示真实 Backpack 库存与 3 条锻造记录，但两次观测都没有显示已审核的链上装备路径或当前统一 Market 托管路径正在被使用。",
+        "这些只是在一个 confirmed slot 上的账户状态事实。本页审计没有声称 Player、Backpack、Game 或 Market 的源码与已部署二进制之间存在可复现匹配。之后的交易可以改变每个数量、余额、指针与 Listing 状态。"
+      ],
+      "facts": [
+        {
+          "label": "统一 Game Backpacks",
+          "value": "10 个账户 · 205 条记录",
+          "detail": "slot 477,030,223 时为 200 个方块 + 3 件锻造物品 + 1 份材料 + 1 张蓝图。"
+        },
+        {
+          "label": "Player Profiles（玩家档案）",
+          "value": "11 个规范 v7 Profile · 99 个零装备字段",
+          "detail": "5 个 Profile 选择了 Backpack；每个地址都存在，并且保存着相同的 owner。"
+        },
+        {
+          "label": "锻造产出",
+          "value": "3 条记录 · 3 个与 owner 匹配的 Profile 键",
+          "detail": "2 个键指向规范当前 v7 Profile；1 个键指向较旧且非规范的 v3 Profile。"
+        },
+        {
+          "label": "当前统一 Listings",
+          "value": "0 个 216 字节账户",
+          "detail": "另有 7 个旧版本 3 独立 Market 账户；它们属于历史偏移，不是当前流程证据。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/equipment-and-custody-live-devnet-v1.webp",
+        "alt": "生成的体素链上观测台：标准村民通过测量仪器查看一组 Backpack、少量锻造工具、空装备架与空市场展示柜。",
+        "caption": "观测台、Backpack、工具、空装备架与空展示柜让定点审计更直观，又不会在画面中制造虚假精确数字。画面中只有 2 件微型工具清晰可见；所有可见数量、距离、仪器和状态都是比喻，只有保留的 slot 477,030,223 账户字节与解码器才能确定这些带日期的数据。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "账户状态可以支持结论，却不能证明源码与部署完全一致",
+        "body": "这次观测验证了一个 slot 上的解码字节。它不能证明当前含未提交改动的工作树可复现构建每个已部署程序；没有观测到使用，也不表示某条代码路径不可能执行。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现",
+    "title": "9 个公式与 21 段源码原文，分清引用、托管、渲染、采矿与生产路径可达性",
+    "summary": "这些公式依次说明 Profile 数字槽位、装备复制、调用时传入的锻造键、完整记录布局、本地 NCF1 重建、有条件的 Profile 清空、紧密 Market 状态转移、原子购买，以及带日期的链上库存观测。每段摘录都是已审核仓库中的连续原文，同时始终把生产环境 /play/ 与较旧的替代 src/main.js 实现区分开。"
+  },
+  "formulas": [
+    {
+      "title": "Profile 装备保存 9 个引用，而不是 9 条记录",
+      "expression": "ProfileEquipmentBytes = 9 × 32 = 288 bytes; Profile.equipment[s] ∈ PublicKey for 0 ≤ s < 9",
+      "ariaLabel": "PlayerProfile 为 9 个 32 字节公钥装备引用预留 288 字节。",
+      "explanation": "每个槽位可以存放一个公钥或全零键。合约没有为槽位赋予身体部位或物品类别含义，并且允许重复键。80 字节 Backpack 记录和完整 NCF1 字节都无法放进这个槽位。",
+      "terms": [
+        {
+          "symbol": "s",
+          "meaning": "一个从 0 到 8 的 Profile 装备槽。"
+        },
+        {
+          "symbol": "PublicKey",
+          "meaning": "恰好 32 字节，向玩家显示为 base-58 地址字符串。"
+        }
+      ]
+    },
+    {
+      "title": "装备是一次复制，托管位置保持不变",
+      "expression": "Profile_after.equipment[s] = Backpack_before.records[i].item_pda; Backpack_after = Backpack_before",
+      "ariaLabel": "装备会把所选记录的 item PDA 复制到 Profile 槽，并让 Backpack 保持不变。",
+      "explanation": "这条等式只在所需 signer、Profile、GlobalConfig、Backpack、PDA、owner、索引、类别、标识符、耐久度、品级、等级与品质检查全部通过后成立。",
+      "terms": [
+        {
+          "symbol": "i",
+          "meaning": "选中的紧密 Backpack 记录索引。"
+        },
+        {
+          "symbol": "Backpack_after = Backpack_before",
+          "meaning": "set_equipment_slot 不会写入任何 Backpack 字节。"
+        }
+      ]
+    },
+    {
+      "title": "清空只改变一个 Profile 字段",
+      "expression": "backpackIndex = 255 ⇒ Profile_after.equipment[s] = 0^32 and BackpackAccount is omitted",
+      "ariaLabel": "Backpack 索引 255 会在无需 Backpack 账户的情况下，把所选 Profile 槽清为 32 个零字节。",
+      "explanation": "清空哨兵值不会标识或销毁任何 Backpack 记录，只会移除 Profile 引用。",
+      "terms": [
+        {
+          "symbol": "0^32",
+          "meaning": "由 32 个零字节表示的默认 Solana 公钥。"
+        }
+      ]
+    },
+    {
+      "title": "当前锻造若成功，会以 owner 当前的 Profile 作为共享物品键",
+      "expression": "SuccessfulCurrentForge(owner = o) ⇒ p = CurrentPlayerProfilePDA(o) ∧ new_record.item_pda = p",
+      "ariaLabel": "已审核的当前锻造若要成功，必须使用 owner 当前的 PlayerProfile PDA，并把同一地址复制到新记录的 item PDA 字段。",
+      "explanation": "Backpack 首先用传入的 Profile 键追加记录，随后 Player 的锻造 XP 指令会派生并强制使用 owner 当前的 Profile。如果后续检查失败，Solana 的原子性会回滚前面的追加。最终产生的键虽然是当前 Profile 键，却仍不是物品独有键。",
+      "terms": [
+        {
+          "symbol": "o",
+          "meaning": "为该次锻造签名的钱包 owner。"
+        },
+        {
+          "symbol": "p",
+          "meaning": "由 owner 派生、且后续锻造 XP 调用强制要求的当前版本 7 PlayerProfile PDA。"
+        }
+      ]
+    },
+    {
+      "title": "完整锻造记录与可见设计位于不同位置",
+      "expression": "BackpackRecord = 80 bytes = identifiers + item_pda + outcome + designHash32; RenderedTool = BackpackRecord metadata + LocalNCF1 where FNV1a32(LocalNCF1) = designHash32",
+      "ariaLabel": "80 字节链上记录包含 32 位设计哈希，而渲染还需要独立且匹配的本地 NCF1 字节。",
+      "explanation": "这条等式描述当前成功重建路径。仅有匹配的 32 位值并不是密码学证明，因此仍需要 NCF1 解析器与边界检查。",
+      "terms": [
+        {
+          "symbol": "designHash32",
+          "meaning": "用作 NCF1 指纹的无符号 32 位元数据字段。"
+        },
+        {
+          "symbol": "LocalNCF1",
+          "meaning": "从设备本地浏览器存储取回的完整锻造物体字节。"
+        }
+      ]
+    },
+    {
+      "title": "Listing 会移动完整记录，但清空 Profile 有条件",
+      "expression": "Listing.source_slot = copy(record[i]); Backpack_after = denseRemove(i); clearedSlot = selected slot if source=equipment, else first matching slot if source=backpack item, else none",
+      "ariaLabel": "Listing 总会复制来源记录，并以紧密排列方式将其移除；来源为装备时会清空所选 Profile 槽位，来源为 Backpack 时则只在存在匹配物品槽位时清空第一个。",
+      "explanation": "紧密移除会让后续记录的索引减小。Backpack 中的方块或无匹配物品不会清空任何 Profile 字段，第一个之后的重复引用也可以继续保留。Listing 会保留旧来源类型和索引，但不保留 Backpack 地址。",
+      "terms": [
+        {
+          "symbol": "denseRemove",
+          "meaning": "移除一条记录、将后续记录左移、清空旧尾部，并减少物品数量。"
+        },
+        {
+          "symbol": "source_slot",
+          "meaning": "保存在 216 字节 Listing 内的完整 80 字节记录。"
+        }
+      ]
+    },
+    {
+      "title": "取消与购买都会选择目标 Backpack",
+      "expression": "Cancel: SellerBackpack' = append(SellerBackpack, Listing.source_slot); Buy: BuyerBackpack' = append(BuyerBackpack, Listing.source_slot)",
+      "ariaLabel": "取消会把记录追加到所提供的卖家 Backpack，购买则追加到所提供的买家 Backpack。",
+      "explanation": "由于 Listing 不保留原 Backpack 地址，当前取消操作会验证所提供的卖家目标，而不是按记住的来源地址恢复。",
+      "terms": [
+        {
+          "symbol": "append",
+          "meaning": "容量与权限检查通过后，把已保存记录添加到当前紧密数组尾部。"
+        }
+      ]
+    },
+    {
+      "title": "一笔购买交易的效果要么全部发生，要么全部不发生",
+      "expression": "PurchaseSuccess = PaymentSuccess ∧ BuyerBackpackAppendSuccess ∧ ListingMarkSoldSuccess; otherwise TransactionState_after = TransactionState_before",
+      "ariaLabel": "付款、买家 Backpack 追加与挂牌售出更新必须全部成功，否则交易回滚。",
+      "explanation": "这就是 Solana 交易原子性。它并不会消除预览容量、验证账户或清楚显示交易失败的必要性。",
+      "terms": [
+        {
+          "symbol": "∧",
+          "meaning": "同一笔交易中的全部条件都必须成功。"
+        }
+      ]
+    },
+    {
+      "title": "实时 Backpack 总数可被准确分解",
+      "expression": "205 = 200 block + 3 forged + 1 material + 1 blueprint",
+      "ariaLabel": "在 confirmed slot 477030223，205 条记录由 200 个方块、3 件锻造物品、1 份材料和 1 张蓝图组成。",
+      "explanation": "这项算术只属于保留的 confirmed slot 477,030,223 观测，不是永久供应量，也不是合约上限。",
+      "terms": [
+        {
+          "symbol": "205",
+          "meaning": "快照 slot 上 10 个统一 Game Backpack 中已解码有效记录的总和。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Player 把一个公钥复制进所选 Profile 槽",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn write_equipment_slot(\n        dst: &mut [u8],\n        slot: u8,\n        item: &Pubkey,\n        updated_slot: u64,\n    ) -> ProgramResult {\n        if slot as usize >= EQUIPMENT_SLOT_COUNT {\n            return Err(NicechunkPlayerError::InvalidEquipmentSlot.into());\n        }\n        if dst.len() != Self::LEN {\n            return Err(NicechunkPlayerError::InvalidPlayerProfileData.into());\n        }\n        let offset = Self::EQUIPMENT_OFFSET + slot as usize * 32;\n        dst[offset..offset + 32].copy_from_slice(item.as_ref());\n        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())\n    }",
+      "explanation": "写入函数只检查数字槽位是否在有效范围内，以及 Profile 长度是否完全正确；随后它只修改 32 字节装备字段和 updatedSlot。它不赋予槽位任何身体部位或物品类别含义，也不检查重复键。",
+      "walkthrough": [
+        {
+          "lines": "第 1–11 行",
+          "meaning": "只有边界与 Profile 大小检查通过后，才接受一个槽位和一个公钥。"
+        },
+        {
+          "lines": "第 12–14 行",
+          "meaning": "计算一个 32 字节字段，并复制所提供的公钥。"
+        },
+        {
+          "lines": "第 15–17 行",
+          "meaning": "更新 Profile 的观测 slot，结束时不触碰 Backpack。"
+        }
+      ]
+    },
+    {
+      "title": "装备处理器会读取 Backpack，或用索引 255 清空",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    validate_player_write_accounts(program_id, authority, player_profile, global_config)?;\n    let slot = payload[0];\n    let backpack_index = payload[1];\n    let item = if backpack_index == CLEAR_EQUIPMENT_BACKPACK_INDEX {\n        if accounts.len() != 3 {\n            return Err(NicechunkPlayerError::InvalidAccountCount.into());\n        }\n        Pubkey::default()\n    } else {\n        if accounts.len() != 4 {\n            return Err(NicechunkPlayerError::InvalidAccountCount.into());\n        }\n        let backpack = next_account_info(account_info_iter)?;\n        if backpack.owner != &NICECHUNK_BACKPACK_PROGRAM_ID\n            && backpack.owner != &NICECHUNK_GAME_PROGRAM_ID\n        {\n            return Err(NicechunkPlayerError::InvalidBackpackProgram.into());\n        }\n        let backpack_data = backpack.try_borrow_data()?;\n        BackpackAccountView::validate_pda_and_owner(\n            &backpack_data,\n            backpack.key,\n            backpack.owner,\n            authority.key,\n        )?;\n        BackpackAccountView::equippable_item_pda_at(&backpack_data, authority.key, backpack_index)?\n    };\n    let clock = Clock::get()?;\n    let mut data = player_profile.try_borrow_mut_data()?;\n    PlayerProfile::write_equipment_slot(&mut data, slot, &item, clock.slot)",
+      "explanation": "Backpack 以不可变方式借用。普通装备在验证后返回一个 item_pda；清空则无需 Backpack 并返回零公钥。最后只有 Profile 会被可变借用。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "验证带签名的 Profile 写入，并把清空哨兵值转换为默认公钥。"
+        },
+        {
+          "lines": "第 9–26 行",
+          "meaning": "普通装备时，接受获准的 Backpack 程序，并验证 PDA、钱包 owner、索引与物品。"
+        },
+        {
+          "lines": "第 27–30 行",
+          "meaning": "只把返回的键与当前 slot 写进 Profile。"
+        }
+      ]
+    },
+    {
+      "title": "装备会检查锻造产出边界，但不会检查每个记录字段",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        if data[offset] != BACKPACK_SLOT_KIND_ITEM\n            || data[offset + 1] != BACKPACK_ITEM_CATEGORY_FORGED\n        {\n            return Err(NicechunkPlayerError::InvalidBackpackItem);\n        }\n        if read_u32(data, offset + BACKPACK_SLOT_QUANTITY_OFFSET) == 0\n            || read_u64(data, offset + BACKPACK_SLOT_ITEM_ID_OFFSET) == 0\n        {\n            return Err(NicechunkPlayerError::InvalidBackpackItem);\n        }\n        let item = Pubkey::new_from_array(\n            data[offset + BACKPACK_SLOT_ITEM_PDA_OFFSET\n                ..offset + BACKPACK_SLOT_ITEM_PDA_OFFSET + 32]\n                .try_into()\n                .map_err(|_| NicechunkPlayerError::InvalidBackpackItem)?,\n        );\n        let durability_current = read_u32(data, offset + BACKPACK_SLOT_DURABILITY_CURRENT_OFFSET);\n        let durability_max = read_u32(data, offset + BACKPACK_SLOT_DURABILITY_MAX_OFFSET);\n        let grade = data[offset + BACKPACK_SLOT_GRADE_OFFSET];\n        let item_level = data[offset + BACKPACK_SLOT_ITEM_LEVEL_OFFSET];\n        let quality_bps = read_u16(data, offset + BACKPACK_SLOT_QUALITY_BPS_OFFSET);\n        if item == Pubkey::default()\n            || durability_current == 0\n            || durability_max == 0\n            || durability_current > durability_max\n            || grade == 0\n            || grade > 10\n            || item_level == 0\n            || item_level > 100\n            || quality_bps == 0\n            || quality_bps > DURABILITY_BPS_DENOMINATOR\n        {\n            return Err(NicechunkPlayerError::InvalidBackpackItem);\n        }\n        Ok(item)",
+      "explanation": "摘录列出了决定能否选中的字段。它不会读取 item_code、volume_mm3、flags 或 metadata/设计哈希，因此本页不会暗示装备操作会重新验证这些字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "要求物品属于锻造类别，且数量与物品 ID 非零。"
+        },
+        {
+          "lines": "第 11–21 行",
+          "meaning": "从固定偏移读取键与有界产出字段。"
+        },
+        {
+          "lines": "第 22–36 行",
+          "meaning": "拒绝零公钥以及无效耐久度、品级、等级或品质，之后只返回 item_pda。"
+        }
+      ]
+    },
+    {
+      "title": "当前锻造先用 Profile 键追加记录，再调用锻造 XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let clock = Clock::get()?;\n    let outcome = {\n        let mut backpack_data = backpack.try_borrow_mut_data()?;\n        BackpackAccount::forge_equipment_from_verified_materials(\n            &mut backpack_data,\n            owner.key,\n            indexes,\n            item_id,\n            design_hash,\n            player_profile.key,\n            forging_level,\n            clock.slot,\n            requirements,\n        )?\n    };\n\n    add_forging_xp_to_player(\n        program_id,\n        owner,\n        backpack,\n        player_profile,\n        player_program,\n        system_program_account,\n        &outcome,\n    )",
+      "explanation": "如果把可变 Backpack 数据计为第 1 个参数，那么第 6 个参数就是 item_pda，追加时收到的是 player_profile.key。紧接着的 Player CPI 会收到同一个 Profile；Player 会派生 owner 当前的 PDA，因此若检查失败，之前的追加也会被原子回滚。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "读取时钟，并可变借用已经验证 owner 的 Backpack。"
+        },
+        {
+          "lines": "第 4–15 行",
+          "meaning": "使用传入的 Profile 键作为 item_pda，暂时追加锻造结果。"
+        },
+        {
+          "lines": "第 17–25 行",
+          "meaning": "用同一个 Profile 调用 Player 的锻造 XP 处理；如果当前 PDA 检查拒绝它，整笔交易都会回滚。"
+        }
+      ]
+    },
+    {
+      "title": "锻造 XP 要求使用从 owner 派生的当前 Profile PDA",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let (expected_player_profile, _) =\n        Pubkey::find_program_address(&[PLAYER_PROFILE_SEED, owner.key.as_ref()], program_id);\n    require_key_eq(\n        player_profile.key,\n        &expected_player_profile,\n        NicechunkPlayerError::InvalidPlayerProfilePda,\n    )?;",
+      "explanation": "Player 会独立根据 owner 派生当前 Profile 地址，并拒绝其他账户。由于 Backpack 的追加与这次 CPI 位于同一笔 Solana 交易中，使用旧版本或非规范 Profile 会让整次锻造失败，而不会留下前面暂时追加的物品。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "派生对该 owner 而言唯一可接受的当前 Profile PDA。"
+        },
+        {
+          "lines": "第 3–7 行",
+          "meaning": "传入 Profile 的公钥不同时，拒绝该 Profile。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 会在共享键之外保存独立记录字段",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "        let output = BackpackSlotRecord {\n            kind: BACKPACK_SLOT_KIND_ITEM,\n            category: BACKPACK_ITEM_CATEGORY_FORGED,\n            flags: 0,\n            quantity: 1,\n            resource: BackpackResourceRecord::default(),\n            item_code: BACKPACK_FORGED_ITEM_CODE,\n            item_id,\n            item_pda: *item_pda,\n            volume_mm3: outcome.volume_mm3,\n            durability_current: outcome.durability_max,\n            durability_max: outcome.durability_max,\n            grade: outcome.grade,\n            item_level: outcome.item_level,\n            quality_bps: outcome.quality_bps,\n            metadata: design_hash,\n        };\n        Self::append_item(data, owner, &output, updated_slot)?;",
+      "explanation": "item_pda 会按传入值原样复制，而物品 ID、产出值与设计哈希占用独立字段。即使 Profile 引用无法区分记录，这些字段仍可以区分。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "构造一条锻造物品记录，并复制所提供的共享键。"
+        },
+        {
+          "lines": "第 10–16 行",
+          "meaning": "保存计算出的体积、耐久度、品级、等级、品质与设计哈希。"
+        },
+        {
+          "lines": "第 17–18 行",
+          "meaning": "把完整记录追加到紧密 Backpack。"
+        }
+      ]
+    },
+    {
+      "title": "NCF1 装备字节必须通过长度、版本与哈希检查",
+      "language": "JavaScript",
+      "source": "play/forge-equipment-payload.js",
+      "code": "export const NCF1_EQUIPMENT_VERSION = 14;\nexport const NCF1_EQUIPMENT_MIN_RAW_BYTES = 14;\nexport const NCF1_EQUIPMENT_MAX_RAW_BYTES = 640;\n\nexport function equipmentPayloadBytes(value) {\n  if (value instanceof Uint8Array) return value.length ? value : null;\n  if (Array.isArray(value)) return value.length ? Uint8Array.from(value) : null;\n  if (value instanceof ArrayBuffer) return value.byteLength ? new Uint8Array(value) : null;\n  if (ArrayBuffer.isView(value)) {\n    return value.byteLength\n      ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)\n      : null;\n  }\n  return null;\n}\n\nexport function validatedNcf1EquipmentPayload(value, expectedDesignHash) {\n  const bytes = equipmentPayloadBytes(value);\n  const designHash = Math.trunc(Number(expectedDesignHash) || 0) >>> 0;\n  if (!bytes\n    || !designHash\n    || bytes.length < NCF1_EQUIPMENT_MIN_RAW_BYTES\n    || bytes.length > NCF1_EQUIPMENT_MAX_RAW_BYTES\n    || (bytes[0] >> 4) !== NCF1_EQUIPMENT_VERSION\n    || forgePayloadHash(bytes) !== designHash) return null;\n  return bytes;\n}\n\nexport function forgePayloadHash(value) {\n  const bytes = equipmentPayloadBytes(value);\n  if (!bytes) return 0;\n  let hash = 0x811c9dc5;\n  for (const byte of bytes) {\n    hash ^= Number(byte) & 0xff;\n    hash = Math.imul(hash, 0x01000193) >>> 0;\n  }\n  return hash >>> 0;\n}",
+      "explanation": "生产环境验证器要求：预期设计哈希不得为零，原始数据长度必须为 14–640 字节，版本半字节必须为 14，并且 FNV-1a 结果必须完全相等。这会拒绝不匹配的本地或 Guardian 载荷；不过 32 位哈希仍不是密码学意义上的身份。",
+      "walkthrough": [
+        {
+          "lines": "第 1–15 行",
+          "meaning": "定义可接受的版本与大小范围，并规范化类字节输入。"
+        },
+        {
+          "lines": "第 17–27 行",
+          "meaning": "拒绝字节或哈希缺失、长度不对、版本不对或哈希不匹配的载荷。"
+        },
+        {
+          "lines": "第 29–38 行",
+          "meaning": "根据载荷字节重新计算当前 32 位 FNV-1a 设计哈希。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境 Guardian 在发送和接收时都会验证锻造呈现数据",
+      "language": "JavaScript",
+      "source": "play/play-guardian.js",
+      "code": "export function guardianEquipmentFromAvatarEquipment(equipment = {}) {\n  const rightHand = String(equipment?.rightHand || \"empty\");\n  if (rightHand === \"pickaxe\") {\n    const designHash = Math.trunc(Number(equipment.designHash) || 0) >>> 0;\n    const forged = Boolean(equipment.forged || equipment.isForged || designHash);\n    return {\n      rightHandKind: forged ? EQUIPMENT_KIND.forged : EQUIPMENT_KIND.pickaxe,\n      rightHandVariant: forged ? 2 : 1,\n      flags: forged ? EQUIPMENT_FLAG_FORGED : 0,\n      designHash: forged ? designHash : 0,\n      payloadBytes: forged ? validatedNcf1EquipmentPayload(equipment.payloadBytes, designHash) : null,\n    };\n  }\n  if (rightHand === \"block\") {\n    const blockId = Math.trunc(equipment.blockId || 0);\n    return { rightHandKind: EQUIPMENT_KIND.block, rightHandVariant: BLOCK_VARIANT_BY_ID.get(blockId) || clampByte(blockId), flags: 0, designHash: blockId >>> 0 };\n  }\n  return { rightHandKind: EQUIPMENT_KIND.empty, rightHandVariant: 0, flags: 0, designHash: 0 };\n}\n\nexport function equipmentFromGuardianEvent(event = {}) {\n  const kind = Math.trunc(event?.rightHandKind ?? EQUIPMENT_KIND.empty);\n  if (kind === EQUIPMENT_KIND.pickaxe || kind === EQUIPMENT_KIND.forged) {\n    const designHash = Math.trunc(Number(event.designHash) || 0) >>> 0;\n    const forged = Boolean(\n      kind === EQUIPMENT_KIND.forged\n      || (Math.trunc(Number(event.flags) || 0) & EQUIPMENT_FLAG_FORGED)\n      || designHash\n      || Math.trunc(Number(event.rightHandVariant) || 0) === 2\n    );\n    return forged\n      ? { rightHand: \"pickaxe\", forged: true, designHash, payloadBytes: validatedNcf1EquipmentPayload(event.payloadBytes, designHash) }\n      : { rightHand: \"pickaxe\" };\n  }\n  if (kind === EQUIPMENT_KIND.block) return { rightHand: \"block\", blockId: Math.trunc(event.rightHandVariant || 0), color: [0.52, 0.72, 0.38, 1] };\n  return { rightHand: \"empty\" };\n}",
+      "explanation": "生产环境只编码右手物品的类型与变体、锻造标记、设计哈希，以及可选的已验证 NCF1。收到的锻造字节也会经过同一验证器。它既不嵌入 Profile 装备键，也不嵌入 Backpack 呈现字段，不能证明任何托管状态。",
+      "walkthrough": [
+        {
+          "lines": "第 1–18 行",
+          "meaning": "编码当前右手呈现状态，并在发送前验证锻造字节。"
+        },
+        {
+          "lines": "第 20–33 行",
+          "meaning": "解码锻造呈现数据，同时应用同样的载荷验证。"
+        },
+        {
+          "lines": "第 34–36 行",
+          "meaning": "把方块消息与空消息收敛为范围明确的呈现状态。"
+        }
+      ]
+    },
+    {
+      "title": "Market 创建挂牌时会保存快照、移除记录并清空引用",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    let source_slot = match args.source_type {\n        SOURCE_BACKPACK => {\n            let source_slot =\n                read_backpack_slot_for_listing(backpack, seller.key, args.source_index)?;\n            remove_backpack_resource(seller, backpack, backpack_program, args.source_index as u16)?;\n            if let Some(equipment_slot) = read_matching_equipment_slot_for_listing(\n                player_profile,\n                seller.key,\n                player_program.key,\n                global_config.key,\n                &source_slot,\n            )? {\n                clear_player_equipment_slot(\n                    seller,\n                    player_profile,\n                    global_config,\n                    player_program,\n                    equipment_slot,\n                )?;\n            }\n            source_slot\n        }\n        SOURCE_EQUIPMENT => {\n            let (source_slot, backpack_index) = read_equipment_slot_for_listing(\n                player_profile,\n                backpack,\n                seller.key,\n                args.source_index,\n                player_program.key,\n                global_config.key,\n            )?;\n            remove_backpack_resource(seller, backpack, backpack_program, backpack_index as u16)?;\n            clear_player_equipment_slot(\n                seller,\n                player_profile,\n                global_config,\n                player_program,\n                args.source_index,\n            )?;\n            source_slot\n        }\n        _ => return Err(NicechunkMarketError::InvalidInstruction.into()),\n    };",
+      "explanation": "两种来源都会复制并移除一条完整记录。来源为装备时，清空所选 Profile 槽位。来源为 Backpack 时，则调用可选匹配 helper，因此只在存在匹配物品槽位时清空第一个；方块、无匹配情况和后续重复引用都会保留。",
+      "walkthrough": [
+        {
+          "lines": "第 1–21 行",
+          "meaning": "直接 Backpack 来源会复制并移除所请求记录；如果存在匹配 Profile 引用，则清空第一项。"
+        },
+        {
+          "lines": "第 22–40 行",
+          "meaning": "装备来源会解析所选 Profile 槽，移除匹配的 Backpack 记录，并清空该 Profile 槽。"
+        },
+        {
+          "lines": "第 41 行",
+          "meaning": "拒绝其他任何来源类型。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境 play-market 把新链上挂牌固定为 Backpack 来源",
+      "language": "JavaScript",
+      "source": "play/play-market.js",
+      "code": "      const result = await module.createMarketListingOnChain({\n        item: {\n          source: \"backpack\",\n          backpack: item.slot.chainBackpack,\n          slotIndex: item.slot.chainIndex,\n          category,\n        },\n        currency,\n        price,\n        backpackAddress: item.slot.chainBackpack,\n      });",
+      "explanation": "生产环境 /play/ 加载 play/main.js，后者会导入该模块。虽然共享链上 helper 能理解装备来源，但这次生产调用始终把销售标记为 Backpack 来源，并传入 Backpack 记录索引。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "构造一个来源对象，其中 source 值被硬编码为 backpack。"
+        },
+        {
+          "lines": "第 8–11 行",
+          "meaning": "把价格与同一个来源 Backpack 地址传入链上提交。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境 play-market 取消挂牌时没有提供目标 Backpack",
+      "language": "JavaScript",
+      "source": "play/play-market.js",
+      "code": "      const result = await module.cancelMarketListingOnChain({\n        listing: listing.listing,\n        listingId: listing.listingId,\n      });\n      if (!result?.submitted) {\n        showMarketStatus(`Cancel skipped: ${result?.reason || \"not-submitted\"}.`, \"warn\");\n        return result;\n      }",
+      "explanation": "该 helper 可以接收 sourceInventory，并加入 Backpack、Backpack Program 和 Market authority。生产路径没有提供这些内容，因此在选定目标之前，无法满足处理器要求的 5 账户恢复调用。下面的较旧替代调用方则会提供回退项。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "只提交 Listing 地址与 ID；没有选择目标 Backpack。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "处理 helper 层面的未提交结果；但账户形状错误的已签名交易也可能改为在链上失败。"
+        }
+      ]
+    },
+    {
+      "title": "较旧的替代市场会创建装备来源条目",
+      "language": "JavaScript",
+      "source": "src/main.js",
+      "code": "function collectMarketSelectableEquipmentItems(slots, backpack, listedSourceIds) {\n  if (!backpack?.publicKey || !equippedPlayerProfileStatus?.equipment?.length) return [];\n  const defaultKey = \"11111111111111111111111111111111\";\n  const slotByItemPda = new Map(\n    slots\n      .filter((slot) => slot?.itemPda && slot.itemPda !== defaultKey)\n      .map((slot) => [slot.itemPda, slot]),\n  );\n  return equippedPlayerProfileStatus.equipment.flatMap((itemPda, equipmentSlotIndex) => {\n    if (!itemPda || itemPda === defaultKey) return [];\n    const slot = slotByItemPda.get(itemPda);\n    if (!slot) return [];\n    const id = marketEquipmentSourceItemId(equipmentSlotIndex, itemPda, backpack.publicKey);\n    const sourceIds = [\n      id,\n      marketEquipmentSourceItemId(equipmentSlotIndex, itemPda),\n      marketItemPdaSourceItemId(itemPda),\n      slot.sourceItemId,\n      slot.legacySourceItemId,\n    ].filter(Boolean);\n    if (sourceIds.some((sourceId) => listedSourceIds.has(sourceId))) return [];\n    const category = marketCategoryForBackpackSlot(slot);\n    return [{\n      id,\n      sourceItemIds: Array.from(new Set(sourceIds)),\n      slotIndex: equipmentSlotIndex,\n      backpackSlotIndex: slot.chainIndex,\n      source: \"equipment\",\n      backpack: backpack.publicKey,\n      name: backpackSlotDisplayName(slot),\n      meta: `${marketEquipmentSlotLabel(equipmentSlotIndex)} · ${slot.meta?.source ?? gameText(\"main.backpack.unknownSource\", \"Unknown source\")}`,\n      category,\n      iconType: marketIconTypeForCategory(category),\n      slot,\n    }];\n  });\n}",
+      "explanation": "这个 src/main.js 实现属于较旧或替代路径，不是生产环境 /play/ 入口。它会展示装备来源候选项，但它的 Map 遇到重复 item_pda 时保留最后一条记录，而合约后续选的却是第一条匹配记录。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "要求存在 Backpack 与 Profile 装备，然后按每个 item_pda 键构建一条记录；重复键保留最后一条记录。"
+        },
+        {
+          "lines": "第 9–22 行",
+          "meaning": "遍历 Profile 槽，通过 Map 解析其键，并过滤已经挂牌的来源身份。"
+        },
+        {
+          "lines": "第 23–36 行",
+          "meaning": "创建装备来源条目，其中 slotIndex 是 Profile 槽，backpackSlotIndex 则记录预览的 Backpack 位置。"
+        }
+      ]
+    },
+    {
+      "title": "较旧的替代市场会提供已记住或当前使用的取消目标",
+      "language": "JavaScript",
+      "source": "src/main.js",
+      "code": "    const result = await chainModule.cancelMarketListingOnChain({\n      listing: listing.listing,\n      listingId: listing.listingId,\n      source: listing.source,\n      sourceInventory: listing.sourceInventory ?? listing.backpack ?? equippedBackpackStatus?.backpack?.publicKey ?? null,\n    });\n    if (!result?.submitted) {\n      setMarketLocalizedStatus(\"main.market.cancelFailed\", \"Cancel transaction failed: {reason}\", {\n        reason: chainSubmitReasonLabel(result?.reason),\n      }, \"error\");\n      action.disabled = false;\n      action.textContent = gameText(\"main.market.cancelListing\", \"Cancel\");\n      return;\n    }",
+      "explanation": "这条较旧的替代路径会先使用已记住的 sourceInventory，然后尝试另一个已保存 Backpack，最后才用当前已装备的 Backpack。它可以组成 5 个账户，但目标仍必须是属于卖家、且有空余容量的有效 Backpack，并不一定是原来来源。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "选择当前已知的最佳目标 Backpack，并与 Listing 一起传给链 helper。"
+        },
+        {
+          "lines": "第 7–14 行",
+          "meaning": "helper 提交报告失败时，让挂牌在界面中保持有效。"
+        }
+      ]
+    },
+    {
+      "title": "触及半径来自所选工具网格",
+      "language": "JavaScript",
+      "source": "chunk.js/physics/voxel-item-collision.js",
+      "code": "  function toolReachSphere({ yaw = null, swing = null } = {}) {\n    const geometry = selectedToolGeometry();\n    if (!geometry?.avatarMesh || !geometry.collisionParts.length) return fallbackToolReachSphere(toolYaw(yaw, swing));\n    const pivot = geometry.avatarMesh.pivots?.right_hand_item ?? geometry.avatarMesh.pivots?.right_arm;\n    if (!Array.isArray(pivot)) return fallbackToolReachSphere(toolYaw(yaw, swing));\n    if (reachCacheMesh !== geometry.avatarMesh || reachCacheEquipmentId !== geometry.equipmentId) {\n      reachCacheMesh = geometry.avatarMesh;\n      reachCacheEquipmentId = geometry.equipmentId;\n      reachCacheRadius = toolReachRadius(geometry.collisionParts, pivot);\n    }\n    const center = avatarLocalToWorld(pivot, toolYaw(yaw, swing));\n    return {\n      x: center[0],\n      y: center[1],\n      z: center[2],\n      centerX: center[0],\n      centerY: center[1],\n      centerZ: center[2],\n      radius: reachCacheRadius,\n      radiusSquared: reachCacheRadius * reachCacheRadius,\n      equipmentId: geometry.equipmentId,\n    };\n  }",
+      "explanation": "解析器从角色所选工具和其右手枢轴取得碰撞部件，计算半径，并把该球体放到世界空间中。只有在本地运行时与握持点恢复后，锻造几何体才会附加上去；因此这是呈现逻辑，不是 Profile 槽位检查。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "解析所选几何体与其右手枢轴；只有在几何体不可用时，才采用基础回退值。"
+        },
+        {
+          "lines": "第 6–10 行",
+          "meaning": "网格或装备身份改变时，重新计算触及范围。"
+        },
+        {
+          "lines": "第 11–22 行",
+          "meaning": "把手部枢轴变换到世界空间，并返回由几何体推导出的球体。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境会在整个挥动过程中重复采样碰撞帧",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "  function toolCollisionHitForProgress(swing, toProgress) {\n    const endProgress = clamp01(toProgress);\n    const startProgress = Math.max(collisionStartProgress, Math.min(endProgress, Number(swing.previousToolProgress) || collisionStartProgress));\n    let previousBoxes = swing.previousToolBoxes;\n    let previousCount = swing.previousToolBoxCount || 0;\n    if (!previousBoxes || !previousCount) {\n      const startFrame = getToolCollisionFrame?.({ progress: startProgress, swing });\n      const startBoxes = Array.isArray(startFrame?.boxes) ? startFrame.boxes : [];\n      const startHit = toolCollisionHit(swing.hit, startBoxes, null, 0);\n      if (startHit.hit) return startHit;\n      previousBoxes = copyToolBoxes(startBoxes, previousBoxes);\n      previousCount = startBoxes.length;\n    }\n\n    const stepCount = Math.max(1, Math.ceil(Math.max(0.001, endProgress - startProgress) / 0.10));\n    for (let step = 1; step <= stepCount; step += 1) {\n      const progress = startProgress + (endProgress - startProgress) * (step / stepCount);\n      const frame = getToolCollisionFrame?.({ progress, swing });\n      const boxes = Array.isArray(frame?.boxes) ? frame.boxes : [];\n      if (!boxes.length) {\n        previousBoxes = null;\n        previousCount = 0;\n        continue;\n      }\n      const hitResult = toolCollisionHit(swing.hit, boxes, previousBoxes, previousCount);\n      if (hitResult.hit) return hitResult;\n      previousBoxes = copyToolBoxes(boxes, previousBoxes);\n      previousCount = boxes.length;\n    }\n    swing.previousToolBoxes = copyToolBoxes(previousBoxes ?? [], swing.previousToolBoxes);\n    swing.previousToolBoxCount = previousCount;\n    swing.previousToolProgress = endProgress;\n    return { hit: false };\n  }",
+      "explanation": "正在进行的挥动不会把最初的触及结果直接当作最终接触。它会细分动画进度，对工具碰撞盒取样，并把每个上一帧带到下一步做扫掠测试。",
+      "walkthrough": [
+        {
+          "lines": "第 1–13 行",
+          "meaning": "建立并直接测试第一个碰撞帧。"
+        },
+        {
+          "lines": "第 15–29 行",
+          "meaning": "细分已经过的动画进度，并测试每一个采样帧。"
+        },
+        {
+          "lines": "第 30–34 行",
+          "meaning": "保留最新的碰撞盒和进度，供下次更新使用。"
+        }
+      ]
+    },
+    {
+      "title": "每个采样帧都会检查直接 AABB 与扫掠 AABB 接触",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "  function toolCollisionHit(hit, boxes, previousBoxes, previousBoxCount) {\n    const targetBox = createBlockAabb(hit.worldX, hit.worldY, hit.worldZ, blockCollisionPadding, scratchTargetBox);\n    for (let index = 0; index < boxes.length; index += 1) {\n      const box = boxes[index];\n      if (aabbIntersectsAabb(box, targetBox)) {\n        return collisionResultFromBox(box, targetBox, 1);\n      }\n      const previous = previousBoxes?.[index];\n      if (!previous || index >= previousBoxCount) continue;\n      const result = sweptAabbIntersection(previous, box, targetBox, scratchCollisionResult);\n      if (result.hit) return { hit: true, pointX: result.x, pointY: result.y, pointZ: result.z, time: result.time };\n    }\n    return { hit: false };\n  }",
+      "explanation": "当前工具碰撞盒可能与方块直接重叠。若没有，控制器就从上一个碰撞盒扫掠到当前碰撞盒，以免高速移动的工具在两次采样之间直接穿过目标。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "构建目标方块 AABB，并接受直接重叠。"
+        },
+        {
+          "lines": "第 7–11 行",
+          "meaning": "把对应的上一个工具碰撞盒向当前碰撞盒扫掠。"
+        },
+        {
+          "lines": "第 12–14 行",
+          "meaning": "直接测试和扫掠测试都没命中时，判定没有接触。"
+        }
+      ]
+    },
+    {
+      "title": "采矿伤害会消耗本地快捷栏耐久度",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "    const key = damageKey(hit);\n    const now = performance.now();\n    prunePartialDamage(now, key);\n    const damageState = partialDamageState(key, now);\n    const nextDamage = damageState.damage + 1;\n    const requiredDamage = Math.max(1, swing.requiredDamage || requiredDamageForBlock(hit.blockId, def));\n    damageState.damage = nextDamage;\n    damageState.lastTouchedAt = now;\n    damageState.toolDamageBySlot.set(\n      swing.selectedToolIndex,\n      (damageState.toolDamageBySlot.get(swing.selectedToolIndex) ?? 0) + 1,\n    );\n    selectedTool.durability = Math.max(0, Math.trunc(selectedTool.durability || 0) - 1);\n    gameState.saveHotbarSlots();",
+      "explanation": "通过目标与物理接触检查后，控制器会把伤害记到所选的本地快捷栏槽位，扣除 1 点耐久度，并保存浏览器状态。它不会修改链上锻造 Backpack 记录的耐久度。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "更新目标的累积伤害。"
+        },
+        {
+          "lines": "第 9–12 行",
+          "meaning": "把 1 点本地耐久度损耗记到所选快捷栏槽位。"
+        },
+        {
+          "lines": "第 13–14 行",
+          "meaning": "扣减并持久保存浏览器快捷栏耐久度。"
+        }
+      ]
+    },
+    {
+      "title": "回滚待处理采矿会恢复已记录的本地工具损耗",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "  function rollbackPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending delta to rollback.\");\n      return null;\n    }\n    const damageEntries = Array.isArray(pending.toolDamageBySlot) && pending.toolDamageBySlot.length\n      ? pending.toolDamageBySlot\n      : Number.isInteger(pending.toolSlotIndex) && Number(pending.toolDamage) > 0\n        ? [{ slotIndex: pending.toolSlotIndex, amount: pending.toolDamage }]\n        : [];\n    for (const entry of damageEntries) {\n      gameState.restoreToolDamage(entry.slotIndex, entry.amount);\n    }\n    gameState.playerProfile.rolledBackMines += 1;\n    gameState.playerProfile.minedBlocks = Math.max(0, gameState.playerProfile.minedBlocks - Math.max(1, Math.trunc(pending.minedBlockCount || 1)));\n    gameState.savePlayerProfile();\n    onRollback(pending);\n    onChanged();\n    return pending;\n  }",
+      "explanation": "待处理采矿会保留一份按槽位记录的损耗账本。回滚会先恢复每个已记录的本地槽位，再更新浏览器统计数据。生产环境会在采矿提交被禁用、不可用、被拒绝或抛出异常时调用它；这不是链上耐久度退还。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "移除匹配的待处理操作；如果它已经处理完成，则停止。"
+        },
+        {
+          "lines": "第 7–13 行",
+          "meaning": "恢复按槽位记录的损耗账本，其中包括较旧的单槽位回退格式。"
+        },
+        {
+          "lines": "第 14–21 行",
+          "meaning": "恢复本地工具损耗，并更新回滚状态。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境 adapter 会传递所选本地工具槽索引",
+      "language": "JavaScript",
+      "source": "play/play-chain-adapter.js",
+      "code": "    const method = isTreeFell ? \"recordTreeFellOnChain\" : \"recordBlockBreakOnChain\";\n    if (typeof module[method] !== \"function\") return skipped(isTreeFell ? \"record-tree-fell-unavailable\" : \"record-mine-unavailable\");\n    const result = await module[method](block, pending.toolSlotIndex ?? 0, {\n      ...mineOptions,\n      expectedRewardCount: isTreeFell ? Math.max(1, pending.rewardBlocks?.length ?? 1) : 1,\n    });\n    return normalizeChainResult(result);",
+      "explanation": "对普通采矿而言，method 解析为 recordBlockBreakOnChain，并把待处理的本地快捷栏索引作为第 2 个参数传入。传递一个值，并不能证明被调用的 helper 会使用它。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "选择普通采矿或伐树 helper。"
+        },
+        {
+          "lines": "第 3–6 行",
+          "meaning": "把待处理的本地槽位索引作为 helper 的第 2 个参数传入。"
+        },
+        {
+          "lines": "第 7 行",
+          "meaning": "规范化 helper 的结果。"
+        }
+      ]
+    },
+    {
+      "title": "方块破坏 helper 接收 toolSlot，却从未使用它",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function recordBlockBreakOnChain(block, toolSlot = 0, options = {}) {\n  if (!isNicechunkChainSyncEnabled()) {\n    return { submitted: false, reason: \"chain-sync-disabled\" };\n  }\n  try {\n    const provider = await connectedWalletProvider();\n    if (!provider) return { submitted: false, reason: \"wallet-unavailable\" };\n\n    const canonicalBlock = await resolveCanonicalMinedBlock(block);\n    if (!isCanonicalMineableBlockId(canonicalBlock.blockId)) {\n      return { submitted: false, reason: \"unmineable-block\", blockId: canonicalBlock.blockId };\n    }\n\n    const conn = getNicechunkConnection();\n    const [alreadyBroken, equippedBackpack] = await Promise.all([\n      isBlockAlreadyBrokenOnChain(block),\n      loadAuthoritativeMiningBackpack(provider.publicKey, conn, options),\n    ]);\n    if (alreadyBroken) return { submitted: false, reason: \"already-mined\" };\n    if (!equippedBackpack?.publicKey) {\n      return { submitted: false, reason: \"no-backpack\" };\n    }\n    const context = gameContext;\n    if (availableBackpackSlots(equippedBackpack) < 1) {\n      return { submitted: false, reason: \"backpack-full\" };\n    }\n    const backpackBefore = miningBackpackSnapshot(equippedBackpack);\n    const session = await getOrCreateGameplaySession(provider);\n    const tx = new Transaction();\n    const solSpend = createSolSpendSummary();\n    const initSignature = await ensureMiningAccountsInitialized(conn, session.keypair, blockChunkX(canonicalBlock.x), blockChunkZ(canonicalBlock.z), context);\n    await addTransactionSolSpend(solSpend, conn, initSignature, session.keypair.publicKey);\n    tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: miningComputeUnitLimit }));\n    tx.add(createMineBlockWithRewardsInstruction({\n      authority: session.keypair.publicKey,\n      block,\n      owner: provider.publicKey,\n      backpack: equippedBackpack.publicKey,\n      expectedBlockId: canonicalBlock.blockId,\n      context,\n    }));\n    const playerPositionSaved = maybeAddPlayerPositionUpdateInstruction(tx, {\n      provider,\n      session,\n      position: playerPositionForResourceMine(canonicalBlock, options),\n    });\n\n    const signature = await signAndSendKeypairTransaction(session.keypair, tx, conn);\n    await addTransactionSolSpend(solSpend, conn, signature, session.keypair.publicKey);\n    invalidateChunkDeltaCache(blockChunkX(canonicalBlock.x), blockChunkZ(canonicalBlock.z));\n    return {\n      submitted: true,\n      signature,\n      ...solSpendResult(solSpend),\n      ...backpackBefore,\n      backpack: equippedBackpack?.publicKey?.toBase58?.() ?? null,\n      block: canonicalBlock,\n      blockId: canonicalBlock.blockId,\n      type: canonicalBlock.type,\n      playerPositionSaved,\n      programId: context.chunkProgramId.toBase58(),\n    };\n  } catch (error) {\n    reportRpcError(error, \"mine-block\");\n    throw error;\n  }\n}",
+      "explanation": "这里展示完整 helper，因为要证明某个参数未被使用，必须检查整个函数体。toolSlot 只出现在函数签名中；采矿指令使用的是 session authority、方块、owner、Backpack、预期方块 ID 和 context，因此它既不强制任何 Profile 槽位，也不改变链上工具耐久度。",
+      "walkthrough": [
+        {
+          "lines": "第 1–13 行",
+          "meaning": "接收 toolSlot，但只验证同步状态、钱包和规范方块。"
+        },
+        {
+          "lines": "第 14–42 行",
+          "meaning": "加载 Backpack 并构建采矿指令，整个过程不读取 toolSlot。"
+        },
+        {
+          "lines": "第 43–67 行",
+          "meaning": "在不使用 toolSlot 的情况下提交并报告交易。"
+        }
+      ]
+    },
+    {
+      "title": "普通 Backpack 移除会左移紧密数组，却不清空 Profile",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "    pub fn remove_resource_at(\n        data: &mut [u8],\n        owner: &Pubkey,\n        index: u8,\n        updated_slot: u64,\n    ) -> ProgramResult {\n        Self::validate_owner(data, owner)?;\n        let item_count = data[Self::ITEM_COUNT_OFFSET];\n        if index >= item_count {\n            return Err(NicechunkBackpackError::InvalidResourceIndex.into());\n        }\n\n        let start = Self::RECORDS_OFFSET + index as usize * BACKPACK_SLOT_RECORD_LEN;\n        let end = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;\n        if start + BACKPACK_SLOT_RECORD_LEN < end {\n            data.copy_within(start + BACKPACK_SLOT_RECORD_LEN..end, start);\n        }\n        let last_start =\n            Self::RECORDS_OFFSET + (item_count - 1) as usize * BACKPACK_SLOT_RECORD_LEN;\n        data[last_start..last_start + BACKPACK_SLOT_RECORD_LEN].fill(0);\n        data[Self::ITEM_COUNT_OFFSET] = item_count.saturating_sub(1);\n        data[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())\n    }",
+      "explanation": "该函数把后面的 80 字节记录向左移动，把原来的尾部清零，减少 item_count，并更新 Backpack。它不接收任何 Profile 数据，因此普通丢弃无法清空装备槽，可能留下失效或含糊引用。",
+      "walkthrough": [
+        {
+          "lines": "第 1–11 行",
+          "meaning": "验证数据中保存的 owner，并拒绝超出有效紧密前缀的索引。"
+        },
+        {
+          "lines": "第 13–17 行",
+          "meaning": "被移除的不是最后一条记录时，把所有后续记录向左移动。"
+        },
+        {
+          "lines": "第 18–25 行",
+          "meaning": "清空原来的尾部，减少记录数量，并更新 Backpack slot。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "实现 set_equipment_slot 的账户数量、清空哨兵值行为、允许的 Backpack 程序 owner、只读 Backpack 验证、最终 Profile 写入，以及强制使用 owner 派生当前 Profile PDA 的锻造 XP 验证。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义 9 个 32 字节装备字段、准确的 Profile 写入函数、Backpack PDA 与数据内 owner 视图、紧密锻造记录检查，以及 12 条空 Appearance 富结构装备记录。"
+    },
+    {
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "提供较旧的 setEquipmentSlot 指令构建器；当前无论生产环境 Play，还是较旧的替代 src/main.js，都没有调用它。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "实现经验证的锻造处理：先把 player_profile.key 作为 item_pda 暂时传入 Backpack，再在同一笔原子交易中调用 Player 锻造 XP；同时，它允许经 session 授权的丢弃操作读取 Profile 的 owner 归属，但不更新装备槽。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "定义紧密排列的 80 字节记录、不带 Profile 数据的普通移除左移与尾部清空、锻造产出字段，以及 item_pda 和 32 位设计哈希的直接存储。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "实现挂牌来源解析、完整记录复制与 Backpack 紧密移除、Backpack 来源的有条件首条匹配清空、装备来源的所选槽位清空、取消时追加并关闭，以及购买时的原子追加。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/state.rs",
+      "claim": "定义当前 216 字节版本 5 Listing 布局，包括其中的 80 字节来源记录、来源元数据、买家与时间戳。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/cluster_config.rs",
+      "claim": "根据构建 feature 选择接受的 Backpack Program ID：启用 unified-game 时为统一 Game，否则为独立 Backpack。"
+    },
+    {
+      "path": "programs/nicechunk_game/Cargo.toml",
+      "claim": "为统一 Game router 使用 devnet、no-entrypoint 与 unified-game feature 编译内嵌 Market crate。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "说明 Chunk PlayerProfile 视图会检查 Profile 形状、authority 与 GlobalConfig，却不会读取 9 个装备引用。"
+    },
+    {
+      "path": "src/forgedItems.js",
+      "claim": "在本地保存完整 NCF1 字节，以 32 位 FNV-1a 设计哈希建立索引，并恢复匹配的本地呈现数据。"
+    },
+    {
+      "path": "play/forge-equipment-payload.js",
+      "claim": "验证有界 NCF1 装备载荷，并要求载荷哈希与所提供设计哈希匹配，之后 Guardian 或运行时才能使用。"
+    },
+    {
+      "path": "play/forged-hotbar-compat.js",
+      "claim": "即使缺少完整 NCF1 也保留链上锻造引用，同时把该引用与经过验证的锻造运行时分开。"
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "实现设备本地快捷栏选择和锻造 Backpack 记录恢复；快捷栏状态包括本地耐久度，保存在按钱包区分的浏览器键下。"
+    },
+    {
+      "path": "play/play-avatar-session.js",
+      "claim": "恢复所选 NCF1 运行时；只有当本地交互数据含有可用握持点时，才为角色绑定锻造几何体。"
+    },
+    {
+      "path": "src/main.js",
+      "claim": "包含较旧或替代市场的装备来源 Map，其 item_pda 采用后写覆盖语义；还包含取消目标回退项与更广泛的旧 Guardian 呈现字段。它不是生产环境 /play/ 入口。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "为两种来源类型构建共享 Market 指令，用可选 sourceInventory 组成取消账户，在 Profile 回退前加载已缓存的 owner Backpack，并且在 recordBlockBreakOnChain 中声明却不读取 toolSlot。"
+    },
+    {
+      "path": "play/play-market.js",
+      "claim": "实现生产环境 /play/ 市场路径：把新链上挂牌的来源写死为 Backpack，并在没有 sourceInventory 的情况下调用链上取消。"
+    },
+    {
+      "path": "play/index.html",
+      "claim": "把 ./main.js 加载为生产环境 /play/ 的模块入口。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "作为生产环境 /play/ 入口，导入 play-market 与 play-guardian，把角色碰撞帧和目标选择接入采矿，并把被拒绝的待处理采矿送入回滚。"
+    },
+    {
+      "path": "play/play-guardian.js",
+      "claim": "实现生产环境模块化 Guardian 编码器与解码器，包含右手呈现字段和严格的锻造 NCF1 验证，但不包含 Profile 键或 Backpack 呈现字段。"
+    },
+    {
+      "path": "chunk.js/physics/voxel-item-collision.js",
+      "claim": "根据角色所选碰撞部件和右手枢轴推导工具触及范围，然后用工具轨迹搜索目标 AABB。"
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "在整个进行中的挥动动作里采样碰撞盒，要求存在直接或扫掠 AABB 接触，消耗本地快捷栏耐久度，并在回滚时恢复已记录的损耗。"
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "把待处理的本地快捷栏索引传入共享 recordBlockBreakOnChain helper。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "在提交被禁用、钱包不可用、adapter 拒绝采矿或提交抛出异常时，调用采矿回滚。"
+    },
+    {
+      "path": "play/tests/forged-equipment-restore.test.mjs",
+      "claim": "验证基于哈希的本地 NCF1 恢复，拒绝不匹配或过大的 Guardian 载荷，并让缺失 NCF1 的链上装备保持不可用。"
+    },
+    {
+      "path": "play/tests/forged-equipment-switch-browser.test.mjs",
+      "claim": "测试两条共享 item_pda、但物品 ID 与设计哈希不同的锻造记录。"
+    },
+    {
+      "path": "play/tests/hotbar-equipment-identity.test.mjs",
+      "claim": "测试当前锻造记录共享 item_pda、需要更强区分字段时的快捷栏身份。"
+    },
+    {
+      "path": "docs/audits/equipment-and-custody-devnet-2026-07-18.json",
+      "claim": "保留唯一 confirmed slot 477,030,223 的账户上下文、原始 Base64 与哈希、解码后的 Backpack、Profile、Listing 与旧程序分布、锻造记录到 Profile 的对比，以及部署边界说明。"
+    },
+    {
+      "path": "docs/audits/player-profile-devnet-2026-07-16.json",
+      "claim": "保留前一份 Player 账户快照，用于交叉核对当前 Profile 与 Appearance 布局，包括空富结构装备记录。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+      "summary": "返回紧凑 Profile 布局，了解其中 9 个装备字段与其他公开及本地玩家记录的关系。"
+    },
+    {
+      "slug": "player-appearance-codes",
+      "href": "/docs/player-appearance-codes/",
+      "title": "PlayerAppearance：模型代码、角色重建与安全回退",
+      "summary": "回顾为什么独立的 12 条富结构装备记录当前为空，以及模型文本如何变成本地网格。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家 Session 与临时权限",
+      "summary": "继续阅读下一篇已完成审核的指南，区分持久钱包所有权与短期游戏权限。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，区分显示数值与实际生效效果",
+      "summary": "装备托管告诉你一条记录存放在哪里。下一篇指南会进一步判断：哪些 Profile 字段和技能数值在生产环境中有实际使用方，哪些只存在于浏览器，以及哪些合约会自行重新计算结果。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "player-appearance-codes",
+        "title": "PlayerAppearance：模型代码、角色重建与安全回退",
+        "summary": "在继续了解装备托管前，先回顾公开外观记录、空富结构装备预留区、本地解码器边界与可见角色回退。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "displayed-stats-vs-enforced-effects",
+        "title": "显示属性与实际生效效果：数值必须有使用方",
+        "summary": "了解为什么仅仅存储或显示一个数值并不会自动形成规则，再沿着精准采集、熔炼、锻造、探索与敏捷的路径找到它们真正的使用方。"
+      }
+    ]
+  }
+}

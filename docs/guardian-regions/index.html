@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="guardian-regions" data-docs-static-source="8f0b43a7875d033781291166d969ae357477c3897e668065ebbd576d5e831543">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/guardian-regions.json" />
+    <meta name="nicechunk:source-sha256" content="8f0b43a7875d033781291166d969ae357477c3897e668065ebbd576d5e831543" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/guardian-regions/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="See how NiceChunk registers 100 x 100 Guardian regions, discovers relay endpoints, limits realtime AOI traffic, preserves Solana finality, and verifies regional building indexes." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Guardian Regions, Relay Boundaries, and Blueprint Commitments" />
+    <meta property="og:description" content="See how NiceChunk registers 100 x 100 Guardian regions, discovers relay endpoints, limits realtime AOI traffic, preserves Solana finality, and verifies regional building indexes." />
+    <meta property="og:url" content="https://nicechunk.com/docs/guardian-regions/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/guardian-regions-overview-v1.webp" />
+    <meta property="og:image:alt" content="In one game-anime survey mission, the canonical orange-haired villager girl aligns a brass locator with a carved stone survey marker on a Chunk.js coastal trail while the canonical black-haired villager boy signals toward a nearby unoccupied mechanical relay tower; the connected voxel terrain continues beyond the tower without any interface panels or labels." />
+    <title>NiceChunk Guardian Regions, Relay Boundaries, and Blueprint Commitments</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/guardian-regions/#article",
+  "url": "https://nicechunk.com/docs/guardian-regions/",
+  "name": "Registered discovery, bounded relay, and blueprint commitments",
+  "description": "See how NiceChunk registers 100 x 100 Guardian regions, discovers relay endpoints, limits realtime AOI traffic, preserves Solana finality, and verifies regional building indexes.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Registered discovery, bounded relay, and blueprint commitments",
+  "mainEntityOfPage": "https://nicechunk.com/docs/guardian-regions/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One deterministic PDA normally maps one 100 x 100 Chunk cell",
+    "Operational discovery must scan Region accounts, not trust aggregate counters",
+    "Play derives nearby Region PDAs before opening any relay connection",
+    "The node coalesces nearby binary hints inside a configured window",
+    "Fast relay feedback does not become Solana state",
+    "The official watcher and browser paths apply separate verification passes"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#registered-grid",
+      "name": "One deterministic PDA normally maps one 100 x 100 Chunk cell"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#registry-operational-truth",
+      "name": "Operational discovery must scan Region accounts, not trust aggregate counters"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#chain-discovery",
+      "name": "Play derives nearby Region PDAs before opening any relay connection"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#bounded-relay",
+      "name": "The node coalesces nearby binary hints inside a configured window"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#solana-finality",
+      "name": "Fast relay feedback does not become Solana state"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/guardian-regions/#blueprint-commitments",
+      "name": "The official watcher and browser paths apply separate verification passes"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/guardian-regions-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Guardian Regions</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 10 · REGIONAL RELAY</p>
+<h1>Registered discovery, bounded relay, and blueprint commitments</h1>
+<p class="docs-hero-summary">A GuardianRegion PDA maps ordinary world coordinates into a 100 x 100 Chunk cell and publishes connection metadata. The current Play client derives that account from the player's Chunk, while the C++ Guardian forwards compact realtime hints only to a nearby area of interest. Registration is not a health proof, HELLO does not authenticate its wallet claim, and Guardian never settles world state. Regional building data becomes reusable only after metadata is committed through the authorized path and the browser checks the resolver commitment plus changed BuildSite records.</p>
+<span class="docs-reading-time">13 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In one game-anime survey mission, the canonical orange-haired villager girl aligns a brass locator with a carved stone survey marker on a Chunk.js coastal trail while the canonical black-haired villager boy signals toward a nearby unoccupied mechanical relay tower; the connected voxel terrain continues beyond the tower without any interface panels or labels." decoding="async" height="887" loading="eager" src="/docs/media/guardian-regions-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Registration assigns discovery metadata, not uptime</strong>
+<p>For Region coordinates whose 100r bounds fit signed i32, each deterministic PDA covers 100 x 100 Chunks and records an operator endpoint. The active status is registry state; it is not a WebSocket health check, availability score, proof counter, reward entitlement, or liveness certificate.</p></article>
+<article class="docs-key-point"><strong>Realtime packets remain untrusted hints</strong>
+<p>The current binary HELLO carries wallet bytes and a nonce but no wallet signature or verified challenge. Guardian scopes and batches movement, mining, chat, equipment, and identity traffic for responsive presentation; Solana programs and confirmed account reads remain authoritative.</p></article>
+<article class="docs-key-point"><strong>The official building-index path verifies before reuse</strong>
+<p>A raw building announcement can change the relay's local manifest but proves no BuildSite authority. The official watcher verifies authoritative PDAs before an authorized Building-Program CPI commits metadata, although an allowlisted publisher can bypass that watcher. The browser therefore still compares resolver metadata and reloads changed BuildSites before writing a BuildSite-checked cache entry; the separate building loader later validates each content-hash prefix before rendering.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#registered-grid">One deterministic PDA normally maps one 100 x 100 Chunk cell</a></li>
+<li><a href="#registry-operational-truth">Operational discovery must scan Region accounts, not trust aggregate counters</a></li>
+<li><a href="#chain-discovery">Play derives nearby Region PDAs before opening any relay connection</a></li>
+<li><a href="#bounded-relay">The node coalesces nearby binary hints inside a configured window</a></li>
+<li><a href="#solana-finality">Fast relay feedback does not become Solana state</a></li>
+<li><a href="#blueprint-commitments">The official watcher and browser paths apply separate verification passes</a></li>
+<li><a href="#technical-details">Keep the assigned cell, runtime window, AOI, and final state separate</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="registered-grid"><p class="docs-eyebrow">ON-CHAIN ASSIGNMENT</p>
+<h2>One deterministic PDA normally maps one 100 x 100 Chunk cell</h2>
+<p class="docs-prose">A GuardianRegion address derives from `guardian-region`, the global configuration, and signed little-endian Region X and Z coordinates. Its 288-byte V2 record stores inclusive Chunk bounds, treasury owner, separate operator, endpoint host, port, TLS flag, status, update slot, and compact building-manifest metadata. Ordinary coordinates produce the intended 100 x 100 bounds. The program does not range-check Region inputs and uses saturating multiply and add at extreme i32 values, where those stored bounds can collapse. Because coordinates are seeds, two operators cannot create two active PDAs for the same coordinate pair.</p>
+<p class="docs-prose">The genesis route requires the registering operator and configured governance wallet to sign. Each normal tag-2 registration supplies the four cardinal neighbor PDA addresses, and at least one must decode as an active Region; a diagonal or arbitrary service rectangle does not satisfy that route. The current corrupted genesis flag can later reopen tag 1 for the treasury signer, so the program does not continuously enforce one global frontier.</p>
+<p class="docs-prose">Registration transfers 100,000 NCK—100,000,000,000 base units at six decimals—from the operator token account directly into the treasury token account. Despite the source constant's stake name, the current program does not hold a per-operator escrow and exposes no withdraw instruction. GuardianRegion.owner remains the treasury wallet, while GuardianRegion.operator identifies the wallet allowed to update the endpoint; governance can rotate that operator through a separate instruction.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Region address</span>
+<strong>guardian-region + global config + i32 LE X + i32 LE Z</strong>
+<p>The PDA, not an arbitrary rectangle claim, identifies the assigned cell.</p></article>
+<article class="docs-fact"><span>Assigned coverage</span>
+<strong>100 x 100 Chunks in normal range</strong>
+<p>The account stores min = 100r and max = 100r + 99 while both results fit signed i32.</p></article>
+<article class="docs-fact"><span>Registration transfer</span>
+<strong>100,000 NCK to treasury</strong>
+<p>It is not withdrawable escrow in the current Guardian program.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Registration does not buy settlement authority</strong>
+<p>An operator can update its advertised endpoint. It cannot sign player transactions, edit backpacks, settle mined resources, choose final block state, write an arbitrary building digest, or withdraw the registration transfer through this program.</p></aside></section>
+<section class="docs-content-section" id="registry-operational-truth"><p class="docs-eyebrow">REGISTRY AUDIT</p>
+<h2>Operational discovery must scan Region accounts, not trust aggregate counters</h2>
+<p class="docs-prose">The intended 160-byte GuardianRegistry layout places activeCount at byte 108, totalRegistrations at 116, the genesis flag at 124, Region size at 126, and the recorded transfer amount at 128. The current `ACTIVE_COUNT_OFFSET` constant is 116, so `add_active` reads and writes one field late, then writes its second eight-byte value starting at 124. That overlaps the genesis flag, reserved byte, Region-size bytes, and the first bytes of the stored transfer amount.</p>
+<p class="docs-prose">This defect leaves activeCount at byte 108 unchanged while the value at 116 still increments totalRegistrations once per registration. The overlapping second write makes the genesis flag, Region-size field, stored transfer amount, and nearby encoded policy bytes unreliable. Genesis writes byte 124 as 1; the first normal registration increments the overlapping value so that byte becomes 2, and `genesis_registered()` then returns false. The configured treasury signer can consequently invoke tag 1 again without adjacency. This is a governance-authorized bypass, not a public takeover. Operators and indexers should enumerate 288-byte GuardianRegion accounts owned by the Guardian Program, validate their layout, and filter active status. The current website derives its active map and active figure from that scan; its separate total figure reads the still-incrementing totalRegistrations field.</p>
+<p class="docs-prose">Current instruction dispatch accepts only tags 0, 1, 2, 5, 6, and 8. Retired proof and settlement tags 3 and 4 are explicitly rejected. Proof timestamps, proof count, penalty count, slashed amount, and similar bytes remain layout placeholders; there is no current proof submission, reward, slash, Region removal, registration refund, or withdrawal path.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Reliable inventory</span>
+<strong>Scan 288-byte Region accounts</strong>
+<p>Validate program owner, NCKGRG01 magic, V2 layout, treasury owner, and active status.</p></article>
+<article class="docs-fact"><span>Counter defect</span>
+<strong>116 used where 108 was packed</strong>
+<p>activeCount stays unchanged; totalRegistrations still increments, while the subsequent eight-byte write begins at the genesis-flag byte.</p></article>
+<article class="docs-fact"><span>Current instruction tags</span>
+<strong>0 · 1 · 2 · 5 · 6 · 8</strong>
+<p>Tags 3 and 4 from the retired proof/settlement design return InvalidInstruction.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>An active account is not a live-node measurement</strong>
+<p>Neither a Region's active status nor stale proof-related placeholders establish current reachability, latency, uptime, reward eligibility, or honest packet handling. The website map is a registry view, not a network-health monitor.</p></aside></section>
+<section class="docs-content-section" id="chain-discovery"><p class="docs-eyebrow">PLAY CLIENT DISCOVERY</p>
+<h2>Play derives nearby Region PDAs before opening any relay connection</h2>
+<p class="docs-prose">The current `/play/` resolver maps the player's Chunk to a Region and preloads that cell plus its eight surrounding cells. It derives the exact PDAs locally, requests them with `getMultipleAccounts` at confirmed commitment, and accepts only the configured Guardian Program owner, 288-byte length, NCKGRG01 magic, V2 layout, treasury owner, active status, and nonempty host. The full host, port, and TLS fields become the WebSocket URL and corresponding buildings URL.</p>
+<p class="docs-prose">Successful and missing entries become eligible for refresh after five minutes; an older active entry can continue serving from cache while refresh runs or after a failed refresh until another result replaces it or the cache is cleared. A first uncached RPC error creates a thirty-second retry entry, while a failed refresh of an existing stale entry preserves its old timestamp and can be attempted again immediately. Changing RPC endpoints clears the cache. If the current Region has no accepted cached account, realtime remains disabled until discovery succeeds. `/play/` does not fall back to a bundled Guardian URL or a localStorage override, and local rendering and mining can continue without the relay.</p>
+<p class="docs-prose">These checks prove that endpoint metadata came from the expected chain account. They do not dial the endpoint as part of registration validation, prove that its certificate remains valid, measure its capacity, or show that the process is online. The older `src/` browser implementation still contains query, localStorage, and hardcoded fallback behavior; that legacy path must not be used to describe `/play/`.</p>
+<ol class="docs-steps"><li><strong>Compute the current Region</strong>
+<p>Floor-divide each signed Chunk coordinate by 100 and derive the center plus eight neighboring Region PDAs.</p></li>
+<li><strong>Read exact accounts</strong>
+<p>Fetch those addresses in confirmed batches instead of scanning every Guardian account on each player move.</p></li>
+<li><strong>Validate provenance and layout</strong>
+<p>Require program owner, fixed bytes, magic, version, treasury owner, active status, and host before constructing URLs.</p></li>
+<li><strong>Connect or stay local</strong>
+<p>Use the accepted cached endpoint; on a miss, keep realtime disabled while ordinary local play and authoritative chain actions remain available.</p></li></ol>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Discovery is deterministic and fail-closed</strong>
+<p>A current `/play/` session does not silently substitute an old official endpoint when its Region PDA is missing, malformed, inactive, or not yet cached.</p></aside></section>
+<section class="docs-content-section" id="bounded-relay"><p class="docs-eyebrow">REALTIME RUNTIME</p>
+<h2>The node coalesces nearby binary hints inside a configured window</h2>
+<p class="docs-prose">Guardian is a single-process C++ WebSocket relay with one little-endian binary message per frame, no realtime JSON, no per-message compression, and local Chunk topics. The default service center is Chunk 0,0 with radius 100, producing a 201 x 201 runtime window. That square is an operator configuration, not the registered 100 x 100 Region. A node can accept a wider runtime window, but clients outside its assigned Region do not discover that extra reach from this Region PDA unless their own Region metadata points to it.</p>
+<p class="docs-prose">The default AOI radius is seven, so joins, leaves, movement, DIG events, chat, identity, and equipment are relayed only across a clipped 15 x 15 neighborhood. Latest movement replaces an earlier pending pose for the same player, destination topics receive compact batches, and each batch is capped at 255 records. This limits fanout and allocation pressure without converting the relay into a simulation authority.</p>
+<p class="docs-prose">HELLO is 52 bytes: protocol fields, 32 claimed wallet bytes, starting Chunk coordinates, and a random nonce. The server verifies message shape, nonzero wallet bytes, capacity, and service-range membership, but never verifies a wallet signature or uses the nonce in a challenge. A client can therefore spoof a wallet hint and retire an existing relay connection that claimed the same bytes. MOVE has no speed, collision, or physical-plausibility check; DIG proximity is a relay filter, not a mining proof.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Default service window</span>
+<strong>201 x 201 Chunks</strong>
+<p>Independent runtime configuration centered on one Chunk.</p></article>
+<article class="docs-fact"><span>Default event neighborhood</span>
+<strong>15 x 15 Chunks</strong>
+<p>AOI fanout is clipped at service boundaries and never broadcasts across the whole service square.</p></article>
+<article class="docs-fact"><span>Realtime wallet proof</span>
+<strong>None in protocol V1</strong>
+<p>Wallet, name, equipment, chat, pose, and DIG identity are presentation hints.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Rate limits are not world rules</strong>
+<p>The defaults limit MOVE, DIG, equipment, and building-announcement frames per second. A DIG batch carries up to 255 entries while consuming one DIG frame count, and chat and player-identity messages have no explicit application-level rate limiter. None of these controls proves inventory, tool reach, collision, ownership, or a valid transaction.</p></aside></section>
+<section class="docs-content-section" id="solana-finality"><p class="docs-eyebrow">FINAL STATE BOUNDARY</p>
+<h2>Fast relay feedback does not become Solana state</h2>
+<p class="docs-prose">During mining, the current Play client sends Guardian action 1 when a local transaction is pending. Only after its own transaction confirms does that client send action 3. A receiver uses action 3 to render the block as air immediately, then invalidates the affected chain Chunk and requests a fresh account sync. This is a latency optimization, not evidence embedded in the packet.</p>
+<p class="docs-prose">Because HELLO identity and subsequent frames are unsigned, a remote sender can fabricate an action 3 hint. The current receiver protects that injected air delta until a full account snapshot first reports the same value; when the authoritative snapshot disagrees, the protected hint is retained instead of cleared. A forged hint can therefore leave the local block view stale even though it cannot change the on-chain Chunk account, create a mining reward, or alter inventory. The same unsigned boundary applies to avatar identity, movement, chat, names, and visible equipment.</p>
+<p class="docs-prose">The client backs off failed reconnections from one second by a factor of 1.75, capped at twelve seconds plus bounded jitter. Only sockets that close before WebSocket `open` increase the consecutive-failure counter; four such failures mark realtime offline for sixty seconds, clear remote avatars, and keep local mining and rendering available. Because `open` resets the counter, a server that repeatedly accepts the socket and then rejects HELLO or another protocol step can trigger unbounded reconnect cycles. Losing the relay removes low-latency presence; it does not remove the player's Solana accounts or make Guardian the fallback settlement layer.</p>
+<ol class="docs-steps"><li><strong>Preview locally</strong>
+<p>Mining animation and a pending action remain reversible while the transaction is unresolved.</p></li>
+<li><strong>Relay a pending hint</strong>
+<p>Nearby clients can animate the swing without treating it as a resource transfer or final block mutation.</p></li>
+<li><strong>Confirm through the chain path</strong>
+<p>The originating client sends the confirmed hint only after its own transaction confirmation.</p></li>
+<li><strong>Request an authoritative snapshot</strong>
+<p>The receiver invalidates and reloads the Chunk account, but the current protected-hint logic does not clear an air hint when that snapshot disagrees.</p></li></ol>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Chain authority does not guarantee an immediately correct local view</strong>
+<p>Solana programs still validate sessions, coordinates, generated blocks, protection, backpack ownership, capacity, and final mutations. Guardian cannot change those accounts, but the current client can retain a forged confirmed-DIG visual hint after a disagreeing snapshot, so the rendered block may remain stale.</p></aside></section>
+<section class="docs-content-section" id="blueprint-commitments"><p class="docs-eyebrow">VERIFIED BUILDING DISCOVERY</p>
+<h2>The official watcher and browser paths apply separate verification passes</h2>
+<p class="docs-prose">Any connected relay client can submit BUILDING_ANNOUNCE. For an active add or update, the C++ node checks record layout, flags, nonzero foundation ID, geometry, Region intersection, overlap, and revision or slot ordering before changing its local manifest. A flags-zero removal instead requires an existing foundation ID plus a newer slot or revision and skips the add/update geometry checks. Neither route verifies the sender's BuildSite authority or queries a Building PDA. The raw manifest is therefore an untrusted discovery proposal even when its local digest is internally consistent.</p>
+<p class="docs-prose">The publisher watcher fetches that manifest, accepts V2 or current V3, validates record ordering and Region intersection, then resolves every BuildSite and active BuildingManifest PDA. It compares geometry, active revision, updated slot, owner, status, and 16-byte building-hash prefix. Only governance or the dedicated blueprint publisher can sign the Building Program's outer instruction. That program validates the publisher and Guardian Program, then signs a CPI with its `guardian-blueprint` PDA. The Guardian Program accepts only that PDA and applies a monotonic hash, revision, and record-count update. These PDA checks are implemented by the watcher, not forced by either on-chain program: an allowlisted publisher could bypass the script and submit arbitrary metadata directly. The watcher also returns `unchanged` when only hash and treasury owner match; it does not compare revision or count there, so identical records under a newer relay revision can leave chain metadata stale.</p>
+<p class="docs-prose">Current C++ source emits NCKBRG03: first16(SHA-256) over ordered 56-byte records. The sync and browser code also accept the legacy NCKBRG02 non-cryptographic dual-64-bit digest. GuardianRegion stores the resulting 16 bytes, u64 revision, and u32 count but no digest-algorithm version, and the on-chain program does not receive the records or recompute either algorithm. The commitment proves what the authorized path wrote, while the off-chain verifiers determine what those bytes describe.</p>
+<p class="docs-prose">The browser obtains a fresh manifest only from the chain-discovered Region endpoint, requires its Region, digest, revision, and count to match the current chain-derived resolver entry, rejects duplicate or out-of-Region records, and reloads every changed BuildSite. It repeats the resolver-metadata comparison before and after writing IndexedDB, but does not issue a new RPC read during those checks. `guardianRecordMatchesFoundation` does not compare the record's 16-byte content hash with a BuildingManifest, so this regional pass is BuildSite-checked rather than a complete payload proof. Before rendering, the separate building loader requires the full 32-byte BuildingManifest hash to start with that 16-byte prefix. The fast regional-cache path requires the current `guardian-blueprint-v3` schema and `verified: true`, then compares only the cached digest hash with the resolver hash; it does not also compare cached revision or count.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Current record format</span>
+<strong>NCKBRG03 · 56 bytes per record</strong>
+<p>Records are ordered by foundation ID before the first 16 SHA-256 bytes are retained.</p></article>
+<article class="docs-fact"><span>Chain commitment</span>
+<strong>16-byte digest · u64 revision · u32 count</strong>
+<p>No algorithm-version field or record bytes are stored in GuardianRegion.</p></article>
+<article class="docs-fact"><span>BuildSite-checked cache bounds</span>
+<strong>27 Regions · 512 buildings by default</strong>
+<p>Only current-schema, explicitly verified entries are eligible for reuse.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Commitment is not on-chain recomputation</strong>
+<p>The Building-PDA CPI prevents an arbitrary Guardian wallet from writing Region digest metadata, but an allowlisted publisher can bypass the watcher and submit arbitrary bytes. Neither on-chain program fetches BuildSites, inspects 56-byte records, chooses V2 versus V3, or recomputes the manifest hash. The regional browser pass checks BuildSites; the later building loader checks the content-hash prefix before rendering.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">DISCOVERY AND TRUST MODEL</p>
+<h2>Keep the assigned cell, runtime window, AOI, and final state separate</h2>
+<p>These equations distinguish the on-chain 100 x 100 Region from a node's independently configured service square, quantify the smaller realtime fanout, and show the commitment checks that turn an untrusted regional manifest into a verified discovery cache.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Map a Chunk to one assigned Region</h3>
+<div aria-label="r(c) = floor(c / 100); minChunk(r) = 100r; maxChunk(r) = 100r + 99" class="docs-formula-expression" role="math"><code>r(c) = floor(c / 100); minChunk(r) = 100r; maxChunk(r) = 100r + 99</code></div>
+<p class="docs-technical-explanation">The same floor rule works across zero and negative coordinates. Applying it independently to X and Z gives one deterministic GuardianRegion PDA and a fixed 100 x 100 Chunk rectangle while 100r and 100r + 99 fit signed i32; the program does not range-check Region inputs and uses saturating arithmetic at extreme coordinates. An active PDA prevents a second active registration for the same coordinate pair.</p>
+<dl class="docs-formula-terms"><dt>c</dt>
+<dd>An integer world Chunk coordinate on one horizontal axis.</dd>
+<dt>r</dt>
+<dd>The signed Region coordinate on that axis.</dd>
+<dt>100r .. 100r + 99</dt>
+<dd>The inclusive on-chain Chunk bounds stored in the Region account.</dd></dl></article>
+<article class="docs-formula"><h3>Normal registrations require a cardinal neighbor</h3>
+<div aria-label="cardinal(a,b) iff |a_x - b_x| + |a_z - b_z| = 1" class="docs-formula-expression" role="math"><code>cardinal(a,b) iff |a_x - b_x| + |a_z - b_z| = 1</code></div>
+<p class="docs-technical-explanation">A tag-2 registration supplies the east, west, north, and south PDA addresses and succeeds when at least one is an active Region. A diagonal neighbor has Manhattan distance two and cannot satisfy that route. The current Registry offset defect can reset the genesis flag after a normal registration, so a later treasury-signed tag-1 registration can bypass adjacency again; the complete set is not guaranteed to remain one frontier.</p>
+<dl class="docs-formula-terms"><dt>a</dt>
+<dd>The Region coordinate being registered.</dd>
+<dt>b</dt>
+<dd>An already active neighboring Region coordinate.</dd>
+<dt>|dx| + |dz|</dt>
+<dd>Manhattan distance on the signed Region grid.</dd></dl></article>
+<article class="docs-formula"><h3>Service reach and realtime AOI are different squares</h3>
+<div aria-label="service(R) = (2R + 1)^2; service(100) = 40,401 Chunks; AOI(r) = (2r + 1)^2; AOI(7) = 225 Chunks" class="docs-formula-expression" role="math"><code>service(R) = (2R + 1)^2; service(100) = 40,401 Chunks; AOI(r) = (2r + 1)^2; AOI(7) = 225 Chunks</code></div>
+<p class="docs-technical-explanation">The default C++ node accepts connections in a 201 x 201 configured window, but that setting does not enlarge its 100 x 100 on-chain assignment or make the extra window chain-discoverable. Player, movement, DIG, chat, identity, and equipment broadcasts use a clipped 15 x 15 AOI instead of all 40,401 service topics; building digests use a separate manifest topic.</p>
+<dl class="docs-formula-terms"><dt>R</dt>
+<dd>The runtime service radius in Chunks around a configured center.</dd>
+<dt>r</dt>
+<dd>The runtime area-of-interest radius used for nearby publication.</dd>
+<dt>40,401</dt>
+<dd>The number of Chunk topics in the default runtime window, independent of the registered Region rectangle.</dd></dl></article>
+<article class="docs-formula"><h3>Batch wire cost grows linearly with nearby activity</h3>
+<div aria-label="MOVE_BATCH_down(n) = 4 + 12n bytes; DIG_BATCH_up(n) = 2 + 10n bytes; DIG_EVENT_BATCH_down(n) = 6 + 9n bytes; 1 &lt;= n &lt;= 255" class="docs-formula-expression" role="math"><code>MOVE_BATCH_down(n) = 4 + 12n bytes; DIG_BATCH_up(n) = 2 + 10n bytes; DIG_EVENT_BATCH_down(n) = 6 + 9n bytes; 1 &lt;= n &lt;= 255</code></div>
+<p class="docs-technical-explanation">Pending movement is coalesced per player, grouped by destination topic, and split into downlink batches of at most 255 items. Clients can submit up to 255 DIG records in one uplink batch, while the relay emits compact DIG-event downlink batches. A configured DIG rate limit counts incoming frames, so one accepted DIG_BATCH can contain many records; it must not be described as a limit of ten individual blocks per second.</p>
+<dl class="docs-formula-terms"><dt>n</dt>
+<dd>The number of compact records carried in one batch frame.</dd>
+<dt>4, 2, or 6</dt>
+<dd>The fixed header bytes for MOVE downlink, DIG uplink, or DIG-event downlink batches.</dd>
+<dt>12, 10, or 9</dt>
+<dd>The encoded bytes per movement, submitted DIG, or relayed DIG-event record.</dd></dl></article>
+<article class="docs-formula"><h3>A committed building index still needs independent verification</h3>
+<div aria-label="D_V3 = first16(SHA256(R_0 || ... || R_(n-1))); applyFresh = endpointMatch AND manifestMeta = resolverMeta AND changedBuildSitesMatch AND resolverMetaStable; reuseCache = verifiedSchema AND D_cache = D_resolver" class="docs-formula-expression" role="math"><code>D_V3 = first16(SHA256(R_0 || ... || R_(n-1))); applyFresh = endpointMatch AND manifestMeta = resolverMeta AND changedBuildSitesMatch AND resolverMetaStable; reuseCache = verifiedSchema AND D_cache = D_resolver</code></div>
+<p class="docs-technical-explanation">Current V3 Guardian source hashes ordered 56-byte records and keeps the first 16 SHA-256 bytes. The sync and browser paths also accept the legacy non-cryptographic V2 dual-64-bit digest. The Region account stores only 16 digest bytes, revision, and count—no algorithm version—and the Guardian Program does not recompute the manifest. The browser compares fresh manifests with chain-derived resolver metadata and reloads changed BuildSites, but that pass does not compare each record's content-hash prefix with a BuildingManifest; the building loader performs that later. Resolver stability checks do not make a new RPC read, and the verified-cache fast path compares only the digest hash, not revision and count.</p>
+<dl class="docs-formula-terms"><dt>R_i</dt>
+<dd>The ith canonical 56-byte regional building record, ordered by foundation ID.</dd>
+<dt>D</dt>
+<dd>The 16-byte digest committed in GuardianRegion metadata.</dd>
+<dt>resolverMetaStable</dt>
+<dd>The current in-memory Guardian resolver entry still matches around verification and cache publication; this is not a fresh chain RPC read.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Play accepts only the expected Region account layout</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian-registry.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function decodeGuardianAccount(item) {
+  try {
+    if (String(item?.account?.owner || "") !== NICECHUNK_GUARDIAN_PROGRAM_ID) return null;
+    const data = item?.account?.data;
+    const base64 = Array.isArray(data) ? data[0] : data;
+    const bytes = base64ToBytes(base64);
+    if (bytes.length !== GUARDIAN_REGION_LEN) return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const magic = ascii(bytes, 0, 8);
+    if (magic !== GUARDIAN_REGION_MAGIC) return null;
+    if (base58Encode(bytes.subarray(36, 68)) !== GUARDIAN_GOVERNANCE_WALLET) return null;
+    const hostLen = bytes[132] || 0;
+    const host = ascii(bytes, 133, Math.min(64, hostLen));
+    const version = view.getUint16(8, true);
+    if (version !== 2) return null;</code></pre>
+<p class="docs-technical-explanation">The resolver derives exact Region PDAs and rejects the wrong program owner, byte length, magic, governance owner, or version. Its caller also requires active status and a nonempty host. Those checks authenticate account provenance and layout, not whether the advertised network process is currently reachable.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>HELLO accepts a claimed nonzero wallet without a signature</h3>
+<span class="docs-code-language">C++</span>
+<code class="docs-code-source">Guardian/src/app.cpp</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="C++">  Hello hello;
+  if (!decode_hello(message, hello)) {
+    state.add_log("Rejected HELLO: bad protocol");
+    close_with_error(ws, ERROR_BAD_PROTOCOL);
+    return;
+  }
+  if (ws-&gt;getUserData()-&gt;player) {
+    close_with_error(ws, ERROR_BAD_PROTOCOL);
+    return;
+  }
+  if (wallet_is_empty(hello.wallet_pubkey)) {
+    state.add_log("Rejected HELLO: missing wallet identity");
+    close_with_error(ws, ERROR_BAD_PROTOCOL);
+    return;
+  }
+  auto retired = state.retire_players_with_wallet(hello.wallet_pubkey);
+  for (const auto &amp;notice : retired) {
+    auto leave_payload = encode_player_leave(notice.leave);
+    state.publish_to_aoi(notice.chunk_x, notice.chunk_z, leave_payload, publish);
+    state.add_log("Retired duplicate player #" + std::to_string(notice.leave.local_player_id));
+  }
+  if (!state.can_accept_player()) {
+    state.add_log("Rejected HELLO: server full");
+    close_with_error(ws, ERROR_SERVER_FULL);
+    return;
+  }
+  Player *player = state.create_player(hello, now_ms());
+  if (!player) {
+    state.add_log("Rejected HELLO: out of Guardian range");
+    close_with_error(ws, ERROR_OUT_OF_RANGE);
+    return;
+  }</code></pre>
+<p class="docs-technical-explanation">Protocol V1 decodes 32 wallet bytes, a starting Chunk, and an eight-byte client nonce. The handler checks protocol shape, a nonzero wallet, capacity, and configured range, but it neither requests nor verifies an Ed25519 signature or challenge response. The claimed wallet can therefore identify a relay avatar only as a hint.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The publisher compares every regional record with authoritative PDAs</h3>
+<span class="docs-code-language">TypeScript</span>
+<code class="docs-code-source">scripts/sync-guardian-blueprint.ts</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="TypeScript">    if (site.status !== BUILD_SITE_STATUS_ACTIVE
+      || !site.globalConfig.equals(globalConfig)
+      || site.foundationId !== record.foundationId
+      || site.minX !== record.minX
+      || site.minZ !== record.minZ
+      || site.surfaceY !== record.surfaceY
+      || site.width !== record.width
+      || site.depth !== record.depth
+      || site.activeRevision !== record.activeRevision
+      || record.updatedSlot !== 0n &amp;&amp; site.updatedSlot !== record.updatedSlot) {
+      throw new Error(`Guardian foundation ${record.foundationId} does not match its BuildSite PDA`);
+    }
+    if (record.activeRevision &gt; 0) activeRecords.push({ record, owner: site.owner });
+  }
+
+  const buildingPdas = activeRecords.map(({ record }) =&gt; deriveBuildingManifestPda({
+    globalConfig,
+    foundationId: record.foundationId,
+    revision: record.activeRevision,
+    programId: selectedBuildingProgramId,
+  })[0]);
+  const buildingAccounts = await getMultipleAccountsInfoBatched(buildingPdas);
+  for (let index = 0; index &lt; activeRecords.length; index += 1) {
+    const { record, owner } = activeRecords[index];
+    const account = buildingAccounts[index];
+    if (!account || !account.owner.equals(selectedBuildingProgramId)) {
+      throw new Error(`Guardian building ${record.foundationId}@${record.activeRevision} has no manifest PDA`);
+    }
+    verifyActiveBuildingManifest(account.data, record, owner);
+  }</code></pre>
+<p class="docs-technical-explanation">The watcher does not commit whatever the relay says. It resolves the BuildSite, compares geometry, active revision, and slot, then requires the corresponding active BuildingManifest and owner/hash relationship before an authorized publisher sends the outer Building Program instruction.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian accepts only monotonic, idempotent blueprint metadata</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_guardian/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        let current_revision = u64::from_le_bytes(
+            data[Self::BLUEPRINT_REVISION_OFFSET..Self::BLUEPRINT_REVISION_OFFSET + 8]
+                .try_into()
+                .map_err(|_| NicechunkGuardianError::InvalidGuardianRegionData)?,
+        );
+        let current_count = u32::from_le_bytes(
+            data[Self::BLUEPRINT_RECORD_COUNT_OFFSET..Self::BLUEPRINT_RECORD_COUNT_OFFSET + 4]
+                .try_into()
+                .map_err(|_| NicechunkGuardianError::InvalidGuardianRegionData)?,
+        );
+        let same_hash = data[Self::BLUEPRINT_HASH_OFFSET..Self::BLUEPRINT_HASH_OFFSET + 16]
+            == blueprint_hash[..];
+        if revision &lt; current_revision
+            || revision == current_revision &amp;&amp; (!same_hash || record_count != current_count)
+        {
+            return Err(NicechunkGuardianError::InvalidBlueprintRevision.into());
+        }
+        if revision == current_revision {
+            return Ok(());
+        }
+
+        data[Self::BLUEPRINT_HASH_OFFSET..Self::BLUEPRINT_HASH_OFFSET + 16]
+            .copy_from_slice(blueprint_hash);
+        data[Self::BLUEPRINT_REVISION_OFFSET..Self::BLUEPRINT_REVISION_OFFSET + 8]
+            .copy_from_slice(&amp;revision.to_le_bytes());
+        data[Self::BLUEPRINT_RECORD_COUNT_OFFSET..Self::BLUEPRINT_RECORD_COUNT_OFFSET + 4]
+            .copy_from_slice(&amp;record_count.to_le_bytes());</code></pre>
+<p class="docs-technical-explanation">A lower revision is rejected, and the same revision is accepted only when hash and count are unchanged. The instruction path separately requires the `guardian-blueprint` PDA of the configured Building Program; the Building Program accepts only governance or the dedicated publisher and signs the Guardian CPI with that PDA. This writes a commitment, not an on-chain manifest recomputation.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The browser rechecks changed BuildSites around verified cache writes</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-foundations.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  async function verifyAndApplyManifest(input, entry) {
+    const manifest = normalizeManifest(input);
+    if (manifest.regionX !== entry.region.x || manifest.regionZ !== entry.region.z) {
+      throw new Error("Guardian building manifest region mismatch.");
+    }
+    requireManifestStillCurrent(manifest, entry);
+    const records = manifest.records.map((record) =&gt; normalizeGuardianRecord(record, manifest));
+    const ids = new Set();
+    for (const record of records) {
+      if (ids.has(record.foundationId)) throw new Error("Guardian building manifest contains duplicate foundation IDs.");
+      ids.add(record.foundationId);
+      if (!recordIntersectsGuardianRegion(record, manifest.regionX, manifest.regionZ, chunkSize)) {
+        throw new Error("Guardian building record does not intersect its region.");
+      }
+    }
+    const cached = await cache?.getRegion?.(manifest.regionX, manifest.regionZ);
+    const previousRecords = new Map((cached?.records ?? []).map((record) =&gt; [String(record.foundationId), record]));
+    const previousFoundations = new Map((cached?.foundations ?? []).map((foundation) =&gt; [String(foundation.foundationId), foundation]));
+    const foundationsById = new Map();
+    const changedRecords = [];
+    for (const record of records) {
+      const previousRecord = previousRecords.get(record.foundationId);
+      const previousFoundation = previousFoundations.get(record.foundationId);
+      if (previousRecord &amp;&amp; previousFoundation
+        &amp;&amp; guardianRecordsMatch(previousRecord, record)
+        &amp;&amp; guardianRecordMatchesFoundation(record, previousFoundation)) {
+        foundationsById.set(record.foundationId, verifiedFoundationForManifest(previousFoundation, record, manifest));
+      } else {
+        changedRecords.push(record);
+      }
+    }
+    if (changedRecords.length) {
+      const module = await loadChainModule();
+      if (typeof module.loadBuildSitesByIds !== "function") {
+        throw new Error("BuildSite batch loader is unavailable.");
+      }
+      const loaded = await module.loadBuildSitesByIds(changedRecords.map((record) =&gt; record.foundationId));
+      const byId = new Map((loaded ?? []).map((foundation) =&gt; [String(foundation.foundationId), foundation]));
+      for (const record of changedRecords) {
+        const foundation = byId.get(record.foundationId);
+        if (!foundation || !guardianRecordMatchesFoundation(record, foundation)) {
+          throw new Error(`Guardian foundation ${record.foundationId} failed BuildSite verification.`);
+        }
+        foundationsById.set(record.foundationId, verifiedFoundationForManifest(foundation, record, manifest));
+      }
+    }
+    requireManifestStillCurrent(manifest, entry);
+    const foundations = records.map((record) =&gt; foundationsById.get(record.foundationId));
+    const verified = await cache?.putVerifiedRegion?.({ ...manifest, records }, foundations) ?? {
+      ...manifest,
+      foundations,
+      verified: true,
+    };
+    requireManifestStillCurrent(manifest, entry);
+    regionStates.set(regionKey(manifest), verified);
+    for (const foundation of foundations) pendingFoundations.delete(String(foundation.foundationId));
+    return verified;
+  }</code></pre>
+<p class="docs-technical-explanation">Region identity and chain-derived metadata are checked before this function. It then rejects duplicates and out-of-region records, reloads changed BuildSites, verifies the fields represented by BuildSite, and repeats the comparison against the current resolver entry around the cache write. Those checks do not compare the record content hash with BuildingManifest and read in-memory resolver metadata rather than issuing a fresh chain RPC request.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/lib.rs</code>
+<p>Defines the accepted instruction tags, signer and account gates, cardinal-neighbor validation, direct NCK treasury transfer, endpoint updates, Building-PDA blueprint authority, and governance operator rotation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/state.rs</code>
+<p>Defines the 100-Chunk Region model, 160-byte Registry and 288-byte Region layouts, current aggregate-offset defect, reserved proof fields, and monotonic blueprint metadata update.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/cluster_config.rs</code>
+<p>Pins the core, NCK mint, treasury/governance, and Building Program identities used by Guardian validation.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-guardian.ts</code>
+<p>Derives Registry, treasury, Region, and four cardinal-neighbor PDAs; constructs registration and endpoint instructions; and decodes the intended account layouts.</p></article>
+<article class="docs-evidence-item"><code>scripts/list-guardians.ts</code>
+<p>Enumerates fixed-size Region accounts directly and filters active records instead of relying on Registry aggregate counters.</p></article>
+<article class="docs-evidence-item"><code>guardian/guardian.js</code>
+<p>Reads Region accounts for the public registry map, builds wallet-signed registration and endpoint transactions, and demonstrates that displayed active nodes are registry records.</p></article>
+<article class="docs-evidence-item"><code>Guardian/README.md</code>
+<p>States the relay-only authority boundary, default 201 x 201 service window, 15 x 15 AOI, binary protocol, node-owned endpoint model, and local operational scope.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/config.h</code>
+<p>Defines default service radius, AOI radius, position precision, connection limits, frame-rate limits, payload bound, and backpressure configuration.</p></article>
+<article class="docs-evidence-item"><code>Guardian/config/guardian.example.conf</code>
+<p>Exposes the operator-configurable defaults that are independent of a 100 x 100 chain assignment.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/chunk.cpp</code>
+<p>Implements inclusive runtime service-range checks, local Chunk encoding, and stable row-major topic indexes for the configured square.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/aoi.cpp</code>
+<p>Builds the square AOI offsets whose count is `(2r + 1)^2`.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/protocol.h</code>
+<p>Defines protocol V1 message fields and exact sizes, including the unsigned 52-byte HELLO and compact movement and DIG batch records.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/protocol.cpp</code>
+<p>Decodes wallet bytes, starting Chunk, and client nonce without a signature or challenge field.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/app.cpp</code>
+<p>Accepts a nonzero claimed wallet, applies frame-level rate and range filters, relays realtime events, and permits connected clients to submit raw building announcements.</p></article>
+<article class="docs-evidence-item"><code>Guardian/src/guardian.cpp</code>
+<p>Maintains transient players and Chunk rooms, coalesces movement into AOI batches, validates local building-record geometry, and emits the current V3 truncated SHA-256 manifest.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian-registry.js</code>
+<p>Derives exact nine-Region PDA neighborhoods, performs confirmed batch reads and strict account decoding, caches results, and constructs chain-discovered endpoints.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian-client.js</code>
+<p>Builds the unsigned HELLO, encodes binary batches, implements bounded reconnect backoff, and verifies V1, V2, and V3 Guardian manifest hashes according to their parsed versions.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Disables realtime on a current-Region cache miss, relays transient avatar state, installs unsigned action-3 DIG hints as protected chain deltas, and keeps local play available while Guardian is offline.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Sends pending and confirmed mining hints at different lifecycle points, then invalidates and reloads authoritative Chunk deltas.</p></article>
+<article class="docs-evidence-item"><code>scripts/sync-guardian-blueprint.ts</code>
+<p>Accepts V2 and V3 manifests, recomputes their version-specific digest, verifies every record against a BuildSite and each active-revision record against a BuildingManifest PDA, and sends an authorized publish transaction unless its hash-only unchanged branch returns early.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/lib.rs</code>
+<p>Restricts blueprint publication to governance or the dedicated publisher and signs the Guardian CPI with the Building Program's derived authority.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-foundations.js</code>
+<p>Requires chain-discovered source identity and digest metadata, verifies changed BuildSites, checks freshness around cache writes, and exposes only verified regional records.</p></article>
+<article class="docs-evidence-item"><code>play/play-building-cache.js</code>
+<p>Scopes IndexedDB to the guardian-blueprint-v3 schema, reuses only explicitly verified entries, and bounds Region and building record counts.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-buildings.js</code>
+<p>Loads BuildingManifest PDAs and requires each full 32-byte content hash to match the 16-byte prefix carried by its BuildSite-derived regional record before rendering or building-cache reuse.</p></article>
+<article class="docs-evidence-item"><code>docs/guardian-load-audit.md</code>
+<p>Records deterministic core load-test evidence and its limit: the fixture is not a network soak test or universal production-capacity guarantee.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

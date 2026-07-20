@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "zh-Hant",
+    "label": "Traditional Chinese",
+    "version": "docs-locale-zh-Hant-7de716610ba413ec",
+    "contentHash": "7de716610ba413ec"
+  },
+  "common": {
+    "language": "語言",
+    "comingSoon": "即將推出",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "NiceChunk 首頁",
+    "primaryNavigationAria": "主要導覽",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單",
+    "routes": {
+      "home": "首頁",
+      "roadbook": "路書",
+      "worldRules": "世界規則",
+      "resources": "資源",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "元素",
+      "fairness": "公平性",
+      "proofOfFrontier": "證明",
+      "seed": "種子",
+      "guardians": "守護者",
+      "contracts": "合約",
+      "civilization": "文明",
+      "trust": "信任",
+      "docs": "文檔",
+      "enterWorld": "進入世界"
+    }
+  },
+  "meta": {
+    "title": "NiceChunk 實地指南",
+    "description": "以目前運行中的遊戲、公開規則和已部署程式行為為依據，為玩家編寫的 NiceChunk 文件。"
+  },
+  "accessibility": {
+    "skipContent": "跳至內容"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "實地指南",
+    "homeAria": "NiceChunk 首頁"
+  },
+  "navigation": {
+    "aria": "文件導覽",
+    "guide": "指南",
+    "worldRules": "世界規則",
+    "programs": "程式",
+    "enterWorld": "進入世界"
+  },
+  "status": {
+    "loading": "正在載入實地指南",
+    "loadingDetail": "正在取得一份所選語言的文件。",
+    "failed": "無法載入此指南頁面。",
+    "failedDetail": "請檢查連線，或返回指南目錄。"
+  },
+  "actions": {
+    "backToIndex": "返回指南目錄",
+    "guideIndex": "實地指南",
+    "openGuide": "開啟指南 →"
+  },
+  "footer": {
+    "statement": "依據目前運行中的規則和程式碼編寫。所有主張都限於實作能夠證明的範圍。",
+    "fairness": "公平性",
+    "trust": "信任",
+    "roadmap": "路書"
+  },
+  "translation": {
+    "fallbackTitle": "目前顯示英文原文",
+    "fallbackBody": "此主題已有獨立語言檔案，但經審閱的翻譯尚未完成。目前顯示英文原文，不以機器翻譯技術主張。"
+  },
+  "labels": {
+    "guideMetrics": "實地指南涵蓋範圍",
+    "breadcrumb": "麵包屑導覽",
+    "keyPoints": "重點",
+    "onThisPage": "本頁內容",
+    "evidenceEyebrow": "實作證據",
+    "evidenceTitle": "這些主張的依據",
+    "evidenceIntro": "每項主張都刻意限定在具體實作路徑能證明的範圍。這些參照用於驗證，而不是裝飾。"
+  },
+  "statusLabels": {
+    "ready": "已審閱",
+    "preview": "審閱中",
+    "planned": "已規劃"
+  },
+  "calloutLabels": {
+    "note": "閱讀方式",
+    "boundary": "實作邊界",
+    "verified": "程式碼保證的內容"
+  }
+}

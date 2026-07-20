@@ -1,0 +1,1331 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-skills-xp-and-progress-zh-Hans-38b8eb06c5218617",
+    "contentHash": "38b8eb06c5218617"
+  },
+  "slug": "skills-xp-and-progress",
+  "kind": "topic",
+  "shortTitle": "技能、XP 与进度",
+  "seo": {
+    "title": "技能、XP 与进度：一次操作如何变成等级",
+    "description": "跟随 NiceChunk 中的一次操作，依次了解本地计数器、浏览器 XP、按程序域区分的链上进度、各技能取最大值、等级阈值、进度条、刷新与跨设备恢复。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 · 第 10 步",
+    "title": "技能、XP 与进度：一次操作如何变成等级",
+    "summary": "一次被接受的操作，并不会更新一条通用 XP 进度条。生产环境的 /play/ 会先记录当前设备上的行为计数器。Profile 页面据此计算十项浏览器 XP，再读取可选的浏览器存储 XP 和指定链上记录；每项技能只保留三者中的最大值，然后通过浏览器等级曲线把 XP 换算成等级。Chunk、Game/Smelting 与 Backpack/Player 又会按照各自程序规则，分别发放四类链上 XP。本指南沿着 /play/index.html → /play/main.js → play/* 以及这些模块调用的程序逐步讲解：刷新或换设备后能恢复什么，为什么三种 XP 来源绝不能相加，以及为什么同一份锻造 XP 会得到两个不同等级。",
+    "readingTime": "阅读约 48 分钟",
+    "visual": {
+      "src": "/docs/media/skills-xp-and-progress-overview-v1.webp",
+      "alt": "生成的 NiceChunk 海岸 XP 工坊场景：标准黑发村民男孩完成一次采矿，标准橙发村民女孩则对照彼此分开的本地托盘、木制浏览器储物柜、石制公共档案和十级训练阶梯。",
+      "caption": "一次操作可能留下几条相互独立的进度记录。本地托盘、私人储物柜、两座公共档案和训练阶梯，分别用实体道具比喻浏览器计数器、浏览器保存的数据、按程序域区分的账户和派生等级。这个生成的单一场景使用标准村民、真实 Chunk.js 海岸与游戏烘焙材质；任何道具数量都不能证明 XP 数值、账户地址、交易、同步规则或等级阈值。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "当我采矿、放置、熔炼或锻造时，XP 从哪里来？为什么两个“等级”标签可能不一致？刷新页面或换一台设备后，哪些进度还能保留？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 共 15 步中的第 10 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的普通玩家"
+      },
+      {
+        "label": "已审核的生产入口",
+        "value": "/play/index.html → /play/main.js → play/*；旧版 /src/main.js 不属于本页所述的当前生产环境流程"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 18 日 · 源码原文摘录、专项检查、生成图像溯源、无需联网的派生审计，以及 confirmed 级别的 Devnet 源快照 slot 477,044,477"
+      }
+    ],
+    "terms": [
+      {
+        "term": "操作计数器",
+        "meaning": "保存在当前设备上的数字，例如 minedBlocks、confirmedMines、resourcesCollected 或 placedBlocks。它描述浏览器观察到的行为，并不会自动成为公开链上记录。"
+      },
+      {
+        "term": "待确认",
+        "meaning": "浏览器预测某项操作之后、得知已提交操作是否会被接受之前的即时本地阶段。待确认计数器之后可能被确认，也可能被撤销。"
+      },
+      {
+        "term": "派生 XP",
+        "meaning": "每次构建 Profile 技能状态时，根据本地操作计数器重新计算出的 XP。它只是公式结果，不是一笔独立账户记录或交易。"
+      },
+      {
+        "term": "浏览器存储 XP",
+        "meaning": "以某个 owner 命名的可选 localStorage 对象，并带有一个较旧的全局回退对象。当前生产环境 Play 会读取这些对象，但不会写入它们。"
+      },
+      {
+        "term": "链上 XP",
+        "meaning": "从某个公开、由程序拥有的账户中解码出的 XP。精准采集和探索使用 Chunk Progress，熔炼使用另一个 Game/Smelting Progress，锻造则使用 PlayerProfile。"
+      },
+      {
+        "term": "有效 XP",
+        "meaning": "对某项技能而言，派生 XP、浏览器存储 XP 与传入的链上 XP 三者中的最大值。浏览器只取最大值，不会把三种来源相加。"
+      },
+      {
+        "term": "按 owner 隔离的存储",
+        "meaning": "键名末尾带有某个钱包 owner 的浏览器数据，因此同一浏览器里的两个钱包可以分别保存本地记录。没有 owner 时，行为计数器使用 guest。"
+      },
+      {
+        "term": "旧版回退",
+        "meaning": "一个不区分 owner 的旧浏览器键，仅当当前按 owner 隔离的键为空时才会读取。两个对象通过 OR 二选一，而不是逐字段合并。"
+      },
+      {
+        "term": "单级 XP",
+        "meaning": "跨过一级所需的额外 XP。Profile 面板里的“升级 XP 等级表”显示的就是每一步所需数量。"
+      },
+      {
+        "term": "累计阈值",
+        "meaning": "从起点累计到某个等级所需的 XP 总量。它等于此前所有单级 XP 之和，也是等级判定实际比较的数值。"
+      },
+      {
+        "term": "进度 PDA",
+        "meaning": "在某个程序域内，由一个 owner 和 GlobalConfig 确定性派生出的公开账户。即使 seed 文字完全相同，位于不同程序 ID 下也会得到不同地址。"
+      },
+      {
+        "term": "程序域",
+        "meaning": "由一个 Solana 程序 ID 创建的地址与所有权命名空间。即使 Chunk Progress 和 Game/Smelting Progress 都使用 player-progress 这组文字，它们仍是彼此独立的账户。"
+      },
+      {
+        "term": "原子交易",
+        "meaning": "同一笔 Solana 交易里的所有指令要么一起成功，要么一起回滚状态变化。后面的锻造 XP 写入若失败，前面暂时追加的物品也不会被单独留下。"
+      },
+      {
+        "term": "安全整数边界",
+        "meaning": "JavaScript Number 无法精确表示大于 9,007,199,254,740,991 的所有整数。链上的 u64 可以更大，因此直接转成 Number 最终会丢失整数精度。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "一次操作可能触及多套账本",
+      "body": "浏览器待确认计数器、已确认的本地资源数量，以及程序发放的 XP 增量，是三种不同观察结果。它们可以采用不同单位和记录时机，并不表示其中一个是另一个的副本。"
+    },
+    {
+      "title": "十个本地公式共用七个行为计数器",
+      "body": "采矿、已确认采矿、已收集资源、放置、已确认放置、熔炼次数和已处理材料，会以不同系数输入十项浏览器技能。回滚计数器虽然会保存，却不参与这些公式。"
+    },
+    {
+      "title": "三种 XP 来源相互比较，不会累加",
+      "body": "对每项技能，浏览器都会取 max(派生值, 浏览器存储值, 链上值)。即使三种来源都是 100，有效 XP 仍是 100，而不是 300。"
+    },
+    {
+      "title": "单级花费与累计阈值是两个不同数字",
+      "body": "“升级 XP 等级表”显示每一步的花费；等级计算会把这些花费累加，再用 XP 与累计总数比较。"
+    },
+    {
+      "title": "目前只有四类技能会获得链上 XP",
+      "body": "Chunk 发放精准采集和探索 XP，Game/Smelting 发放熔炼 XP，Backpack 则调用 Player 发放锻造 XP。其余六项技能目前依赖浏览器端数据。"
+    },
+    {
+      "title": "恢复过程取决于具体程序",
+      "body": "当前 Profile 刷新可以恢复 Chunk 的精准采集与探索，以及 Profile 中的锻造。熔炼虽已写到链上，但刷新读取的是 Chunk 中结构相似的账户，而不是 Game/Smelting 账户。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "one-action-many-progress-stories",
+      "eyebrow": "待确认、浏览器确认、程序接受",
+      "title": "一次操作会在不同时间留下多条进度记录",
+      "paragraphs": [
+        "假设男孩开采一个普通资源方块。本地采矿计划一进入待确认状态，浏览器就会增加 minedBlocks，于是与移动相关的公式、耐力公式和力量公式会立即响应。这种即时反馈很有用，但它仍只是当前设备上的预测，之后可以撤销。",
+        "已提交操作成功后，浏览器会确认待处理增量、增加 confirmedMines，并把实际确认的奖励组物品数量加入 resourcesCollected。若提交失败，回滚会增加 rolledBackMines，并从 minedBlocks 中减去计划方块数。rolledBackMines 仍是有用的历史记录，但当前十个 XP 公式都不会读取它。",
+        "接受操作的 Chunk 程序维护着另一套账本。普通采矿中，每个被接受的方块增加 1 点精准采集 XP；只有实际出现额外掉落时，才再增加 1 点探索 XP。这些合约增量并不是要复制浏览器里更大的教学系数。举个具体例子：如果一次已确认采矿恰好增加 1 件收集到的资源，本地精准采集会增加 1 × 90 + 1 × 25 = 115 XP，而这个普通的已接受方块只增加 1 点链上精准采集 XP。",
+        "不要把这些数字称为“已同步”。浏览器之后只是比较本地派生总量与链上总量，并保留较大值；它不会把 115 和 1 相加。还要区分四个时刻：本地待确认预测、浏览器确认、浏览器回滚和程序接受。同一次真实尝试不可能既确认又回滚，不过讲解图可以把较早已接受的示例放在当前待确认尝试旁边。"
+      ],
+      "facts": [
+        {
+          "label": "待确认采矿",
+          "value": "minedBlocks += planned block count",
+          "detail": "在最终是否被接受尚未确定前，就立即保存在当前浏览器中。"
+        },
+        {
+          "label": "已确认采矿",
+          "value": "confirmedMines += block count",
+          "detail": "resourcesCollected 还会按已确认奖励组的物品数量增加。"
+        },
+        {
+          "label": "已回滚采矿",
+          "value": "rolledBackMines += 1",
+          "detail": "minedBlocks 会再次减少，本地工具损耗也可以恢复。"
+        },
+        {
+          "label": "已接受的普通方块",
+          "value": "+1 Chunk Precision XP",
+          "detail": "只有实际出现额外掉落时，探索才会再获得 +1。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-one-action-many-progress-stories-v1.webp",
+        "alt": "生成的 NiceChunk 矿石台地场景：标准男孩正在处理当前石块，标准女孩则查看一个较早被接受、现已放入敞开 Backpack 的资源；旁边还有独立的公共档案标记、本地待确认托盘和空置的回滚托架。",
+        "caption": "本地待确认托盘、较早已确认的 Backpack 资源、独立公共凹槽与空置退回托架，帮助区分不同阶段，却不表示同一次尝试既成功又回滚。标记数量只用于讲解，不编码 115 点浏览器 XP、1 点链上 XP、时间、奖励数量或交易状态。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "操作名称相同，不代表计量单位相同",
+        "body": "本地行为公式可能发放几十点派生 XP，而程序只发放 1 点链上 XP。Profile 页面取最大值时会让较小总量不再显示，但不会对账，也不会把多套账本相加。"
+      }
+    },
+    {
+      "id": "local-counters-feed-ten-skills",
+      "eyebrow": "十个浏览器公式",
+      "title": "七个本地行为计数器以不同权重输入十项技能",
+      "paragraphs": [
+        "Profile 页面根据七个非负本地计数器派生出完整 XP 对象：minedBlocks、confirmedMines、resourcesCollected、placedBlocks、confirmedPlacements、smeltingRuns 和 materialsSmelted。因此，一次操作可能同时推动多张技能卡。采矿会通过待确认、已确认和已收集数量的不同组合，为精准采集、敏捷、探索、耐力、力量、负重与鉴定贡献 XP。",
+        "放置也被有意拆成不同阶段。放置处于待确认状态时，placedBlocks 就会增加，因此工艺、敏捷与耐力可能在操作被接受前先变化。确认会增加 confirmedPlacements，让工艺再获得 85 XP。回滚则恢复 Backpack 堆叠、减少 placedBlocks，并记录 rolledBackPlacements；回滚计数器本身不参与技能公式。",
+        "熔炼目前存在一个重要缺口。game-state.js 会保存并重新加载 smeltingRuns 和 materialsSmelted，但这两个字段没有生产环境写入方，play/play-smelting.js 也从不增加它们。公式本来会使用这两个计数器；已审核的成功路径却只刷新权威 Backpack 与界面。因此，一次成功的链上熔炼操作可以获得 Game/Smelting XP，而浏览器派生的熔炼、锻造、负重、工艺和鉴定输入仍保持不变。",
+        "这些系数属于显示逻辑，不是合约奖励。精准采集公式中的 90 和 25 不会告诉 Chunk 写入多少 XP；锻造的本地材料公式也不会告诉 Backpack 如何评定物品品级。程序规则会在第 5 章单独列出。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集",
+          "value": "resources × 90 + confirmedMines × 25",
+          "detail": "使用已确认采矿次数和实际收集到的资源物品数。"
+        },
+        {
+          "label": "负重",
+          "value": "resources × 18 + materials × 12",
+          "detail": "使用已收集资源物品数和本地记录的已处理材料数。"
+        },
+        {
+          "label": "熔炼",
+          "value": "smeltingRuns × 160 + materials × 90",
+          "detail": "两个计数器都存在，但当前生产环境熔炼不会写入它们。"
+        },
+        {
+          "label": "锻造",
+          "value": "materials × 38 + smeltingRuns × 45",
+          "detail": "这个本地公式与 PlayerProfile 锻造 XP 相互独立。"
+        },
+        {
+          "label": "工艺",
+          "value": "confirmedPlacements × 85 + placed × 18 + materials × 28",
+          "detail": "待确认放置可以先推动一个计算项，确认后才会增加另一个计算项。"
+        },
+        {
+          "label": "敏捷",
+          "value": "mined × 5 + placed × 4",
+          "detail": "操作仍在待确认时，两个输入值都可能变化。"
+        },
+        {
+          "label": "探索",
+          "value": "confirmedMines × 44 + resources × 10",
+          "detail": "这个浏览器公式与合约的额外掉落 XP 相互独立。"
+        },
+        {
+          "label": "耐力",
+          "value": "mined × 9 + placed × 7",
+          "detail": "已保存的回滚计数器不参与这个公式。"
+        },
+        {
+          "label": "力量",
+          "value": "mined × 12 + resources × 6",
+          "detail": "仅由浏览器派生；目前没有链上力量 XP 来源。"
+        },
+        {
+          "label": "鉴定",
+          "value": "resources × 22 + materials × 36",
+          "detail": "仅由浏览器派生；目前没有链上鉴定 XP 来源。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-local-counters-feed-ten-skills-v1.webp",
+        "alt": "生成的 NiceChunk 海岸计数工坊场景：标准男孩整理采出的资源，标准女孩在十个彼此分开、没有文字标记的容器旁放置体素方块；熔炉边还有两个空计数杯。",
+        "caption": "十个容器只是帮助记住十项浏览器技能，并不是图表。它们的颜色、堆叠大小和位置都不编码技能顺序、系数或总量。熔炉边两个空杯表示当前生产路径没有写入 smeltingRuns 与 materialsSmelted，并不承诺这些计数器永远不会实现。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "字段可以被读取，却没有写入方",
+        "body": "熔炼计数器会被规范化、保存并由公式读取，但当前生产环境成功路径不会增加它们。因此，文档不能声称每次成功熔炼都会为本地派生 XP 提供输入。"
+      }
+    },
+    {
+      "id": "scoped-storage-and-max-merge",
+      "eyebrow": "三种来源，只取一个最大值",
+      "title": "按 owner 隔离的存储只回退一次，随后每项技能保留最高 XP 来源",
+      "paragraphs": [
+        "行为计数器保存在 nicechunk.play.profile.v1.<编码后的 owner> 下。没有钱包 owner 时，后缀使用 guest。切换钱包会让 game-state 先保存前一个 owner 的 profile，再加载下一个 owner 的 profile，因此本地采矿与放置历史并不是要合并成一份浏览器共享总数。",
+        "可选技能 XP 对象使用 nicechunk.playerSkillXp.<owner>。如果这个按 owner 隔离的键没有值，加载器才尝试较旧的全局键 nicechunk.playerSkillXp。旧版手动等级对象也采用相同模式，依次使用 nicechunk.playerSkills.<owner> 与 nicechunk.playerSkills。简单说，这是“主值 OR 旧版回退值”，不是对象合并：表达式只选择一个序列化对象，绝不会用回退对象补齐主对象缺少的字段。",
+        "随后，Profile 状态会合并三份 XP 对象：对每项技能，分别从行为派生 XP、浏览器存储 XP 与传入的链上 XP 中取经过四舍五入的最大非负数。如果三者是 300、900 和 500，有效 XP 就是 900。这样可以避免较大的已知总量被较小来源覆盖，但这不是同步、不是相加，也不能证明最大来源就是权威来源。",
+        "deriveProfileSkillXp 始终返回全部十个技能键，包括值为零的键。只要某个键的 XP 是有限数值，profileSkillEffectiveLevel 就优先使用它。这十个有限值键——零也包括在内——会遮住旧版 playerSkills 等级，因此在这条 Profile 路径中，较旧的手动等级对象通常不会决定任何技能等级。仓库检索还表明，生产环境 Play 只读取 playerSkillXp 和 playerSkills；目前这两类键都没有 localStorage.setItem 写入方。"
+      ],
+      "facts": [
+        {
+          "label": "行为计数器",
+          "value": "nicechunk.play.profile.v1.<encodeURIComponent(owner)>",
+          "detail": "没有 owner 地址时使用 guest。"
+        },
+        {
+          "label": "浏览器 XP",
+          "value": "nicechunk.playerSkillXp.<owner> OR nicechunk.playerSkillXp（主键为空时使用旧版回退键）",
+          "detail": "只有按 owner 隔离的序列化值不存在或为空时，才会使用回退值。"
+        },
+        {
+          "label": "旧版手动等级",
+          "value": "nicechunk.playerSkills.<owner> OR nicechunk.playerSkills（主键为空时使用旧版回退键）",
+          "detail": "通常会被遮住，因为派生 XP 对象提供了每一个技能键。"
+        },
+        {
+          "label": "有效 XP",
+          "value": "max(derived, browser-stored, chain)（三种来源取最大值）",
+          "detail": "每项技能单独计算；不同来源绝不相加。"
+        },
+        {
+          "label": "当前生产环境写入方",
+          "value": "技能 XP 键和手动等级键均无写入方",
+          "detail": "生产环境 Play 模块会读取这些键，但不会设置它们。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-scoped-storage-and-max-merge-v1.webp",
+        "alt": "生成的 NiceChunk 对比阁楼场景：标准女孩用独立高度尺比较三堆彼此分开的 XP，标准男孩打开某个 owner 专用的抽屉；旁边还有关闭的旧版抽屉和一块完全分离的旧手动等级方块。",
+        "caption": "互不连接的堆叠表示每项技能只取最大值：只有最高一堆被标记，没有任何一堆倒入另一堆。打开的 owner 专用抽屉与关闭的旧版抽屉表示“主值 OR 回退值”。场景不编码真实存储键、链上优先级、同步、账户新鲜度或交易结果。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "最大值不等于权威值",
+        "body": "浏览器显示会采用可见来源中的最高值，即使它只是当前设备上的数据。要知道程序真正强制执行什么，必须查看该程序拥有的账户及其自身阈值表。"
+      }
+    },
+    {
+      "id": "browser-level-curve-and-progress-bar",
+      "eyebrow": "从 XP 到等级",
+      "title": "浏览器累加四舍五入后的单级花费，两种进度条则回答不同问题",
+      "paragraphs": [
+        "每项技能都有 xpBase 和 xpGrowth 参数。计算下一步花费时，浏览器把 xpBase 乘以 10，再乘以 targetLevel 的 xpGrowth 次方，最后把这一单级结果四舍五入到最接近的整数。达到某个等级还必须支付此前每一级的花费，因此累计阈值是从第 1 级到目标等级所有单级花费之和。",
+        "等级判定先把有效 XP 四舍五入为非负整数，再寻找累计阈值已经达到的最高等级。“升级 XP 等级表”打印的是每一级新增花费，而不是累计总量。例如，锻造 Lv.4 这一步本身花费 12,865 XP；计入此前三级后，达到 Lv.4 的累计阈值则是 26,628 XP。",
+        "详情进度条会先扣除达到当前等级已经消耗的 XP，再用当前级内 XP 除以下一级花费。升级后，即使总 XP 从未减少，这个“当前级内 XP”也可能回到接近零。达到 Lv.10 后没有下一级：当前值与所需值都变成零，比例变成一，标签改为“总 XP”。",
+        "紧凑技能卡上的进度条并不是这个级内比例。它只显示“等级 ÷ 10”，并强制至少 4% 宽度，让 Lv.0 卡片也能看到一小段。因此，两种进度条外观不同仍可能都符合代码。下方完整累计表列出了十项浏览器技能从 Lv.1 到 Lv.10 的全部阈值。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集 · 基础值 90 · 增长 1.52",
+          "value": "900 · 3,481 · 8,261 · 15,663 · 26,054 · 39,764 · 57,094 · 78,323 · 103,715 · 133,517",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "负重 · 基础值 130 · 增长 1.58",
+          "value": "1,300 · 5,187 · 12,563 · 24,183 · 40,715 · 62,766 · 90,898 · 125,638 · 167,483 · 216,908",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "熔炼 · 基础值 120 · 增长 1.56",
+          "value": "1,200 · 4,738 · 11,398 · 21,831 · 36,608 · 56,246 · 81,223 · 111,984 · 148,950 · 192,519",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "锻造 · 基础值 140 · 增长 1.60",
+          "value": "1,400 · 5,644 · 13,763 · 26,628 · 45,014 · 69,627 · 101,125 · 140,126 · 187,215 · 242,950",
+          "detail": "浏览器累计阈值；它们与 Backpack 的合约锻造表不同。"
+        },
+        {
+          "label": "工艺 · 基础值 180 · 增长 1.66",
+          "value": "1,800 · 7,488 · 18,638 · 36,614 · 62,649 · 97,886 · 143,399 · 200,206 · 269,280 · 351,556",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "敏捷 · 基础值 110 · 增长 1.50",
+          "value": "1,100 · 4,211 · 9,927 · 18,727 · 31,025 · 47,192 · 67,564 · 92,454 · 122,154 · 156,939",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "探索 · 基础值 125 · 增长 1.57",
+          "value": "1,250 · 4,961 · 11,975 · 22,994 · 38,636 · 59,462 · 85,991 · 118,707 · 158,068 · 204,510",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "耐力 · 基础值 105 · 增长 1.50",
+          "value": "1,050 · 4,020 · 9,476 · 17,876 · 29,615 · 45,047 · 64,493 · 88,252 · 116,602 · 149,806",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "力量 · 基础值 145 · 增长 1.59",
+          "value": "1,450 · 5,815 · 14,132 · 27,273 · 46,011 · 71,051 · 103,045 · 142,607 · 190,317 · 246,729",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        },
+        {
+          "label": "鉴定 · 基础值 160 · 增长 1.62",
+          "value": "1,600 · 6,518 · 16,003 · 31,120 · 52,820 · 81,976 · 119,402 · 165,867 · 222,100 · 288,799",
+          "detail": "浏览器从 Lv.1 到 Lv.10 的累计阈值。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-browser-level-curve-and-progress-bar-v1.webp",
+        "alt": "生成的 NiceChunk 采石场课堂场景：两位标准村民查看一座有十个平台的石制训练阶梯、累计计数箱、当前等级槽、十格等级尺，以及另一件只填充了一部分的单级进度仪器。",
+        "caption": "间距逐渐增大的阶梯暗示单级花费不断上升；关闭的箱子与当前等级槽则把终身 XP 和当前级内 XP 分开。旁边两件仪器分别代表技能卡的“十级中已到几级”进度条，以及详情视图的级内比例。它们的形状与内容不编码确切阈值、公式、XP 总量或 Lv.10 状态。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "先看标签，再看进度条",
+        "body": "小卡片进度条回答十个等级已经完成多少级；详情进度条回答 XP 在当前等级中走了多远。只看其中任何一条，都无法知道确切的终身 XP 阈值。"
+      }
+    },
+    {
+      "id": "accepted-actions-write-chain-progress",
+      "eyebrow": "四类链上支持的 XP",
+      "title": "已接受采矿、额外掉落、熔炼输入与锻造品级会写入不同公开记录",
+      "paragraphs": [
+        "Chunk 拥有采矿使用的公开 Progress。一个普通的已接受方块会增加 1 点精准采集 XP；范围采矿或分组路径则把同一个“每方块常量”乘以被接受或获得奖励的方块数。探索只为每个实际出现的额外掉落增加 1 XP，而不是为每次符合条件的随机判定或每个可见资源增加。",
+        "Game/Smelting 拥有另一个 Progress 账户，它使用相同 seed 文字，却属于不同程序 ID。一次成功执行会先验证选中的 Backpack 输入、移除它们、写入产出，然后为每个选中的输入索引增加 1 点熔炼 XP。批次乘数与产出数量不会取代这条“按输入索引计 XP”的规则。",
+        "锻造不使用上述任何一个 Progress PDA。Backpack 从 PlayerProfile 读取锻造 XP，计算最终品级，并发放 25 × 品级² XP。它会先暂时追加锻造记录，再携带计算结果调用 Player 程序。Player 验证由 owner 派生的当前 Profile，并在偏移 449 处写入累计 u64。如果后面的调用失败，Solana 会回滚整笔交易，包括先前的追加操作。",
+        "每个 Progress PDA 都会在首次相关操作需要时按需创建。Chunk 与 Game/Smelting 在不同程序 ID 下使用相同的 player-progress seed 文字，所以 PDA 地址不同。已审核网站当前使用的 Devnet ID 是：Chunk 为 GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj，统一 Game/Smelting 为 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7。Chunk 流程的付款方可以是操作付款方或 session authority；熔炼流程则以 owner 为付款方。因此，seed 相同不代表地址、owner、余额、租金付款方或历史也相同。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集",
+          "value": "accepted or rewarded block count × 1 XP",
+          "detail": "存储在 Chunk 拥有的 Progress PDA 中。"
+        },
+        {
+          "label": "探索",
+          "value": "actual extra-drop count × 1 XP",
+          "detail": "存储在同一个由 Chunk 拥有的 Progress PDA 中。"
+        },
+        {
+          "label": "熔炼",
+          "value": "+1 XP × inputIndexes.length",
+          "detail": "存储在独立、由 Game/Smelting 拥有的 Progress PDA 中。"
+        },
+        {
+          "label": "锻造",
+          "value": "+25 × finalGrade² XP",
+          "detail": "存储在 PlayerProfile 中，而不是 Progress PDA 中。"
+        },
+        {
+          "label": "Chunk Progress 地址",
+          "value": "[player-progress, GlobalConfig, owner]（位于 Chunk 程序 ID 下）",
+          "detail": "精准采集与探索从这个程序域读取。"
+        },
+        {
+          "label": "熔炼 Progress 地址",
+          "value": "[player-progress, GlobalConfig, owner]（位于 Game/Smelting 程序 ID 下）",
+          "detail": "由于程序 ID 不同，相同 seed 字节会生成另一个 PDA。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-accepted-actions-write-chain-progress-v1.webp",
+        "alt": "生成的 NiceChunk 海岸生产庭院场景：两位标准村民在一座带两个凹槽的灰色 Chunk 档案旁工作；旁边另有铜色熔炼档案与熔炉，以及一座配有紧凑 Profile 抽屉和普通 Backpack 的锻造台。",
+        "caption": "灰色档案的两个凹槽表示精准采集和探索共用一个 Chunk Progress；铜色熔炉档案表示 Game/Smelting Progress；紧凑抽屉表示 PlayerProfile 中的锻造 XP。彼此分开的道具不能证明确切增量、PDA seed、租金付款、交易成功、账户新鲜度或已部署程序与源码一致。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "公开不等于只有一个通用账户",
+        "body": "一个钱包可以同时拥有两个有效的 player-progress PDA。说明读取了哪段熔炼、精准采集或探索历史之前，务必先说清程序 ID。"
+      }
+    },
+    {
+      "id": "same-skill-name-different-thresholds",
+      "eyebrow": "一份 XP 总量，两张等级表",
+      "title": "锻造 XP 只有一份，但浏览器与 Backpack 使用不同阈值换算",
+      "paragraphs": [
+        "精准采集、探索与熔炼的合约阈值和对应的浏览器累计表一致，锻造却不同。Profile 浏览器曲线的 Lv.1 从 1,400 XP 开始，Lv.10 阈值增长到 242,950 XP；Backpack 固定合约表的 Lv.1 从 250 XP 开始，并在 45,000 XP 达到 Lv.10。",
+        "这并不是两份锻造 XP 余额。PlayerProfile 只存一个 forging_xp 数字。浏览器通过自己的表把这个总量换算成卡片等级；Backpack 计算锻造结果时，则通过合约表换算同一个总量。两个等级数字可以分别对各自使用方都正确。",
+        "三个检查点能把差异说清楚：250 XP 时，Backpack 看到合约 Lv.1，浏览器仍是 Lv.0；1,875 XP 时，浏览器是 Lv.1，Backpack 是 Lv.2；45,000 XP 时，Backpack 已是 Lv.10，浏览器却是 Lv.4，直到 45,014 XP 才升到浏览器 Lv.5。最后两个数只差 14 XP，却跨过了一个浏览器阈值。",
+        "带日期的 Devnet 快照显示，owner EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx 拥有 1,875 点锻造 XP；保留的账户字节可以验证 Lv.1 与 Lv.2 的不同换算。它只是 confirmed slot 477,044,477 时的快照，不能证明当前余额或已部署二进制。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集合约累计值",
+          "value": "0 · 900 · 3,481 · 8,261 · 15,663 · 26,054 · 39,764 · 57,094 · 78,323 · 103,715 · 133,517",
+          "detail": "与浏览器精准采集曲线一致，包括 Lv.0。"
+        },
+        {
+          "label": "探索合约累计值",
+          "value": "0 · 1,250 · 4,961 · 11,975 · 22,994 · 38,636 · 59,462 · 85,991 · 118,707 · 158,068 · 204,510",
+          "detail": "与浏览器探索曲线一致，包括 Lv.0。"
+        },
+        {
+          "label": "熔炼合约累计值",
+          "value": "0 · 1,200 · 4,738 · 11,398 · 21,831 · 36,608 · 56,246 · 81,223 · 111,984 · 148,950 · 192,519",
+          "detail": "与浏览器熔炼曲线一致，包括 Lv.0。"
+        },
+        {
+          "label": "锻造合约累计值",
+          "value": "0 · 250 · 900 · 2,100 · 4,000 · 6,800 · 10,700 · 16,000 · 23,000 · 32,000 · 45,000",
+          "detail": "与浏览器锻造曲线不一致。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-same-skill-name-different-thresholds-v1.webp",
+        "alt": "生成的 NiceChunk 锻造大厅场景：两位标准村民从同一个无文字标记的共享砝码取得等量样本方块，再放到两套结构不同、最终高度也不同的阶梯机构上测试。",
+        "caption": "两份教学样本与不同阶梯机构表示同一份 XP 总量由两张独立等级表换算，并不表示账户被复制。阶梯间距与到达高度不编码 250、1,400、45,000、45,014 或任何确切等级；这些事实应以表格与源码原文为准。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "必须说清是浏览器等级还是合约等级",
+        "body": "如果不说明使用方，“锻造 Lv.4”就有歧义。Profile 卡片和 Backpack 计算使用同一份 XP，却采用不同阈值函数。"
+      }
+    },
+    {
+      "id": "refresh-recovery-and-source-labels",
+      "eyebrow": "刷新与另一台设备",
+      "title": "当前刷新能正确恢复三类技能，却在错误程序域里查找熔炼",
+      "paragraphs": [
+        "除非强制刷新，Profile 链同步器会执行 18 秒冷却。它加载链模块，并行请求 PlayerProfile、Equipment、Appearance 与一个 Progress。fetchPlayerProgress 调用会在 Chunk 程序 ID 下派生该 Progress PDA，并拒绝任何不由 Chunk 拥有的账户。",
+        "同步器会把 Chunk 中为正数的 precisionGatheringXp、smeltingXp、explorationXp，以及 PlayerProfile 中为正数的 forgingXp，映射到链上 XP 对象；零值会被省略。问题就在这里：真实熔炼执行把相同偏移结构写入由 Game/Smelting 拥有的 Progress PDA，而 fetchPlayerProgress 从不派生或读取第二个地址，所以当前 Profile 刷新拿不到有效的 Game/Smelting 总量。",
+        "保留的快照让“读错程序域”的影响可以量化。owner EDNQ7SfFLR9L51uPdL6CKA6Q7j7PDF84Bsxx9vVELLjx 当时拥有：Chunk 精准采集 1,678、Chunk 熔炼 0、Chunk 探索 4、Game/Smelting 熔炼 29，以及 Profile 锻造 1,875。当前 Profile 刷新会提供精准采集 1,678、探索 4 与锻造 1,875，却遗漏真实熔炼 29，因为它读取了 Chunk 中值为零的字段。",
+        "换到另一台设备后，精准采集与探索可以从 Chunk 恢复，锻造可以从 PlayerProfile 恢复。熔炼公开存在，但必须先修正 Game/Smelting 获取逻辑，Profile 才能恢复它。负重、工艺、敏捷、耐力、力量与鉴定目前依赖设备本地计数器或可选浏览器对象。还要注意，解码后的 u64 会转成 JavaScript Number；超过 2^53 − 1 后，显示的整数精度不再可靠。",
+        "玩家排查时可以遵循简单顺序：确认连接的是同一钱包；等待刷新或强制刷新；识别数据来源与程序域；绝不要手动相加三种浏览器来源。加入来源徽标会让排查更容易，但当前 Profile 界面尚未显示它们——这是改进建议，不是对现有控件的描述。"
+      ],
+      "facts": [
+        {
+          "label": "精准采集",
+          "value": "可从 Chunk Progress 恢复",
+          "detail": "当前刷新读取了正确程序域。"
+        },
+        {
+          "label": "探索",
+          "value": "可从 Chunk Progress 恢复",
+          "detail": "只有解码后为正数的值会进入链上 XP 对象。"
+        },
+        {
+          "label": "锻造",
+          "value": "可从 PlayerProfile 恢复",
+          "detail": "存储在 Profile 的锻造 XP 字段，而不是 Progress 中。"
+        },
+        {
+          "label": "熔炼",
+          "value": "已公开存储，但当前从错误程序域获取",
+          "detail": "执行使用 Game/Smelting Progress；Profile 刷新读取 Chunk Progress。"
+        },
+        {
+          "label": "其他六项技能",
+          "value": "设备本地或浏览器持有",
+          "detail": "目前没有为它们提供公开链上 XP 来源。"
+        },
+        {
+          "label": "刷新间隔",
+          "value": "除非强制刷新，否则为 18 秒",
+          "detail": "Profile、Equipment、Appearance 与一个 Progress 请求会并行运行。"
+        },
+        {
+          "label": "Profile 等级",
+          "value": "1 + floor(sum of ten skill levels ÷ 10)（十项技能等级求和后除以 10）",
+          "detail": "HUD 使用 1 + floor(confirmedMines ÷ 25)，因此两个“等级”标签不同是正常现象。"
+        },
+        {
+          "label": "u64 显示精度上限",
+          "value": "仅在不超过 9,007,199,254,740,991 时保证精确",
+          "detail": "直接转换为 Number 可能会舍入更大的链上整数。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/skills-xp-and-progress-refresh-recovery-and-source-labels-v1.webp",
+        "alt": "生成的 NiceChunk 恢复室场景：标准男孩带着空的本地工具箱到来；标准女孩操作带摆锤的刷新台，面对灰色 Chunk 档案和 Profile 抽屉；更远处还有一座独立的铜色熔炼档案。",
+        "caption": "空工具箱表示一台新设备；灰色档案与 Profile 抽屉旁恢复出的标记，代表当前刷新能够读取的来源。远处装有内容的铜色档案表示位于当前获取路径之外的链上熔炼进度。摆锤不编码确切的 18 秒，图像也不声称存在来源标签、网络成功、数据新鲜度或 XP 丢失。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "熔炼 XP 并没有从链上消失",
+        "body": "当前恢复缺口是读取方查错程序域的问题：Profile 获取逻辑向 Chunk 请求 Progress，而熔炼执行写入 Game/Smelting Progress。不要把它描述成交易消失或链上余额为零。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现",
+    "title": "十五个公式与二十二段源码原文，追踪计数器、存储、阈值、奖励和恢复",
+    "summary": "这些公式区分即时行为计数器、浏览器有效 XP、单级花费、累计阈值、程序奖励与两个“等级”标签。下方每段源码都是已审核仓库中的连续原文。无需联网的派生审计会复用带日期的账户快照，而不会把旧字节伪装成新的实时查询。"
+  },
+  "formulas": [
+    {
+      "title": "采矿计数器生命周期",
+      "expression": "pending: minedBlocks += plannedBlocks; confirm: confirmedMines += plannedBlocks and resourcesCollected += confirmedItems; rollback: minedBlocks -= plannedBlocks and rolledBackMines += 1",
+      "ariaLabel": "待确认采矿会增加本地已采方块数；确认会增加已确认采矿次数和已收集资源；回滚会移除计划方块数，并记录一次回滚。",
+      "explanation": "这些都是浏览器计数器。Chunk 是否接受操作及其 XP 奖励，是另一项独立的程序结果。",
+      "terms": [
+        {
+          "symbol": "plannedBlocks",
+          "meaning": "当前本地采矿计划中的方块数量。"
+        },
+        {
+          "symbol": "confirmedItems",
+          "meaning": "已确认奖励组中所有物品数量之和。"
+        }
+      ]
+    },
+    {
+      "title": "放置计数器生命周期",
+      "expression": "pending: placedBlocks += 1; confirm: confirmedPlacements += 1; rollback: placedBlocks -= 1 and rolledBackPlacements += 1",
+      "ariaLabel": "待确认放置会增加本地已放置方块数；确认会增加已确认放置次数；回滚会移除这次放置计数，并记录一次已回滚放置。",
+      "explanation": "回滚还会恢复已消耗的 Backpack 快照。当前技能 XP 公式读取 placedBlocks 与 confirmedPlacements，但不读取 rolledBackPlacements。",
+      "terms": [
+        {
+          "symbol": "placedBlocks",
+          "meaning": "本地计数；放置处于待确认状态时就已包含在内。"
+        },
+        {
+          "symbol": "confirmedPlacements",
+          "meaning": "另一项独立本地计数，只会在确认后增加。"
+        }
+      ]
+    },
+    {
+      "title": "十项行为派生 XP",
+      "expression": "Precision=90R+25M; Burden=18R+12T; Smelting=160S+90T; Forging=38T+45S; Craftsmanship=85C+18P+28T; Swiftness=5B+4P; Exploration=44M+10R; Stamina=9B+7P; Strength=12B+6R; Appraisal=22R+36T",
+      "ariaLabel": "浏览器根据已采方块、已确认采矿、资源、放置、已确认放置、熔炼次数与已处理材料，按列出的整数权重派生十项技能 XP。",
+      "explanation": "B 表示 minedBlocks，M 表示 confirmedMines，R 表示 resourcesCollected，P 表示 placedBlocks，C 表示 confirmedPlacements，S 表示 smeltingRuns，T 表示 materialsSmelted。所有输入都会限制为非负整数。",
+      "terms": [
+        {
+          "symbol": "B, M, R",
+          "meaning": "已采方块数、已确认采矿次数与已收集资源物品数。"
+        },
+        {
+          "symbol": "P, C",
+          "meaning": "待确认或已确认的放置方块数，以及单独记录的已确认放置次数。"
+        },
+        {
+          "symbol": "S, T",
+          "meaning": "本地熔炼次数与本地 materialsSmelted；当前生产环境熔炼不会写入这两个计数器。"
+        }
+      ]
+    },
+    {
+      "title": "按 owner 隔离的浏览器取值",
+      "expression": "StoredObject = JSON(primary owner key OR legacy global key); the primary and legacy objects are not merged",
+      "ariaLabel": "如果按 owner 隔离的浏览器值存在，加载器就解析它；否则解析较旧的全局值。它不会合并两个对象的字段。",
+      "explanation": "这条规则分别应用于浏览器 XP 和较旧的手动等级对象。行为计数器只使用按钱包隔离的键，此处不会使用旧版全局 profile 回退。",
+      "terms": [
+        {
+          "symbol": "OR",
+          "meaning": "JavaScript 通过短路逻辑从两个序列化字符串中选择一个。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器有效 XP",
+      "expression": "EffectiveXP(skill) = max(DerivedXP(skill), BrowserStoredXP(skill), ChainXP(skill))",
+      "ariaLabel": "对每项技能而言，有效 XP 是行为派生 XP、浏览器存储 XP 与传入链上 XP 中的最大值。",
+      "explanation": "每个值先四舍五入为非负整数，再按键分别合并。不同来源绝不相加，链上值也不会自动获得优先权。",
+      "terms": [
+        {
+          "symbol": "max",
+          "meaning": "为这一项技能选择最大的值。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器单级花费",
+      "expression": "TierXP(targetLevel) = round(xpBase × 10 × targetLevel^xpGrowth)",
+      "ariaLabel": "某项技能跨一级的花费，等于 XP 基础值乘以 10，再乘以目标等级的 XP 增长次方，最后四舍五入到最接近的整数。",
+      "explanation": "“升级 XP 等级表”显示这些逐步花费。targetLevel 从 1 取到 10。",
+      "terms": [
+        {
+          "symbol": "xpBase, xpGrowth",
+          "meaning": "每项技能定义中保存的两个浏览器参数。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器累计阈值",
+      "expression": "TotalXP(level L) = sum of TierXP(k), for k = 1 through L",
+      "ariaLabel": "某等级的累计 XP 阈值，是从第 1 级到该等级所有已四舍五入单级花费的总和。",
+      "explanation": "单级花费与累计阈值不能互换；等级判定使用累计总量。",
+      "terms": [
+        {
+          "symbol": "sum",
+          "meaning": "把指定范围内每一项单级花费相加。"
+        }
+      ]
+    },
+    {
+      "title": "根据 XP 计算浏览器等级",
+      "expression": "Level = maximum L in [0,10] where TotalXP(L) ≤ round(max(0, EffectiveXP))",
+      "ariaLabel": "浏览器等级是 0 到 10 之间，累计阈值不超过已四舍五入非负有效 XP 的最高等级。",
+      "explanation": "XP 恰好等于阈值时就达到新等级；低于 Lv.1 阈值时仍为 Lv.0。",
+      "terms": [
+        {
+          "symbol": "L",
+          "meaning": "0 到 10 之间的候选浏览器等级。"
+        }
+      ]
+    },
+    {
+      "title": "当前浏览器等级内的进度",
+      "expression": "CurrentXP = clamp(XP − TotalXP(currentLevel), 0, TierXP(nextLevel)); Ratio = CurrentXP ÷ TierXP(nextLevel)",
+      "ariaLabel": "当前级内 XP 会减去已经达到的累计阈值，再限制到下一级花费范围内；详情进度比例用这个结果除以下一级花费。",
+      "explanation": "达到 Lv.10 后，当前值与所需值都为零，比例为一，标签改为显示终身“总 XP”。",
+      "terms": [
+        {
+          "symbol": "clamp",
+          "meaning": "把数值限制在指定最小值与最大值之间。"
+        }
+      ]
+    },
+    {
+      "title": "两种不同的 Profile 进度条",
+      "expression": "CardWidth = max(4%, 100% × level ÷ 10); DetailWidth = 100% × CurrentXP ÷ TierXP(nextLevel)",
+      "ariaLabel": "技能卡进度条显示十级中已到几级，并设 4% 最小宽度；详情进度条则显示当前等级内的 XP 进度。",
+      "explanation": "两者的视觉差异是有意设计的。4% 最小宽度只是让 Lv.0 卡片可见，并不是已获得进度。",
+      "terms": [
+        {
+          "symbol": "CardWidth",
+          "meaning": "每张技能卡上显示的紧凑进度条。"
+        },
+        {
+          "symbol": "DetailWidth",
+          "meaning": "选中技能详情中的较长进度条。"
+        }
+      ]
+    },
+    {
+      "title": "链上 XP 奖励",
+      "expression": "Precision += acceptedBlocks; Exploration += actualExtraDrops; Smelting += selectedInputIndexes; Forging += 25 × finalGrade²",
+      "ariaLabel": "链上精准采集按被接受方块数增加，探索按实际额外掉落数增加，熔炼按选中输入数增加，锻造则增加最终品级平方的 25 倍。",
+      "explanation": "每个数量都由接受操作的程序计算。精准采集与探索共用 Chunk Progress，熔炼使用 Game/Smelting Progress，锻造使用 PlayerProfile。",
+      "terms": [
+        {
+          "symbol": "finalGrade",
+          "meaning": "Backpack 应用材料、物品等级、技能与上限规则后得到的品级，范围为 1 到 10。"
+        }
+      ]
+    },
+    {
+      "title": "当前跨设备恢复映射",
+      "expression": "RefreshChainXP = {Precision: Chunk.precision, Exploration: Chunk.exploration, Forging: PlayerProfile.forging}; GameSmelting.smelting is not fetched",
+      "ariaLabel": "当前刷新会从 Chunk 恢复精准采集与探索，从 PlayerProfile 恢复锻造，却不会从 Game Smelting 程序域获取熔炼。",
+      "explanation": "获取到的 Chunk 结构对象也包含 smelting 字段，但这个字段并不来自熔炼执行程序写入的账户。",
+      "terms": [
+        {
+          "symbol": "RefreshChainXP",
+          "meaning": "当前一次刷新后，传给 Profile 浏览器合并逻辑的正数值。"
+        }
+      ]
+    },
+    {
+      "title": "一份锻造 XP 总量，两种等级函数",
+      "expression": "BrowserForgingLevel = BrowserCurve(forging_xp); ContractForgingLevel = BackpackTable(forging_xp)",
+      "ariaLabel": "Profile 浏览器曲线与 Backpack 合约表使用不同阈值换算同一份 PlayerProfile 锻造 XP。",
+      "explanation": "45,000 XP 时，浏览器等级是 4，合约等级是 10；浏览器要到 45,014 XP 才达到等级 5。",
+      "terms": [
+        {
+          "symbol": "forging_xp",
+          "meaning": "存储在 PlayerProfile 偏移 449 处的唯一一份 u64 总量。"
+        }
+      ]
+    },
+    {
+      "title": "两个可见的总体等级标签",
+      "expression": "ProfileLevel = 1 + floor(sum(ten skill levels) ÷ 10); HUDLevel = 1 + floor(confirmedMines ÷ 25)",
+      "ariaLabel": "Profile 等级按十项技能等级的整数组计算，HUD 等级则按每 25 次已确认采矿为一组计算。",
+      "explanation": "两个标签回答的是不同问题；即使刷新没有失败、账户也未损坏，它们仍可能不一致。",
+      "terms": [
+        {
+          "symbol": "floor",
+          "meaning": "丢弃除法结果中的小数余数。"
+        }
+      ]
+    },
+    {
+      "title": "JavaScript 精确整数边界",
+      "expression": "Number(u64) is guaranteed integer-exact only when u64 ≤ 2^53 − 1 = 9,007,199,254,740,991",
+      "ariaLabel": "把链上无符号 64 位整数转换为 JavaScript Number 时，只有不超过 2 的 53 次方减 1 才保证精确。",
+      "explanation": "当前 Progress 解码器会把 readBigUInt64LE 结果直接转换为 Number。日常观察到的 XP 小得多，但仍应如实记录这个类型边界。",
+      "terms": [
+        {
+          "symbol": "u64",
+          "meaning": "链上的无符号 64 位整数，其范围大于 JavaScript 能精确表示的整数范围。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "生产环境 Play 加载模块化入口",
+      "language": "HTML",
+      "source": "play/index.html",
+      "code": "    <script type=\"module\" src=\"./main.js\"></script>",
+      "explanation": "本指南所有生产环境浏览器结论都从 /play/index.html 出发，再进入 /play/main.js 及其导入的 play/* 模块。较旧的 /src/main.js 不用于证明这些当前流程。",
+      "walkthrough": [
+        {
+          "lines": "第 1 行",
+          "meaning": "从当前 /play/ 页面按相对路径加载 /play/main.js。"
+        }
+      ]
+    },
+    {
+      "title": "行为存储按编码后的 owner 或 guest 隔离",
+      "language": "JavaScript",
+      "source": "play/game-state.js",
+      "code": "export function walletScopedPlayStorageKey(baseKey, ownerAddress = \"\") {\n  const owner = normalizeOwnerAddress(ownerAddress);\n  return `${String(baseKey || \"\")}.${owner ? encodeURIComponent(owner) : \"guest\"}`;\n}",
+      "explanation": "PLAYER_PROFILE_STORAGE_KEY 是 nicechunk.play.profile.v1。这个辅助函数会加上句点，再加编码后的钱包 owner 或 guest，从而按浏览器 owner 分开本地行为计数器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "形成存储键之前，先规范化 owner 字符串。"
+        },
+        {
+          "lines": "第 3 行",
+          "meaning": "追加编码后的 owner；若 owner 不存在，则追加 guest。"
+        }
+      ]
+    },
+    {
+      "title": "采矿会确认本地奖励，或撤销待确认计数",
+      "language": "JavaScript",
+      "source": "play/mining-controller.js",
+      "code": "    pendingTx.push(pending);\n    gameState.playerProfile.minedBlocks += planBlocks.length;\n    gameState.savePlayerProfile();\n    onPending(pending);\n    onChanged();\n    return pending;\n  }\n\n  function confirmLast() {\n    return confirmPendingAt(pendingTx.length - 1);\n  }\n\n  function confirmTx(txId) {\n    return confirmPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function confirmPendingAt(index) {\n    const pending = index >= 0 ? pendingTx[index] : null;\n    if (!pending) {\n      onStatus(\"No pending delta to confirm.\");\n      return null;\n    }\n    const { txId } = pending;\n    chunks.applyPendingDelta(pending.pendingDeltas ?? pending.blocks?.map((block) => ({\n      worldX: block.worldX,\n      worldY: block.worldY,\n      worldZ: block.worldZ,\n      blockId: blockAirId,\n    })) ?? [], txId);\n    chunks.confirmPendingDelta(txId);\n    pendingTx.splice(index, 1);\n    const confirmedItems = (pending.rewardGroups ?? []).reduce((sum, group) => sum + Math.max(0, Math.trunc(group.count || 0)), 0);\n    gameState.playerProfile.confirmedMines += Math.max(1, Math.trunc(pending.minedBlockCount || 1));\n    gameState.playerProfile.resourcesCollected += confirmedItems;\n    gameState.savePlayerProfile();\n    onConfirm(pending);\n    onChanged();\n    return pending;\n  }\n\n  function rollbackLast() {\n    return rollbackPendingAt(pendingTx.length - 1);\n  }\n\n  function rollbackTx(txId) {\n    return rollbackPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function rollbackPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending delta to rollback.\");\n      return null;\n    }\n    const damageEntries = Array.isArray(pending.toolDamageBySlot) && pending.toolDamageBySlot.length\n      ? pending.toolDamageBySlot\n      : Number.isInteger(pending.toolSlotIndex) && Number(pending.toolDamage) > 0\n        ? [{ slotIndex: pending.toolSlotIndex, amount: pending.toolDamage }]\n        : [];\n    for (const entry of damageEntries) {\n      gameState.restoreToolDamage(entry.slotIndex, entry.amount);\n    }\n    gameState.playerProfile.rolledBackMines += 1;\n    gameState.playerProfile.minedBlocks = Math.max(0, gameState.playerProfile.minedBlocks - Math.max(1, Math.trunc(pending.minedBlockCount || 1)));\n    gameState.savePlayerProfile();\n    onRollback(pending);\n    onChanged();\n    return pending;\n  }",
+      "explanation": "本地 minedBlocks 计数器在待确认阶段就会变化。确认会增加已确认方块数和实际奖励组物品数；回滚会恢复记录的工具损耗、记录本次回滚，并移除计划方块数。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "记录待确认计划，并立即增加本地 minedBlocks。"
+        },
+        {
+          "lines": "第 17–39 行",
+          "meaning": "确认世界增量，然后增加 confirmedMines 与 resourcesCollected。"
+        },
+        {
+          "lines": "第 49–68 行",
+          "meaning": "恢复本地工具损耗，记录回滚历史，并减去待确认方块。"
+        }
+      ]
+    },
+    {
+      "title": "放置采用相同的待确认、确认与回滚结构",
+      "language": "JavaScript",
+      "source": "play/placement-controller.js",
+      "code": "    pendingTx.push(pending);\n    gameState.playerProfile.placedBlocks = (gameState.playerProfile.placedBlocks || 0) + 1;\n    gameState.savePlayerProfile();\n    onPending(pending);\n    onChanged();\n    onStatus(`Pending place ${txId}: ${def.name} at ${target.worldX}, ${target.worldY}, ${target.worldZ}.`);\n    return pending;\n  }\n\n  function confirmLast() {\n    return confirmPendingAt(pendingTx.length - 1);\n  }\n\n  function confirmTx(txId) {\n    return confirmPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function confirmPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending placement to confirm.\");\n      return null;\n    }\n    chunks.confirmPendingDelta(pending.txId);\n    gameState.playerProfile.confirmedPlacements = (gameState.playerProfile.confirmedPlacements || 0) + 1;\n    gameState.savePlayerProfile();\n    onConfirm(pending);\n    onChanged();\n    onStatus(`Confirmed placement ${pending.txId}.`);\n    return pending;\n  }\n\n  function rollbackLast() {\n    return rollbackPendingAt(pendingTx.length - 1);\n  }\n\n  function rollbackTx(txId) {\n    return rollbackPendingAt(pendingTx.findIndex((pending) => pending.txId === txId));\n  }\n\n  function rollbackPendingAt(index) {\n    const pending = index >= 0 ? pendingTx.splice(index, 1)[0] : null;\n    if (!pending) {\n      onStatus(\"No pending placement to rollback.\");\n      return null;\n    }\n    chunks.rollbackPendingDelta(pending.txId);\n    if (pending.consumed) gameState.restoreBackpackSlotSnapshot?.(pending.consumed);\n    gameState.syncHotbarResourceSlots?.();\n    gameState.playerProfile.rolledBackPlacements = (gameState.playerProfile.rolledBackPlacements || 0) + 1;\n    gameState.playerProfile.placedBlocks = Math.max(0, (gameState.playerProfile.placedBlocks || 0) - 1);\n    gameState.savePlayerProfile();\n    onRollback(pending);\n    onChanged();\n    onStatus(`Rolled back placement ${pending.txId}. Block and backpack stack restored.`);\n    return pending;\n  }",
+      "explanation": "placedBlocks 在待确认阶段变化，confirmedPlacements 只在成功后变化；回滚会先恢复世界增量与已消耗的 Backpack 快照，再减少 placedBlocks。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "在最终确认前增加 placedBlocks。"
+        },
+        {
+          "lines": "第 18–31 行",
+          "meaning": "确认增量，并增加一次已确认放置。"
+        },
+        {
+          "lines": "第 41–56 行",
+          "meaning": "恢复作为输入的方块，记录回滚历史，并撤销 placedBlocks 变化。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器根据本地计数器派生全部十个 XP 键",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "export function deriveProfileSkillXp(profile = {}) {\n  const mined = positiveInt(profile.minedBlocks);\n  const confirmedMines = positiveInt(profile.confirmedMines);\n  const resources = positiveInt(profile.resourcesCollected);\n  const placed = positiveInt(profile.placedBlocks);\n  const confirmedPlacements = positiveInt(profile.confirmedPlacements);\n  const smeltingRuns = positiveInt(profile.smeltingRuns);\n  const materials = positiveInt(profile.materialsSmelted);\n  return {\n    precisionGathering: resources * 90 + confirmedMines * 25,\n    burden: resources * 18 + materials * 12,\n    smelting: smeltingRuns * 160 + materials * 90,\n    forging: materials * 38 + smeltingRuns * 45,\n    craftsmanship: confirmedPlacements * 85 + placed * 18 + materials * 28,\n    swiftness: mined * 5 + placed * 4,\n    exploration: confirmedMines * 44 + resources * 10,\n    stamina: mined * 9 + placed * 7,\n    strength: mined * 12 + resources * 6,\n    appraisal: resources * 22 + materials * 36,\n  };\n}",
+      "explanation": "这个函数始终返回十个有限数值，即使所有计数器都是零。正是这个细节，使后面的 XP 派生路径优先于较旧的手动等级对象。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "把七个本地行为计数器规范化为正整数或零。"
+        },
+        {
+          "lines": "第 9–20 行",
+          "meaning": "使用确切的生产环境系数构建每项技能 XP 总量。"
+        }
+      ]
+    },
+    {
+      "title": "按 owner 隔离或旧版存储只选择一次，随后 XP 按技能保留最大值",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "function loadProfileSkillLevels(owner) {\n  return loadJsonObject(profileSkillStorageKey(owner), \"nicechunk.playerSkills\");\n}\n\nfunction loadProfileSkillXp(owner) {\n  return loadJsonObject(profileSkillXpStorageKey(owner), \"nicechunk.playerSkillXp\");\n}\n\nfunction profileSkillStorageKey(owner) {\n  return `${PROFILE_SKILL_STORAGE_PREFIX}${String(owner || \"guest\")}`;\n}\n\nfunction profileSkillXpStorageKey(owner) {\n  return `${PROFILE_SKILL_XP_STORAGE_PREFIX}${String(owner || \"guest\")}`;\n}\n\nfunction loadJsonObject(primaryKey, fallbackKey) {\n  try {\n    const storage = globalThis.localStorage;\n    if (!storage) return {};\n    const raw = storage.getItem(primaryKey) || storage.getItem(fallbackKey);\n    const parsed = raw ? JSON.parse(raw) : {};\n    return parsed && typeof parsed === \"object\" && !Array.isArray(parsed) ? parsed : {};\n  } catch {\n    return {};\n  }\n}\n\nfunction mergeSkillXp(...sources) {\n  const result = {};\n  for (const source of sources) {\n    if (!source || typeof source !== \"object\") continue;\n    for (const [key, value] of Object.entries(source)) {\n      const numeric = Math.max(0, Math.round(Number(value) || 0));\n      result[key] = Math.max(result[key] || 0, numeric);\n    }\n  }\n  return result;\n}",
+      "explanation": "加载器使用一个原始隔离值或一个原始回退值，不会合并两者字段。后续合并会遍历各 XP 来源，并为每个技能键保留最大数字。",
+      "walkthrough": [
+        {
+          "lines": "第 1–14 行",
+          "meaning": "形成按 owner 隔离的技能等级键与技能 XP 键，并配置较旧的全局回退。"
+        },
+        {
+          "lines": "第 16–26 行",
+          "meaning": "在主值与回退值中二选一，只解析一个对象。"
+        },
+        {
+          "lines": "第 28–38 行",
+          "meaning": "对每个来源值四舍五入，并保留各技能最大值。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器选择等级前，会累加四舍五入后的单级花费",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "export function profileSkillExperienceRequirement(skill, level) {\n  if (level >= PROFILE_SKILL_MAX_LEVEL) return 0;\n  const nextLevel = Math.max(1, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.trunc(level) + 1));\n  return Math.round((skill?.xpBase ?? 100) * PROFILE_SKILL_XP_REQUIREMENT_MULTIPLIER * Math.pow(nextLevel, skill?.xpGrowth ?? 1.55));\n}\n\nexport function profileSkillTotalExperienceForLevel(skill, level) {\n  let total = 0;\n  const capped = Math.max(0, Math.min(PROFILE_SKILL_MAX_LEVEL, Math.round(Number(level) || 0)));\n  for (let previousLevel = 0; previousLevel < capped; previousLevel += 1) {\n    total += profileSkillExperienceRequirement(skill, previousLevel);\n  }\n  return total;\n}\n\nexport function profileSkillLevelFromXp(skill, xp) {\n  const total = Math.max(0, Math.round(Number(xp) || 0));\n  let level = 0;\n  for (let nextLevel = 1; nextLevel <= PROFILE_SKILL_MAX_LEVEL; nextLevel += 1) {\n    if (total < profileSkillTotalExperienceForLevel(skill, nextLevel)) break;\n    level = nextLevel;\n  }\n  return level;\n}",
+      "explanation": "每个目标等级的单级花费会单独四舍五入。累计函数把这些花费相加；等级循环遇到第一个 XP 尚未达到的累计阈值时停止。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "根据 xpBase 与 xpGrowth 计算再升一级的花费。"
+        },
+        {
+          "lines": "第 7–14 行",
+          "meaning": "加上此前每一级花费，得到累计阈值。"
+        },
+        {
+          "lines": "第 16–24 行",
+          "meaning": "返回有效 XP 已达到的最高累计等级。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境 main 根据本地 Profile 与链上 XP 重建技能效果",
+      "language": "JavaScript",
+      "source": "play/main.js",
+      "code": "function refreshProfileSkillEffects() {\n  const snapshot = chainSnapshot?.() ?? {};\n  profileSkillEffects = createProfileSkillEffects({\n    owner: snapshot.walletAddress || gameState.playerProfile?.name || \"guest\",\n    profile: gameState.playerProfile,\n    chainXp: snapshot.playerSkillXp || snapshot.skillXp || null,\n  });\n  if (controls) controls.speed = BASE_PLAYER_SPEED * (profileSkillEffects.movementSpeedMultiplier || 1);\n  return profileSkillEffects;\n}",
+      "explanation": "当前 /play/main.js 会先把钱包 owner、本地行为 Profile 与刷新后的链上 XP 组合起来，再让 Profile UI 读取技能状态。最终得到的敏捷乘数也在这里传入本地控制器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "根据按 owner 隔离的本地数据与传入的链上 XP 构建当前技能效果。"
+        },
+        {
+          "lines": "第 8–9 行",
+          "meaning": "应用当前唯一的本地移动使用方，并返回效果对象。"
+        }
+      ]
+    },
+    {
+      "title": "技能卡与详情进度条使用不同分母",
+      "language": "JavaScript",
+      "source": "play/play-profile-ui.js",
+      "code": "    const progress = document.createElement(\"div\");\n    progress.className = \"profile-skill-progress\";\n    const fill = document.createElement(\"span\");\n    fill.style.width = `${Math.max(4, Math.min(100, (level / PROFILE_SKILL_MAX_LEVEL) * 100))}%`;\n    progress.append(fill);\n\n    card.append(head, progress);\n    return card;\n  }\n\n  function renderSkillDetail(skill, copy, level, metrics, xpProgress) {\n    if (!elements.profileSkillDetail) return;\n    elements.profileSkillDetail.hidden = false;\n    elements.profileSkillDetail.dataset.skillTone = skill.tone;\n    elements.profileSkillDetail.replaceChildren();\n\n    const header = document.createElement(\"header\");\n    header.className = \"profile-skill-detail-header\";\n    header.append(createProfileSkillIcon(skill));\n    const titleWrap = document.createElement(\"div\");\n    const title = document.createElement(\"h3\");\n    title.textContent = copy.name;\n    const levelLabel = document.createElement(\"span\");\n    levelLabel.textContent = ui(\"main.profile.skillLevel\", \"Lv. {level}/{max}\", { level, max: PROFILE_SKILL_MAX_LEVEL });\n    const xpLabel = document.createElement(\"small\");\n    xpLabel.textContent = profileXpLabel(level, xpProgress);\n    titleWrap.append(title, levelLabel, xpLabel);\n    header.append(titleWrap);\n\n    const description = document.createElement(\"p\");\n    description.className = \"profile-skill-detail-description\";\n    description.textContent = copy.description;\n\n    const progress = document.createElement(\"div\");\n    progress.className = \"profile-skill-progress profile-skill-detail-progress\";\n    const progressFill = document.createElement(\"span\");\n    progressFill.style.width = `${Math.round(xpProgress.ratio * 100)}%`;\n    progress.append(progressFill);",
+      "explanation": "紧凑卡片使用“等级 ÷ 十级上限”，并设 4% 视觉最小值；选中技能详情则使用当前等级内的 XP 比例。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "渲染表示十级中当前等级的紧凑卡片进度条。"
+        },
+        {
+          "lines": "第 11–38 行",
+          "meaning": "渲染独立详情视图及其级内比例进度条。"
+        }
+      ]
+    },
+    {
+      "title": "刷新会并行请求 Profile、Equipment、Appearance 与一个 Progress",
+      "language": "JavaScript",
+      "source": "play/play-chain-player.js",
+      "code": "    const now = performance.now();\n    if (state.loading) return { ok: false, reason: \"already-loading\" };\n    if (!force && state.owner === wallet && now - state.lastSyncAt < PLAYER_SYNC_INTERVAL_MS) return { ok: false, reason: \"cooldown\" };\n\n    state.loading = true;\n    state.owner = wallet;\n    try {\n      const module = await loadPlayChainModule();\n      const [profileResult, equipmentResult, appearanceResult, progressResult] = await Promise.allSettled([\n        typeof module.fetchPlayerProfileForOwner === \"function\" ? module.fetchPlayerProfileForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerEquipmentForOwner === \"function\" ? module.fetchPlayerEquipmentForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerAppearanceForOwner === \"function\" ? module.fetchPlayerAppearanceForOwner(wallet) : Promise.resolve(null),\n        typeof module.fetchPlayerProgress === \"function\" ? module.fetchPlayerProgress(wallet) : Promise.resolve(null),\n      ]);\n      const nextProfile = settledValue(profileResult);\n      const nextEquipment = settledValue(equipmentResult);\n      const nextAppearance = settledValue(appearanceResult);\n      const nextProgress = settledValue(progressResult);\n      const nextSkillXp = skillXpFromProgress(nextProgress, nextProfile);\n      const previousSignature = stateSignature(state);\n      state.profile = nextProfile?.initialized === false ? null : nextProfile;\n      state.equipmentReadKnown = equipmentResult?.status === \"fulfilled\";\n      state.equipment = nextEquipment?.initialized === false ? null : nextEquipment;\n      state.appearance = nextAppearance?.initialized === false ? null : nextAppearance;\n      state.progress = nextProgress;\n      state.skillXp = nextSkillXp;\n      state.lastError = firstRejectedReason(profileResult, equipmentResult, appearanceResult, progressResult);\n      state.lastSyncAt = performance.now();\n      applyEquipmentSnapshot();\n      migrateEquipmentIfNeeded();\n      const changed = previousSignature !== stateSignature(state);\n      if (changed) onChanged(snapshot());",
+      "explanation": "PLAYER_SYNC_INTERVAL_MS 为 18,000 毫秒。除非强制刷新，同一个 owner 会受到频率限制；随后 Profile、Equipment、Appearance 与 Progress 四项读取会各自独立完成。刷新会记录 Equipment 读取是否成功，尝试应用任何已初始化的 Equipment 快照并运行迁移检查；第一个被拒绝的结果会被报告，但不会取消其他已完成结果。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "未请求强制刷新时，执行刷新冷却限制。"
+        },
+        {
+          "lines": "第 5–14 行",
+          "meaning": "把刷新标记为进行中，加载链模块，并同时启动当前四项 Profile、Equipment、Appearance 与 Progress 读取。"
+        },
+        {
+          "lines": "第 15–32 行",
+          "meaning": "解包四项读取结果，用 Profile 与 Progress 派生 XP，保留 Equipment 结果及其读取已知标志，报告四项读取中的第一个拒绝结果，再运行 Equipment 快照与迁移辅助函数，并且只在状态改变时发出通知。"
+        }
+      ]
+    },
+    {
+      "title": "Profile 链上 XP 对象读取四个正数字段",
+      "language": "JavaScript",
+      "source": "play/play-chain-player.js",
+      "code": "function skillXpFromProgress(progress, profile) {\n  const result = {};\n  const precision = positiveInt(progress?.precisionGatheringXp);\n  const smelting = positiveInt(progress?.smeltingXp);\n  const exploration = positiveInt(progress?.explorationXp);\n  const forging = positiveInt(profile?.forgingXp);\n  if (precision) result.precisionGathering = precision;\n  if (smelting) result.smelting = smelting;\n  if (exploration) result.exploration = exploration;\n  if (forging) result.forging = forging;\n  return Object.keys(result).length ? result : null;\n}",
+      "explanation": "精准采集、熔炼与探索来自同一个已获取的 Progress 结构，锻造来自 PlayerProfile。值为零的字段不会进入链上对象。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "把三个 Progress 字段和一个 Profile 字段读取为正整数。"
+        },
+        {
+          "lines": "第 7–11 行",
+          "meaning": "只包含正数；若一个也没有，则返回 null。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 与熔炼在不同程序 ID 下使用相同 seed 派生",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function derivePlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.chunkProgramId);\n}\n\nfunction deriveSmeltingPlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.smeltingProgramId);\n}",
+      "explanation": "共享的底层辅助函数使用 [player-progress, GlobalConfig, owner]，但 PDA 派生还包含程序 ID。因此，这两个包装函数会为同一个 owner 返回不同地址。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "在 Chunk 程序域中派生 Profile 可见的 Progress 地址。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "在 Game/Smelting 程序域中派生执行用熔炼 Progress 地址。"
+        }
+      ]
+    },
+    {
+      "title": "当前 fetchPlayerProgress 只读取 Chunk 拥有的地址",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchPlayerProgress(ownerAddress) {\n  if (!ownerAddress) return null;\n  const owner = typeof ownerAddress === \"string\" ? new PublicKey(ownerAddress) : ownerAddress;\n  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);\n  const account = await getNicechunkConnection().getAccountInfo(playerProgress, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      publicKey: playerProgress.toBase58(),\n      owner: owner.toBase58(),\n      precisionGatheringXp: 0,\n      smeltingXp: 0,\n      explorationXp: 0,\n    };\n  }\n  if (!account.owner.equals(gameContext.chunkProgramId)) return null;\n  const data = account.data;\n  if (data.length !== playerProgressLength || data.subarray(0, 8).toString(\"utf8\") !== playerProgressMagic) return null;\n  return {\n    publicKey: playerProgress.toBase58(),\n    owner: owner.toBase58(),\n    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),\n    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),\n    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),\n    programId: account.owner.toBase58(),\n  };\n}",
+      "explanation": "这个函数通过 Chunk 包装器派生地址，要求账户由 Chunk 拥有，并解码共用字节结构。它从不调用熔炼包装器，因此其中的 smeltingXp 是 Chunk 账户字段，并非 Game/Smelting 进度。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "派生并获取 Chunk 程序域中的 Progress PDA。"
+        },
+        {
+          "lines": "第 6–14 行",
+          "meaning": "账户不存在时，返回所有字段为零的 Chunk 结构对象。"
+        },
+        {
+          "lines": "第 15–26 行",
+          "meaning": "要求账户由 Chunk 拥有，并把三个 u64 字段直接转换为 JavaScript Number。"
+        }
+      ]
+    },
+    {
+      "title": "Chunk 定义相匹配的精准采集、探索阈值和单点 XP 奖励",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "pub const PLAYER_PROGRESS_PRECISION_XP_OFFSET: usize = 76;\npub const PLAYER_PROGRESS_CREATED_SLOT_OFFSET: usize = 84;\npub const PLAYER_PROGRESS_UPDATED_SLOT_OFFSET: usize = 92;\npub const PLAYER_PROGRESS_CREATED_AT_OFFSET: usize = 100;\npub const PLAYER_PROGRESS_SMELTING_XP_OFFSET: usize = 108;\npub const PLAYER_PROGRESS_EXPLORATION_XP_OFFSET: usize = 116;\npub const PLAYER_PROGRESS_EXPLORED_CHUNK_COUNT_OFFSET: usize = 124;\npub const PRECISION_GATHERING_XP_PER_BLOCK: u64 = 1;\npub const EXPLORATION_XP_PER_EXTRA_DROP: u64 = 1;\npub const RESOURCE_BLOCK_VOLUME_MM3: u32 = 1_000_000;\npub const PRECISION_GATHERING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 900, 3_481, 8_261, 15_663, 26_054, 39_764, 57_094, 78_323, 103_715, 133_517,\n];\npub const EXPLORATION_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_250, 4_961, 11_975, 22_994, 38_636, 59_462, 85_991, 118_707, 158_068, 204_510,\n];",
+      "explanation": "Chunk Progress 布局仍包含一个熔炼形状的字段，但 Chunk 在这里实际使用的技能常量是精准采集与探索。它们的等级表与浏览器累计曲线一致。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "在共用 Progress 布局中定位三个 XP 字段与已探索 chunk 数量。"
+        },
+        {
+          "lines": "第 8–9 行",
+          "meaning": "每个被接受方块和每个实际额外掉落分别奖励 1 XP。"
+        },
+        {
+          "lines": "第 11–16 行",
+          "meaning": "定义从 Lv.0 到 Lv.10 的合约累计等级阈值。"
+        }
+      ]
+    },
+    {
+      "title": "普通 Chunk 采矿增加精准采集 XP，并按条件增加探索 XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    {\n        let mut data = player_progress.try_borrow_mut_data()?;\n        PlayerProgressState::add_precision_gathering_xp(\n            &mut data,\n            &context.owner,\n            global_config.key,\n            PRECISION_GATHERING_XP_PER_BLOCK,\n            context.clock.slot,\n        )?;\n        if extra_drop.is_some() {\n            PlayerProgressState::add_exploration_xp(\n                &mut data,\n                &context.owner,\n                global_config.key,\n                EXPLORATION_XP_PER_EXTRA_DROP,\n                context.clock.slot,\n            )?;\n        }",
+      "explanation": "奖励路径结束后，Chunk 始终为被接受的普通方块增加一次精准采集 XP；只有实际存在可选 extra_drop 时，探索才会增加。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "借用 Chunk Progress，并加入按方块计算的精准采集奖励。"
+        },
+        {
+          "lines": "第 10–18 行",
+          "meaning": "仅在额外掉落实际出现时增加探索 XP。"
+        }
+      ]
+    },
+    {
+      "title": "Game/Smelting 拥有自己的匹配等级表与按输入计算的 XP 常量",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/state.rs",
+      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 7_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 300;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
+      "explanation": "熔炼产出比例从 7,000 个基点开始，每个合约等级增加 300 个基点。它的 XP 表与浏览器曲线一致，奖励单位是每个选中输入 1 XP。",
+      "walkthrough": [
+        {
+          "lines": "第 4–7 行",
+          "meaning": "定义产出基点参数与每个输入 1 XP 的奖励。"
+        },
+        {
+          "lines": "第 9–11 行",
+          "meaning": "定义熔炼从 Lv.0 到 Lv.10 的累计阈值。"
+        }
+      ]
+    },
+    {
+      "title": "已接受熔炼按选中输入数量增加 XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    {\n        let mut progress_data = player_progress.try_borrow_mut_data()?;\n        PlayerProgressState::add_smelting_xp(\n            &mut progress_data,\n            owner.key,\n            global_config.key,\n            (indexes.len() as u64).saturating_mul(SMELTING_XP_PER_INPUT),\n            clock.slot,\n        )?;\n    }\n    Ok(())\n}",
+      "explanation": "这条指令移除输入并追加产出后，程序把选中输入索引数量乘以 1。结果写入 Game/Smelting Progress，而不是浏览器本地计数器。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "借用熔炼 Progress，并为每个选中输入索引增加 1 XP。"
+        },
+        {
+          "lines": "第 10–12 行",
+          "meaning": "只有 XP 写入成功后才返回成功。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 根据最终品级平方派生锻造 XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "    let skill_factor = 90_u64\n        .saturating_add(grade as u64 * 5)\n        .saturating_add(forging_level.min(10) as u64 * 3);\n    let level_factor = 100_u64.saturating_add(item_level as u64 / 2);\n    let candidate = total_effective_durability\n        .saturating_mul(skill_factor)\n        .saturating_mul(level_factor)\n        / 10_000;\n    let material_cap = total_raw_durability\n        .saturating_mul(105_u64.saturating_add(forging_level.min(10) as u64))\n        / 100;\n    let durability_max = candidate\n        .max(1)\n        .min(material_cap.max(1))\n        .min(u32::MAX as u64) as u32;\n    let gained_xp = (grade as u64)\n        .saturating_mul(grade as u64)\n        .saturating_mul(25);\n\n    ForgeOutcome {\n        grade,\n        item_level,\n        durability_max,\n        quality_bps,\n        volume_mm3: total_volume.max(1).min(u32::MAX as u64) as u32,\n        gained_xp,\n    }",
+      "explanation": "最终结果已经包含材料与技能约束。此后的 XP 只取决于结果品级：品级乘以自身，再乘以 25。",
+      "walkthrough": [
+        {
+          "lines": "第 1–15 行",
+          "meaning": "用技能、等级与材料上限约束可接受耐久度。"
+        },
+        {
+          "lines": "第 16–18 行",
+          "meaning": "把所得锻造 XP 计算为品级平方的 25 倍。"
+        },
+        {
+          "lines": "第 20–27 行",
+          "meaning": "把 XP 与经过验证的其余 ForgeOutcome 一起返回。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 使用独立的固定锻造等级表",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "pub fn forging_level_from_xp(xp: u64) -> u8 {\n    let mut level = 0_u8;\n    for (index, required_total) in FORGING_TOTAL_XP_BY_LEVEL.iter().enumerate() {\n        if xp >= *required_total {\n            level = index as u8;\n        }\n    }\n    level.min(10)\n}\n\nconst FORGING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 250, 900, 2_100, 4_000, 6_800, 10_700, 16_000, 23_000, 32_000, 45_000,\n];",
+      "explanation": "这张合约表在 45,000 XP 达到 Lv.10。它不是根据浏览器的 xpBase 140 与 xpGrowth 1.60 参数生成的。",
+      "walkthrough": [
+        {
+          "lines": "第 1–9 行",
+          "meaning": "选择 u64 XP 总量已经达到的最高合约阈值。"
+        },
+        {
+          "lines": "第 11–13 行",
+          "meaning": "列出固定的锻造 Lv.0–10 累计阈值。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 在同一交易中先追加结果，再调用 Player XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let forging_level = {\n        let player_profile_data = player_profile.try_borrow_data()?;\n        PlayerProfileView::validate_owner(&player_profile_data, owner.key)?;\n        PlayerProfileView::forging_level(&player_profile_data)?\n    };\n    validate_existing_backpack_pda(program_id, backpack, owner.key)?;\n\n    let clock = Clock::get()?;\n    let outcome = {\n        let mut backpack_data = backpack.try_borrow_mut_data()?;\n        BackpackAccount::forge_equipment_from_verified_materials(\n            &mut backpack_data,\n            owner.key,\n            indexes,\n            item_id,\n            design_hash,\n            player_profile.key,\n            forging_level,\n            clock.slot,\n            requirements,\n        )?\n    };\n\n    add_forging_xp_to_player(\n        program_id,\n        owner,\n        backpack,\n        player_profile,\n        player_program,\n        system_program_account,\n        &outcome,\n    )\n}",
+      "explanation": "Backpack 读取 Profile 的合约锻造等级，用经过验证的结果修改 Backpack，然后执行 Player XP 调用。最后一次调用若返回失败，同一笔 Solana 交易也会失败，并回滚暂时的 Backpack 变化。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "验证 Profile owner，并取得合约锻造等级。"
+        },
+        {
+          "lines": "第 8–22 行",
+          "meaning": "计算并暂时追加经过验证的锻造结果。"
+        },
+        {
+          "lines": "第 24–33 行",
+          "meaning": "调用 Player 持久化 XP；向上传递失败，从而保持操作原子性。"
+        }
+      ]
+    },
+    {
+      "title": "Player 在 PlayerProfile 内累计锻造 XP",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn add_forging_result(\n        dst: &mut [u8],\n        owner: &Pubkey,\n        gained_xp: u64,\n        grade: u8,\n        item_level: u8,\n        updated_slot: u64,\n    ) -> ProgramResult {\n        if dst.len() != Self::LEN {\n            return Err(NicechunkPlayerError::InvalidPlayerProfileData.into());\n        }\n        Self::validate_owner(dst, owner)?;\n        let next_xp = read_u64(dst, Self::FORGING_XP_OFFSET).saturating_add(gained_xp);\n        let next_count = read_u32(dst, Self::FORGED_ITEM_COUNT_OFFSET).saturating_add(1);\n        dst[8..10].copy_from_slice(&PLAYER_PROFILE_VERSION.to_le_bytes());\n        dst[Self::FORGING_XP_OFFSET..Self::FORGING_XP_OFFSET + 8]\n            .copy_from_slice(&next_xp.to_le_bytes());\n        dst[Self::FORGED_ITEM_COUNT_OFFSET..Self::FORGED_ITEM_COUNT_OFFSET + 4]\n            .copy_from_slice(&next_count.to_le_bytes());\n        dst[Self::BEST_FORGED_GRADE_OFFSET] = dst[Self::BEST_FORGED_GRADE_OFFSET].max(grade);\n        dst[Self::BEST_FORGED_ITEM_LEVEL_OFFSET] =\n            dst[Self::BEST_FORGED_ITEM_LEVEL_OFFSET].max(item_level);\n        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())",
+      "explanation": "Player 指令验证当前由 owner 派生的 Profile 与 Backpack 权限后，这个状态函数会在 FORGING_XP_OFFSET 处以饱和加法累加 XP；该位置声明为字节偏移 449。",
+      "walkthrough": [
+        {
+          "lines": "第 1–12 行",
+          "meaning": "验证精确的 Profile 布局与其中存储的 owner。"
+        },
+        {
+          "lines": "第 13–18 行",
+          "meaning": "增加锻造 XP，并保存新的 u64 总量。"
+        },
+        {
+          "lines": "第 19–25 行",
+          "meaning": "更新锻造次数、最佳结果与观察 slot。"
+        }
+      ]
+    },
+    {
+      "title": "生产环境熔炼会刷新权威 Backpack 状态，却不写本地熔炼计数器",
+      "language": "JavaScript",
+      "source": "play/play-smelting.js",
+      "code": "    try {\n      const chainModule = await loadPlayChainModule();\n      if (typeof chainModule.executeSmeltingOnChain !== \"function\") throw new Error(\"smelting-submit-unavailable\");\n      const result = await chainModule.executeSmeltingOnChain({\n        recipeId: chainIdentity.recipeId,\n        recipeTableId: chainIdentity.recipeTableId,\n        inputIndexes,\n        fuelIndexes,\n        batchMultiplier: state.servings,\n        backpackAddress: snapshot.backpackAddress || null,\n      });\n      if (!result?.submitted) {\n        const error = new Error(String(result?.reason || \"smelting-not-submitted\"));\n        error.result = result;\n        throw error;\n      }\n      state.running = false;\n      state.complete = true;\n      state.progress = 100;\n      state.result = { kind: \"success\", signature: String(result.signature || \"\"), result };\n      const refreshResult = await refreshBackpack({\n        previousUpdatedSlot: snapshot.updatedSlot,\n        force: true,\n      });\n      if (!refreshResult?.ok) {\n        console.warn(\"[NiceChunk Smelting] Transaction confirmed but PDA refresh is pending.\", refreshResult);\n      }\n      state.inputSlotIds = [];\n      state.fuelSlotId = \"\";\n      state.servings = 1;\n      invalidateRender();\n      onChanged();\n      onStatus(ui(\"main.smelting.submitComplete\", \"Smelting confirmed on-chain: {signature}\", {\n        signature: shortSignature(result.signature),\n      }));\n      render({ force: true });",
+      "explanation": "当前成功路径会提交选中索引、把界面标记为完成、强制刷新 Backpack PDA、清空选择并重新渲染。没有任何赋值会增加 playerProfile.smeltingRuns 或 playerProfile.materialsSmelted；检查器还会搜索每个生产环境 play/*.js 文件，确认是否存在这样的写入方。",
+      "walkthrough": [
+        {
+          "lines": "第 1–16 行",
+          "meaning": "用选中的输入与燃料索引提交真实 Game/Smelting 指令。"
+        },
+        {
+          "lines": "第 17–26 行",
+          "meaning": "把界面标记为成功，并强制刷新权威 Backpack 状态。"
+        },
+        {
+          "lines": "第 27–37 行",
+          "meaning": "清除临时选择并重新渲染，不更新任何一个本地熔炼行为计数器。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/index.html",
+      "claim": "把 ./main.js 作为 /play/ 的生产环境模块入口加载。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "导入为当前浏览器流程提供功能的生产环境 game-state、采矿、放置、熔炼、Profile 与链同步模块。"
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "定义按钱包隔离的行为存储，保存本地 Profile 对象，并规范化全部采矿、放置、熔炼次数与已处理材料计数器。"
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "待确认时增加 minedBlocks；确认时增加 confirmedMines 与实际奖励组数量；回滚时撤销待确认计数并记录回滚历史。"
+    },
+    {
+      "path": "play/placement-controller.js",
+      "claim": "待确认时增加 placedBlocks；确认后增加 confirmedPlacements；回滚时恢复已消耗的 Backpack 快照并记录回滚。"
+    },
+    {
+      "path": "play/play-smelting.js",
+      "claim": "运行生产环境熔炼选择与刷新路径，但不增加本地 smeltingRuns 或 materialsSmelted 计数器。"
+    },
+    {
+      "path": "play/play-profile-skills.js",
+      "claim": "定义十项技能参数、确切行为 XP 系数、隔离与旧版读取键、按技能取最大值的合并、四舍五入单级花费、累计阈值、有效等级与当前级进度。"
+    },
+    {
+      "path": "play/play-profile-ui.js",
+      "claim": "根据十项有效技能等级构建紧凑的十级进度条、所选技能当前级进度条、升级 XP 等级表与 Profile 等级。"
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "应用 18 秒刷新冷却，并行获取 Profile、Equipment、Appearance 与一个 Progress，把为正数的 Progress 和 Profile 字段映射为链上 XP，并运行 Equipment 快照应用与迁移检查。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "把独立 HUD 等级计算为 1 加上本地已确认采矿次数中完整 25 次分组的数量。"
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "把共享链模块暴露给生产环境 Play，并让本地待确认生命周期与已接受指令结果保持分离。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "在不同程序 ID 下派生 Chunk 与 Game/Smelting Progress PDA；执行时使用熔炼形式，但 fetchPlayerProgress 只读取 Chunk 形式，并把其中 u64 字段转换为 Number。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "定义 Chunk Progress 布局、每次 1 XP 的精准采集与探索常量，以及两者完整的 Lv.0–10 累计阈值表。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "需要时创建并验证由 Chunk 拥有的 Progress，为被接受或获得奖励的方块增加精准采集 XP，并仅为实际额外掉落增加探索 XP。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "定义 Game/Smelting Progress、每个选中输入 1 XP、完整熔炼阈值表与合约产出基点。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "创建并验证由 Game/Smelting 拥有的 Progress，消耗选中输入，写入被接受的产出，并增加 inputIndexes.length 点熔炼 XP。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "从 Profile 字节读取合约锻造等级，定义固定的 0 到 45,000 阈值表，计算经过验证的 ForgeOutcome，并发放最终品级平方的 25 倍 XP。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "在同一笔原子交易中，先暂时追加经过验证的锻造记录，再调用 Player 增加锻造 XP。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "在偏移 449 处声明 PlayerProfile 锻造 XP，以饱和加法累加已接受 XP，并更新锻造次数、最佳结果与 updated slot。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "写入传入的锻造结果前，验证由 owner 派生的当前 PlayerProfile，以及获准的 Backpack 或 Game 锻造权限。"
+    },
+    {
+      "path": "play/tests/play-profile-lifecycle-browser.test.mjs",
+      "claim": "测试生产环境 Profile 浏览器生命周期，并支持当前渲染与同步边界结论。"
+    },
+    {
+      "path": "play/tests/play-smelting-lifecycle-browser.test.mjs",
+      "claim": "测试生产环境熔炼的选择、提交与权威 Backpack 刷新行为，其中不会发放本地行为计数器奖励。"
+    },
+    {
+      "path": "play/tests/smelting-chain-instruction.test.mjs",
+      "claim": "检查 Game/Smelting 指令账户，包括执行时使用的独立 player-progress 地址。"
+    },
+    {
+      "path": "docs/audits/displayed-stats-vs-enforced-effects-devnet-2026-07-18.json",
+      "claim": "保留 confirmed slot 477,044,477 的 PlayerProfile、Chunk Progress 与 Game/Smelting Progress 原始观察，以及 PDA 派生、哈希和解释边界。"
+    },
+    {
+      "path": "scripts/capture-displayed-stats-devnet.mjs",
+      "claim": "复现带日期的共享上下文 Devnet 采集，并验证规范 Profile 与两个程序的 Progress 地址。"
+    },
+    {
+      "path": "docs/audits/skills-xp-and-progress-derived-2026-07-18.json",
+      "claim": "记录无需联网即可完成的十张浏览器表、四张合约表、关键 owner 换算与当前恢复结果派生，并固定上游快照的 SHA-256。"
+    },
+    {
+      "path": "scripts/derive-skills-xp-progress-audit.mjs",
+      "claim": "根据保留的上游快照确定性重建派生审计，并检查 45,000 XP 对应浏览器锻造 Lv.4、合约 Lv.10。"
+    },
+    {
+      "path": "scripts/check-skills-xp-and-progress-docs.mjs",
+      "claim": "检查章节顺序、图像、源码原文摘录、XP 系数与阈值、取最大值和回退语义、链上奖励、恢复边界、本地化与相邻页面导航。"
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "固定网站当前 Devnet Player、Chunk 与统一 Game 程序 ID；按程序域派生 PDA 和保留的审计上下文都会使用它们。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "displayed-stats-vs-enforced-effects",
+      "href": "/docs/displayed-stats-vs-enforced-effects/",
+      "title": "显示属性与实际生效效果：数值必须有使用方",
+      "summary": "先回顾哪些 Profile 字段与浏览器技能效果确实有本地或合约使用方，再继续了解它们的 XP 如何累积。"
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+      "summary": "了解本 XP 指南所连接的紧凑 Profile 布局、按程序域区分的进度账户与浏览器派生显示状态。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "一次钱包授权可以创建会到期的 NiceChunk 通行证——但它不会把密钥关进沙箱",
+      "summary": "了解一次钱包授权如何创建会到期的 NiceChunk PlayerSession、普通 Session 密钥仍能签署什么、哪些操作会读取这张通行证，以及为什么刷新、注资、退出登录、到期和 Guardian 都不能把密钥限制在沙箱内，也不等于撤销密钥。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "把持久进度与临时权限分开",
+      "summary": "本指南沿着操作追踪到本地与公开 XP 记录。下一篇会说明，范围受限的临时签名者如何请求这些操作，同时不拥有玩家的持久身份或进度。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "displayed-stats-vs-enforced-effects",
+        "title": "显示属性与实际生效效果：数值必须有使用方",
+        "summary": "先确认哪些已存储和已显示的数值确实传到了生产环境使用方。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "player-sessions",
+        "title": "一次钱包授权可以创建会到期的 NiceChunk 通行证——但它不会把密钥关进沙箱",
+        "summary": "了解一次钱包授权如何创建会到期的 NiceChunk PlayerSession、普通 Session 密钥仍能签署什么、哪些操作会读取这张通行证，以及为什么刷新、注资、退出登录、到期和 Guardian 都不能把密钥限制在沙箱内，也不等于撤销密钥。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,520 @@
+{
+  "_meta": {
+    "language": "ja",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-marketplace-listings-ja-b72b81f97e5af049",
+    "contentHash": "b72b81f97e5af049"
+  },
+  "kind": "topic",
+  "slug": "marketplace-listings",
+  "shortTitle": "Marketplace Listing PDAs",
+  "seo": {
+    "title": "Marketplace Listing PDAs: Escrowed Slots, Split Payments, and Atomic Delivery",
+    "description": "Audit NiceChunk Marketplace Listing PDA derivation, exact 80-byte slot escrow, 216-byte version-5 state, atomic SOL and NCK settlement, hardcoded fee math, Backpack capacity, account closure, and current Play client boundaries."
+  },
+  "hero": {
+    "eyebrow": "MARKETPLACE 14 · ESCROWED SLOTS AND ATOMIC DELIVERY",
+    "title": "Marketplace Listing PDAs: Escrowed Slots, Split Payments, and Atomic Delivery",
+    "summary": "NiceChunk Marketplace creation removes one complete 80-byte record from a seller-owned Backpack and stores those exact bytes in a seller-derived Listing PDA. A purchase reads the committed price and currency, splits SOL or NCK between the seller and fixed treasury, appends the unchanged record to a buyer-owned Backpack through the market-authority PDA, and marks the Listing sold in one atomic instruction. The active Devnet website routes Market namespace 4 through the unified Game Program. Its browser still mixes real PDA listings with local-only orders and sample previews, and refreshed chain cancellation is currently broken because Play does not supply the required destination Backpack.",
+    "readingTime": "15 min read",
+    "visual": {
+      "src": "/docs/media/marketplace-listings-overview-v1.webp",
+      "alt": "In one game-anime coastal market mission, the canonical black-haired villager boy and canonical orange-haired villager girl face a central brass-and-wood escrow carriage holding exactly one cyan forged tool; two empty compartmented Backpacks stand open while physical seller and treasury payment trays divide coins beside Chunk.js-baked grass, stone, sand, plants, and depth-lit blue water.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "Escrow is the complete Backpack record",
+      "body": "Listing version 5 reserves 80 of its 216 bytes for the unchanged source slot. Creation copies that record, removes the whole dense Backpack entry, and clears one matching equipment position when the same item is detected there. There is no amount argument or partial-stack decrement."
+    },
+    {
+      "title": "Payment and delivery succeed or roll back together",
+      "body": "The program reads price and currency from the active Listing, applies a hardcoded one-percent integer fee, transfers SOL or NCK, appends the exact slot through market-authority, and marks the account sold. A full Backpack, invalid token account, arithmetic overflow, or later failure rolls back the Market's earlier payment transfers and program-account mutations; a processed failed transaction may still charge its network fee."
+    },
+    {
+      "title": "A market card is not necessarily a chain order",
+      "body": "Play combines decoded Listing PDAs with browser-local pseudo-listings and sample previews. Local hashes do not prove escrow, samples cannot be bought, user-selected building and clothing categories are not committed, and the current refreshed-chain cancellation call omits the Backpack required by the program."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "ADDRESS, ESCROW, PAYMENT, AND LIFECYCLE EQUATIONS",
+    "title": "Five equations separate the committed trade from its browser presentation",
+    "summary": "The address and layout equations identify the active unified program and exact escrow bytes. Decimal and fee equations expose base-unit rounding and the checked-multiplication ceiling. The final transition shows why payment, delivery, cancellation, and rent behavior must be evaluated as complete atomic state changes."
+  },
+  "formulas": [
+    {
+      "title": "Unified Market routing and deterministic authorities",
+      "expression": "G = 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7; instructionData = 0x04 || innerTag || payload; P_listing(s,id) = findProgramAddress([UTF8(\"listing\"),s,LE64(id)],G); P_authority = findProgramAddress([UTF8(\"market-authority\")],G); innerTag in {0=create,1=cancel,2=buy}",
+      "explanation": "The current website is configured for Devnet and sends Market instructions through namespace byte four of the unified Game Program. Listing identity is scoped by the seller and unsigned 64-bit listing ID. The same active program ID derives the authority that signs a trusted Backpack append. A standalone Market program ID still exists in source, but it is not the current website context; inner tag three is explicitly disabled.",
+      "terms": [
+        {
+          "symbol": "G",
+          "meaning": "The active unified Game Program used as Market and Backpack Program on Devnet."
+        },
+        {
+          "symbol": "s, id",
+          "meaning": "Seller public key and little-endian 64-bit listing identifier."
+        },
+        {
+          "symbol": "P_authority",
+          "meaning": "The Market signer accepted by the Backpack Program for exact-slot delivery."
+        }
+      ]
+    },
+    {
+      "title": "Version-5 Listing layout and exact-slot removal",
+      "expression": "216 = 8+2+1+1+32+8+1+1+8+80+8+8+8+32+8+8+1+1 bytes; magic = NCKMKT01; version = 5; escrowSlot = Backpack_before[i][0..80); Backpack_after = removeDense(Backpack_before,i)",
+      "explanation": "The fields are magic, version, bump, state, seller, listing ID, currency, source index, price, the full slot, created slot, updated slot, created time, buyer, the sale's Solana Clock slot, sold time, source type, and one reserved byte. The stored slot preserves quantity, resource coordinates or item identity, volume, durability, grade, level, quality, metadata, and all other packed fields. The account does not store the source Backpack address or a market category, and the original dense index is only historical after removal shifts later entries.",
+      "terms": [
+        {
+          "symbol": "escrowSlot",
+          "meaning": "The exact 80 bytes copied from the validated source record before it is removed."
+        },
+        {
+          "symbol": "removeDense",
+          "meaning": "Backpack deletion that shifts subsequent occupied records down by one index."
+        },
+        {
+          "symbol": "state",
+          "meaning": "One byte representing active, canceled, or sold before account-lifecycle effects are applied."
+        }
+      ]
+    },
+    {
+      "title": "NCK and SOL decimal text becomes an unsigned base-unit price",
+      "expression": "d_NCK = 6; d_SOL = 9; p = whole*10^d + integer(rightPad(fraction,d)); 1 <= p <= 2^64-1; fractionLength <= d",
+      "explanation": "The chain helper accepts nonnegative decimal text, rejects more than the configured decimal places, pads the fractional part on the right, and encodes a positive u64. NCK settlement uses transfer_checked with six decimals and the fixed Devnet mint. SOL settlement transfers the stored integer as lamports; nine-decimal conversion is a client convention rather than a decimal field in ListingAccount. Current Play uses a 0.000001 input step for both currencies and converts the form value to a JavaScript Number before calling this helper, so its form does not cleanly expose nine-decimal SOL increments and scientific notation or precision loss can prevent the exact parser from receiving the user's original text.",
+      "terms": [
+        {
+          "symbol": "d",
+          "meaning": "Client decimal precision: six for NCK and nine for SOL."
+        },
+        {
+          "symbol": "p",
+          "meaning": "Positive base-unit price committed in the Listing and later used without a buyer override."
+        },
+        {
+          "symbol": "rightPad",
+          "meaning": "Zero-padding that makes a short fractional string an exact base-unit integer."
+        }
+      ]
+    },
+    {
+      "title": "Hardcoded one-percent fee, floor rounding, and overflow ceiling",
+      "expression": "f = floor(p*100/10000); sellerAmount = p-f; require p*100 <= 2^64-1, equivalently p <= 184467440737095516; otherwise InvalidFee; f = 0 for 1 <= p <= 99",
+      "explanation": "Market uses its own compile-time 100 basis-point constant and checked u64 multiplication before division. The current Core global-config value also happens to be 100, but the Market instruction never reads that account, so changing Core configuration would not change settlement. Creation accepts any positive u64, while a later purchase of a price above the multiplication ceiling fails. Integer floor rounding also means sub-one-fee-base-unit trades send nothing to treasury.",
+      "terms": [
+        {
+          "symbol": "f",
+          "meaning": "Fee in the same base units as the stored price."
+        },
+        {
+          "symbol": "100/10000",
+          "meaning": "The hardcoded one-percent Market split, independent of Core account data."
+        },
+        {
+          "symbol": "184467440737095516",
+          "meaning": "Largest price whose multiplication by 100 fits in a u64 before division."
+        }
+      ]
+    },
+    {
+      "title": "Atomic purchase, capacity, cancellation, and rent outcomes",
+      "expression": "market balances only: buy: (F_b,F_s,F_t,B_b,A_active,r) -> (F_b-p,F_s+sellerAmount,F_t+f,B_b||escrowSlot,A_sold,r), require buyer != seller and |B_b| < capacity; cancel: (B_s,A_active,r) -> (B_s||escrowSlot,closed,0) and sellerLamports += r; failure => Market payment transfers and program-account mutations unchanged, but network fee may remain charged; A_sold has no close path",
+      "explanation": "Excluding network fees and any auxiliary token-account rent, a successful SOL or NCK purchase pays the seller, pays treasury only when the rounded fee is nonzero, strictly appends the stored record to a buyer-owned Backpack, and writes buyer and sold metadata. Solana transaction atomicity reverses those Market transfers and program-account changes if Backpack validation, capacity, append, or sold marking fails, while the fee payer can still be charged for processing the failed transaction. Cancellation instead appends to a seller-owned Backpack, zeros Listing data, drains all Listing lamports to the seller, and closes the account. A sold Listing remains allocated with its rent, cannot pass the active-only cancellation check, and has no enabled cleanup instruction.",
+      "terms": [
+        {
+          "symbol": "F_b, F_s, F_t",
+          "meaning": "Buyer, seller, and treasury balances in the selected currency's base units."
+        },
+        {
+          "symbol": "B_b, B_s",
+          "meaning": "Buyer and seller Backpack record sequences; append requires one free record position."
+        },
+        {
+          "symbol": "A_active, A_sold, r",
+          "meaning": "Active Listing, persistent sold Listing, and its rent-funded lamport balance."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Creation copies and removes one whole Backpack record",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    let source_slot = match args.source_type {\n        SOURCE_BACKPACK => {\n            let source_slot =\n                read_backpack_slot_for_listing(backpack, seller.key, args.source_index)?;\n            remove_backpack_resource(seller, backpack, backpack_program, args.source_index as u16)?;\n            if let Some(equipment_slot) = read_matching_equipment_slot_for_listing(\n                player_profile,\n                seller.key,\n                player_program.key,\n                global_config.key,\n                &source_slot,\n            )? {\n                clear_player_equipment_slot(\n                    seller,\n                    player_profile,\n                    global_config,\n                    player_program,\n                    equipment_slot,\n                )?;\n            }\n            source_slot\n        }\n        SOURCE_EQUIPMENT => {\n            let (source_slot, backpack_index) = read_equipment_slot_for_listing(\n                player_profile,\n                backpack,\n                seller.key,\n                args.source_index,\n                player_program.key,\n                global_config.key,\n            )?;\n            remove_backpack_resource(seller, backpack, backpack_program, backpack_index as u16)?;\n            clear_player_equipment_slot(\n                seller,\n                player_profile,\n                global_config,\n                player_program,\n                args.source_index,\n            )?;\n            source_slot\n        }\n        _ => return Err(NicechunkMarketError::InvalidInstruction.into()),\n    };\n\n    create_listing_pda(\n        seller,\n        listing,\n        system_program_account,\n        program_id,\n        args.listing_id,\n        bump,\n    )?;\n\n    let clock = Clock::get()?;\n    {\n        let mut data = listing.try_borrow_mut_data()?;\n        ListingAccount::pack(\n            &mut data,\n            &ListingInitArgs {\n                bump,\n                seller: seller.key,\n                listing_id: args.listing_id,\n                currency: args.currency,\n                source_type: args.source_type,\n                source_index: args.source_index,\n                price_base_units: args.price_base_units,\n                source_slot,\n                created_slot: clock.slot,\n                created_at: clock.unix_timestamp,\n            },\n        )?;\n    }",
+      "explanation": "Backpack mode copies the selected dense record before removing it; if the same item PDA is equipped, the matching profile slot is cleared. Equipment mode resolves one of nine profile entries back to its complete Backpack record, removes that record, and clears the selected equipment slot. Any later PDA creation or packing failure rolls the CPIs back."
+    },
+    {
+      "title": "Delivery appends the stored bytes before the Listing becomes sold",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    let buyer_backpack = next_account_info(account_info_iter)?;\n    let backpack_program = next_account_info(account_info_iter)?;\n    let market_authority = next_account_info(account_info_iter)?;\n    append_market_slot_to_backpack(\n        program_id,\n        market_authority,\n        buyer,\n        buyer_backpack,\n        backpack_program,\n        &source_slot,\n    )?;\n\n    let clock = Clock::get()?;\n    let mut data = listing.try_borrow_mut_data()?;\n    ListingAccount::mark_sold(&mut data, buyer.key, clock.slot, clock.unix_timestamp)",
+      "explanation": "This block runs after the selected SOL or NCK payment branch. The trusted authority sends the unchanged source_slot to strict Backpack append, then mark_sold records the buyer, the sale's Solana Clock slot, sold time, and updated slot. A failure in either operation aborts the complete instruction, including earlier Market transfers."
+    },
+    {
+      "title": "The fee is a checked hardcoded integer split",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "fn split_market_payment(price_base_units: u64) -> Result<(u64, u64), NicechunkMarketError> {\n    let fee = price_base_units\n        .checked_mul(MARKET_FEE_BPS as u64)\n        .ok_or(NicechunkMarketError::InvalidFee)?\n        / BPS_DENOMINATOR;\n    let seller_amount = price_base_units\n        .checked_sub(fee)\n        .ok_or(NicechunkMarketError::InvalidFee)?;\n    Ok((seller_amount, fee))\n}",
+      "explanation": "MARKET_FEE_BPS is a private constant set to 100 in this program. Multiplication is checked before division, rounding is downward in base units, and no GlobalConfig account is present in the purchase account list."
+    },
+    {
+      "title": "Cancellation returns the slot, erases the account, and refunds rent",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    if accounts.len() != 5 {\n        return Err(NicechunkMarketError::InvalidAccountCount.into());\n    }\n    let backpack = next_account_info(account_info_iter)?;\n    let backpack_program = next_account_info(account_info_iter)?;\n    let market_authority = next_account_info(account_info_iter)?;\n    append_market_slot_to_backpack(\n        program_id,\n        market_authority,\n        seller,\n        backpack,\n        backpack_program,\n        &source_slot,\n    )?;\n\n    {\n        let mut data = listing.try_borrow_mut_data()?;\n        data[state::ListingAccount::STATE_OFFSET] = state::LISTING_STATE_CANCELED;\n        data.fill(0);\n    }\n\n    let listing_lamports = listing.lamports();\n    **seller.try_borrow_mut_lamports()? = seller\n        .lamports()\n        .checked_add(listing_lamports)\n        .ok_or(NicechunkMarketError::InvalidListingData)?;\n    **listing.try_borrow_mut_lamports()? = 0;",
+      "explanation": "Although the processor's initial guard accepts account lists of length two, three, or five, the active return path subsequently requires exactly five accounts. The canceled byte is immediately erased by data.fill(0), then every lamport is transferred to the seller, so a successful cancellation leaves no durable canceled Listing account."
+    },
+    {
+      "title": "Play omits the destination Backpack from refreshed chain cancellation",
+      "language": "JavaScript",
+      "source": "play/play-market.js",
+      "code": "  async function cancelChainListing(listing) {\n    try {\n      showMarketStatus(`Canceling chain listing ${listing.proof?.proofHash || listing.id}...`);\n      const module = await loadPlayChainModule();\n      if (typeof module.cancelMarketListingOnChain !== \"function\") {\n        showMarketStatus(\"Chain market cancellation is unavailable in the loaded chain module.\", \"warn\");\n        return null;\n      }\n      const result = await module.cancelMarketListingOnChain({\n        listing: listing.listing,\n        listingId: listing.listingId,\n      });\n      if (!result?.submitted) {\n        showMarketStatus(`Cancel skipped: ${result?.reason || \"not-submitted\"}.`, \"warn\");\n        return result;\n      }\n      showMarketStatus(`Chain listing canceled ${shortSignature(result.signature)}.`);\n      await refreshChainListings({ force: true, quiet: true });\n      onChanged();\n      return result;\n    } catch (error) {\n      showMarketStatus(`Cancel failed: ${readableError(error)}.`, \"warn\");\n      return null;\n    }\n  }",
+      "explanation": "cancelMarketListingOnChain can accept sourceInventory and only adds the Backpack, Backpack Program, and market-authority keys when that value exists. This call passes neither sourceInventory nor another recoverable address. It therefore builds only seller and Listing keys, and the program rejects the transaction with InvalidAccountCount before returning escrow."
+    }
+  ],
+  "sections": [
+    {
+      "id": "unified-routing-and-address",
+      "eyebrow": "DEVNET NAMESPACE FOUR",
+      "title": "The current marketplace lives inside the unified Game Program",
+      "paragraphs": [
+        "public/mainnet.json currently declares Devnet and assigns the same 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7 address to Backpack, Smelting, and Market. The Game dispatcher consumes namespace byte four before forwarding the remaining inner instruction to the Market processor. Listing and market-authority PDAs are therefore derived under that unified address in the website context, even though the standalone Market crate still declares 1PwPzFtdJ5gQqku5gBo4b6Wvo48Qe8NuXSogUP8TWpR for non-unified builds.",
+        "The current Play HTML contains the Market panel but no element with id marketButton, so the normal button binding resolves to null. Its connected entry is the debug command line: press slash, then run /market or /trade. This discoverability gap does not change any program rule, but it matters when describing what a player can reach through the present production interface.",
+        "A Listing address combines the literal listing seed, seller public key, and little-endian listing ID. Creation requires that seller to sign, validates the derived address, rejects an already program-owned account, and charges the seller the rent needed for 216 bytes. Cancellation re-derives the same PDA and requires the stored seller to sign. Purchase re-derives it from the stored listing ID and seller account, requires a different signing buyer, and rejects any seller account that does not match the Listing bytes.",
+        "MarketAuthority has no player or listing component. It is a single PDA under the active Market Program and signs the CPI that delivers an escrowed record to a buyer Backpack or returns it to a seller Backpack. The Backpack Program independently derives that authority under its configured Market Program ID, so supplying a look-alike account cannot authorize arbitrary inventory creation."
+      ],
+      "facts": [
+        {
+          "label": "Current cluster",
+          "value": "Devnet",
+          "detail": "The website configuration does not currently target Solana mainnet-beta."
+        },
+        {
+          "label": "Active Market route",
+          "value": "Game namespace 4",
+          "detail": "Both Listing and market-authority PDAs use the unified Game Program ID."
+        },
+        {
+          "label": "Listing identity",
+          "value": "Seller plus u64 ID",
+          "detail": "The ID is not globally unique by itself; the seller key is part of the PDA seeds."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Verify the program context before deriving an address",
+        "body": "A PDA derived under the standalone Market ID is not the same account as the current unified-game Listing. Use the configured program and namespace that the signed instruction actually targets."
+      }
+    },
+    {
+      "id": "whole-slot-escrow",
+      "eyebrow": "ONE RECORD LEAVES THE SELLER",
+      "title": "Listing creation escrows exact slot bytes, not a category label or partial quantity",
+      "paragraphs": [
+        "ListingAccount version 5 has a fixed 216-byte layout. Its central 80-byte field is a complete BackpackSlotRecord copied before mutation. For a block record, those bytes include kind, quantity, packed world position and block ID, volume, and metadata. For an item, they also carry category, item code, item ID, item PDA, volume, current and maximum durability, grade, level, quality, and metadata. ListingAccount adds seller, currency, base-unit price, source type and index, timestamps, and eventual buyer data around that record.",
+        "Backpack source mode validates the supplied account as a seller-owned Backpack PDA, reads the selected dense index, requires a block or item kind and nonzero quantity, then removes that complete record through an owner-signed Backpack CPI. If its item PDA also appears in the PlayerProfile equipment array, creation clears that equipment slot. Equipment source mode instead validates one of nine equipment positions, finds the same item PDA in the seller's Backpack, removes its entire record, and clears the chosen profile position. The current Play sell grid nevertheless submits only source backpack, so direct equipment-source creation exists at the program level but is not exposed by that flow.",
+        "There is no listed amount, decrement, or replacement record. A record with quantity ten is escrowed as one complete 80-byte record containing quantity ten. Dense removal shifts subsequent Backpack indexes. The Listing preserves the original source index and whether the request named Backpack or equipment, but it does not preserve the source Backpack public key. It also stores no market category field, so the browser's raw, equipment, building, and clothing selections cannot all survive a chain round trip."
+      ],
+      "facts": [
+        {
+          "label": "Escrow payload",
+          "value": "Exactly 80 bytes",
+          "detail": "The complete validated slot is copied without client-side reconstruction."
+        },
+        {
+          "label": "Partial listing",
+          "value": "Not supported",
+          "detail": "Quantity is data inside the removed record, not an amount consumed by the instruction."
+        },
+        {
+          "label": "Missing origin",
+          "value": "No Backpack address",
+          "detail": "Source type and old dense index remain, but the inventory public key does not."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Escrow proves custody of bytes, not the browser's merchandising label",
+        "body": "A user-selected building or clothing category never enters the instruction payload or Listing account. Verify the stored slot identity and metadata instead of treating a card category as committed state."
+      }
+    },
+    {
+      "id": "payment-and-atomic-delivery",
+      "eyebrow": "PRICE FROM THE LISTING, SLOT TO THE BUYER",
+      "title": "SOL and NCK settlement share one fee rule and one atomic delivery boundary",
+      "paragraphs": [
+        "Purchase first validates an active version-5 Listing, its program owner, its seller, and its seller-derived PDA. The buyer must sign and cannot equal the seller. Currency and price are then read from the Listing itself; the buyer cannot substitute a lower amount in the instruction. NCK uses the fixed Devnet mint HSnWF5kjkWVrceW2SaSskScuLveUZE4gpthZ2ZXRPQPo, transfer_checked with six decimals, and token accounts whose program owner, mint, and wallet-owner bytes are validated. SOL uses System Program transfers and the fixed treasury CtPV2vmqNNwUSfMu5nz58ZtMPy6ZvxL4LyNdPHVW7WvF.",
+        "Both branches call split_market_payment. Its private 100-basis-point constant floors the fee after checked multiplication, so the seller receives price minus fee and treasury receives the remainder. The current Core GlobalConfig generator and state constant also say 100 basis points, but Market never receives or reads GlobalConfig during purchase. That equality is configuration coincidence, not dynamic fee authority. Prices one through ninety-nine base units pay a zero fee, and a valid listed u64 above 184467440737095516 cannot later settle because multiplication by 100 overflows.",
+        "Only after the seller transfer and any nonzero treasury transfer does Market invoke the Backpack Program with the stored slot and market-authority signature. Backpack validates its PDA and owner, decodes the record, and performs a strict append. If itemCount already equals capacity, BackpackFull aborts. If append succeeds, Market records sold state, buyer, the sale's Solana Clock slot, sold time, and updated slot. All CPIs and the final write belong to one Solana instruction, so failure at capacity, token validation, payment, append, or marking sold rolls back every Market payment transfer and program-account mutation; the transaction's network fee may still remain charged.",
+        "The website performs useful preliminary checks for a buyer Backpack, free capacity, and NCK associated token accounts, and may create missing seller or treasury associated accounts in the same transaction. Those checks improve feedback but are not settlement authority. The program's validation and confirmed post-transaction accounts remain decisive.",
+        "Current Play has no mutation lock around create, buy, or cancel. After success it refreshes the listing query and rerenders, but the Market integration has no refreshBackpack callback and does not call the Backpack mutation refresh used by Smelting. Confirmed Backpack changes can therefore remain visually stale until the roughly fifteen-second frame poll, while repeated clicks remain possible. During creation, the instruction commits only the dense index. If a concurrent Backpack change leaves that index valid, the program escrows the record currently there, which may differ from the stale preview; if the index becomes out of range, creation fails with invalid escrow inventory."
+      ],
+      "facts": [
+        {
+          "label": "Currencies",
+          "value": "NCK and SOL",
+          "detail": "Six and nine client decimals map to one stored positive u64 base-unit price."
+        },
+        {
+          "label": "Fee source",
+          "value": "Hardcoded 100 bps",
+          "detail": "Market does not read Core marketFeeBps even though its current value is also 100."
+        },
+        {
+          "label": "Capacity failure",
+          "value": "Payment rolls back",
+          "detail": "Strict Backpack append, the seller transfer, and any nonzero treasury transfer are in the same atomic instruction."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "A confirmed sold account is stronger than a submitted signature",
+        "body": "After confirmation, inspect the Listing buyer and sold fields, the buyer's appended slot, and the relevant SOL or token balances. A wallet submission alone does not prove that every atomic step committed."
+      }
+    },
+    {
+      "id": "cancellation-and-rent",
+      "eyebrow": "RETURN, ERASE, OR PERSIST",
+      "title": "Cancellation closes an active Listing, while the current instruction set leaves sold rent locked",
+      "paragraphs": [
+        "Only the stored seller may cancel an active Listing. After validating seller, account owner, Listing bytes, and PDA, the processor requires a destination Backpack, Backpack Program, and market-authority account. The destination is not recovered from ListingAccount because that address was never stored. It may be any valid seller-owned Backpack PDA with free capacity. The exact escrowed slot is appended there before account closure; a full or invalid Backpack rolls the cancellation back and leaves the Listing active. Cancellation receives no PlayerProfile account and does not restore the item's former equipment position.",
+        "Successful cancellation writes the canceled state byte and immediately calls data.fill(0), then transfers every Listing lamport to the seller and sets the Listing balance to zero. The intermediate state is therefore not durable queryable history. On 2026-07-15, the Devnet rent-exemption query for 216 bytes returned 2,394,240 lamports, or 0.00239424 SOL; that mutable amount was the gross Listing refund at audit time, before the seller fee payer's transaction fee.",
+        "Purchase has a different lifecycle. mark_sold retains the complete 216-byte account and its lamports. Cancellation rejects non-active state, processing tag three is disabled, and no other close or cleanup instruction exists. A sold seller-and-ID address therefore remains allocated, its rent remains locked, and the same listing ID cannot be initialized again at that PDA.",
+        "The current Play chain cancellation path cannot satisfy the five-account route. Refreshed decoded listings expose sourceInventory as null, and cancelChainListing passes only the Listing address and ID. The chain helper adds destination accounts only when sourceInventory is supplied, so it constructs a two-account inner instruction that Market rejects with InvalidAccountCount. Browser-local cancellation is a separate attempted snapshot-restoration path, not a Listing PDA cancellation, and the current PDA-only GameState does not normally permit that restoration to complete."
+      ],
+      "facts": [
+        {
+          "label": "Cancellation destination",
+          "value": "Any valid seller Backpack",
+          "detail": "The account must have room; the original Backpack address is not committed."
+        },
+        {
+          "label": "Canceled history",
+          "value": "Account is erased and closed",
+          "detail": "The canceled byte is overwritten before all rent lamports return to the seller."
+        },
+        {
+          "label": "Sold history",
+          "value": "Persistent, no close route",
+          "detail": "Rent stays in the account and the PDA's listing ID cannot be reused."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Chain cancellation is currently broken in the Play interface",
+        "body": "Do not tell users that the current refreshed-order Cancel button can return escrow. The program requires a destination Backpack, while Play currently omits it and submits the wrong account count."
+      }
+    },
+    {
+      "id": "client-discovery-and-fallbacks",
+      "eyebrow": "PDA ACCOUNTS, LOCAL ORDERS, AND SAMPLES",
+      "title": "Browse combines three different states that must not be called equivalent",
+      "paragraphs": [
+        "The chain helper asks the unified Game Program for 216-byte accounts and may add RPC memcmp filters for seller, active/sold state, and currency. It accepts decoded accounts after length and Listing-magic checks, without rejecting another version or invalid enum at display time, then applies category, source, text query, sorting, and pagination in JavaScript; Market mutations perform stricter program validation. Play requests page one with pageSize 100 and active state, then applies its own twelve-item pages. Only the first one hundred results after helper filtering and sorting can appear even though the RPC query fetched all matching accounts. Orders filters that same retained active page by wallet, so it is neither complete seller history nor a view of persistent sold accounts.",
+        "Refresh has an additional startup edge. lastChainRefreshAt begins at zero, openPanel starts a quiet non-forced refresh, and the cooldown compares that zero with performance.now. Opening Market during roughly the first twelve seconds of a page session can therefore return cooldown without making the first RPC query or displaying an error. Later category, search, currency, and sort interactions rerender locally; only a manual or allowed refresh changes the retained one-hundred-result set.",
+        "Chain categories and item presentation collapse during normalization. Any item slot becomes equipment and any block slot becomes raw. For an item, Play keeps only a generic tool kind, numeric item ID, quantity, durability, maximum durability, and quality; it drops itemCode, item PDA, volume, grade, level, metadata, material identity, and forged design data. Chunk.js consequently chooses the basic pickaxe model even for a smelted material or distinct forged design, and the name often becomes a numeric item ID. The on-chain Listing's sourceSlot still drives settlement, while rawListing preserves a decoded copy for inspection, so this is a merchandising and reconstruction defect rather than a slot-settlement substitution. Source type survives as backpack or equipment, but the current sell flow always submits backpack, and building or clothing never survives a chain round trip.",
+        "Local listings are a different and currently mostly unreachable system. The branch would remove a complete object from local game state, serialize its snapshot under nicechunk.play.marketListings.v1, and display an eight-hex-digit 32-bit browser hash. Current PDA-only GameState makes consumeBackpackItems fail and addBackpackSlotSnapshot return null, so new local creation cannot normally complete and an old stored order cannot normally be returned through that path. Previously stored entries may still load and display, but no Listing PDA, rent, program escrow, token transfer, or chain settlement exists.",
+        "Samples are a third state. Whenever both in-memory chain and active-local arrays are empty, Browse substitutes four hardcoded preview cards; that can follow a confirmed zero-result query, but it can also follow the startup cooldown, an unavailable module, or an RPC failure. Seeing samples alone therefore does not prove that a live query succeeded. The Buy handler cannot find a sample in state.chainListings and warns that samples are previews only. Dated mutable audit note: on 2026-07-15 at confirmed slot 476,305,674, Devnet returned zero 216-byte accounts for the unified Game Program query; later rechecks through confirmed slot 476,310,786 again found zero. The retired standalone Market address still owned seven 216-byte version-3 Listing accounts, but the current client never scans that program, so they were not active website liquidity. With no local order, the current panel therefore showed all four samples at that snapshot. Future listings can make this statement stale.",
+        "The Market panel also bypasses the project's locale dictionaries today. Its visible HTML labels, aria labels, runtime statuses, item names, and pager copy are hardcoded in English instead of using data-i18n attributes or t(). The current Play i18n checker collects existing translation references but does not flag these unmarked strings, so a green check does not mean this panel is localized."
+      ],
+      "facts": [
+        {
+          "label": "Play chain request",
+          "value": "First 100 filtered active results",
+          "detail": "The helper queries every matching account, then filters, sorts, and slices in the browser before Play builds twelve-card pages."
+        },
+        {
+          "label": "Decoded categories",
+          "value": "Raw or equipment only",
+          "detail": "Building and clothing are browser metadata, not Listing bytes."
+        },
+        {
+          "label": "Local proof hash",
+          "value": "32-bit browser value",
+          "detail": "It is local presentation data, not a PDA, signature, receipt, or cryptographic escrow proof."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Zero live accounts explains the samples; it does not turn them into orders",
+        "body": "The dated Devnet snapshot is mutable operational evidence. A sample card remains unbuyable preview data regardless of whether the live query currently returns zero or many Listing PDAs."
+      }
+    },
+    {
+      "id": "verification-and-reconstruction",
+      "eyebrow": "VERIFY BYTES, THEN RECONSTRUCT PIXELS",
+      "title": "A verifier should follow the Listing, balances, and Backpack record instead of trusting the card",
+      "paragraphs": [
+        "For creation, verify the transaction targeted Game namespace four, the Listing address matches seller and ID, the account has magic NCKMKT01 and version five, state is active, price and currency are intended, and sourceSlot equals the record removed from the seller Backpack. That proves a complete record entered program custody. It does not prove a human category, fair price, off-chain description, visual model, or provenance beyond the fields already inside that slot.",
+        "For purchase, verify the buyer differs from seller, the pre-purchase Listing was active, the fixed mint or treasury route was used, seller and treasury balance changes match integer fee math, the buyer Backpack gained the exact stored record, and the retained Listing names the buyer and sale's Solana Clock slot. A capacity precheck, wallet popup, transaction signature string, or optimistic status message is insufficient without confirmed account state.",
+        "Cancellation needs different evidence because its account disappears. Verify the successful transaction accounts, the seller-owned destination Backpack and appended record, that the Listing's pre-transaction lamport balance was credited to the seller while accounting for the network fee, and absence of the former Listing PDA. An explorer cannot later decode a persistent canceled state from zeroed data. Sold accounts are easier to inspect but also expose the missing cleanup and continuing rent cost.",
+        "Chunk.js can reconstruct forged equipment, smelting materials, resource drops, and baked block icons when it receives their compact identities and visual metadata. The current Market normalizer does not preserve enough of those fields for chain items: it sends a generic tool object and therefore selects the basic pickaxe model. Rich Backpack reconstruction elsewhere in Play does not repair this separate Market card path. In either case, geometry, cyan color, category copy, and artwork composition are not fields in ListingAccount. The guide illustration is an accessible process narrative, not a claim that the browser captured an on-chain model. Current tests cover Market state packing and fee helpers but do not program-test create, buy, or cancel and do not behavior-test the Play panel, so these lifecycle claims come from source-path and live-account audit rather than an end-to-end market test. The active Devnet unified program is upgradeable, and this review did not establish byte-for-byte parity between its deployed binary and the working-tree source."
+      ],
+      "facts": [
+        {
+          "label": "Creation proof",
+          "value": "Listing bytes plus seller Backpack change",
+          "detail": "Compare the complete 80-byte record across the atomic removal and escrow state."
+        },
+        {
+          "label": "Purchase proof",
+          "value": "Balances, buyer Backpack, sold metadata",
+          "detail": "All three outcomes must agree with the same confirmed instruction."
+        },
+        {
+          "label": "Visual meaning",
+          "value": "Client reconstruction",
+          "detail": "Chunk.js geometry and labels are derived from slot identity, not stored in the Listing account."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Follow the same eighty bytes across custody",
+        "body": "The strongest market verification path compares seller removal, Listing sourceSlot, and buyer append. Names, thumbnails, categories, and local hashes can help a player navigate, but they are not substitutes for that record-level transition."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "Implements creation, whole-slot removal, equipment clearing, seller-only cancellation, SOL and NCK purchase branches, hardcoded fee math, trusted Backpack append, sold marking, rent refund, disabled tag three, and the account-count checks behind the current cancellation failure."
+    },
+    {
+      "path": "programs/nicechunk_market/src/state.rs",
+      "claim": "Defines Listing magic NCKMKT01, version 5, 216-byte length, every field offset, active/canceled/sold states, NCK/SOL and Backpack/equipment codes, positive-price validation, exact 80-byte sourceSlot storage, and sold metadata updates."
+    },
+    {
+      "path": "programs/nicechunk_market/src/errors.rs",
+      "claim": "Maps the described invalid account count, PDA, seller, buyer, currency, price, token, Backpack, escrow inventory, authority, treasury, fee, profile, and equipment failures to explicit Market errors."
+    },
+    {
+      "path": "programs/nicechunk_market/src/cluster_config.rs",
+      "claim": "Pins the Devnet NCK mint, fixed Market treasury, Player Program, and unified-game Backpack Program IDs used by Market validation."
+    },
+    {
+      "path": "programs/nicechunk_market/Cargo.toml",
+      "claim": "Declares Devnet as the default crate feature and exposes the unified-game feature that lets the Market processor run beneath the shared Game Program."
+    },
+    {
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "Assigns namespace four to Market and forwards the remaining instruction bytes to nicechunk_market under the unified program ID."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "Authenticates the market-authority PDA, validates the destination Backpack PDA and owner, and decodes the supplied exact slot before strict append."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "Defines complete 80-byte block and item records, strict append validation, BackpackFull behavior, item and quantity requirements, and dense record removal semantics."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/cluster_config.rs",
+      "claim": "Shows that a unified Backpack build derives its accepted market-authority signer under the unified Game Program rather than the standalone Market address."
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Implements the clear-equipment sentinel and validates owner/profile/global-config state when Market clears a listed item from PlayerProfile."
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Defines PlayerProfile equipment slot writes and the stored update slot affected when listed equipment is cleared."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Builds unified namespace-four creation, cancellation, and purchase instructions; converts six- and nine-decimal price text; queries 216-byte accounts; decodes Listing bytes; derives raw/equipment categories; applies client filtering and pagination; and conditionally omits cancellation destination accounts when sourceInventory is absent."
+    },
+    {
+      "path": "play/play-market.js",
+      "claim": "Mixes chain, local-storage, and sample listings; submits only Backpack sources; can suppress its first quiet query through the startup cooldown; retains only the first 100 filtered active chain results; performs twelve-item client paging; has no mutation locks or direct Backpack refresh; loses item reconstruction fields; hardcodes visible English instead of consuming its locale dictionary; falls back to four samples; blocks sample purchases; and calls chain cancellation without sourceInventory."
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "Lazily loads the chain module used by the Market panel and treats listing fetch and creation exports as usable chain capabilities."
+    },
+    {
+      "path": "play/play-chain-backpack.js",
+      "claim": "Shows the richer confirmed block, material, and forged Backpack reconstruction available elsewhere in Play, including fields and refresh-after-mutation behavior that the separate Market card path does not reuse."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Queries a missing marketButton, connects Market to shared game-state records and the Chunk.js item-icon renderer, and supplies only renderGameUi on mutation rather than the Backpack refresh callback given to Smelting."
+    },
+    {
+      "path": "play/index.html",
+      "claim": "Defines the hidden Browse, Sell, and Orders panel, filters, currency selectors, fee display, and category input, while containing no normal marketButton entry element."
+    },
+    {
+      "path": "play/play-input-actions.js",
+      "claim": "Routes the slash key into the debug command line, which is the current first step for reaching the otherwise hidden Market panel."
+    },
+    {
+      "path": "play/play-debug-controller.js",
+      "claim": "Maps the market and trade debug commands to openMarketPanel, providing the current connected Market entry route."
+    },
+    {
+      "path": "play/play-chain-frame-sync.js",
+      "claim": "Defines the roughly fifteen-second periodic Backpack refresh on which Market currently relies after confirmed create, purchase, or cancellation mutations."
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "Makes local Backpack consumption and snapshot restoration unavailable in the current PDA-only runtime, leaving new pseudo-listing creation and old local cancellation unable to complete normally."
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "Declares the website cluster as Devnet and maps Backpack, Smelting, and Market to the same unified Game Program address."
+    },
+    {
+      "path": "programs/nicechunk_core/src/state.rs",
+      "claim": "Defines the current Core MARKET_FEE_BPS value as 100, useful for showing that its present equality with Market's private constant does not imply a runtime read."
+    },
+    {
+      "path": "scripts/generate-global-config.ts",
+      "claim": "Generates a GlobalConfig with six NCK decimals, the current Devnet mint, and marketFeeBps 100, none of which is passed as an account to Market purchase."
+    },
+    {
+      "path": "scripts/generated-global-config.json",
+      "claim": "Records the generated current marketFeeBps and NCK configuration used to compare configured Core state with Market's hardcoded settlement implementation."
+    },
+    {
+      "path": "scripts/update-locales.mjs",
+      "claim": "Contains translated Play Market dictionary entries that the current production Market HTML and JavaScript do not consume, making the localization gap inspectable separately from the dictionary's existence."
+    },
+    {
+      "path": "chunk.js/renderer/item-preview.js",
+      "claim": "Routes compact inventory identities to resource, surface-decoration, smelting-material, and equipment preview meshes, demonstrating that market thumbnails are client reconstruction."
+    },
+    {
+      "path": "chunk.js/renderer/equipment-model.js",
+      "claim": "Maps every generic tool object to the basic pickaxe while reserving forged geometry and design palettes for explicit forged identity, explaining the current Market card mismatch after lossy normalization."
+    }
+  ],
+  "related": [
+    {
+      "slug": "backpack-inventory",
+      "href": "/docs/backpack-inventory/",
+      "status": "ready",
+      "title": "Backpack PDAs",
+      "summary": "Inspect the dense 80-byte block and item records, strict capacity, shifting indexes, and trusted producer routes that Marketplace creation and delivery mutate."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "status": "ready",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "Place a marketplace signature inside the wider distinction between submitted intent, confirmed transactions, authoritative accounts, and client-only presentation."
+    },
+    {
+      "slug": "forging-system",
+      "href": "/docs/forging-system/",
+      "status": "ready",
+      "title": "Material-Aware Forging",
+      "summary": "Trace the cyan forged tool shown in this mission back to material requirements, editable geometry, inherited properties, NCF1 commitment, and verified input consumption."
+    }
+  ]
+}

@@ -1,0 +1,855 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-player-appearance-codes-zh-Hans-7be78e2d751ca08c",
+    "contentHash": "7be78e2d751ca08c"
+  },
+  "kind": "topic",
+  "slug": "player-appearance-codes",
+  "shortTitle": "PlayerAppearance 与模型代码",
+  "seo": {
+    "title": "PlayerAppearance: 模型代码、角色重建与安全回退",
+    "description": "了解 NiceChunk 在 9,612 字节的 PlayerAppearance PDA 中保存什么、合约不会验证什么、NCM2 与 NCM4 如何变成可见村民、浏览器优先采用哪个来源，以及为什么代码已经保存却仍可能无法渲染。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 · 第 7 步",
+    "title": "PlayerAppearance: 模型代码、角色重建与安全回退",
+    "summary": "PlayerAppearance 保存的是公开身份文本，不是已经完成的 3D 角色。Player Program 只接受一个刻意保持宽松的 NCM 外层格式；随后，浏览器会在链上文本与本地文本之间选择，解析少量内置别名，解码 NCM2 或 NCM4，构建网格，并在重建失败时保留或恢复一个可用模型。本指南会完整跟随这次交接，并如实标明当前解码器、装备、SDK、租金与部署边界。",
+    "readingTime": "阅读约 27 分钟",
+    "visual": {
+      "src": "/docs/media/player-appearance-codes-overview-v1.webp",
+      "alt": "生成的体素河岸工坊：标准女孩打开一个小型代码箱，标准男孩站在另一座木制模型组装台上。",
+      "caption": "代码箱代表已保存的公开文本，组装台代表本地重建：成功打开前者，并不能保证后者成功。这幅教学场景使用标准男孩、女孩与真实 Chunk.js 河岸材质参考生成；其中的道具、光照和可见数量都是比喻，不是账户字节、链上状态或渲染器输出证据。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "如果我的 Appearance 账户里已经有 NCM 代码，为什么画面上仍可能是之前的角色或默认男孩？这个结果中，链上究竟验证了哪一部分？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 15 步中的第 7 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的普通玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "当前含未提交改动的工作树中，Player、角色创建、登录、Play、SDK、NCM2、NCM4 与渲染器的行为 · 另有带日期的 Devnet 账户与租金观测"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 17 日 · 源码原文摘录、针对解码器的测试、保留的 Devnet 原始字节、生成图来源记录，以及聚焦静态检查"
+      }
+    ],
+    "terms": [
+      {
+        "term": "PlayerAppearance",
+        "meaning": "一份公开的 9,612 字节 Player Program 账户，包含 owner 关联、显示名称、称号、模型类型、模型文本、时间戳，以及当前全部为空的 12 条富结构装备记录。"
+      },
+      {
+        "term": "PDA",
+        "meaning": "这里指由公开 seed appearance-v1、owner 钱包与 Player Program ID 派生出的可预测地址。派生地址并不是私人保险箱。"
+      },
+      {
+        "term": "Upsert（插入或更新）",
+        "meaning": "一条指令：记录不存在时创建，已经存在时则完整重写它所支持的字段。"
+      },
+      {
+        "term": "modelKind",
+        "meaning": "一个只能是 1 或 2 的存储字节。当前合约不会把它与模型几何体绑定，渲染器也不会用它选择男孩或女孩的模型字节。"
+      },
+      {
+        "term": "modelCode",
+        "meaning": "保存在固定 2,048 字节区域中的 UTF-8 文本。通过合约的 NCM 前缀检查，并不能证明这段文本可以解码或渲染。"
+      },
+      {
+        "term": "别名（Alias）",
+        "meaning": "一个必须完全匹配的短标签，浏览器会把它替换成内置模型文本。当前别名表只包含指向标准男孩的路径。"
+      },
+      {
+        "term": "NCM2",
+        "meaning": "当前创建页面的男孩与女孩使用的紧凑调色板加长方体格式。角色渲染器解码几何体后，会再添加启发式骨架与手部锚点。"
+      },
+      {
+        "term": "NCM4",
+        "meaning": "一种较新的自包含角色格式，具有受限几何体、20 根固定骨骼、具名动作、规范 Base64URL，以及 CRC32C 完整性检查。"
+      },
+      {
+        "term": "渲染器（Renderer）",
+        "meaning": "玩家设备上的 Chunk.js 代码，会把模型数据转换为顶点、索引、动画状态、碰撞边界与可见网格。"
+      },
+      {
+        "term": "补零（Zero-fill）",
+        "meaning": "当前角色 NCM2 位读取在请求位置超出载荷时会用 0 代替，因此某些已截断的几何数据不会被拒绝，反而仍会被接受。"
+      },
+      {
+        "term": "浏览器缓存",
+        "meaning": "保存在一台设备 localStorage 中的数据。它可以加快进入速度或提供回退，但能被本地编辑、只存在于当前设备，也不具有链上权威性。"
+      },
+      {
+        "term": "富结构装备",
+        "meaning": "Appearance 中预留的 12 条 576 字节记录。解码器为它们定义了字段名称，但当前合约打包器会在每次 upsert 时清空全部记录。"
+      },
+      {
+        "term": "免租金所需资金",
+        "meaning": "为使 Solana 数据账户在观测到的租金规则下持续占用空间而持有的 lamports。金额可能变化，并且与交易手续费是两回事。"
+      },
+      {
+        "term": "Treasury 关闭",
+        "meaning": "当前 tag 9 指令只能由已配置的协议 treasury 签名。它会清空 Appearance，并把其中全部 lamports 发送到同一个 treasury。"
+      },
+      {
+        "term": "带日期的快照",
+        "meaning": "在某个集群、commitment、slot 与时间点观测到的 RPC 账户字节。它只描述那个时刻，既不会冻结之后的状态，也不能证明工作树中每个已修改源码文件都已部署。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "已保存的 NCM 文本不是渲染合格证",
+      "body": "合约会接受以大写 NCM 开头的有效 UTF-8 文本。它不会解析版本、Base64URL、几何体、骨骼、校验和、规范形式或渲染成本。"
+    },
+    {
+      "title": "可见角色既有来源顺序，也有失败处理顺序",
+      "body": "当前 Play 会先请求链上 Appearance，再查看本地 profile，最后使用内置男孩。替换失败时，会尽可能保留上一个可用网格，然后才尝试默认模型。"
+    },
+    {
+      "title": "NCM2 与 NCM4 的安全边界并不相同",
+      "body": "NCM4 会执行严格的外层格式与结构检查。当前角色 NCM2 解码器会为缺失的几何位补零，而且没有长方体数量资源预算；仓库中的另一套源码编解码器则更严格。"
+    },
+    {
+      "title": "当前各客户端构建的指令并不完全相同",
+      "body": "网站适配器会提供当前处理器要求的 6 个账户。较旧的 TypeScript SDK 及其旧测试仍在构建只有 5 个账户的 Appearance 指令。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "appearance-public-record-layout",
+      "eyebrow": "公开账户，固定布局",
+      "title": "Appearance 是独立公开记录，不是私有模型文件或成品网格",
+      "paragraphs": [
+        "对于 owner 钱包 o，Player Program 会用固定 seed appearance-v1 与 o 派生一份 Appearance PDA。和其他 Solana 程序数据一样，这个账户是公开的。它的账户程序所有者决定哪些指令可以写入；数据内部保存的 owner 字段则标识玩家关联。两种“所有权”都不会加密显示名称、称号、模型代码、时间戳或 treasury 公钥。",
+        "账户总长正好是 9,612 字节。256 字节头部保存 magic、version、bump、初始化状态、owner、关联的 PlayerProfile、GlobalConfig、treasury、modelKind、flags、3 个字符串长度、声明的装备数量与 4 个时间戳。之后的固定区域分别为显示名称预留 300 字节、称号 96 字节、modelCode 2,048 字节，并为 12 条 576 字节的富结构装备记录预留 6,912 字节。",
+        "这块庞大的预留装备区域约占整个账户的 71.9%。预留空间不等于功能已经可用：当前打包器会把每条富结构装备记录的状态写成 0，并清空载荷。SDK 解码器公开的字段只是在描述一种格式，并不代表当前合约存在填充这些字段的路径。",
+        "4 个面向玩家的字段各自遵循独立规则。名称最多 32 个字符、300 个 UTF-8 字节，只能使用下划线、ASCII 字母或数字，或 U+4E00 至 U+9FFF。称号可以为空，最多 96 个 UTF-8 字节。modelKind 只能是 1 或 2。modelCode 必须是 3 至 2,048 字节的有效 UTF-8，并以完全一致的大写字符 NCM 开头。没有任何规则把 kind 字节与模型文本关联起来。"
+      ],
+      "facts": [
+        {
+          "label": "地址",
+          "value": "PDA_Player([appearance-v1, owner])",
+          "detail": "在 Player Program 下，每个 owner 对应一个确定性的公开地址。"
+        },
+        {
+          "label": "总长度",
+          "value": "9,612 字节",
+          "detail": "256 + 300 + 96 + 2,048 + 12 × 576."
+        },
+        {
+          "label": "富结构装备预留区",
+          "value": "6,912 字节 · 约 71.9%",
+          "detail": "当前打包过程仍会让每条记录保持为空。"
+        },
+        {
+          "label": "模型外层规则",
+          "value": "3–2,048 个 UTF-8 字节 · 大写 NCM",
+          "detail": "这不是对 NCM 结构或渲染能力的验证。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-appearance-public-record-layout-v1.webp",
+        "alt": "生成的体素河岸档案室：标准男孩拿着一块小型身份组件，标准女孩打开一个大得多、内部划分固定存储区域的柜子。",
+        "caption": "小型身份组件与大型柜子让 Profile 和 Appearance 看起来像两份独立公开记录，柜内分区则暗示固定布局。道具尺寸、层架数量、颜色与反射都只是教学比喻；准确的字节偏移与写入权限以源码为准。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "公开存储不提供隐私保护",
+        "body": "钱包签名只控制受支持的写入，但任何 RPC 读取方都可以查看账户。绝不要把私钥、助记词、个人秘密或保密的模型许可证放进 modelCode。"
+      }
+    },
+    {
+      "id": "upsert-rewrites-and-clears",
+      "eyebrow": "一条指令，三份身份记录",
+      "title": "一次 upsert 同时维护 Profile、名称声明与 Appearance，随后清空全部预留装备载荷",
+      "paragraphs": [
+        "Tag 8 正好要求 6 个账户：可写的 owner 签名者兼付款人、可写 PlayerProfile、可写 PlayerAppearance、GlobalConfig、System Program，以及可写 UsernameIndex。当前网站会提供全部 6 个。处理器会先验证指令可变长度、字段规则、签名者、可写标志、程序身份，以及由 owner 派生的 Profile 与 Appearance 地址，然后才改变状态。",
+        "在这一条指令内，程序会确保 PlayerProfile 存在或复用已有账户、写入名称、为非空名称确保或验证当前 UsernameIndex，随后创建或复用 Appearance。这些是由同一笔交易原子修改的独立账户。之后的浏览器缓存写入不属于这个原子单元。",
+        "复用有效 Appearance 时，原始 createdSlot 与 createdAt 会被保留，updatedSlot 与 updatedAt 则更新为当前 Clock 值。随后程序会调用完整的固定布局打包器，而不是只编辑发生变化的字符串。Flags、填充区、预留字节与全部 12 条富结构装备记录都会被重新写入。",
+        "每条 576 字节的富结构记录都为 state、slot、flags、物品公钥、质量、握持点、握持旋转与最多 512 字节模型代码预留了位置。当前打包过程会把 state 写成 0，只保留顺序 slot 字节，其余 574 字节全部清零。Player Program 没有提供另一条可填充它们的 Appearance 指令。当前手持工具来自 Backpack 与 NCF1 重建，而不是这些记录。"
+      ],
+      "steps": [
+        {
+          "title": "Owner 批准这条六账户指令",
+          "body": "钱包既是签名者也是存储付款人；Profile、Appearance 与 UsernameIndex 仍是彼此独立的可写目标。"
+        },
+        {
+          "title": "先处理 Profile 与规范名称声明",
+          "body": "当前名称会写入 Profile，并在打包 Appearance 之前创建或检查对应的当前索引。"
+        },
+        {
+          "title": "Appearance 会被完整重新打包",
+          "body": "有效复用时会保留创建元数据、推进更新元数据，并让每条富结构装备载荷重新变为空。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-upsert-rewrites-and-clears-v1.webp",
+        "alt": "生成的体素工坊：标准女孩替换青色柜板，下方放着空托盘；标准男孩处理小型身份组件，外侧另有一座独立的 treasury 石台。",
+        "caption": "替换青色柜板、让下层托盘保持为空，表示 Appearance 会被完整重新打包；隔开的石台则引出独立的 treasury 关闭边界。画面不会编码指令顺序、准确槽位数量、签名者状态或 lamport 转移，这些要以源码摘录为准。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "暂时不要把持久游戏状态建立在这些预留记录上",
+        "body": "当前每次 Appearance upsert 都会擦除这些载荷。在经过验证的写入方与保留规则出现之前，客户端创建的非零富结构装备数据无法在普通身份更新后继续保留。"
+      }
+    },
+    {
+      "id": "stored-code-not-render-proof",
+      "eyebrow": "链上外层规则，客户端解码器",
+      "title": "代码可以符合链上存储规则，却仍然无效、不完整或渲染成本过高",
+      "paragraphs": [
+        "Player 合约检查完 UTF-8、长度与大写 NCM 前缀后就会停止。它不要求冒号、不识别版本、不解码 Base64URL、不验证校验和、不统计长方体、不检查骨骼，也不估算重建工作量。因此，NCM、NCM3:anything 或不存在的别名等值都可以被保存，即使角色加载器无法用它们构建模型。",
+        "完成严格的别名匹配后，当前共享角色加载器会把 NCM4 交给严格的角色编解码器，其他角色文本则进入 NCM2 解码器。NCM4 要求完全一致的大写 NCM4: 外层格式、规范且无填充的 Base64URL、有效版本与 flags、受限的数量与坐标、20 根固定骨骼、有效动作、没有结尾歧义、最多 1,532 字节的原始载荷，以及匹配的 CRC32C 校验和。这些检查发生在玩家设备上，不在 Player Program 内。",
+        "当前角色 NCM2 路径明显更宽松。它会检查尺寸为正、缩放值与调色板数量，但没有长方体数量、调色板数量、尺寸、规范编码、尾随字节或重建资源预算限制。它的位读取器会为越界位补零。在聚焦的只读测试中，严重截断的标准女孩文本仍能生成 70 个盒子；一段声明 10,000 个长方体的 19 字节合成文本，则生成了 10,000 个相互重叠的盒子。这是当前客户端在内存或拒绝服务防护上的缺口；仅有 2,048 字节链上限制，并不能保证渲染成本安全。",
+        "仓库中的通用源码 NCM2 编解码器更严格，会在位流结束时抛出错误。通过那套工具的样例检查，并不能证明实际角色解码器会拒绝同样损坏的文本。文档与测试必须明确说明测量的是哪个使用方。"
+      ],
+      "facts": [
+        {
+          "label": "合约解析范围",
+          "value": "UTF-8 + 字节长度 + NCM 前缀",
+          "detail": "不验证版本、几何体、校验和或成本。"
+        },
+        {
+          "label": "角色 NCM2",
+          "value": "缺失的几何位会变成 0",
+          "detail": "当前解码器没有资源预算或规范形式检查。"
+        },
+        {
+          "label": "NCM4",
+          "value": "规范外层格式 + CRC32C + 受限结构",
+          "detail": "严格的客户端验证仍不会让代码变成经链上验证的网格。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-stored-code-not-render-proof-v1.webp",
+        "alt": "生成的体素工坊：标准男孩从柜子中取出一块扁平青色存储板，标准女孩则在组装台上检查分开的身体部件与框架。",
+        "caption": "一块能放进存储柜的板件，到了组装台上仍可能无法变成完整身体。画面中的道具刻意不带标签或状态灯；只有文档记录的验证器才能确定哪些文本会被保存、哪个解码器会接受它，以及运行时还需要完成哪些工作。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Stored(c) 并不意味着 Renderable(c)",
+        "body": "应把不受信任的 Appearance 文本当作不受信任的渲染器输入。合约接受只能证明它符合狭窄的存储外层规则；这既不提供 NCM2 资源预算，也不保证网格安全。"
+      }
+    },
+    {
+      "id": "creation-cache-play-precedence",
+      "eyebrow": "创建、登录与 PLAY 是不同的交接",
+      "title": "创建页面、浏览器缓存与 Play 刷新可能短暂持有不同模型来源",
+      "paragraphs": [
+        "当前创建页面正好提供两份已提交到仓库的 NCM2 样例。页面内置完整的 353 字符标准男孩代码与 451 字符标准女孩代码，预览选中的字节，并把完整代码提交到 Appearance，而不是提交男孩或女孩别名。因此，即使没有内置女孩别名，女孩模型仍可正常使用。",
+        "交易 helper 返回后，创建页面会把性别、完整代码、标签与时间戳依次写入旧版全局 localStorage 键和按钱包区分的键。这些连续缓存写入不属于 Solana 交易。链上确认后仍可能发生存储异常，使浏览器只留下前面一部分值；这个本地错误无法回滚已确认的公开账户。",
+        "用户名已经存在时，登录页面会优先使用按钱包区分的角色缓存。没有这条捷径时，它会读取 Appearance，并把链上模型复制到全局与按钱包区分的存储。当前 Play 可以先从本地 profile 启动，随后再异步获取 Profile 与 Appearance。这些延迟策略会产生一个短暂区间：创建页面、登录入口、本地 profile 与最新链上读取尚未达成一致。",
+        "对于本地可见角色，当前优先级依次是链上 Appearance.modelCode、本地 profile modelCode、内置男孩默认值。名称有相关但独立的优先级。缓存值只是画面呈现来源，不能证明 Appearance 中含有相同字节。"
+      ],
+      "steps": [
+        {
+          "title": "选择一份完整的标准样例",
+          "body": "创建页面使用完整的男孩或女孩 NCM2 文本，并与名称、称号和 modelKind 一起发送。"
+        },
+        {
+          "title": "先确认链上工作，再进行本地交接",
+          "body": "浏览器缓存、邀请回执与候选出生点都是之后发生的本地或独立步骤；没有一项会扩大 Appearance upsert 的原子范围。"
+        },
+        {
+          "title": "让 Play 异步刷新权威来源",
+          "body": "缓存模型可以先显示；之后链上 Appearance 读取成功，就会成为下一次网格加载的优先来源。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-creation-cache-play-precedence-v1.webp",
+        "alt": "生成的体素河岸工坊：标准男孩站在创建柜台旁，浏览器柜中放着彼此分开的青色包裹，旁边有空组装框架，标准女孩正在观察交接。",
+        "caption": "彼此分开的柜台、柜子与框架，分别代表创建、浏览器存储和 Play 重建这几次不同交接。空间上的分离才是教学重点；包裹数量、柜内顺序与未点亮的框架不能证明缓存键、网络时序或链上优先级。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "快速返回游戏时，系统可能有意跳过首次链上读取",
+        "body": "这样能缩短进入时间，却会改变首帧画面能够证明的事实。在把可见模型当作当前公开记录之前，应等待一次经过验证的最新 Appearance 读取。"
+      }
+    },
+    {
+      "id": "aliases-ncm2-ncm4-fallback",
+      "eyebrow": "解析、重建与可用性保障",
+      "title": "别名、NCM2 与 NCM4 会进入不同运行能力，失败回退则让游戏保持可用",
+      "paragraphs": [
+        "内置别名表识别空字符串、NCM:peasant_guy:v1、NCM:peasant_guy_blackhair:v1 与 peasant_guy。4 个键都会解析为同一份内置标准男孩 NCM2。当前不存在 NCM:peasant_girl:v1 别名。这样的文本虽然能通过合约的 NCM 前缀检查，却匹配不到别名表，并会在角色解码器中失败。",
+        "NCM2 几何体没有保存骨架。渲染器会把盒子居中放在地面上方，根据名称与空间位置推断头部、躯干、手臂和腿部，创建旋转轴与手部锚点，应用程序生成的行走与采矿动作，并可附加当前基础工具、已恢复的锻造工具、蓝图或手持方块。角色使用顶点颜色与实时光照；教学参考图中可见的世界烘焙 TextureArray 不会作为角色自身纹理采样。",
+        "NCM4 自带骨骼、分组与动作，共享渲染器可以解码有效模型、构建网格并采样明确选中的动作。当前 Play 集成尚不完整：普通帧状态提供的是 moving 与 mining 数值，而不是 NCM4 动作或动画片段选择。NCM4 网格目前返回 equipment: [] 与 handAnchors: {}，因此会绕过已经建立的 NCM2 手持工具附加路径。当前碰撞与隐藏分组行为也缺少完整的 Play 层覆盖。",
+        "请求的本地模型失败时，Play 不会删除已经可用的网格。有上一个活动代码时，它会尝试该代码；没有可用网格时，则尝试默认男孩。如果回退也失败，就返回现有网格或 null。Guardian 远程角色与 Profile 预览拥有相关但独立的默认男孩恢复路径和缓存，因此一次回退成功不会修复已保存的 Appearance 文本。"
+      ],
+      "facts": [
+        {
+          "label": "内置别名",
+          "value": "4 个键 → 一份标准男孩 NCM2",
+          "detail": "其中包含空键；不存在标准女孩别名。"
+        },
+        {
+          "label": "NCM2 运行时",
+          "value": "启发式骨架 + 当前手持装备",
+          "detail": "几何体解码后再生成程序化移动与采矿动作。"
+        },
+        {
+          "label": "当前 Play 中的 NCM4",
+          "value": "网格与动作已存在 · 游戏映射尚不完整",
+          "detail": "普通 moving 与 mining 不会选择动画片段；equipment 与 handAnchors 为空。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-aliases-ncm2-ncm4-fallback-v1.webp",
+        "alt": "生成的体素重建工作台：标准男孩站在模型框架旁，标准女孩身边放着分开的紧凑模型块，另有一个朴素回退方块与已保存的青色包裹。",
+        "caption": "框架、紧凑模型块与朴素方块分别暗示别名解析、两类重建格式与安全回退，而不假装展示二进制格式。角色身份、动作支持、装备附加与解码是否成功，必须从运行时路径读取，不能根据道具形状或颜色推断。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "回退是可用性行为，不是悄悄修正链上数据",
+        "body": "出错后看到默认男孩，并不会改变 Appearance.modelCode、证明 modelKind，或让被拒绝的文本变成规范格式。另一个客户端仍可能再次尝试同一份已保存值。"
+      }
+    },
+    {
+      "id": "browser-sdk-devnet-boundary",
+      "eyebrow": "当前客户端、旧版 SDK 与带日期证据",
+      "title": "生产浏览器与旧版 SDK 的指令形状不同，Devnet 还证明了真实的 modelKind 不匹配",
+      "paragraphs": [
+        "当前网站链适配器会构建包含 6 个账户的 tag 8 浏览器指令，其中包括可写 UsernameIndex。仓库中的 TypeScript SDK 仍构建较旧的 5 账户指令，其旧测试也断言这种形状。由于当前处理器会拒绝账户数不是 6 的指令，测试通过证明的是 SDK 已发生偏移，而不是与生产实现一致。集成方应把任何构建器与实际准备调用的处理器及已部署产物进行对比。",
+        "保留的一份 confirmed Devnet 快照位于 slot 476,758,441，其中包含 10 份规范 PlayerAppearance 账户。每份账户都是 9,612 字节、version 1，携带已配置的 treasury，持有 67,790,400 lamports，并拥有 12 条状态为 0 的富结构装备记录。原始模型文本与标准创建样例完全一致：5 份男孩代码与 5 份女孩代码；该快照中没有 NCM4。8 个称号为空，2 个是 Explorer。",
+        "保存的 kind 分布为 4 份 kind 1 与 6 份 kind 2。一个名为 kali 的 kind 2 账户却包含完整的 353 字符男孩代码。这项真实字节级不匹配直接证明，modelKind 不会选择或强制渲染哪种身体。这只是带日期的观测，不代表未来每份账户都会采用这种分布。",
+        "67,790,400 lamports 也与 2026 年 7 月 16 日另一项针对 9,612 字节的 finalized 最低余额查询一致。玩家会在 upsert 时为 Appearance 付款或补足余额，但只有已配置的 treasury 可以调用 tag 9。关闭时，recipient 必须是同一个 treasury；指令会清空数据并转移账户全部余额。当前没有供玩家关闭账户并取回资金的路径。",
+        "快照时保留的已部署 ProgramData 分配与一份保存的 ELF 匹配，但当前 Rust、Play、Chunk.js 与文档工作树都包含之后的修改。该快照支持其中记录的账户与产物说法，却不能证明当前每一行源码都已经部署。"
+      ],
+      "facts": [
+        {
+          "label": "指令一致性",
+          "value": "浏览器 6 个账户 · 旧版 SDK 5 个账户",
+          "detail": "当前第 6 个账户是可写 UsernameIndex。"
+        },
+        {
+          "label": "带日期的模型样本",
+          "value": "10 份 Appearance · 5 份男孩代码 · 5 份女孩代码",
+          "detail": "Confirmed slot 476,758,441；该快照中 NCM4 数量为 0。"
+        },
+        {
+          "label": "Kind 不匹配",
+          "value": "1 份 kind 2 记录装有男孩代码",
+          "detail": "原始字节否定了任何自动 kind-to-model 绑定。"
+        },
+        {
+          "label": "观测余额",
+          "value": "每份 67,790,400 lamports",
+          "detail": "这是带日期的租金规则观测，不是永久 SOL 报价或向玩家退款的承诺。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-appearance-codes-browser-sdk-devnet-boundary-v1.webp",
+        "alt": "生成的体素审计台：标准男孩检查 6 个青色组件，标准女孩比较另一套较小的 5 部件构建器，已保存包裹则留在柜中。",
+        "caption": "数量不同的工作组件暗示当前浏览器与旧版 SDK 的指令形状，柜子则代表保留的账户证据。画面中的组件与包裹数量只是叙事辅助；准确的账户顺序、样本总数、余额与模型字节均来自源码和带日期的原始审计。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "区分三类证据",
+        "body": "当前源码解释预期检查，保留的 RPC 原始字节证明带日期账户，产物哈希则比较特定二进制。三者都不能自动替代另外两种证据。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现",
+    "title": "六个公式与十二段源码原文，把已保存文本连接到可见村民",
+    "summary": "这些公式分别说明地址、布局、字段检查、upsert、可渲染性、来源优先级与关闭权限。每个代码块都是仓库中的连续原文，因此可以用确切实现核对通俗解释。"
+  },
+  "formulas": [
+    {
+      "title": "每个 owner 都有一份独立、固定大小的 Appearance 地址",
+      "expression": "Appearance(o)=PDA_Player([UTF8(\"appearance-v1\"),o]); LEN=256+300+96+2048+(12×576)=9612; richShare=6912/9612≈71.9%",
+      "ariaLabel": "PlayerAppearance 在 Player Program 下由 appearance-v1 与 owner 派生，总长 9,612 字节，其中约 71.9% 预留给富结构装备。",
+      "explanation": "派生过程只确定预期地址。账户程序所有者、初始化、magic、version、内部关联与内容有效性仍需分别检查。",
+      "terms": [
+        {
+          "symbol": "o",
+          "meaning": "玩家的公开钱包公钥。"
+        },
+        {
+          "symbol": "PDA_Player",
+          "meaning": "在 Player Program ID 下进行的程序地址派生。"
+        },
+        {
+          "symbol": "12×576",
+          "meaning": "12 个固定的富结构装备区域，当前打包内容为空。"
+        }
+      ]
+    },
+    {
+      "title": "四个字段分别通过四套独立规则",
+      "expression": "Valid=Name(chars≤32,bytes≤300,allowedRange) ∧ Title(validUTF8,bytes≤96) ∧ modelKind∈{1,2} ∧ ModelCode(validUTF8,3≤bytes≤2048,startsWith(\"NCM\"))",
+      "ariaLabel": "名称、称号、模型类型与模型代码会被分别检查；模型类型 1 或 2 不会与模型几何体匹配验证。",
+      "explanation": "这个表达式没有 NCM 版本解析器、几何解码器、校验和、重建预算，也没有 modelKind 与 modelCode 的关联，因为当前合约中不存在这些检查。",
+      "terms": [
+        {
+          "symbol": "allowedRange",
+          "meaning": "下划线、ASCII 字母或数字，或 U+4E00 至 U+9FFF 的码点。"
+        },
+        {
+          "symbol": "∧",
+          "meaning": "列出的每一项独立条件都必须成立。"
+        },
+        {
+          "symbol": "bytes",
+          "meaning": "UTF-8 字节长度；它可能大于可见字符数量。"
+        }
+      ]
+    },
+    {
+      "title": "Upsert 保留创建元数据，但会替换记录主体",
+      "expression": "Upsert_8=Ensure(Profile)+WriteName+Ensure(UsernameIndex)+CreateOrReuse(Appearance)+PackAll; created'=storedCreated∨now; updated'=now; ∀s∈[0,11],richState'_s=0",
+      "ariaLabel": "Tag 8 会维护 Profile、名称索引与 Appearance，保留有效的创建元数据，更新时间，并清空全部 12 条富结构装备状态。",
+      "explanation": "加号表示一条指令内按顺序执行的工作。浏览器缓存写入发生在之后，不会由这笔交易回滚。",
+      "terms": [
+        {
+          "symbol": "created'",
+          "meaning": "操作完成后的创建 slot 与时间。"
+        },
+        {
+          "symbol": "updated'",
+          "meaning": "当前 Clock 的 slot 与时间戳。"
+        },
+        {
+          "symbol": "s",
+          "meaning": "从 0 到 11 的一个预留富结构装备槽位。"
+        }
+      ]
+    },
+    {
+      "title": "合约存储与本地可渲染性是两种不同判定",
+      "expression": "Stored(c)≠Renderable(c); Renderable(c)=ExactBoyAlias(c) ∨ AvatarNCM2Decode(c) succeeds ∨ StrictNCM4Decode(c) succeeds",
+      "ariaLabel": "代码被接受存储后并不会自动变得可渲染；本地成功需要精确匹配男孩别名，或让 NCM2、NCM4 解码路径之一成功。",
+      "explanation": "这里的 NCM2 成功是指实际角色解码器的行为，其中包括当前补零机制与缺少资源预算的边界。NCM4 成功则表示通过了更严格的规范形式与结构检查。",
+      "terms": [
+        {
+          "symbol": "Stored",
+          "meaning": "通过 Player Program 狭窄的 modelCode 外层规则。"
+        },
+        {
+          "symbol": "Renderable",
+          "meaning": "当前共享角色加载器成功生成网格且没有抛出错误。"
+        },
+        {
+          "symbol": "∨",
+          "meaning": "至少有一条路径成功。"
+        }
+      ]
+    },
+    {
+      "title": "请求来源与失败保留回退各有自己的顺序",
+      "expression": "RequestedCode=Appearance.modelCode || LocalProfile.modelCode || DefaultBoy; VisibleMesh=requestedSuccess || CurrentValidMesh || defaultBoySuccess",
+      "ariaLabel": "Play 会依次请求链上 Appearance、本地 profile 与默认男孩；重建失败时，它会先保留当前有效网格，再尝试默认替换。",
+      "explanation": "双竖线表示选择第一个可用值。回退只会改变本地可见网格，不会重写公开 Appearance 代码。",
+      "terms": [
+        {
+          "symbol": "LocalProfile",
+          "meaning": "浏览器中当前的本地玩家 profile 对象。"
+        },
+        {
+          "symbol": "CurrentValidMesh",
+          "meaning": "上一个完成构建并成功上传的网格。"
+        },
+        {
+          "symbol": "DefaultBoy",
+          "meaning": "没有更好代码可用时采用的内置标准男孩路径。"
+        }
+      ]
+    },
+    {
+      "title": "存储付款人与关闭权限方被有意设为不同角色",
+      "expression": "UpsertPayer=owner; CloseAllowed⇔signer=recipient=configuredTreasury; close⇒data=0^9612 ∧ TreasuryLamports+=AppearanceLamports ∧ AppearanceLamports=0",
+      "ariaLabel": "Owner 为 Appearance 出资，但只有已配置 treasury 同时作为 signer 与 recipient 时才能成功关闭；关闭会清空 9,612 字节，并转移账户全部余额。",
+      "explanation": "观测到的 67,790,400 lamports 是带日期的 Devnet 免租金余额，不是源码常量。当前不存在玩家取回资金的路径。",
+      "terms": [
+        {
+          "symbol": "0^9612",
+          "meaning": "全部 9,612 个数据字节都会填为 0。"
+        },
+        {
+          "symbol": "configuredTreasury",
+          "meaning": "编译进当前 Player 构建的 treasury 公钥。"
+        },
+        {
+          "symbol": "⇔",
+          "meaning": "必须满足所述 signer 与 recipient 相等条件。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "固定偏移明确给出 9,612 字节布局",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub const HEADER_LEN: usize = 256;\n    pub const DISPLAY_NAME_OFFSET: usize = Self::HEADER_LEN;\n    pub const TITLE_OFFSET: usize = Self::DISPLAY_NAME_OFFSET + PLAYER_NAME_MAX_BYTES;\n    pub const MODEL_CODE_OFFSET: usize = Self::TITLE_OFFSET + APPEARANCE_TITLE_MAX_BYTES;\n    pub const EQUIPMENT_OFFSET: usize = Self::MODEL_CODE_OFFSET + APPEARANCE_MODEL_CODE_MAX_BYTES;\n    pub const LEN: usize =\n        Self::EQUIPMENT_OFFSET + APPEARANCE_EQUIPMENT_SLOT_COUNT * APPEARANCE_EQUIPMENT_SLOT_LEN;",
+      "explanation": "每个可变字符串都占有一块固定预留区域。完整的 2,048 字节模型代码区域结束后，才开始 12 条装备记录。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "根据前一个固定大小区域计算每个偏移。"
+        },
+        {
+          "lines": "第 6–7 行",
+          "meaning": "加上 12 条 576 字节记录，得到总长度。"
+        }
+      ]
+    },
+    {
+      "title": "Kind 与模型文本会被独立验证",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_model_kind(model_kind: u8) -> Result<(), NicechunkPlayerError> {\n        if model_kind != CHARACTER_MODEL_KIND_MALE && model_kind != CHARACTER_MODEL_KIND_FEMALE {\n            return Err(NicechunkPlayerError::InvalidCharacterModelKind);\n        }\n        Ok(())\n    }\n\n    pub fn validate_title(title: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if title.len() > APPEARANCE_TITLE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidAppearanceTitle);\n        }\n        core::str::from_utf8(title).map_err(|_| NicechunkPlayerError::InvalidAppearanceTitle)\n    }\n\n    pub fn validate_model_code(code: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if code.is_empty() || code.len() > APPEARANCE_MODEL_CODE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        let value =\n            core::str::from_utf8(code).map_err(|_| NicechunkPlayerError::InvalidCharacterCode)?;\n        if !value.starts_with(\"NCM\") {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        Ok(value)\n    }",
+      "explanation": "Kind 函数不会接收模型文本，代码函数也不会接收 kind。代码验证器检查长度、UTF-8 与大写前缀后就会停止。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "只接受数值 kind 1 或 2。"
+        },
+        {
+          "lines": "第 8–24 行",
+          "meaning": "验证可选称号，然后接受长度受限且以大写 NCM 开头的模型 UTF-8 文本，但不解码格式。"
+        }
+      ]
+    },
+    {
+      "title": "Tag 8 会拒绝账户数不是 6 的任何列表",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "fn upsert_player_appearance(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    payload: &[u8],\n) -> ProgramResult {\n    if accounts.len() != 6 || payload.len() < 7 {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }",
+      "explanation": "5 账户 SDK 指令会先在这项形状检查中失败，处理器还来不及执行之后的 Appearance 工作。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "把提供的账户与字节交给 Appearance 处理器。"
+        },
+        {
+          "lines": "第 6–8 行",
+          "meaning": "要求正好 6 个账户，并且可变长度头部至少有 7 字节。"
+        }
+      ]
+    },
+    {
+      "title": "处理器的第 6 个账户是可写 UsernameIndex",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let account_info_iter = &mut accounts.iter();\n    let owner = next_account_info(account_info_iter)?;\n    let player_profile = next_account_info(account_info_iter)?;\n    let appearance = next_account_info(account_info_iter)?;\n    let global_config = next_account_info(account_info_iter)?;\n    let system_program_account = next_account_info(account_info_iter)?;\n    let username_index = next_account_info(account_info_iter)?;\n\n    if !owner.is_signer || !owner.is_writable {\n        return Err(NicechunkPlayerError::InvalidPayer.into());\n    }\n    if !player_profile.is_writable || !appearance.is_writable || !username_index.is_writable {\n        return Err(NicechunkPlayerError::InvalidWritableAccount.into());\n    }",
+      "explanation": "账户角色按顺序是 owner、Profile、Appearance、GlobalConfig、System Program 与 UsernameIndex。如代码所示，3 个数据账户加付款人必须可写。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "把每个传入的 AccountInfo 分配给固定语义角色。"
+        },
+        {
+          "lines": "第 9–14 行",
+          "meaning": "要求付款人可写并签名，同时要求 Profile、Appearance 与 UsernameIndex 可写。"
+        }
+      ]
+    },
+    {
+      "title": "每次完整打包都会清空 12 条富结构装备载荷",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {\n            writer.u8(0)?;\n            writer.u8(slot as u8)?;\n            writer.bytes(&[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;\n        }",
+      "explanation": "每条记录的 state 都会变为 0，保存顺序 slot，其余 574 字节全部变为 0。之前的富结构装备数据不会保留。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "为索引 0 至 11 的槽位重复写入空记录表示。"
+        }
+      ]
+    },
+    {
+      "title": "关闭会清空数据并转移全部余额",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;\n    Ok(())",
+      "explanation": "前面的检查要求已配置 treasury 同时作为 signer 与 recipient。这个代码块会清零账户，并转移其中实际存在的全部余额，而不是只转移某个标出的最低值。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "清空 Appearance 的全部数据字节。"
+        },
+        {
+          "lines": "第 5–10 行",
+          "meaning": "把全部余额加到已验证 recipient，并清空 Appearance 余额。"
+        },
+        {
+          "lines": "第 11 行",
+          "meaning": "两项改变完成后返回成功。"
+        }
+      ]
+    },
+    {
+      "title": "当前网站构建器会提供 UsernameIndex",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "    keys: [\n      { pubkey: authority, isSigner: true, isWritable: true },\n      { pubkey: playerProfile, isSigner: false, isWritable: true },\n      { pubkey: appearance, isSigner: false, isWritable: true },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n      { pubkey: usernameIndex, isSigner: false, isWritable: true },\n    ],\n    data: Buffer.concat([header, name, title, code]),",
+      "explanation": "浏览器中的账户顺序与处理器匹配，第 6 个账户是可写 UsernameIndex。之后才附上指令数据。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "按当前顺序声明签名 owner 与 5 个不签名账户。"
+        },
+        {
+          "lines": "第 9 行",
+          "meaning": "追加 tag、kind、各字段长度与完整字符串字节。"
+        }
+      ]
+    },
+    {
+      "title": "创建页面先提交完整模型文本，再写入本地缓存",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "    const result = await createPlayerAppearanceOnChain({\n      playerName: name,\n      gender: model.gender,\n      title: \"\",\n      ncmCode: model.code,\n    });\n    if (result?.submitted === false) throw new Error(result.reason || \"player-appearance-not-saved\");\n    persistUsername(name);\n    localStorage.setItem(characterStorageKeys.gender, model.gender);\n    localStorage.setItem(characterStorageKeys.code, model.code);\n    localStorage.setItem(characterStorageKeys.label, t(model.labelKey));\n    localStorage.setItem(characterStorageKeys.createdAt, String(Date.now()));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.gender), model.gender);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.code), model.code);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.label), t(model.labelKey));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.createdAt), String(Date.now()));",
+      "explanation": "选中对象包含完整的男孩或女孩 NCM2。代码会先等待链上提交；之后写入全局和按钱包区分的存储，都是独立的浏览器操作。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "提交完整的选中文本，并拒绝明确表示跳过的结果。"
+        },
+        {
+          "lines": "第 8–16 行",
+          "meaning": "Helper 返回后，在本地保存名称与角色字段。"
+        }
+      ]
+    },
+    {
+      "title": "每个内置别名都会解析为标准男孩",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/avatar-mesh.js",
+      "code": "export const BUILTIN_AVATAR_MODEL_CODES = new Map([\n  [\"\", DEFAULT_PEASANT_GUY_NCM],\n  [\"NCM:peasant_guy:v1\", DEFAULT_PEASANT_GUY_NCM],\n  [\"NCM:peasant_guy_blackhair:v1\", DEFAULT_PEASANT_GUY_NCM],\n  [\"peasant_guy\", DEFAULT_PEASANT_GUY_NCM],\n]);",
+      "explanation": "这张映射表中没有女孩别名。创建页面会改为保存完整女孩 NCM2 文本，让女孩模型正常工作。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "把包括空文本在内的 4 个可接受键映射到同一份内置标准男孩代码。"
+        }
+      ]
+    },
+    {
+      "title": "角色 NCM2 位读取器会为缺失字节补零",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/avatar-mesh.js",
+      "code": "function createBitReader(bytes, offset = 0) {\n  let bitOffset = offset * 8;\n  return {\n    read(bits) {\n      let value = 0;\n      for (let i = 0; i < bits; i += 1) {\n        const byte = bytes[bitOffset >> 3] ?? 0;\n        const bit = (byte >> (bitOffset & 7)) & 1;\n        value |= bit << i;\n        bitOffset += 1;\n      }\n      return value >>> 0;\n    },\n  };\n}",
+      "explanation": "几何读取请求超过已解码载荷的字节时，空值回退会提供 0。读取会继续，而不是报告数据被截断。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "创建按位定位的读取器。"
+        },
+        {
+          "lines": "第 5–11 行",
+          "meaning": "逐一读取请求的位；缺失的来源字节会明确变为 0。"
+        },
+        {
+          "lines": "第 12–15 行",
+          "meaning": "不检查数据流结尾，直接返回累积的无符号值。"
+        }
+      ]
+    },
+    {
+      "title": "NCM4 会强制检查规范文本、载荷大小与 CRC32C",
+      "language": "JavaScript",
+      "source": "chunk.js/ncm/character-codec.js",
+      "code": "function readEnvelope(code) {\n  const text = String(code ?? \"\");\n  if (!text.startsWith(NCM4_PREFIX)) throw new Error(\"Expected a canonical NCM4 payload.\");\n  const encoded = text.slice(NCM4_PREFIX.length);\n  if (!encoded || !/^[A-Za-z0-9_-]+$/.test(encoded) || encoded.length % 4 === 1) {\n    throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  }\n  let raw;\n  try {\n    raw = base64UrlDecode(encoded);\n  } catch {\n    throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  }\n  if (base64UrlEncode(raw) !== encoded) throw new Error(\"Invalid canonical NCM4 Base64URL payload.\");\n  if (raw.length < 8) throw new Error(\"NCM4 payload is truncated.\");\n  if (raw.length > NCM4_MAX_PAYLOAD_BYTES) throw new Error(\"NCM4 payload exceeds the on-chain safety limit.\");\n  const body = raw.subarray(0, raw.length - 4);\n  const storedChecksum = new DataView(raw.buffer, raw.byteOffset, raw.byteLength).getUint32(raw.length - 4, true);\n  const actualChecksum = ncm4Crc32c(body);\n  if (storedChecksum !== actualChecksum) throw new Error(\"NCM4 CRC32C checksum mismatch.\");\n  return { text, raw, body };\n}",
+      "explanation": "这些是在链上存储之后执行的本地编解码检查。精确前缀、规范重编码、最小与最大字节数、校验和必须全部符合要求。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "要求精确的 NCM4 前缀与规范 Base64URL 字符。"
+        },
+        {
+          "lines": "第 8–16 行",
+          "meaning": "执行解码与重新编码，并强制限制载荷长度。"
+        },
+        {
+          "lines": "第 17–21 行",
+          "meaning": "分离校验和、重新计算 CRC32C，并拒绝不匹配结果。"
+        }
+      ]
+    },
+    {
+      "title": "Play 依次选择链上、本地与默认模型文本",
+      "language": "JavaScript",
+      "source": "play/play-profile-session.js",
+      "code": "  function currentAvatarModelCode() {\n    const chainAppearance = getChainPlayer()?.snapshot?.()?.appearance || null;\n    return normalizeProfileModelCode(chainAppearance?.modelCode)\n      || normalizeProfileModelCode(gameState.playerProfile?.modelCode)\n      || defaultModelCode;\n  }",
+      "explanation": "第一份可接受的非空代码来自异步刷新的链上 Appearance，其后依次是本地 profile 文本与已配置默认路径。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "在可用时读取当前链上 Appearance 快照。"
+        },
+        {
+          "lines": "第 3–5 行",
+          "meaning": "依次选择链上模型文本、本地 profile 文本与默认值。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义 Appearance seed、magic、version、9,612 字节偏移、字段验证器、完整打包、空富结构装备记录，以及创建元数据读取。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "实现 tag 8 六账户 upsert、Profile 与 UsernameIndex 的处理顺序、租金出资、创建时间保留、完整重新打包，以及仅 treasury 可执行的 tag 9 关闭。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "固定新 Appearance 数据与关闭授权所使用的 Player treasury 权限方。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "构建当前网站的六账户指令、执行浏览器字段检查、获取并解码 Appearance，以及派生名称索引。"
+    },
+    {
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "保留较旧的五账户 Appearance 构建器与富结构装备解码器，从中可以看出集成偏移，以及“可读取的数据结构”与“实际工作的合约写入方”之间的区别。"
+    },
+    {
+      "path": "tests/nicechunk_player_chunk.ts",
+      "claim": "断言较旧的 SDK 账户形状，并包含手工编写的非零装备解码样例；这不能证明当前程序会写入富结构装备。"
+    },
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "内置完整的标准男孩与女孩 NCM2 代码，提交选中的完整文本，并在链 helper 返回后写入全局及按钱包区分的浏览器缓存值。"
+    },
+    {
+      "path": "login/login.js",
+      "claim": "使用按钱包区分的角色捷径；否则就读取 Appearance，并把链上模型文本恢复到全局与按钱包区分的浏览器存储。"
+    },
+    {
+      "path": "play/play-profile-session.js",
+      "claim": "定义本地角色采用链上 Appearance、本地 profile 与默认模型代码的优先级。"
+    },
+    {
+      "path": "play/play-avatar-session.js",
+      "claim": "构建并替换本地网格，为已建立路径恢复 Backpack 与 NCF1 装备，失败时保留可用网格，并在需要时尝试默认模型。"
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "异步获取 Profile 与 Appearance，并把 modelKind 仅作为解码状态保存，而不用于渲染器选模。"
+    },
+    {
+      "path": "play/play-guardian-appearance.js",
+      "claim": "实现远程 Guardian 角色使用的独立五分钟钱包缓存、容量受限的网格缓存、Appearance 获取与默认男孩回退。"
+    },
+    {
+      "path": "play/player-motion-controller.js",
+      "claim": "提供普通 moving、time、采矿进度与采矿瞄准状态，但不会选择 NCM4 动作或动画片段。"
+    },
+    {
+      "path": "chunk.js/renderer/avatar-mesh.js",
+      "claim": "定义仅含男孩的别名表、NCM2 与 NCM4 分派、宽松且会补零的 NCM2 位读取器、启发式 NCM2 骨架与工具，以及当前 NCM4 的空 equipment 与手部锚点字段。"
+    },
+    {
+      "path": "chunk.js/renderer/avatar-action.js",
+      "claim": "解析并采样明确选中的 NCM4 动作、骨骼旋转与可见分组。"
+    },
+    {
+      "path": "chunk.js/ncm/character-codec.js",
+      "claim": "定义 NCM4 的 1,532 字节载荷上限、20 根骨骼、受限几何体与动作、规范 Base64URL 外层格式，以及 CRC32C 验证。"
+    },
+    {
+      "path": "src/vox/ncm.js",
+      "claim": "提供更严格的通用源码 NCM2 解码器；它对截断位的拒绝行为不能与角色渲染器的补零行为混为一谈。"
+    },
+    {
+      "path": "chunk.js/renderer/webgl2-renderer.js",
+      "claim": "展示角色顶点颜色与实时光照行为，并把它们与世界的烘焙地形纹理数组区分开。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "已提交到仓库的 353 字符标准男孩 NCM2 样例，供当前创建页面与内置回退使用。"
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "已提交到仓库的 451 字符标准女孩 NCM2 样例；由于不存在女孩别名，系统会提交完整文本。"
+    },
+    {
+      "path": "chunk.js/tests/ncm-character.test.mjs",
+      "claim": "测试共享角色格式行为；测试通过的范围不会为 Player Program 增加验证。"
+    },
+    {
+      "path": "chunk.js/tests/ncm4-avatar-renderer.test.mjs",
+      "claim": "在尚未完整的普通 Play 映射之外，测试 NCM4 解码、网格构建、分组与显式动作采样。"
+    },
+    {
+      "path": "docs/audits/character-creation-devnet-2026-07-16.json",
+      "claim": "保留 finalized Devnet 租金查询、标准模型哈希与尺寸、已部署 ProgramData 证据，以及源码与部署之间的限制。"
+    },
+    {
+      "path": "docs/audits/player-profile-devnet-2026-07-16.json",
+      "claim": "保留 confirmed slot 476,758,441 的原始账户，用于重新派生 10 个 Appearance 地址、余额、字段分布、模型字节、称号与 120 条空富结构状态。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+      "summary": "返回紧凑 Profile，了解为什么 Appearance、名称声明、Backpack、progress 与浏览器状态始终是独立记录。"
+    },
+    {
+      "slug": "ncm-codes",
+      "href": "/docs/ncm-codes/",
+      "title": "NCM 代码：存储字节、验证边界与重建几何体",
+      "summary": "继续了解模型与建筑格式族，同时把每个使用方的验证器与重建边界明确区分开。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家 Session 与临时权限",
+      "summary": "从持久公开外观继续了解游戏期间使用的临时签名者、操作位、资金与到期机制。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，区分持久外观与临时权限",
+      "summary": "Appearance 会在多次访问之间保留公开身份与模型文本。下一篇可用的已审核指南会解释短期 PlayerSession 记录：它只授权选中的操作，却不会成为 owner。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "player-profile",
+        "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+        "summary": "在跟随模型文本进入重建流程前，先回顾紧凑的玩家锚点，以及其中无法容纳的其他记录。"
+      },
+      {
+        "label": "下一篇可用指南",
+        "slug": "player-sessions",
+        "title": "玩家 Session 与临时权限",
+        "summary": "了解临时密钥如何获得范围受限的操作位与到期时间，同时不改变持久玩家所有权。"
+      }
+    ]
+  }
+}

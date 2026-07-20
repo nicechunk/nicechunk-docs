@@ -1,0 +1,1615 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-player-sessions-derived-audit",
+  "auditDate": "2026-07-18",
+  "derivation": {
+    "mode": "offline-deterministic-current-source",
+    "generator": "scripts/derive-player-sessions-audit.mjs",
+    "generatorSha256": "e5d33ca33b896935347cf92961b0e170f3842f4a160b4d42740dea2e62a041ca",
+    "writeCommand": "node scripts/derive-player-sessions-audit.mjs",
+    "checkCommand": "node scripts/derive-player-sessions-audit.mjs --check",
+    "networkRequests": 0,
+    "wallClockInputs": 0,
+    "sourceFileCount": 21,
+    "sources": [
+      {
+        "path": "play/play-auth-session.js",
+        "sha256": "62414a35f947d324b53b8f16d1e27a40a9a3d8224251d8d7b4ff8255f0449e5b"
+      },
+      {
+        "path": "play/play-chain-adapter.js",
+        "sha256": "6dea29514cd90a8bf1bf8dadd0f1efded574097c57d015c4751629725526fadd"
+      },
+      {
+        "path": "play/play-chain-session.js",
+        "sha256": "ff3d652f3b26726ccc135dc50916818b07cfa47d6b44cac233e9ee6def55417a"
+      },
+      {
+        "path": "play/play-guardian-client.js",
+        "sha256": "48ffac0b3c6cf1a669c52b771f4051647188402078d93608a208aecca87591c8"
+      },
+      {
+        "path": "play/play-guardian.js",
+        "sha256": "c0faaf10077e46cc1a50c029e8eabacecd6e54a6c96d69f82db9d237f1c29603"
+      },
+      {
+        "path": "programs/nicechunk_backpack/src/lib.rs",
+        "sha256": "9d42684965544a1398c18e2c30d40a30a15743aef38c9c6fd4e2a31d4ef8c630"
+      },
+      {
+        "path": "programs/nicechunk_backpack/src/state.rs",
+        "sha256": "f2999dbdb2c9578fb9024f524c432bd5076dad555c5682f79f3a883f39d83eb7"
+      },
+      {
+        "path": "programs/nicechunk_building/src/lib.rs",
+        "sha256": "0af8773ecb554ed5a3a90bf9aa9161da96daea5cb78e66cbe942705d260d7435"
+      },
+      {
+        "path": "programs/nicechunk_building/src/state.rs",
+        "sha256": "6140652f89b475a7139c6ba9d0b85b9a7757a35c755e0f0c0052d789088c645e"
+      },
+      {
+        "path": "programs/nicechunk_chunk/src/lib.rs",
+        "sha256": "c7541636d441d2e3f11fcd59733a0e581b985649da295dd6b4fa6ea3e0183bf2"
+      },
+      {
+        "path": "programs/nicechunk_chunk/src/state.rs",
+        "sha256": "3883cebaaf7be7ef4d13fba06e5b85761bf654c2423bd1b51e41842440255577"
+      },
+      {
+        "path": "programs/nicechunk_game/src/lib.rs",
+        "sha256": "02e9ed698a560cd0ab4007031af153a2c7842d2a0cfc460a62468683802ce8ec"
+      },
+      {
+        "path": "programs/nicechunk_guardian/src/cluster_config.rs",
+        "sha256": "9b104df7924e1ae8bc8817a72d62be46f3ec4d2381861a17ac67c87c9ad77a9f"
+      },
+      {
+        "path": "programs/nicechunk_guardian/src/errors.rs",
+        "sha256": "943a1e7b4ae25071bf3fc2f3700227f914dd96eb4c73cd591842f28ab9613c23"
+      },
+      {
+        "path": "programs/nicechunk_guardian/src/lib.rs",
+        "sha256": "cce2797703cb9de3b1020b4756aa28317d374f9e8f59fe4abac5f31bf3ccfe9f"
+      },
+      {
+        "path": "programs/nicechunk_guardian/src/state.rs",
+        "sha256": "7fce09ffea99ce442d3f7bee80b6a455f08276c6da7f65bc879b2b40f3e92cf4"
+      },
+      {
+        "path": "programs/nicechunk_player/src/lib.rs",
+        "sha256": "ff0fec25659a446bd721b09cc1ab46618fca7147805d16fd85eb6b016bbff482"
+      },
+      {
+        "path": "programs/nicechunk_player/src/state.rs",
+        "sha256": "248a95d3f9a5caa435162ed1a2f206b72061cb839e12aa7d90ba30253d2325d1"
+      },
+      {
+        "path": "sdk/nicechunk-player.ts",
+        "sha256": "2fc8f55b14161944a41115c1c4559cddfe9c8a1d6a3160c29aa375205f361412"
+      },
+      {
+        "path": "src/chain/nicechunkChain.js",
+        "sha256": "3ac03d9d6d821107ac0d01d7e062e14177ae0640ec01ca59b3a507031c1d84e6"
+      },
+      {
+        "path": "src/localGameWallet.js",
+        "sha256": "ab0658e049a04d409f0942686bf0d9d068e9952142bf6242536e234bca258384"
+      }
+    ]
+  },
+  "playerProgramId": "CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB",
+  "playerSessionLayout": {
+    "length": 184,
+    "magic": "NCKSES01",
+    "version": 1,
+    "fields": [
+      {
+        "name": "magic",
+        "offset": 0,
+        "size": 8,
+        "encoding": "bytes[8]",
+        "rustPackExpression": "&PLAYER_SESSION_MAGIC",
+        "initializedFrom": "constant:NCKSES01",
+        "sdkDecodeExpression": "bytes(8).toString(\"utf8\")"
+      },
+      {
+        "name": "version",
+        "offset": 8,
+        "size": 2,
+        "encoding": "u16",
+        "rustPackExpression": "PLAYER_SESSION_VERSION",
+        "initializedFrom": "constant:1",
+        "sdkDecodeExpression": "u16()"
+      },
+      {
+        "name": "bump",
+        "offset": 10,
+        "size": 1,
+        "encoding": "u8",
+        "rustPackExpression": "args.bump",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "u8()"
+      },
+      {
+        "name": "active",
+        "offset": 11,
+        "size": 1,
+        "encoding": "u8",
+        "rustPackExpression": "1",
+        "initializedFrom": "constant:1",
+        "sdkDecodeExpression": "u8()===1"
+      },
+      {
+        "name": "owner",
+        "offset": 12,
+        "size": 32,
+        "encoding": "pubkey",
+        "rustPackExpression": "args.owner",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "pubkey()"
+      },
+      {
+        "name": "sessionAuthority",
+        "offset": 44,
+        "size": 32,
+        "encoding": "pubkey",
+        "rustPackExpression": "args.session_authority",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "pubkey()"
+      },
+      {
+        "name": "playerProfile",
+        "offset": 76,
+        "size": 32,
+        "encoding": "pubkey",
+        "rustPackExpression": "args.player_profile",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "pubkey()"
+      },
+      {
+        "name": "globalConfig",
+        "offset": 108,
+        "size": 32,
+        "encoding": "pubkey",
+        "rustPackExpression": "args.global_config",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "pubkey()"
+      },
+      {
+        "name": "worldId",
+        "offset": 140,
+        "size": 2,
+        "encoding": "u16",
+        "rustPackExpression": "args.world_id",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "u16()"
+      },
+      {
+        "name": "allowedActions",
+        "offset": 142,
+        "size": 2,
+        "encoding": "u16",
+        "rustPackExpression": "args.allowed_actions",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "u16()"
+      },
+      {
+        "name": "expiresAt",
+        "offset": 144,
+        "size": 8,
+        "encoding": "i64",
+        "rustPackExpression": "args.expires_at",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "i64()"
+      },
+      {
+        "name": "createdSlot",
+        "offset": 152,
+        "size": 8,
+        "encoding": "u64",
+        "rustPackExpression": "args.created_slot",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "u64()"
+      },
+      {
+        "name": "updatedSlot",
+        "offset": 160,
+        "size": 8,
+        "encoding": "u64",
+        "rustPackExpression": "args.created_slot",
+        "initializedFrom": "createdSlot",
+        "sdkDecodeExpression": "u64()"
+      },
+      {
+        "name": "createdAt",
+        "offset": 168,
+        "size": 8,
+        "encoding": "i64",
+        "rustPackExpression": "args.created_at",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "i64()"
+      },
+      {
+        "name": "maxActions",
+        "offset": 176,
+        "size": 4,
+        "encoding": "u32",
+        "rustPackExpression": "args.max_actions",
+        "initializedFrom": "argument",
+        "sdkDecodeExpression": "u32()"
+      },
+      {
+        "name": "actionCount",
+        "offset": 180,
+        "size": 4,
+        "encoding": "u32",
+        "rustPackExpression": "0",
+        "initializedFrom": "constant:0",
+        "sdkDecodeExpression": "u32()"
+      }
+    ],
+    "declaredOffsets": {
+      "owner": 12,
+      "sessionAuthority": 44,
+      "playerProfile": 76,
+      "globalConfig": 108,
+      "worldId": 140,
+      "allowedActions": 142,
+      "expiresAt": 144,
+      "updatedSlot": 160,
+      "maxActions": 176,
+      "actionCount": 180
+    },
+    "rustPackEvidence": {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "startLine": 1061,
+      "endLine": 1088
+    },
+    "sdkDecoderEvidence": {
+      "path": "sdk/nicechunk-player.ts",
+      "startLine": 852,
+      "endLine": 912
+    },
+    "sdkDecoderMatchesRustPack": true
+  },
+  "setup": {
+    "instructionTag": 4,
+    "handler": "create_or_refresh_player_session",
+    "payloadLengthWithoutTag": 14,
+    "repositoryInstructionDataLength": 15,
+    "pda": {
+      "seed": "session",
+      "seedOrder": [
+        "utf8:session",
+        "owner",
+        "sessionAuthority"
+      ],
+      "rustSdkRepositorySourceAgree": true
+    },
+    "permissionBits": {
+      "breakBlock": {
+        "actionIndex": 1,
+        "mask": 2
+      },
+      "placeBlock": {
+        "actionIndex": 2,
+        "mask": 4
+      },
+      "defaultMask": 6
+    },
+    "clientDefaults": {
+      "durationSeconds": 28800,
+      "durationHours": 8,
+      "refreshSkewSeconds": 900,
+      "refreshSkewMinutes": 15,
+      "minimumFundingLamports": 100000000,
+      "minimumFundingSol": 0.1,
+      "maxActions": 10000
+    },
+    "accountRequirements": {
+      "ownerSigner": true,
+      "sessionAuthoritySigner": true,
+      "playerSessionWritable": true
+    },
+    "newAuthorityCost": {
+      "distinctAuthorityDerivesDistinctPda": true,
+      "ownerFundsPlayerSessionPda": true,
+      "playerSessionPdaLength": 184,
+      "requiresRentMinimumOrTopUp": true,
+      "currentProgramCloseOrRefundPath": false,
+      "boundary": "A different session authority derives another PlayerSession PDA. The owner funds that 184-byte account to its rent minimum, and the current Player Program exposes no close/refund path for recovering that PDA rent.",
+      "allocationEvidence": {
+        "path": "programs/nicechunk_player/src/lib.rs",
+        "startLine": 1878,
+        "endLine": 1952
+      }
+    },
+    "contractEvidence": {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "startLine": 1087,
+      "endLine": 1223
+    },
+    "repositoryEvidence": {
+      "path": "src/chain/nicechunkChain.js",
+      "startLine": 5002,
+      "endLine": 5027
+    },
+    "pdaSdkEvidence": {
+      "path": "sdk/nicechunk-player.ts",
+      "startLine": 208,
+      "endLine": 221
+    },
+    "pdaRepositorySourceEvidence": {
+      "path": "src/chain/nicechunkChain.js",
+      "startLine": 506,
+      "endLine": 511
+    }
+  },
+  "consumerViews": {
+    "chunk": {
+      "length": 184,
+      "magic": "NCKSES01",
+      "readFields": [
+        "owner",
+        "sessionAuthority",
+        "playerProfile",
+        "globalConfig",
+        "allowedActions",
+        "expiresAt"
+      ],
+      "notReadFields": [
+        "version",
+        "bump",
+        "active",
+        "worldId",
+        "maxActions",
+        "actionCount"
+      ],
+      "declaredOffsets": {
+        "owner": 12,
+        "sessionAuthority": 44,
+        "playerProfile": 76,
+        "globalConfig": 108,
+        "allowedActions": 142,
+        "expiresAt": 144
+      },
+      "mutatesPlayerSession": false,
+      "evidence": {
+        "path": "programs/nicechunk_chunk/src/state.rs",
+        "startLine": 1288,
+        "endLine": 1330
+      }
+    },
+    "building": {
+      "length": 184,
+      "magic": "NCKSES01",
+      "readFields": [
+        "owner",
+        "sessionAuthority",
+        "playerProfile",
+        "globalConfig",
+        "allowedActions",
+        "expiresAt"
+      ],
+      "notReadFields": [
+        "version",
+        "bump",
+        "active",
+        "worldId",
+        "maxActions",
+        "actionCount"
+      ],
+      "declaredOffsets": {
+        "owner": 12,
+        "sessionAuthority": 44,
+        "playerProfile": 76,
+        "globalConfig": 108,
+        "allowedActions": 142,
+        "expiresAt": 144
+      },
+      "mutatesPlayerSession": false,
+      "evidence": {
+        "path": "programs/nicechunk_building/src/state.rs",
+        "startLine": 67,
+        "endLine": 108
+      }
+    },
+    "backpack": {
+      "length": 184,
+      "magic": "NCKSES01",
+      "readFields": [
+        "owner",
+        "sessionAuthority",
+        "playerProfile",
+        "allowedActions",
+        "expiresAt"
+      ],
+      "notReadFields": [
+        "version",
+        "bump",
+        "active",
+        "worldId",
+        "maxActions",
+        "actionCount"
+      ],
+      "declaredOffsets": {
+        "owner": 12,
+        "sessionAuthority": 44,
+        "playerProfile": 76,
+        "allowedActions": 142,
+        "expiresAt": 144
+      },
+      "mutatesPlayerSession": false,
+      "evidence": {
+        "path": "programs/nicechunk_backpack/src/state.rs",
+        "startLine": 1090,
+        "endLine": 1127
+      }
+    },
+    "fieldsNotReadByAnyConsumer": [
+      "version",
+      "bump",
+      "active",
+      "worldId",
+      "maxActions",
+      "actionCount"
+    ],
+    "interpretation": "Consumers read the action mask but do not read version, bump, active, worldId, maxActions, or actionCount."
+  },
+  "consumerMatrix": {
+    "chunk": {
+      "dispatchEvidence": {
+        "path": "programs/nicechunk_chunk/src/lib.rs",
+        "startLine": 54,
+        "endLine": 78
+      },
+      "sharedValidationEvidence": {
+        "path": "programs/nicechunk_chunk/src/lib.rs",
+        "startLine": 86,
+        "endLine": 134
+      },
+      "sharedActionIndex": 1,
+      "entries": [
+        {
+          "tag": 5,
+          "handler": "mine_block",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_chunk/src/lib.rs",
+            "startLine": 243,
+            "endLine": 316
+          },
+          "repositoryBuilder": "createMineBlockInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5029,
+            "endLine": 5056
+          }
+        },
+        {
+          "tag": 8,
+          "handler": "mine_block_with_rewards",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_chunk/src/lib.rs",
+            "startLine": 318,
+            "endLine": 545
+          },
+          "repositoryBuilder": "createMineBlockWithRewardsInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5058,
+            "endLine": 5094
+          }
+        },
+        {
+          "tag": 9,
+          "handler": "fell_tree_with_rewards",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_chunk/src/lib.rs",
+            "startLine": 1129,
+            "endLine": 1396
+          },
+          "repositoryBuilder": "createFellTreeWithRewardsInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5693,
+            "endLine": 5728
+          }
+        },
+        {
+          "tag": 20,
+          "handler": "batch_mine_with_rewards",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_chunk/src/lib.rs",
+            "startLine": 547,
+            "endLine": 812
+          },
+          "repositoryBuilder": "createBatchMineWithRewardsInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5096,
+            "endLine": 5156
+          }
+        },
+        {
+          "tag": 21,
+          "handler": "range_mine_with_rewards",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_chunk/src/lib.rs",
+            "startLine": 814,
+            "endLine": 1127
+          },
+          "repositoryBuilder": "createRangeMineWithRewardsInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5158,
+            "endLine": 5211
+          }
+        }
+      ]
+    },
+    "building": {
+      "dispatchEvidence": {
+        "path": "programs/nicechunk_building/src/lib.rs",
+        "startLine": 51,
+        "endLine": 71
+      },
+      "sharedValidationEvidence": {
+        "path": "programs/nicechunk_building/src/lib.rs",
+        "startLine": 160,
+        "endLine": 208
+      },
+      "sharedActionIndex": 1,
+      "entries": [
+        {
+          "tag": 0,
+          "handler": "create_build_site",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 222,
+            "endLine": 291
+          },
+          "repositoryBuilder": "createBuildSiteInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5213,
+            "endLine": 5238
+          }
+        },
+        {
+          "tag": 1,
+          "handler": "register_build_site_chunks",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 476,
+            "endLine": 589
+          },
+          "repositoryBuilder": "createRegisterBuildSiteChunksInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5291,
+            "endLine": 5324
+          }
+        },
+        {
+          "tag": 2,
+          "handler": "begin_building_upload",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 747,
+            "endLine": 849
+          },
+          "repositoryBuilder": "createBeginBuildingInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5326,
+            "endLine": 5364
+          }
+        },
+        {
+          "tag": 3,
+          "handler": "write_building_shard",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 851,
+            "endLine": 996
+          },
+          "repositoryBuilder": "createWriteBuildingShardInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5395,
+            "endLine": 5433
+          }
+        },
+        {
+          "tag": 4,
+          "handler": "finalize_building",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 998,
+            "endLine": 1155
+          },
+          "repositoryBuilder": "createFinalizeBuildingInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5435,
+            "endLine": 5469
+          }
+        },
+        {
+          "tag": 5,
+          "handler": "cancel_building_upload",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 1157,
+            "endLine": 1279
+          },
+          "repositoryBuilder": "createCancelBuildingUploadInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5471,
+            "endLine": 5509
+          }
+        },
+        {
+          "tag": 6,
+          "handler": "migrate_legacy_build_site",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 293,
+            "endLine": 370
+          },
+          "repositoryBuilder": "createMigrateLegacyBuildSiteInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5240,
+            "endLine": 5261
+          }
+        },
+        {
+          "tag": 7,
+          "handler": "begin_build_site_resize",
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "contractEvidence": {
+            "path": "programs/nicechunk_building/src/lib.rs",
+            "startLine": 372,
+            "endLine": 474
+          },
+          "repositoryBuilder": "createResizeBuildSiteInstruction",
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5263,
+            "endLine": 5289
+          }
+        }
+      ]
+    },
+    "backpack": {
+      "dispatchEvidence": {
+        "path": "programs/nicechunk_backpack/src/lib.rs",
+        "startLine": 49,
+        "endLine": 73
+      },
+      "sessionActionIndex": 1,
+      "repositoryDefaultUnifiedRoute": {
+        "gameProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+        "gameContextBackpackProgramIdEqualsGameProgramId": true,
+        "namespace": 1,
+        "contextInstructionDataPrefixesNamespace": true,
+        "gameNamespaceDelegatesToSharedBackpackHandler": true,
+        "singleRemovalOuterBytes": "[1, 2, index]",
+        "batchRemovalOuterBytes": "[1, 4, count, ...indexes]",
+        "boundary": "In the audited repository default gameContext, Backpack removal targets the unified Game Program. The client prefixes namespace 1, then Game dispatch strips that byte and delegates the remaining Backpack tag/payload to the shared nicechunk_backpack handler.",
+        "gameDispatchEvidence": {
+          "path": "programs/nicechunk_game/src/lib.rs",
+          "startLine": 22,
+          "endLine": 38
+        },
+        "contextWrapperEvidence": {
+          "path": "src/chain/nicechunkChain.js",
+          "startLine": 850,
+          "endLine": 859
+        }
+      },
+      "entries": [
+        {
+          "tag": 2,
+          "handler": "remove_resource",
+          "contractAcceptedAccountCounts": [
+            2,
+            4
+          ],
+          "ownerDirectPath": {
+            "accountCount": 2,
+            "ownerSigner": true,
+            "usesPlayerSession": false,
+            "checksSessionActionBit": false
+          },
+          "sessionAwarePath": {
+            "accountCount": 4,
+            "sessionAuthoritySigner": true,
+            "usesPlayerSession": true,
+            "actionIndex": 1,
+            "permission": "BREAK_BLOCK",
+            "permissionMask": 2
+          },
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "countedScope": "one audited contract handler with a four-account session-aware branch",
+          "contractEvidence": {
+            "path": "programs/nicechunk_backpack/src/lib.rs",
+            "startLine": 488,
+            "endLine": 568
+          },
+          "repositoryBuilder": "createRemoveBackpackResourceInstruction",
+          "repositoryBuilderSupportsOwnerDirectBranch": true,
+          "repositoryBuilderSupportsSessionAwareBranch": true,
+          "repositoryDefaultRoute": {
+            "targetProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+            "targetProgram": "NiceChunk unified Game Program",
+            "outerNamespace": 1,
+            "innerBackpackTag": 2,
+            "outerInstructionShape": "[1, 2, index]",
+            "gameDelegatesPayloadToSharedBackpackHandler": true
+          },
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5835,
+            "endLine": 5861
+          }
+        },
+        {
+          "tag": 4,
+          "handler": "remove_resources",
+          "contractAcceptedAccountCounts": [
+            2,
+            4
+          ],
+          "ownerDirectPath": {
+            "accountCount": 2,
+            "ownerSigner": true,
+            "usesPlayerSession": false,
+            "checksSessionActionBit": false
+          },
+          "sessionAwarePath": {
+            "accountCount": 4,
+            "sessionAuthoritySigner": true,
+            "usesPlayerSession": true,
+            "actionIndex": 1,
+            "permission": "BREAK_BLOCK",
+            "permissionMask": 2
+          },
+          "actionIndex": 1,
+          "permission": "BREAK_BLOCK",
+          "permissionMask": 2,
+          "playerSessionMetaWritable": false,
+          "countedScope": "one audited contract handler with a four-account session-aware branch",
+          "contractEvidence": {
+            "path": "programs/nicechunk_backpack/src/lib.rs",
+            "startLine": 650,
+            "endLine": 737
+          },
+          "repositoryBuilder": "createRemoveBackpackResourcesInstruction",
+          "repositoryBuilderSupportsOwnerDirectBranch": true,
+          "repositoryBuilderSupportsSessionAwareBranch": true,
+          "repositoryDefaultRoute": {
+            "targetProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+            "targetProgram": "NiceChunk unified Game Program",
+            "outerNamespace": 1,
+            "innerBackpackTag": 4,
+            "outerInstructionShape": "[1, 4, count, ...indexes]",
+            "gameDelegatesPayloadToSharedBackpackHandler": true
+          },
+          "repositoryEvidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 5863,
+            "endLine": 5893
+          }
+        }
+      ],
+      "removalSemantics": {
+        "mutatesBackpackAccountBytesOnly": true,
+        "removesPackedReferenceNotReferencedAccount": true,
+        "shiftsLaterPackedSlotsLeft": true,
+        "clearsTrailingPackedSlot": true,
+        "decrementsPackedItemCount": true,
+        "itemPdaAccountPassedToRemoval": false,
+        "closesReferencedItemPda": false,
+        "refundsReferencedItemPdaRent": false,
+        "boundary": "Removal shifts or clears the reference stored inside the Backpack account; neither removal branch receives the referenced item PDA account, closes it, nor refunds that PDA's rent.",
+        "singleRemovalEvidence": {
+          "path": "programs/nicechunk_backpack/src/state.rs",
+          "startLine": 405,
+          "endLine": 429
+        },
+        "batchRemovalEvidence": {
+          "path": "programs/nicechunk_backpack/src/state.rs",
+          "startLine": 449,
+          "endLine": 482
+        }
+      }
+    },
+    "summary": {
+      "auditedContractSessionAwareHandlerCount": 15,
+      "handlersWithBreakActionSessionBranchCount": 15,
+      "handlersWithPlaceActionSessionBranchCount": 0,
+      "repositoryBuilderReadonlyPlayerSessionMetaCount": 15,
+      "repositoryBuilderWritablePlayerSessionMetaCount": 0,
+      "defaultPlayUnconditionalReachabilityProven": false,
+      "successfulAuditedSessionAwareActionCanIncrementActionCount": false,
+      "maxActionsEnforcedByAuditedConsumers": false,
+      "countScope": "Fifteen means audited contract handlers that contain a PlayerSession-aware branch and have matching repository builders; it does not prove every handler is unconditionally reachable from the default Play runtime."
+    }
+  },
+  "actionCountBoundary": {
+    "auditedSessionAwareHandlerCount": 15,
+    "repositoryBuildersMarkPlayerSessionReadonly": true,
+    "consumerViewsBorrowPlayerSessionDataImmutably": true,
+    "consumerViewsReadActionCount": false,
+    "consumerViewsReadMaxActions": false,
+    "playerSessionDataOwnedByDifferentPlayerProgram": true,
+    "playerProgramExposesActionCountIncrementInstruction": false,
+    "readonlyMetaIsSoleReasonActionCountCannotIncrement": false,
+    "boundary": "The read-only account meta is one barrier, not the whole proof: the audited consumers borrow PlayerSession immutably, omit maxActions/actionCount from their views, run in programs that do not own PlayerSession data, and have no Player Program increment instruction to call."
+  },
+  "placement": {
+    "repositoryMethod": "recordBlockPlacementOnChain",
+    "submitted": false,
+    "reason": "chain-placement-disabled",
+    "placePermissionActionIndex": 2,
+    "auditedPlaceConsumerCount": 0,
+    "allAuditedConsumerValidationCallSites": 4,
+    "evidence": {
+      "path": "src/chain/nicechunkChain.js",
+      "startLine": 4091,
+      "endLine": 4093
+    }
+  },
+  "lifecycle": {
+    "playerProgram": {
+      "dispatchTags": [
+        {
+          "tag": 0,
+          "handler": "initialize_player"
+        },
+        {
+          "tag": 1,
+          "handler": "update_position"
+        },
+        {
+          "tag": 2,
+          "handler": "set_equipment_slot"
+        },
+        {
+          "tag": 3,
+          "handler": "set_backpack_style"
+        },
+        {
+          "tag": 4,
+          "handler": "create_or_refresh_player_session"
+        },
+        {
+          "tag": 5,
+          "handler": "set_equipped_backpack"
+        },
+        {
+          "tag": 6,
+          "handler": "add_forging_xp"
+        },
+        {
+          "tag": 7,
+          "handler": "set_player_name"
+        },
+        {
+          "tag": 8,
+          "handler": "upsert_player_appearance"
+        },
+        {
+          "tag": 9,
+          "handler": "close_player_appearance"
+        },
+        {
+          "tag": 10,
+          "handler": "initialize_invite_index_page"
+        },
+        {
+          "tag": 11,
+          "handler": "append_invite_registration"
+        },
+        {
+          "tag": 12,
+          "handler": "set_equipment_slot_v2"
+        },
+        {
+          "tag": 13,
+          "handler": "transfer_equipment_slot"
+        },
+        {
+          "tag": 14,
+          "handler": "swap_equipment_slots"
+        }
+      ],
+      "playerSessionStateMethods": [
+        "pack",
+        "refresh",
+        "validate_owner_and_config"
+      ],
+      "closeInstruction": false,
+      "revokeInstruction": false,
+      "deactivateInstruction": false,
+      "evidence": {
+        "path": "programs/nicechunk_player/src/lib.rs",
+        "startLine": 45,
+        "endLine": 72
+      }
+    },
+    "logout": {
+      "walletIdentityRemovalAttemptKeys": [
+        "nicechunk.walletAddress",
+        "nicechunk.username",
+        "nicechunk.walletName",
+        "nicechunk.walletBoundAt"
+      ],
+      "runtimeCacheRemovalAttemptPrefixes": [
+        "nicechunk.session.v1.",
+        "nicechunk.equippedBackpack.v1.",
+        "nicechunk.sessionFundingLamports.v1.",
+        "nicechunk.sessionFundingAcknowledged.v1."
+      ],
+      "attemptsStoredTemporarySessionSecretRemoval": true,
+      "identityRemovalAttemptsAreBestEffort": true,
+      "prefixRemovalAttemptsAreBestEffort": true,
+      "storageEnumerationFailureSkipsPrefixPass": true,
+      "perKeyRemovalExceptionsAreSwallowed": true,
+      "removalSuccessIsVerified": false,
+      "attemptsEveryEnumeratedMatchingRuntimeKey": true,
+      "mayDeleteAnotherOwnersOnlyStoredTemporarySecret": true,
+      "attemptsLocalGameWalletLongLivedSecretRemoval": false,
+      "localGameWalletSecretStorageKey": "nicechunk.localGameWallet.secretKey",
+      "walletProviderDisconnectIsBestEffort": true,
+      "redirectsToLogin": true,
+      "sendsOnChainSessionInstruction": false,
+      "drainsTemporarySessionSol": false,
+      "refundsTemporarySessionSol": false,
+      "closesPlayerSessionAccount": false,
+      "boundary": "Logout makes best-effort removal attempts for identity keys and every matching runtime-prefix key. Enumeration failure skips the prefix pass, each per-key exception is swallowed, and success is not verified. A successful cross-owner session-key deletion can erase that browser's only temporary secret without draining SOL, closing/refunding the PlayerSession PDA, or changing chain state.",
+      "clearEvidence": {
+        "path": "play/play-auth-session.js",
+        "startLine": 28,
+        "endLine": 42
+      },
+      "removalHelperEvidence": {
+        "path": "play/play-auth-session.js",
+        "startLine": 72,
+        "endLine": 78
+      },
+      "disconnectEvidence": {
+        "path": "play/play-chain-session.js",
+        "startLine": 228,
+        "endLine": 248
+      },
+      "secretStorageEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6306,
+        "endLine": 6314
+      }
+    }
+  },
+  "expiryBoundary": {
+    "nicechunkAuthorizationRecordExpiresAtChainTime": true,
+    "keypairCryptographicValidityExpiresWithRecord": false,
+    "solBalanceExpiresOrMovesWithRecord": false,
+    "expiredAuthorityCanStillSignOrdinarySystemTransactions": true,
+    "boundary": "expiresAt makes the audited NiceChunk consumers reject the PlayerSession record after chain time; it does not erase or revoke the ordinary Solana Keypair and it does not drain, refund, or otherwise move SOL held by that address.",
+    "systemTransferProbe": "systemTransferProbe"
+  },
+  "browserClient": {
+    "setupPersistence": {
+      "chainConfirmationCompletesBeforeLocalSecretPersistence": true,
+      "localSecretPersistenceIsPartOfSolanaTransaction": false,
+      "unavailableStorageCanSkipPersistenceAfterConfirmation": true,
+      "storageWriteExceptionCanOccurAfterConfirmation": true,
+      "missingOrUnreadableStoredSecretGeneratesNewAuthority": true,
+      "retryCanStrandConfirmedSessionPdaAndFundedAuthority": true,
+      "boundary": "The setup/funding transaction is confirmed before the browser writes the temporary secret. Chain confirmation and localStorage are not one atomic commit: unavailable or failing storage can leave a confirmed Session PDA and funded authority without a retained secret, and a retry can generate another authority and PDA.",
+      "flowEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6051,
+        "endLine": 6138
+      },
+      "confirmationEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6395,
+        "endLine": 6431
+      },
+      "persistenceEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6306,
+        "endLine": 6314
+      },
+      "loadEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6263,
+        "endLine": 6277
+      }
+    },
+    "reuseFunding": {
+      "reusedSessionCanTriggerTopUp": true,
+      "topUpSourceIsOwnerWallet": true,
+      "topUpRequiresOwnerSignature": true,
+      "topUpMayRequireOwnerWalletApproval": true,
+      "boundary": "Reusing a still-fresh browser session is not guaranteed to be approval-free: if its authority balance is below the configured target, the client builds an owner-to-authority transfer and asks the owner wallet to sign it.",
+      "evidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6201,
+        "endLine": 6214
+      }
+    },
+    "pluginWalletReuse": {
+      "copiedLocalExpiryMustExceedNowPlusSkew": true,
+      "onChainSessionCheckRequiresOnlyNonemptyDataAtDerivedPda": true,
+      "onChainSessionOwnerCheckedBeforeReuse": false,
+      "onChainSessionLengthOrMagicCheckedBeforeReuse": false,
+      "onChainSessionStoredFieldsDecodedBeforeReuse": false,
+      "onChainSessionExpiresAtCheckedBeforeReuse": false,
+      "separateCurrentProfileGateApplied": true,
+      "consumerRemainsAuthoritative": true,
+      "boundary": "Plugin-wallet reuse first trusts the browser copy of expiresAt. At the derived Session PDA it checks only that account data is nonempty, alongside a separate selected Profile gate; it does not decode the Session owner, shape, magic, stored pointers, mask, or chain expiry before returning the key. Consumer programs remain authoritative.",
+      "evidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6051,
+        "endLine": 6138
+      }
+    },
+    "profileReuseGate": {
+      "checksAccountProgramOwner": true,
+      "decoderChecksLength": true,
+      "decoderChecksMagic": true,
+      "checksDecodedOwner": true,
+      "checksDecodedGlobalConfig": true,
+      "decodedVersionReadButNotEnforced": true,
+      "decodedInitializedReadButNotEnforced": true,
+      "boundary": "The selected browser reuse predicate validates program ownership, fixed length and magic through the decoder, then owner and GlobalConfig; it reads but does not require a particular decoded profile version or initialized flag.",
+      "gateEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6191,
+        "endLine": 6199
+      },
+      "decoderEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 4438,
+        "endLine": 4482
+      }
+    },
+    "ownerKeyCompromise": {
+      "ownerSignatureAuthorizesSessionSetup": true,
+      "chosenSessionAuthorityMustAlsoSign": true,
+      "localGameWalletUsesOwnerAsSessionAuthority": true,
+      "compromisedLocalGameWalletKeyCanCreateOrRefreshSession": true,
+      "compromisedOwnerKeyWithAttackerAuthorityCanCreateAnotherSessionPda": true,
+      "recordExpiryRevokesCompromisedKey": false,
+      "boundary": "Expiry rejects an old authorization record; it does not revoke a compromised owner Keypair. Control of a Local Game Wallet key can sign owner=authority setup again, while a compromised plugin-wallet owner plus an attacker-controlled authority can create another canonical Session PDA.",
+      "localSessionEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6140,
+        "endLine": 6189
+      },
+      "localWalletStorageEvidence": {
+        "path": "src/localGameWallet.js",
+        "startLine": 82,
+        "endLine": 92
+      },
+      "localWalletSignerEvidence": {
+        "path": "src/localGameWallet.js",
+        "startLine": 44,
+        "endLine": 66
+      }
+    },
+    "localGameWalletReuse": {
+      "readyCacheTtlMilliseconds": 300000,
+      "readyCacheTtlSeconds": 300,
+      "readyCacheRpcBypassWindowSeconds": 300,
+      "readyCacheHitPerformsRpcRead": false,
+      "readyCacheHitReturnsRecomputedNowPlusDuration": true,
+      "readyCacheReturnedExpiryIsConfirmedRecordExpiry": false,
+      "syntheticExpiryOverstatementIsBoundedByCacheTtl": false,
+      "syntheticExpiryMayMateriallyOverstateChainExpiry": true,
+      "rpcFreshGateMinimumRemainingLifetimeSeconds": 900,
+      "rpcFreshGateChecks": [
+        "programOwner",
+        "length",
+        "magic",
+        "owner",
+        "sessionAuthority",
+        "expiresAt"
+      ],
+      "rpcFreshGateDoesNotCheck": [
+        "version",
+        "bump",
+        "active",
+        "playerProfile",
+        "globalConfig",
+        "worldId",
+        "allowedActions",
+        "maxActions",
+        "actionCount"
+      ],
+      "separateProfileReuseGateDoesNotCrossCheckSessionStoredProfileOrGlobalConfig": true,
+      "consumerRemainsAuthoritative": true,
+      "boundary": "A Local Game Wallet ready-cache hit (under five minutes) performs no RPC and returns a freshly computed now+8h client value, not the confirmed record expiry. Five minutes bounds only the RPC-bypass window, not the expiry overstatement: a cached existing Session may have had only slightly more than the 15-minute freshness floor, so the synthetic value can materially overstate chain expiry. After cache expiry, the RPC helper checks only shape, owner, authority, and expiry, while separate Profile checks do not cross-check the Session's stored Profile/GlobalConfig or mask/version/active/max fields. Consumer programs remain the final gate.",
+      "localFlowEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6140,
+        "endLine": 6189
+      },
+      "readyCacheEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 4084,
+        "endLine": 4089
+      },
+      "sessionFreshGateEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 4044,
+        "endLine": 4053
+      },
+      "profileGateEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 6191,
+        "endLine": 6199
+      }
+    }
+  },
+  "runtimeModuleBoundary": {
+    "repositorySourceAudited": "src/chain/nicechunkChain.js",
+    "runtimeResolverSourceAudited": "play/play-chain-adapter.js",
+    "candidateSources": [
+      "global runtime override",
+      "localStorage override",
+      "host-sensitive default asset URL",
+      "discovered build manifest"
+    ],
+    "firstUsableDynamicImportWins": true,
+    "resolvedUrlIsRuntimeObservation": true,
+    "offlineAuditInspectedActualLoadedAssetBytes": false,
+    "offlineAuditFixesAProductionModuleUrl": false,
+    "importedModuleExecutesBeforeExportUsabilityCheck": true,
+    "untrustedOverrideCanAttemptCodeExecutionInPlayPageContext": true,
+    "observedOverrideExploit": false,
+    "securityBoundary": "The global and localStorage module URL overrides are code-execution trust boundaries. Dynamic import evaluates a candidate before the adapter checks its exports, so an untrusted module can attempt to read origin-accessible browser state, including session secrets. This is a capability/risk finding, not evidence that such an exploit occurred.",
+    "boundary": "This offline audit proves the repository source and runtime resolver logic, not which asset bytes a particular browser actually loaded. A production claim requires observing the adapter's resolved URL and inspecting or hashing that served asset; the answer is intentionally not fixed in this report.",
+    "configurationEvidence": {
+      "path": "play/play-chain-adapter.js",
+      "startLine": 199,
+      "endLine": 206
+    },
+    "importEvidence": {
+      "path": "play/play-chain-adapter.js",
+      "startLine": 231,
+      "endLine": 247
+    },
+    "resolvedUrlEvidence": {
+      "path": "play/play-chain-adapter.js",
+      "startLine": 191,
+      "endLine": 193
+    }
+  },
+  "profilePointerBoundary": {
+    "currentProfileSeed": "player-v7",
+    "setupRequiresCurrentProfilePda": true,
+    "sameOwnerAndAuthoritySelectSamePdaButDoNotGuaranteeRefresh": true,
+    "existingRefreshRequiresStoredFields": [
+      "owner",
+      "sessionAuthority",
+      "playerProfile",
+      "globalConfig"
+    ],
+    "existingSessionRefreshRequiresStoredProfileToEqualSuppliedCurrentPda": true,
+    "sameAuthoritySessionPointingAtHistoricalProfileCanRefreshInPlace": false,
+    "newAuthorityCanCreateNewSessionPdaPointingAtCurrentProfile": true,
+    "auditedConsumerProfileViewsCheckLengthAndMagic": true,
+    "auditedConsumerProfileViewsEnforceVersion": false,
+    "auditedConsumerProfileViewsEnforceInitialized": false,
+    "repositoryProfileHelperDerivesCurrentProfile": true,
+    "historicalProfileCompatibilityRequiresCustomAccountSelectionAndMatchingStoredSessionPointer": true,
+    "repositoryDefaultClientHistoricalProfileReachabilityProven": false,
+    "tag4ProfileRepairWritableBoundary": {
+      "repositoryBuilderPlayerProfileMetaWritable": false,
+      "sdkBuilderPlayerProfileMetaWritable": false,
+      "setupRequiresPlayerProgramOwnershipBeforeEnsure": true,
+      "contractChecksPlayerProfileWritableBeforeEnsure": false,
+      "selectedValidationSuccessReturnsWithoutMutation": true,
+      "selectedValidationFailureCanEnterMutationPath": true,
+      "selectedValidationChecks": [
+        "length",
+        "magic",
+        "owner",
+        "globalConfig"
+      ],
+      "selectedValidationChecksVersion": false,
+      "selectedValidationChecksInitialized": false,
+      "mutationPathMayTopUpRent": true,
+      "mutationPathMayReallocate": true,
+      "mutationPathRepacksProfile": true,
+      "missingProfileInitializationInstructionMarksProfileWritable": true,
+      "missingProfileInitializationNormallyPromotesTransactionWritable": true,
+      "existingNonemptyProfileSkipsInitializationInstruction": true,
+      "repositoryDefaultExistingProfileFlowsAddAnotherWritableProfileInstruction": false,
+      "repairMayFailIfNoOtherInstructionPromotesProfileWritable": true,
+      "primaryRiskIsProgramOwnedExistingNonemptyCurrentPdaFailingSelectedValidation": true,
+      "olderLayoutOnlyInScopeWhenItFailsSelectedValidation": true,
+      "primaryRiskScope": "A program-owned, existing, nonempty current player-v7 Profile PDA whose selected length, magic, owner, or GlobalConfig validation fails. An older layout is in scope only when it causes one of those selected checks to fail; version and initialized are not selected checks.",
+      "findingKind": "conditional-capability-risk",
+      "productionFailureObservedByThisAudit": false,
+      "boundary": "Both audited tag-4 builders mark PlayerProfile read-only. The contract returns immediately when selected length, magic, owner, and GlobalConfig validation succeeds, but a failure of one of those checks can enter a repair path that may top up rent, realloc, and repack that account. Version and initialized are not selected checks. A missing Profile normally gets transaction-level writable privilege from the preceding initialization instruction; an existing nonempty Profile skips that instruction. If no other instruction promotes the account writable, repair of a program-owned current-PDA account that fails the selected checks may fail. This audit observed no production failure; it records a conditional capability risk derived from repository source.",
+      "repositoryBuilderEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 5002,
+        "endLine": 5027
+      },
+      "sdkBuilderEvidence": {
+        "path": "sdk/nicechunk-player.ts",
+        "startLine": 549,
+        "endLine": 590
+      },
+      "contractSetupEvidence": {
+        "path": "programs/nicechunk_player/src/lib.rs",
+        "startLine": 1087,
+        "endLine": 1223
+      },
+      "contractRepairEvidence": {
+        "path": "programs/nicechunk_player/src/lib.rs",
+        "startLine": 1517,
+        "endLine": 1581
+      },
+      "selectedProfileValidationEvidence": [
+        {
+          "path": "programs/nicechunk_player/src/state.rs",
+          "startLine": 228,
+          "endLine": 236
+        },
+        {
+          "path": "programs/nicechunk_player/src/state.rs",
+          "startLine": 214,
+          "endLine": 226
+        }
+      ],
+      "repositoryInitializeEvidence": {
+        "path": "src/chain/nicechunkChain.js",
+        "startLine": 4670,
+        "endLine": 4687
+      },
+      "repositoryFlowEvidence": [
+        {
+          "client": "plugin wallet",
+          "initializesOnlyWhenProfileDataIsMissing": true,
+          "initializationPrecedesTag4": true,
+          "transactionAddSiteCount": 3,
+          "allTransactionAddSitesAccountedFor": true,
+          "instructionAddSitesInSourceOrder": [
+            {
+              "builder": "createInitializePlayerInstruction",
+              "condition": "profile-data-missing",
+              "marksPlayerProfileWritable": true
+            },
+            {
+              "builder": "SystemProgram.transfer",
+              "condition": "session-balance-below-target",
+              "marksPlayerProfileWritable": false
+            },
+            {
+              "builder": "createOrRefreshPlayerSessionInstruction",
+              "condition": "setup-or-refresh-path",
+              "marksPlayerProfileWritable": false
+            }
+          ],
+          "existingNonemptyProfileAddsAnotherWritableProfileInstruction": false,
+          "evidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 6051,
+            "endLine": 6138
+          }
+        },
+        {
+          "client": "Local Game Wallet",
+          "initializesOnlyWhenProfileDataIsMissing": true,
+          "initializationPrecedesTag4": true,
+          "transactionAddSiteCount": 2,
+          "allTransactionAddSitesAccountedFor": true,
+          "instructionAddSitesInSourceOrder": [
+            {
+              "builder": "createInitializePlayerInstruction",
+              "condition": "profile-data-missing",
+              "marksPlayerProfileWritable": true
+            },
+            {
+              "builder": "createOrRefreshPlayerSessionInstruction",
+              "condition": "setup-or-refresh-path",
+              "marksPlayerProfileWritable": false
+            }
+          ],
+          "existingNonemptyProfileAddsAnotherWritableProfileInstruction": false,
+          "evidence": {
+            "path": "src/chain/nicechunkChain.js",
+            "startLine": 6140,
+            "endLine": 6189
+          }
+        }
+      ]
+    },
+    "boundary": "Current tag-4 setup requires the player-v7 Profile PDA. Same owner plus same authority selects the same PDA but does not guarantee a rewrite: refresh validates stored owner, authority, Profile, and GlobalConfig pointers. A same-authority Session that points at a historical Profile therefore cannot refresh in place; a new authority/new PDA is needed for a current pointer. Consumer views omit profile version/initialized, but any historical-profile compatibility is only a conditional custom-account contract path with a matching stored Session pointer, not proven repository-default client reachability.",
+    "setupEvidence": {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "startLine": 1087,
+      "endLine": 1223
+    },
+    "refreshEvidence": {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "startLine": 1091,
+      "endLine": 1120
+    },
+    "pointerValidationEvidence": {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "startLine": 1122,
+      "endLine": 1151
+    },
+    "repositoryDerivationEvidence": {
+      "path": "src/chain/nicechunkChain.js",
+      "startLine": 488,
+      "endLine": 490
+    },
+    "consumerProfileViewEvidence": [
+      {
+        "path": "programs/nicechunk_chunk/src/state.rs",
+        "startLine": 1265,
+        "endLine": 1282
+      },
+      {
+        "path": "programs/nicechunk_building/src/state.rs",
+        "startLine": 46,
+        "endLine": 61
+      },
+      {
+        "path": "programs/nicechunk_backpack/src/state.rs",
+        "startLine": 1044,
+        "endLine": 1084
+      }
+    ]
+  },
+  "guardian": {
+    "guardianProgramReferencesPlayerSession": false,
+    "buildingTag8": {
+      "handler": "publish_guardian_blueprint",
+      "usesPlayerSession": false,
+      "validatesFixedPublisher": true,
+      "invokesGuardianProgramByCpi": true,
+      "evidence": {
+        "path": "programs/nicechunk_building/src/lib.rs",
+        "startLine": 73,
+        "endLine": 145
+      }
+    },
+    "realtimeHello": {
+      "sendsWalletPublicKeyHint": true,
+      "sendsNonce": true,
+      "sendsPlayerSession": false,
+      "sendsWalletSignature": false,
+      "evidence": {
+        "path": "play/play-guardian-client.js",
+        "startLine": 417,
+        "endLine": 432
+      }
+    },
+    "runtime": {
+      "clientIdentityInput": "walletAddress",
+      "playerSessionInput": false,
+      "evidence": {
+        "path": "play/play-guardian.js",
+        "startLine": 168,
+        "endLine": 201
+      }
+    }
+  },
+  "systemTransferProbe": {
+    "networkRequests": 0,
+    "broadcasts": 0,
+    "lamports": 1,
+    "instructionProgramId": "11111111111111111111111111111111",
+    "instructionAccountCount": 2,
+    "sourceIsSigner": true,
+    "sourceIsWritable": true,
+    "playerSessionAccountReferenced": false,
+    "playerProgramInvoked": false,
+    "signaturePresent": true,
+    "signatureValid": true,
+    "privateKeyOutput": false
+  },
+  "findings": [
+    {
+      "id": "max-actions-not-enforced",
+      "severity": "high",
+      "derived": true,
+      "statement": "All 15 audited session-aware repository-builder metas keep PlayerSession read-only, while the audited consumer views omit maxActions/actionCount and expose no increment path; the configured 10,000 value is not an enforced action ceiling. Fifteen does not assert unconditional default-Play reachability."
+    },
+    {
+      "id": "building-uses-break-bit",
+      "severity": "high",
+      "derived": true,
+      "statement": "Building tags 0 through 7 all pass through one helper fixed to action index 1 (BREAK_BLOCK), while action index 2 (PLACE_BLOCK) has no audited consumer."
+    },
+    {
+      "id": "placement-disabled",
+      "severity": "high",
+      "derived": true,
+      "statement": "The audited repository placement method returns chain-placement-disabled without submitting a transaction."
+    },
+    {
+      "id": "no-session-revocation-on-logout",
+      "severity": "high",
+      "derived": true,
+      "statement": "Player Program exposes create/refresh but no session close, revoke, or deactivate instruction. Logout only attempts best-effort browser-key removal; it neither verifies deletion nor sends an on-chain revoke, close, SOL drain, or refund."
+    },
+    {
+      "id": "temporary-keypair-can-transfer-sol",
+      "severity": "high",
+      "derived": true,
+      "statement": "An offline ordinary SystemProgram.transfer from the temporary session Keypair signs and verifies without referencing PlayerSession or invoking Player Program."
+    },
+    {
+      "id": "record-expiry-does-not-expire-key-or-sol",
+      "severity": "high",
+      "derived": true,
+      "statement": "PlayerSession expiry rejects that authorization record in audited NiceChunk consumers, but the ordinary Keypair remains able to sign and SOL at its address is not automatically drained, refunded, or expired."
+    },
+    {
+      "id": "owner-key-compromise-outlives-session-expiry",
+      "severity": "high",
+      "derived": true,
+      "statement": "A compromised owner key can authorize another Session with an attacker authority; a compromised Local Game Wallet key can satisfy owner and authority roles itself. Expiry of an earlier record is therefore not a final compromise stop-loss."
+    },
+    {
+      "id": "confirmed-chain-setup-precedes-local-secret-write",
+      "severity": "high",
+      "derived": true,
+      "statement": "The client confirms setup/funding before persisting the temporary secret. The chain and browser writes are non-atomic, so storage failure and retry can strand a funded authority and Session PDA, then allocate another authority/PDA."
+    },
+    {
+      "id": "new-authority-locks-another-session-pda-rent",
+      "severity": "high",
+      "derived": true,
+      "statement": "A new authority changes the PDA seed tuple and causes the owner to fund another 184-byte PlayerSession account; without a current close/refund instruction, that additional PDA rent remains locked."
+    },
+    {
+      "id": "backpack-owner-direct-branch-bypasses-session",
+      "severity": "high",
+      "derived": true,
+      "statement": "Backpack remove handlers check BREAK_BLOCK only in their four-account Session branch. Their two-account owner-direct branch bypasses PlayerSession, while removal shifts packed Backpack references and does not close or refund a referenced item PDA."
+    },
+    {
+      "id": "runtime-loaded-asset-not-proven-by-source-audit",
+      "severity": "informational",
+      "derived": true,
+      "statement": "The Play adapter chooses the first usable runtime module candidate from overrides, defaults, and manifests. This offline source audit does not identify or hash the asset bytes loaded by a particular browser."
+    },
+    {
+      "id": "runtime-module-override-is-code-trust-boundary",
+      "severity": "high",
+      "derived": true,
+      "statement": "Dynamic import evaluates global/localStorage override candidates before export validation. Untrusted override URLs can therefore attempt code execution and origin-storage access; this is a capability warning, not an observed exploit."
+    },
+    {
+      "id": "historical-profile-refresh-and-reachability-boundary",
+      "severity": "high",
+      "derived": true,
+      "statement": "Current setup requires the player-v7 Profile PDA, and same-authority refresh compares the Session's stored profile pointer. Historical-profile acceptance by selected consumer views therefore requires a matching older Session and custom account selection; it is not repository-default client reachability."
+    },
+    {
+      "id": "tag4-profile-repair-needs-effective-writable-privilege",
+      "severity": "medium",
+      "derived": true,
+      "statement": "Both repository and SDK tag-4 builders mark PlayerProfile read-only. If selected length, magic, owner, or GlobalConfig validation fails, the contract may top up, realloc, and repack a program-owned current-PDA Profile; without another instruction promoting that account writable, repair may fail. New-Profile initialization normally supplies writable privilege. Version and initialized alone are not selected checks, and this audit observed no production failure."
+    },
+    {
+      "id": "local-wallet-ready-cache-expiry-is-not-chain-expiry",
+      "severity": "high",
+      "derived": true,
+      "statement": "For up to the five-minute ready-cache window, Local Game Wallet reuse performs no RPC and returns recomputed now+8h rather than the stored Session expiry. Five minutes does not bound that synthetic overstatement; a cached existing Session may be near the 15-minute freshness floor. Consumers remain authoritative."
+    },
+    {
+      "id": "guardian-independent",
+      "severity": "informational",
+      "derived": true,
+      "statement": "Guardian contract, blueprint-publish CPI, realtime HELLO, and runtime client construction do not consume PlayerSession."
+    }
+  ],
+  "interpretationBoundaries": [
+    "This artifact is derived only from the listed current repository sources plus an offline transaction construction; it performs no RPC request and broadcasts no transaction.",
+    "The System transfer probe proves signature and instruction independence locally. It does not claim that the generated account has an on-chain balance.",
+    "Read-field conclusions apply to the audited Chunk, Building, and Backpack PlayerSessionView implementations and their enumerated repository builders.",
+    "The count of 15 covers audited contract handlers with Session-aware branches and matching repository builders, not unconditional reachability through the default Play UI/runtime.",
+    "Read-only metas are only one part of the actionCount non-increment proof; immutable consumer code, omitted fields, different account ownership, and the absence of a Player increment instruction are also material.",
+    "Repository source inspection does not by itself establish which dynamically selected chain asset bytes a deployed browser loaded; inspect the resolved runtime URL and served asset for that claim.",
+    "The tag-4 Profile repair finding is conditional on selected length, magic, owner, or GlobalConfig validation failing and on no other instruction promoting PlayerProfile writable at transaction level. It concerns program-owned, existing nonempty data at the current player-v7 PDA; an older layout matters only when it fails a selected check, and this audit observed no production incident.",
+    "Guardian wallet hints are public-key identity hints, not proof of wallet ownership and not PlayerSession authorization."
+  ],
+  "selfChecks": {
+    "playerSessionLengthIs184": true,
+    "rustPackAndSdkDecoderAgree": true,
+    "setupTagIs4": true,
+    "setupSeedIsSession": true,
+    "defaultPermissionMaskIs6": true,
+    "clientDefaultsAreExpected": true,
+    "chunkSessionAwareHandlerCount": 5,
+    "buildingSessionAwareHandlerCount": 8,
+    "backpackSessionAwareHandlerCount": 2,
+    "allAuditedSessionBranchesUseActionIndex1": true,
+    "allRepositoryBuilderSessionMetasReadonly": true,
+    "omittedConsumerFieldsVerified": true,
+    "readonlyMetaNotSoleActionCountReason": true,
+    "placementDisabled": true,
+    "playerHasNoCloseOrRevoke": true,
+    "logoutRemovalIsBestEffort": true,
+    "chainConfirmationPrecedesLocalSecretPersistence": true,
+    "runtimeAssetBytesNotClaimed": true,
+    "runtimeOverrideTrustBoundaryScoped": true,
+    "profilePointerBoundaryScoped": true,
+    "profileRepairWritableBoundaryScoped": true,
+    "localWalletReadyCacheScoped": true,
+    "guardianIndependent": true,
+    "ordinarySystemTransferSignatureValid": true,
+    "privateKeyOutput": false,
+    "passed": true
+  }
+}

@@ -1,0 +1,269 @@
+{
+  "_meta": {
+    "language": "fr",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-verified-actions-fr-c9e96965ac6f4109",
+    "contentHash": "c9e96965ac6f4109"
+  },
+  "kind": "topic",
+  "slug": "verified-actions",
+  "shortTitle": "Verified Actions",
+  "seo": {
+    "title": "NiceChunk Verified Player Actions",
+    "description": "Follow a NiceChunk mining action from responsive local tool contact through program validation, PDA writes, confirmation, and rollback."
+  },
+  "hero": {
+    "eyebrow": "FOUNDATION 03 · ACTION VALIDATION",
+    "title": "The screen responds first; shared state commits after checks",
+    "summary": "NiceChunk does not send every cursor movement or animation frame to the chain. The client handles physical tool contact and feedback locally, then submits a compact action with integer coordinates. The program recalculates the generated block at the submitted coordinate, validates the relevant accounts and rules, and only then writes the accepted result.",
+    "readingTime": "8 min read",
+    "visual": {
+      "src": "/docs/media/verified-actions-overview-v2.webp",
+      "alt": "The canonical villager boy strikes a stone voxel that remains inside an amber pending lattice while the villager girl observes a cyan validation projection; confirmation records the missing coordinate, while a faint rejected echo returns through the water.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "Local feedback is immediate",
+      "body": "Ray selection, reach checks, swept tool collision, damage feedback, animation, and particles can run at frame speed without becoming chain state."
+    },
+    {
+      "title": "The program recomputes facts",
+      "body": "For mining, the program reads the submitted world coordinate, derives its chunk and local coordinates, recalculates the generated block, checks protection and both rule tables, and rejects mismatched or already-mined targets."
+    },
+    {
+      "title": "The automatic chain path gates commitment",
+      "body": "The automatic chain path confirms a pending delta after a confirmed transaction result and rolls it back when submission or program validation fails. The current manual Confirm control can still resolve a delta locally, so that path is not shared-state evidence."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "EXECUTION GATES",
+    "title": "Separate the program predicate from client reconciliation",
+    "summary": "The first equation summarizes the authoritative checks for one generated-block mine. The second describes the exact set intersection used when a batched result reports which proposed coordinates the chain accepted."
+  },
+  "formulas": [
+    {
+      "title": "Core acceptance gate for a generated-block mine",
+      "expression": "accept(p) = validAccounts AND validSession AND expectedBlock = G_chain(p) AND G_chain(p) NOT IN {air, water, bedrock} AND NOT protected(p) AND p NOT IN ChunkBroken AND primaryRewardFits",
+      "explanation": "This is a compact model of the instruction rather than one literal source expression. Account validity includes the expected writable flags, owners, PDA derivations, both rule tables, backpack program, and owner-derived backpack. The primary reward append must succeed; eligible secondary rewards are best effort.",
+      "terms": [
+        {
+          "symbol": "p",
+          "meaning": "The submitted integer world coordinate x, y, z."
+        },
+        {
+          "symbol": "G_chain(p)",
+          "meaning": "The block ID independently recalculated by the chunk program for p."
+        },
+        {
+          "symbol": "validAccounts",
+          "meaning": "The instruction received the required accounts with valid count, ownership, and writability; it validates the PDAs explicitly derived by the instruction or backpack CPI plus owner and data relationships for the remaining accounts."
+        },
+        {
+          "symbol": "ChunkBroken",
+          "meaning": "The program-owned set of generated coordinates already recorded as mined for the affected chunk."
+        },
+        {
+          "symbol": "primaryRewardFits",
+          "meaning": "The validated backpack can accept the required mined-block reward; secondary rewards may be partial."
+        }
+      ]
+    },
+    {
+      "title": "Confirmed subset for a batched outcome",
+      "expression": "K_commit = intersection(K_pending, K_chain)",
+      "explanation": "When a batch result carries confirmedBlocks, the client converts both proposals and confirmed coordinates to integer keys, keeps only their intersection, and filters pending air deltas and reward groups to that same subset before confirmation.",
+      "terms": [
+        {
+          "symbol": "K_pending",
+          "meaning": "Coordinate keys proposed by the local mining plan."
+        },
+        {
+          "symbol": "K_chain",
+          "meaning": "Coordinate keys returned in the chain result as confirmed."
+        },
+        {
+          "symbol": "K_commit",
+          "meaning": "The only proposed block keys retained for the confirmed local delta."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The program recalculates and rejects a mismatched block",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let block_id = generated_block_id_at(global_config_view, &generated_args);\n    if args.expected_block_id != block_id {\n        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());\n    }\n    if matches!(block_id, BLOCK_AIR | BLOCK_WATER | BLOCK_BEDROCK) {\n        return Err(NicechunkChunkError::UnmineableBlock.into());\n    }",
+      "explanation": "The signed payload supplies an expected block ID, but the instruction uses its own generated result and rejects a mismatch or an unmineable canonical block."
+    },
+    {
+      "title": "The client keeps only block keys confirmed by a batch result",
+      "language": "JavaScript",
+      "source": "play/play-chain-mining-result.js",
+      "code": "  const previousCount = Math.max(1, Math.trunc(Number(pending.minedBlockCount) || originalBlocks.length || 1));\n  const chainConfirmedBlocks = Array.isArray(chainResult?.confirmedBlocks) ? chainResult.confirmedBlocks : [];\n  let confirmedBlocks = originalBlocks;\n  if (chainConfirmedBlocks.length) {\n    const confirmedKeys = new Set(chainConfirmedBlocks.map(blockKey).filter(Boolean));\n    confirmedBlocks = originalBlocks.filter((block) => confirmedKeys.has(blockKey(block)));\n    if (!confirmedBlocks.length) return { changed: false, droppedCount: 0, confirmedCount: 0 };\n    const confirmedKeySet = new Set(confirmedBlocks.map(blockKey));\n    pending.blocks = confirmedBlocks.map((block) => ({ ...block }));\n    pending.pendingDeltas = (Array.isArray(pending.pendingDeltas) ? pending.pendingDeltas : [])\n      .filter((delta) => confirmedKeySet.has(blockKey(delta)))\n      .map((delta) => ({ ...delta }));\n    pending.collapseBlocks = (Array.isArray(pending.collapseBlocks) ? pending.collapseBlocks : [])\n      .filter((block) => confirmedKeySet.has(blockKey(block)))\n      .map((block) => ({ ...block }));\n    pending.minedBlockCount = confirmedBlocks.length;\n  }",
+      "explanation": "Support-collapse and other batched proposals can be larger than the accepted result. Reconciliation removes every unconfirmed coordinate before the mining controller applies the pending air deltas."
+    }
+  ],
+  "sections": [
+    {
+      "id": "four-layers",
+      "eyebrow": "THE ACTION LIFECYCLE",
+      "title": "One mining swing crosses four different layers",
+      "paragraphs": [
+        "First, the browser decides what the player is pointing at and whether the equipped tool can physically reach it. A valid strike accumulates local damage and creates a pending record containing the target coordinate, block and resource IDs, selected tool slot, affected blocks, and a planned base-reward summary.",
+        "Second, the chain adapter turns that pending record into a transaction. Third, the chunk program verifies the action against canonical world and account state. Fourth, the automatic chain path reconciles and applies the accepted delta, then refreshes the chain-backed world and backpack views. A separate manual Confirm control can still resolve a pending delta locally and is not evidence of shared-state confirmation."
+      ],
+      "steps": [
+        {
+          "title": "Interact locally",
+          "body": "Select a visible target, check reach and protection hints, animate the tool, and detect a real tool-box contact with the voxel."
+        },
+        {
+          "title": "Create a pending action",
+          "body": "Preserve an integer coordinate tuple and the exact local proposal without yet treating it as authoritative chain state."
+        },
+        {
+          "title": "Submit and validate",
+          "body": "Sign the transaction and let the program validate PDA derivations, recalculate generated facts, and validate current account contents."
+        },
+        {
+          "title": "Confirm or roll back",
+          "body": "In the automatic chain path, commit the rendered delta after confirmed submission, or remove the pending action and restore local tool damage when it fails. A manual local confirm remains a separate, non-authoritative path."
+        }
+      ]
+    },
+    {
+      "id": "local-feedback",
+      "eyebrow": "FRAME-SPEED WORK",
+      "title": "What stays local, and why",
+      "paragraphs": [
+        "Camera motion, pointer rays, target highlights, tool poses, hit sparks, sound, partial-damage indicators, and mesh updates are presentation and interaction work. Putting these on chain would add latency without making the underlying world rule more trustworthy.",
+        "The mining controller also checks obvious invalid cases locally: no usable tool, no backpack, a target outside reach, fluid or air, protected foundations, a target that changed before impact, or a duplicate pending target. These checks improve the experience, but they do not replace program validation."
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A convincing animation is not a chain receipt",
+        "body": "Visual feedback proves that the local interaction system ran. Authority comes from the program accepting the transaction and writing the expected accounts."
+      }
+    },
+    {
+      "id": "program-checks",
+      "eyebrow": "AUTHORITATIVE WORK",
+      "title": "The mining program checks the world instead of trusting the claim",
+      "paragraphs": [
+        "The reward-bearing mine instruction receives 12 accounts: session authority, player profile, player session, player progress, ChunkBroken, foundation chunk, global configuration, resource-drop table, surface-decoration table, backpack program, backpack, and system program. It validates the exact count, writable status, program ownership where required, the PDAs explicitly derived by the instruction or backpack CPI, owner and data relationships for the remaining accounts, and the player's active action context before processing the target.",
+        "It reads the submitted world-coordinate tuple, checks its height, derives chunk and local coordinates with Euclidean division, recalculates the generated block, compares that result with the expected block ID, rejects air, water, and bedrock, checks foundation protection, and prevents the same generated coordinate from being recorded twice. It then resolves extra-drop and surface-decoration rules from the two program-owned tables."
+      ],
+      "facts": [
+        {
+          "label": "Target identity",
+          "value": "x, y, z + block ID",
+          "detail": "The client submits the integer target; the program independently recalculates the generated block ID at that coordinate."
+        },
+        {
+          "label": "World edit",
+          "value": "ChunkBroken PDA",
+          "detail": "An accepted generated block removal is stored as a compact coordinate in its chunk account."
+        },
+        {
+          "label": "Reward destination",
+          "value": "Validated owner backpack",
+          "detail": "The primary block reward must fit. Eligible secondary rewards use a best-effort append and may be partial when capacity is exhausted."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Acceptance changes related records under explicit capacity rules",
+        "body": "The instruction records the mined coordinate, requires the primary reward append, attempts eligible secondary rewards lossily, and updates relevant progress. An instruction error aborts the transaction; a successful best-effort secondary append may still add only the rewards that fit."
+      }
+    },
+    {
+      "id": "confirmation-and-rollback",
+      "eyebrow": "CLIENT RECONCILIATION",
+      "title": "The automatic chain path uses pending as a reversible bridge",
+      "paragraphs": [
+        "The chain module signs and sends the transaction, then waits for confirmed commitment. A successful result carries the signature and, for a batched outcome, the reconciled block list. Only then does the automatic chain session ask the mining controller to confirm the pending delta.",
+        "If the wallet is unavailable, the adapter rejects the action, the transaction throws, or the program returns an unsuccessful result, mining rolls back its pending record. The controller restores the locally consumed tool damage and does not apply that pending block-removal delta."
+      ],
+      "bullets": [
+        "Batch outcomes such as support collapse can be reconciled to the exact subset the chain confirmed.",
+        "After confirmation, the client requests fresh ChunkBroken snapshots and refreshes the PDA backpack.",
+        "Local-preview mode is labeled separately; it must not be confused with a confirmed shared transaction.",
+        "The current manual Confirm input has no chain-state guard and can apply a pending delta locally; that result is not a chain receipt.",
+        "Console failure reports include transaction errors and program logs when available, making rejected actions diagnosable during the current session."
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Why read state again after success",
+        "body": "A signature identifies the submission. The client separately waits for a confirmed status with no transaction error, then refreshes affected PDAs so the rendered world converges on stored state instead of relying forever on the local pending record."
+      }
+    },
+    {
+      "id": "scope-of-verification",
+      "eyebrow": "HONEST SCOPE",
+      "title": "Verification is specific to the action and accounts involved",
+      "paragraphs": [
+        "For mining, NiceChunk can verify the canonical generated-block identity at the submitted coordinate, protection state, rule-table result, duplicate-removal state, player session, an owner-derived backpack PDA, and the writes performed by that instruction. The client chooses the equipped backpack it submits; the programs validate ownership and PDA derivation rather than comparing that address with the profile's equipped-backpack field. The chain does not verify which coordinate the player actually aimed at, nor simulate the rendered camera, exact hand path, particles, every intermediate frame, or a manually confirmed local delta.",
+        "Other actions have their own instruction formats and checks. A forging transaction, for example, validates backpack material slots and compact design requirements rather than replaying the workbench animation."
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "No blanket “everything is on chain” claim",
+        "body": "The shared state is authoritative where a program validates and stores it. Local rendering remains a high-performance interpretation of that state."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "play/mining-controller.js",
+      "claim": "Implements local target validation, swept tool collision, partial damage, pending action records, confirmation, and reversible rollback."
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "Separates local preview, wallet-needed, submitting, confirmed, and rejected states and confirms or rolls back pending actions from adapter results."
+    },
+    {
+      "path": "play/play-input-actions.js",
+      "claim": "Exposes the current manual Confirm and Rollback controls, including the local-confirm path that is not guarded by chain state."
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "Maps pending integer action data to mining and placement calls in the lazily loaded chain module."
+    },
+    {
+      "path": "play/play-chain-mining-result.js",
+      "claim": "Reconciles batch mining proposals to the exact confirmed block subset and its confirmed base-reward block subset."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Builds and signs gameplay transactions, waits for confirmed commitment, and returns structured action results."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Validates mining accounts, session, generated block, protection, rule tables, ChunkBroken state, rewards, and player progress."
+    },
+    {
+      "path": "play/play-chain-chunk-deltas.js",
+      "claim": "Reads confirmed ChunkBroken account snapshots and applies their decoded coordinate deltas to loaded chunks."
+    }
+  ],
+  "related": [
+    {
+      "slug": "deterministic-world",
+      "href": "/docs/deterministic-world/",
+      "title": "The Deterministic World",
+      "summary": "Learn which original block fact the mining program can recalculate from a coordinate."
+    },
+    {
+      "slug": "forging-system",
+      "href": "/docs/forging-system/",
+      "status": "ready",
+      "title": "Material-Aware Forging",
+      "summary": "Compare world-action validation with a design whose authoritative checks are backpack ownership and material capacity."
+    }
+  ]
+}

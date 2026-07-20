@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "de",
+    "label": "German",
+    "version": "docs-locale-de-2a9c9cc1f7fb6c37",
+    "contentHash": "2a9c9cc1f7fb6c37"
+  },
+  "common": {
+    "language": "Sprache",
+    "comingSoon": "Demnächst",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "NiceChunk-Startseite",
+    "primaryNavigationAria": "Hauptnavigation",
+    "openMenu": "Menü öffnen",
+    "closeMenu": "Menü schließen",
+    "routes": {
+      "home": "Home",
+      "roadbook": "Roadbook",
+      "worldRules": "Weltregeln",
+      "resources": "Ressourcen",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "Elemente",
+      "fairness": "Fairness",
+      "proofOfFrontier": "Beweis",
+      "seed": "Seed",
+      "guardians": "Wächter",
+      "contracts": "Verträge",
+      "civilization": "Zivilisation",
+      "trust": "Vertrauen",
+      "docs": "Docs",
+      "enterWorld": "Welt betreten"
+    }
+  },
+  "meta": {
+    "title": "NiceChunk-Feldhandbuch",
+    "description": "Spielerverständliche NiceChunk-Dokumentation auf Grundlage des laufenden Spiels, öffentlicher Regeln und des Verhaltens der bereitgestellten Programme."
+  },
+  "accessibility": {
+    "skipContent": "Zum Inhalt springen"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "FELDHANDBUCH",
+    "homeAria": "NiceChunk-Startseite"
+  },
+  "navigation": {
+    "aria": "Dokumentationsnavigation",
+    "guide": "Handbuch",
+    "worldRules": "Weltregeln",
+    "programs": "Programme",
+    "enterWorld": "Welt betreten"
+  },
+  "status": {
+    "loading": "Feldhandbuch wird geladen",
+    "loadingDetail": "Ein Dokument in der ausgewählten Sprache wird abgerufen.",
+    "failed": "Diese Handbuchseite konnte nicht geladen werden.",
+    "failedDetail": "Prüfe die Verbindung oder kehre zum Handbuchindex zurück."
+  },
+  "actions": {
+    "backToIndex": "Zurück zum Handbuchindex",
+    "guideIndex": "Feldhandbuch",
+    "openGuide": "Handbuch öffnen →"
+  },
+  "footer": {
+    "statement": "Aus den laufenden Regeln und dem Programmcode erstellt. Aussagen sind auf das beschränkt, was die Implementierung belegen kann.",
+    "fairness": "Fairness",
+    "trust": "Vertrauen",
+    "roadmap": "Roadbook"
+  },
+  "translation": {
+    "fallbackTitle": "Englische Quelle wird angezeigt",
+    "fallbackBody": "Dieses Thema besitzt eine eigene Sprachdatei, aber die geprüfte Übersetzung ist noch nicht fertig. Die englische Quelle wird ohne maschinell übersetzte technische Aussagen angezeigt."
+  },
+  "labels": {
+    "guideMetrics": "Abdeckung des Feldhandbuchs",
+    "breadcrumb": "Brotkrümelnavigation",
+    "keyPoints": "Kernpunkte",
+    "onThisPage": "Auf dieser Seite",
+    "evidenceEyebrow": "IMPLEMENTIERUNGSNACHWEISE",
+    "evidenceTitle": "Woher diese Aussagen stammen",
+    "evidenceIntro": "Jede Aussage ist bewusst auf einen konkreten Implementierungspfad begrenzt. Diese Verweise dienen der Überprüfung, nicht der Dekoration."
+  },
+  "statusLabels": {
+    "ready": "Geprüft",
+    "preview": "In Prüfung",
+    "planned": "Geplant"
+  },
+  "calloutLabels": {
+    "note": "So ist dies zu lesen",
+    "boundary": "Implementierungsgrenze",
+    "verified": "Was der Code garantiert"
+  }
+}

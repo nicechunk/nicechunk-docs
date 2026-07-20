@@ -1,0 +1,384 @@
+{
+  "_meta": {
+    "language": "ru",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-material-lifecycle-ru-dfd85d9d0b4d0b26",
+    "contentHash": "dfd85d9d0b4d0b26"
+  },
+  "kind": "topic",
+  "slug": "material-lifecycle",
+  "shortTitle": "Material Lifecycle",
+  "seo": {
+    "title": "NiceChunk Cotton, Backpack, Cloth, and Forge Material Lifecycle",
+    "description": "Follow NiceChunk cotton from a deterministic SurfaceDecorationTable rule through lossy backpack rewards, verified cotton-cloth recipe inputs, volume yield, and the forge handoff."
+  },
+  "hero": {
+    "eyebrow": "FOUNDATION 06 · RESOURCE OWNERSHIP",
+    "title": "A material counts only after every handoff accepts it",
+    "summary": "NiceChunk cotton begins as a deterministic PDA rule bound to an eligible grass face, not as a free-standing inventory voxel. Mining stores the supporting terrain block first and adds cotton only when backpack capacity remains. Recipe 1025 then matches exactly four cotton blocks and one dry-grass block, requires a separate fuel slot, consumes the selected records, and creates one volume-bearing cotton-cloth material for the forge.",
+    "readingTime": "11 min read",
+    "visual": {
+      "src": "/docs/media/material-lifecycle-overview-v2.webp",
+      "alt": "The canonical villager girl mines the grass support beneath cotton beside an open compartmented inventory chest while the villager boy presses four white cotton tufts and one dry-grass bundle into cloth; a separate fuel fire burns nearby and a completed cloth panel moves in the sea breeze.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "Deterministic does not mean already owned",
+      "body": "The same seed, coordinate, ordered PDA rows, and rule revision resolve the same cotton candidate. Ownership begins only if the successful mining transaction actually appends the cotton reward to the player's backpack."
+    },
+    {
+      "title": "The visible reward is deliberately lossy",
+      "body": "The mined grass record is strict, but cotton and an exploration extra are secondary records. Cotton has priority; either secondary reward is silently skipped when no slot remains."
+    },
+    {
+      "title": "Recipes and forging consume whole selected slots",
+      "body": "The recipe program verifies identifiers, distinct indexes, heat, and output capacity, then replaces the inputs with cloth and calculates bounded output volume inside the same atomic transaction. The forge later verifies aggregate material capacity, not partial per-voxel consumption or dye provenance."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "DROP, CAPACITY, AND YIELD MATH",
+    "title": "One fixed hash chooses the plant; ordered slots decide whether the reward survives",
+    "summary": "The first equation scopes cotton to eligible grass coordinates. The second models the strict base reward and ordered lossy extras. The third mirrors recipe 1025's exact input counts, per-output PDA volume baseline, selected-input ratio, and two-stage integer yield."
+  },
+  "formulas": [
+    {
+      "title": "Cotton's deterministic rule interval",
+      "expression": "H = surfaceHeight(x,z); r = hashCoord3(seed,x,H+1,z,1200+201) mod 10000; cotton iff surfaceBlock=grass AND (waterLevel is null OR waterLevel<=H) AND treeBlock(x,H+1,z)=air AND 425<=r<455; P_roll(cotton | eligible grass) = (455-425)/10000 = 0.003",
+      "explanation": "Rule 74 occupies thirty values in the shared ten-thousand-value band for salt 201. The 0.3% figure is the conditional hash share for an otherwise eligible grass face; it is not a fresh random chance per swing and not a percentage of every world block.",
+      "terms": [
+        {
+          "symbol": "H",
+          "meaning": "Canonical generated surface height at horizontal coordinate x,z."
+        },
+        {
+          "symbol": "r",
+          "meaning": "Stable unsigned rule roll shared by rows using salt 201 at this coordinate."
+        },
+        {
+          "symbol": "425 <= r < 455",
+          "meaning": "The half-open interval assigned to cotton in the current revision-2 table."
+        }
+      ]
+    },
+    {
+      "title": "Strict support reward, then ordered lossy extras",
+      "expression": "F = max(0,C-n-1); A_decoration = D*1[F>=1]; A_extra = E*1[F>=1+D]; n_after = n+1+A_decoration+A_extra",
+      "explanation": "For a mining transaction with room for its mandatory base block, n is the occupied count before mining and C is capacity. The +1 stores the supporting terrain block. D and E indicate an eligible surface decoration and exploration extra. When only one slot was free before mining, grass fills it and cotton is skipped; when one slot remains afterward, cotton takes it before the exploration reward.",
+      "terms": [
+        {
+          "symbol": "F",
+          "meaning": "Free slots remaining after the required mined terrain record is appended."
+        },
+        {
+          "symbol": "D, E",
+          "meaning": "Binary indicators for an eligible surface decoration and exploration extra."
+        },
+        {
+          "symbol": "A_decoration, A_extra",
+          "meaning": "The secondary records that actually fit and are therefore appended."
+        }
+      ]
+    },
+    {
+      "title": "Cotton-cloth inputs and per-output integer volume",
+      "expression": "N_cotton=4m; N_dryGrass=m; N_fuel>=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(10000,7000+300L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))",
+      "explanation": "Batch multiplier m repeats each of recipe 1025's five input rows, while every input and fuel index must remain unique. Fuel volume is not part of V_in. The program first scales this output's one-million-cubic-millimetre PDA template by the ratio between selected and recipe-template input volume, then applies the 6,500-basis-point recipe yield and the 7,000-to-10,000 skill factor with integer division. It does not divide one aggregate result evenly among outputs.",
+      "terms": [
+        {
+          "symbol": "m",
+          "meaning": "Recipe batch multiplier; one batch selects four cotton blocks and one dry-grass block."
+        },
+        {
+          "symbol": "L",
+          "meaning": "Current smelting level from zero through ten."
+        },
+        {
+          "symbol": "V_recipe, V_template, V_in, V_cloth",
+          "meaning": "One batch's expected recipe-input volume, this output's PDA template volume, selected recipe-input volume, and the resulting cloth-record volume in cubic millimetres."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Secondary records stop at the backpack boundary",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "        Self::validate_owner(data, owner)?;\n        let capacity = data[Self::CAPACITY_OFFSET];\n        let mut item_count = data[Self::ITEM_COUNT_OFFSET];\n        if records.is_empty() || item_count >= capacity {\n            return Ok(());\n        }\n\n        for (index, record) in records.iter().enumerate() {\n            if item_count >= capacity {\n                break;\n            }\n            let offset = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;\n            BackpackSlotRecord::from_block_resource_with_volume_and_metadata(\n                *record,\n                volumes_mm3.get(index).copied().unwrap_or(0),\n                metadata.get(index).copied().unwrap_or(0),\n            )\n            .pack(&mut data[offset..offset + BACKPACK_SLOT_RECORD_LEN])?;\n            item_count = item_count.saturating_add(1);\n        }\n        data[Self::ITEM_COUNT_OFFSET] = item_count;\n        data[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]\n            .copy_from_slice(&updated_slot.to_le_bytes());\n        Ok(())",
+      "explanation": "The Backpack Program validates ownership, then treats a full account as a successful no-op for this batch. Ordered records fill only the slots that remain, which is why the Chunk Program places the visible decoration before the invisible exploration extra."
+    },
+    {
+      "title": "Verified inputs are removed before each output is independently sized and appended",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    let input_volume_mm3 = {\n        let backpack_data = backpack.try_borrow_data()?;\n        BackpackAccountView::validate_recipe_inputs(\n            &backpack_data,\n            owner.key,\n            indexes,\n            fuel_indexes,\n            &recipe,\n            multiplier,\n        )?\n    };\n\n    remove_backpack_resources(owner, backpack, backpack_program, indexes, fuel_indexes)?;\n    let recipe_input_volume_mm3 = recipe_input_volume_mm3(&recipe);\n    for output_index in 0..recipe.output_count as usize {\n        let output = &recipe.outputs[output_index];\n        let output_volume_mm3 = smelting_output_volume_mm3(\n            output.volume_mm3,\n            input_volume_mm3,\n            recipe_input_volume_mm3,\n            multiplier,\n            recipe.yield_bps,\n            skill_output_bps,\n        );\n        append_smelting_output_to_backpack(\n            program_id,\n            smelting_authority,\n            owner,\n            backpack,\n            backpack_program,\n            output,\n            output_volume_mm3,\n        )?;\n    }",
+      "explanation": "Validation first reads the authoritative Backpack and sums selected recipe-input volume. The transaction removes every selected input and fuel record, then sizes each active output independently from that output's PDA template, the actual-versus-expected input ratio, the batch multiplier, recipe yield, and skill factor. A later failure rolls the complete Solana transaction back."
+    },
+    {
+      "title": "Chunk.js weights inherited attributes by material actually used",
+      "language": "JavaScript",
+      "source": "chunk.js/forge/forge-workbench.js",
+      "code": "    inputVolumeMm3 = checkedSafeAdd(inputVolumeMm3, material.volumeMm3, \"total forge input volume\");\n    const componentSolidCells = forgeSolidCellCount(component.solid);\n    componentSolidCellCounts[index] = componentSolidCells;\n    solidCellCount += componentSolidCells;\n    const componentVolumeMm3 = Math.floor(material.volumeMm3 * componentSolidCells / FORGE_WORKBENCH_SOLID_CELL_COUNT);\n    componentVolumesMm3[index] = componentVolumeMm3;\n    usedVolumeMm3 = checkedSafeAdd(usedVolumeMm3, componentVolumeMm3, \"used forge material volume\");\n    const massWeight = componentVolumeMm3 * material.profile.densityScore;\n    componentMassWeights[index] = massWeight;\n    massWeightTotal = checkedSafeAdd(massWeightTotal, massWeight, \"forge material mass weight\");\n    for (let attributeIndex = 0; attributeIndex < FORGE_ATTRIBUTE_KEYS.length; attributeIndex += 1) {\n      const key = FORGE_ATTRIBUTE_KEYS[attributeIndex];\n      attributeTotals[attributeIndex] += material.profile.attributes[key] * massWeight;",
+      "explanation": "The local workbench derives twelve design attributes from occupied component cells and density-weighted used volume. This detailed inheritance explains the editor and exported design, but the chain stores only aggregate forge outcome fields and a 32-bit design hash."
+    }
+  ],
+  "sections": [
+    {
+      "id": "cotton-rule",
+      "eyebrow": "SURFACE DECORATION TABLE",
+      "title": "Cotton begins as one ordered rule bound to a grass top face",
+      "paragraphs": [
+        "The current SurfaceDecorationTable revision contains forty-three generic numeric rows. Rule 74 maps canonical grass block 1 to cotton drop block 48, uses decoration model 12, occupies roll interval 425 through 454 for salt 201, and carries the shadow and mineable flags. Chunk.js fetches those rows for rendering; the Chunk Program reads the PDA again when it evaluates a reward.",
+        "A coordinate must first resolve an uncovered canonical grass surface inside the rule's height range. Water above the surface suppresses the decoration, and a generated tree voxel in the bound space wins instead. Rows using the same salt share one hash roll and are evaluated in stored order, so cotton and the five flower colors occupy disjoint bands rather than running six unrelated random trials."
+      ],
+      "facts": [
+        {
+          "label": "Current cotton row",
+          "value": "Rule 74 · decoration 12",
+          "detail": "Grass block 1 resolves cotton block 48 when the shared roll lies in [425,455)."
+        },
+        {
+          "label": "Conditional roll share",
+          "value": "30 / 10,000",
+          "detail": "A stable 0.3% interval among eligible grass coordinates, not a repeated swing chance."
+        },
+        {
+          "label": "Rule source",
+          "value": "SurfaceDecorationTable PDA",
+          "detail": "The bundled JavaScript defaults are initialization and test fixtures, not the production authority."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "The plant is not an independently mined world voxel",
+        "body": "Cotton is a face-bound decoration resolved from the supporting coordinate. The canonical mining action targets the generated grass beneath it; the program resolves the current PDA rows for that coordinate and considers cotton only if the resulting entry matches the mined surface."
+      }
+    },
+    {
+      "id": "support-mining",
+      "eyebrow": "ONE ATOMIC MINING ACTION",
+      "title": "The program rechecks the support, records the break, and stores grass before cotton",
+      "paragraphs": [
+        "A mining transaction supplies integer coordinates and the client's expected base block. The Chunk Program verifies the session and canonical accounts, rejects a foundation-protected coordinate, regenerates the base block, reads both rule PDAs, and rejects air, water, bedrock, or an expected-block mismatch. A decoration becomes eligible for the secondary reward only when its surface Y and surface block match the block being mined; a mismatch removes that extra without invalidating the base mining action.",
+        "The transaction records the broken local coordinate and then invokes the Backpack Program for the required terrain reward. Only after that strict append succeeds does it build a secondary list. Cotton is first, with block ID 48, the supporting coordinate, the same precision-gathering volume, and metadata packing rule ID 74 with decoration ID 12. An optional ResourceDropTable exploration reward follows it."
+      ],
+      "steps": [
+        {
+          "title": "Reconstruct",
+          "body": "Resolve the canonical block and PDA-driven decoration for the submitted coordinate."
+        },
+        {
+          "title": "Stage the mandatory state",
+          "body": "Insert the broken coordinate and strictly append the mined support block to the owner's backpack."
+        },
+        {
+          "title": "Offer ordered extras",
+          "body": "Try cotton first and an exploration drop second without making either one a reason to fail the base mining action."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "A full failure rolls back the broken coordinate too",
+        "body": "The base backpack append is part of the same Solana transaction as the ChunkBroken update. If the mandatory grass record cannot be stored, the transaction fails atomically; it does not leave a mined hole with no base reward."
+      }
+    },
+    {
+      "id": "capacity-order",
+      "eyebrow": "BACKPACK CAPACITY",
+      "title": "Cotton is visible in the world but still needs a second free slot",
+      "paragraphs": [
+        "The backpack account physically reserves ninety-nine 80-byte records, but current initialization limits a new backpack's active capacity to at most fifty. Item count is dense: records occupy indexes zero through itemCount minus one. The strict grass append increases that count before the lossy batch sees the account.",
+        "If mining begins with exactly one free slot, grass occupies it and the lossy batch returns success without cotton. If two slots were free, cotton fills the second and an exploration extra is skipped. There is no pending mailbox, later claim, or compensating mint. Players therefore need at least two open slots before breaking a cotton-bearing grass face if they want both the support block and cotton."
+      ],
+      "facts": [
+        {
+          "label": "Current initial ceiling",
+          "value": "50 active slots",
+          "detail": "The account format reserves 99 records, but the initialization instruction clamps capacity to 50."
+        },
+        {
+          "label": "One free slot before mining",
+          "value": "Grass only",
+          "detail": "The mandatory support reward fills the backpack; cotton is silently skipped."
+        },
+        {
+          "label": "One free slot after grass",
+          "value": "Cotton wins",
+          "detail": "The visible decoration precedes the invisible exploration extra in the lossy batch."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Successful mining does not prove every eligible reward was retained",
+        "body": "The accepted transaction proves the base break and whatever backpack records actually fit. It does not promise that a capacity-skipped secondary reward can be recovered later."
+      }
+    },
+    {
+      "id": "cloth-recipe",
+      "eyebrow": "RECIPE 1025",
+      "title": "Four cotton records and one dry-grass record must match exactly",
+      "paragraphs": [
+        "The current enabled recipe in table 222 has five block inputs in order-independent matching: cotton IDs 48, 48, 48, 48 and dry-grass ID 29. Its chain output is material item code 1025. The public material catalog maps that code to class fiber, forge use fabric, and render mode cloth. Plant fiber is no longer in the public material catalog; historical recipes 1003 and 2003 remain disabled so old numeric identities do not shift.",
+        "Execution must also include at least one fuel index whose maximum heat tier reaches the recipe's minimum of one. Input and fuel indexes share one uniqueness set, so the dry-grass record counted among the five recipe inputs cannot double as fuel. A batch multiplier repeats all five recipe rows, but it still produces one material slot whose volume is calculated from that output template and the batch's actual-to-template input-volume ratio."
+      ],
+      "facts": [
+        {
+          "label": "Verified input IDs",
+          "value": "48 + 48 + 48 + 48 + 29",
+          "detail": "The chain matches packed block identifiers from authoritative backpack records."
+        },
+        {
+          "label": "Output identity",
+          "value": "Item code 1025",
+          "detail": "One cotton-cloth material record is appended for the current single-output recipe."
+        },
+        {
+          "label": "Heat boundary",
+          "value": "Tier 1 · separate fuel",
+          "detail": "At least one unique fuel slot is required in addition to the five recipe inputs."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "The source data's one-million cubic millimetres is not a fixed payout",
+        "body": "The output template supplies a one-million-cubic-millimetre baseline, not a guaranteed payout. Live execution scales that baseline by the selected-versus-expected input volume ratio and batch multiplier, then applies the 6,500-basis-point fiber yield and the player's smelting level."
+      }
+    },
+    {
+      "id": "consumed-output",
+      "eyebrow": "AUTHORITATIVE MATERIAL TRANSITION",
+      "title": "Recipe execution removes the selected slots and writes the resulting cloth volume",
+      "paragraphs": [
+        "Before mutating the backpack, the Smelting Program validates its owner, capacity, every unique input and fuel index, exact multiplicities, heat tier, and the room available after removal and output insertion. It sums the recipe-input volumes, excluding fuel, then removes every selected input and fuel record through the Backpack Program.",
+        "For each active output, the program starts from that output's PDA template volume, scales it by batch multiplier and by the ratio of actual selected input volume to expected recipe-template input volume, then applies recipe yield and the current Smelting skill factor with integer arithmetic. For one default-volume cotton-cloth batch, the one-million template becomes 455,000 cubic millimetres at level zero or 650,000 at level ten. The current one-output recipe writes one cloth slot carrying that calculated batch volume."
+      ],
+      "facts": [
+        {
+          "label": "Fiber recipe yield",
+          "value": "6,500 bps",
+          "detail": "Applied to the scaled per-output PDA template before the skill factor, using integer division."
+        },
+        {
+          "label": "Skill output factor",
+          "value": "7,000 to 10,000 bps",
+          "detail": "Level zero starts at 70%; levels one through ten add 3 percentage points each."
+        },
+        {
+          "label": "Mutation scope",
+          "value": "Inputs + fuel out · cloth in",
+          "detail": "All records change inside one atomic transaction."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "This transition consumes real backpack state",
+        "body": "Unlike a local crafting preview, an accepted recipe transaction removes the exact authoritative indexes it validated and appends the output record. A later failure rolls back both sides of that replacement."
+      }
+    },
+    {
+      "id": "forge-handoff",
+      "eyebrow": "CLOTH INSIDE THE FORGE",
+      "title": "The editor inherits rich material behaviour; the chain keeps a narrower aggregate proof",
+      "paragraphs": [
+        "The forging page maps item code 1025 back to cotton cloth and asks Chunk.js for the baked cloth surface used by material swatches and the live workbench. Locally, each 14 by 10 by 14 component measures occupied cells, scales the selected slot's volume to the material actually present, multiplies that volume by density score, and uses the resulting mass weight across twelve attributes. Restored equipment rebuilds encoded geometry and RGB444 colors, then uses its cloth identity for wind motion; it does not retain the workbench material tile. Cloth painting and runtime flutter are presentation and design behaviour, not a chain simulation of fabric.",
+        "Forge submission takes whole selected material slots. The Backpack Program verifies that every index is a valid material, rejects duplicates, checks that total selected volume and effective durability meet the NCF1 requirements, consumes all selected slots, and appends one forged record. It does not persist the full input list, twelve-attribute spectrum, exact cloth provenance, or dye-to-paint relationship; the forged record keeps aggregate outcome fields and a 32-bit design hash.",
+        "Five flower-dye recipes are enabled, but the current verified world path has no native way to collect water block 17: water is unmineable, rule tables reject water drops, and no bucket instruction exists. The page therefore treats dye as an available recipe definition, not a complete world-harvest-to-dye loop."
+      ],
+      "facts": [
+        {
+          "label": "Local component grid",
+          "value": "14 × 10 × 14",
+          "detail": "Used volume follows occupied component cells before density-weighted inheritance."
+        },
+        {
+          "label": "Chain forge checks",
+          "value": "Volume + effective durability",
+          "detail": "The current verifier checks two aggregate capacities across whole selected slots."
+        },
+        {
+          "label": "Dye status",
+          "value": "Recipes exist · collection loop incomplete",
+          "detail": "A verified native source for required water block 17 is not currently implemented."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A painted cloth design does not prove a matching dye was consumed",
+        "body": "The official editor can map cloth and palette choices into NCF1, but the current forge instruction validates material slots and aggregate capacities. It does not bind a paint color to a particular dye item code."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "chunk.js/world/surface-decoration-rules.js",
+      "claim": "Defines the current cotton and five-color flower fixture rows, disjoint basis-point bands, flags, and generic rule compiler used by Chunk.js initialization and tests."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Validates the deployed SurfaceDecorationTable format and mirrors the stable hash, water, tree, surface, height, salt, and ordered interval matching."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Shows canonical mining validation, strict support-block storage, cotton metadata packing, and decoration-before-exploration secondary reward ordering."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "Implements strict and lossy backpack appends, dense capacity accounting, whole-slot forge consumption, and aggregate forge material checks."
+    },
+    {
+      "path": "src/data/smeltingRules.js",
+      "claim": "Publishes cotton cloth as four cotton plus one dry grass, item and recipe code 1025, fiber yield, cloth rendering mode, and twelve base attributes."
+    },
+    {
+      "path": "scripts/sync-smelting-recipes.ts",
+      "claim": "Encodes repeated raw block inputs into RecipeTable records and preserves disabled historical plant-fiber identities without changing the program."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "Checks exact recipe multiplicities, unique input and fuel indexes, backpack output capacity, heat tier, packed block identifiers, and skill output basis points."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "Removes validated recipe and fuel records, calculates bounded output volume, appends material output, and awards smelting progress atomically."
+    },
+    {
+      "path": "chunk.js/forge/forge-workbench.js",
+      "claim": "Calculates used component volume and density-mass-weighted local attribute inheritance for the NCF1 workbench."
+    },
+    {
+      "path": "forging/chain-adapter.js",
+      "claim": "Maps authoritative backpack material slots into the forge UI while filtering the retired plant-fiber item identity."
+    },
+    {
+      "path": "tests/smelting_rules.ts",
+      "claim": "Locks cotton and flower block IDs, exact cotton-cloth inputs, material output identity and volume template, dye inputs, and plant-fiber retirement."
+    }
+  ],
+  "related": [
+    {
+      "slug": "rule-pdas",
+      "href": "/docs/rule-pdas/",
+      "status": "ready",
+      "title": "Rule PDAs and Surface Life",
+      "summary": "See how ordered surface rows become a deterministic face-bound plant before inventory enters the picture."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "status": "ready",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "Trace the broader boundary between immediate mining feedback, program checks, accepted state, and rollback."
+    },
+    {
+      "slug": "forging-system",
+      "href": "/docs/forging-system/",
+      "status": "ready",
+      "title": "Material-Aware Forging",
+      "summary": "Continue from cloth material records into editable geometry, inherited attributes, NCF1, and the two chain capacity checks."
+    }
+  ]
+}

@@ -1,0 +1,875 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-player-profile-zh-Hans-a6d75820d657b0f6",
+    "contentHash": "a6d75820d657b0f6"
+  },
+  "kind": "topic",
+  "slug": "player-profile",
+  "shortTitle": "PlayerProfile PDA",
+  "seo": {
+    "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+    "description": "无需编程或区块链经验，也能读懂 NiceChunk 当前的 PlayerProfile、Appearance、名称索引、Backpack 指针、拆分的进度账户、浏览器回退、源码层面的锻造物品身份折叠，以及单独记录的、带日期的 Player 账户 Devnet 证据。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 · 第 6 步",
+    "title": "PlayerProfile PDA：身份、装备指针与派生技能",
+    "summary": "NiceChunk 玩家并不存放在一个万能账户里。当前源码树分别保存紧凑的 PlayerProfile、大得多的 Appearance 记录、独立的唯一名称声明、Backpack 记录、按程序分域的进度，以及只存在于浏览器中的状态。本指南解释该源码中发现的 forge 与 Market 身份限制。另一份带日期的快照只覆盖 confirmed Player Program 账户；它不能证明已部署 Backpack 或 Market 代码的行为完全相同。",
+    "readingTime": "阅读约 24 分钟",
+    "visual": {
+      "src": "/docs/media/player-profile-overview-v2.webp",
+      "alt": "生成的体素工坊：标准男孩拿着青色标记，标准女孩比较抽屉、柜子、Backpack 与两台进度仪器。",
+      "caption": "分开的抽屉、柜子、Backpack 和仪器表达一个核心概念：玩家体验由多份记录与本地来源共同组装而成。这些实体道具是使用标准村民和真实 Chunk.js 材质语言制作的教学隐喻；它们不是账户解码器、精确字段计数、所有权证明，也不能证明所有来源彼此一致。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "当 Profile 页面显示我的名称、角色、Backpack、装备、位置和技能时，哪些内容确实来自 PlayerProfile，哪些又来自别处？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 15 步中的第 6 步"
+      },
+      {
+        "label": "适合谁",
+        "value": "没有编程或区块链背景的玩家"
+      },
+      {
+        "label": "实现边界",
+        "value": "当前工作树中 Player、Backpack、Market、Chunk、Smelting、Game、Play、SDK 与 renderer 的源码行为 · 单独的 confirmed Devnet Player Program 账户证据"
+      },
+      {
+        "label": "已审核",
+        "value": "2026 年 7 月 16 日 · 当前未清理工作树、源码原文摘录、聚焦静态检查、生成图来源记录，以及已保留的 confirmed Devnet 账户证据"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Owner（所有者）",
+        "meaning": "玩家的钱包公钥。它是公开身份数据，不是秘密密钥。"
+      },
+      {
+        "term": "Program（程序）",
+        "meaning": "一份 Solana 智能合约。每个程序只验证其自身代码所定义的账户与指令。"
+      },
+      {
+        "term": "PDA",
+        "meaning": "由公开种子和程序 ID 派生的可预测地址。仅完成派生并不会创建账户，也不能证明其账户程序所有者；初始化与所有权检查是彼此独立的步骤。"
+      },
+      {
+        "term": "程序作用域",
+        "meaning": "PDA 派生与所有权检查中包含的程序 ID。正因如此，Chunk progress 与 Game 程序域下的 Smelting progress 始终彼此分开。"
+      },
+      {
+        "term": "PlayerProfile",
+        "meaning": "当前 773 字节的 Player Program 账户，保存 owner 与世界绑定、位置、固定属性、9 个装备指针字段、1 个已装备 Backpack 指针、锻造历史，以及有长度上限的名称。"
+      },
+      {
+        "term": "PlayerAppearance",
+        "meaning": "独立的 9,612 字节 Player Program 账户，保存显示名称、称号、模型类型、模型代码，以及 12 条预留的富结构装备记录。"
+      },
+      {
+        "term": "UsernameIndex",
+        "meaning": "一份以规范名称哈希寻址的 256 字节账户。它把一项当前名称声明关联到一个 owner 与 PlayerProfile。"
+      },
+      {
+        "term": "Backpack",
+        "meaning": "独立的物品栏账户，以紧密排列的记录保存资源和锻造物品。其内容不会被复制进 PlayerProfile。"
+      },
+      {
+        "term": "账户程序所有者",
+        "meaning": "获准写入某个账户的 Solana 程序。它不同于 Backpack 数据内部 owner 字段所保存的玩家钱包。"
+      },
+      {
+        "term": "记录索引",
+        "meaning": "Backpack 紧密记录数组中从 0 开始的位置。它不等同于装备槽位或物品标识符。"
+      },
+      {
+        "term": "item_pda 字段",
+        "meaning": "每条已锻造 Backpack 记录中保存的 32 字节字段，并会被复制到 Profile equipment。尽管名字如此，当前 forge 路径填入的是 owner 的 PlayerProfile 地址，而不是物品唯一的账户地址。"
+      },
+      {
+        "term": "装备槽位",
+        "meaning": "PlayerProfile 内 9 个公钥字段之一。槽位只记录选中的 32 字节值，不会移动或锁定底层 Backpack 记录。"
+      },
+      {
+        "term": "保管位置",
+        "meaning": "可用物品记录实际保留的位置。当前 Profile equip 验证会让锻造记录继续留在 Backpack 中。"
+      },
+      {
+        "term": "PlayerProgress",
+        "meaning": "在特定程序下派生的 128 字节 progress 布局。Chunk 与 Game 可以用相同的种子词分别持有不同账户。"
+      },
+      {
+        "term": "锻造 XP",
+        "meaning": "Backpack 计算 forge outcome 并把获得量发送给 Player 后，直接存入 PlayerProfile 的 XP。"
+      },
+      {
+        "term": "派生 XP",
+        "meaning": "浏览器根据本地活动计数器计算出的数值。它可以用于显示或本地效果，但并不是链上结算的 progress。"
+      },
+      {
+        "term": "localStorage",
+        "meaning": "当前设备上的浏览器存储。它不是 Solana 账户，可能不存在，也可被本地修改，并且不会自动跨设备共享。"
+      },
+      {
+        "term": "confirmed 读取",
+        "meaning": "当前浏览器 helper 与这份带日期快照所用的 RPC commitment。它是有用的观察级别，却不是永久保证。"
+      },
+      {
+        "term": "带日期的快照",
+        "meaning": "在某个 slot 和时间点捕获的账户清单。之后的交易可以改变数量和字段值。"
+      },
+      {
+        "term": "来源说明",
+        "meaning": "说明一个显示值来自哪里：具名账户、运行时数值、浏览器存储，或派生计算。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "PlayerProfile 是锚点，不是完整角色",
+      "body": "它的 773 字节不包含 Backpack 物品栏、完整角色几何体、唯一名称账户、两份 progress 账户、钱包余额、快捷栏选择，也不包含 Profile 页面上的大多数技能。"
+    },
+    {
+      "title": "当前锻造物品指针并非物品唯一",
+      "body": "当前 Backpack forge 源码会把 owner 的 PlayerProfile 地址写入每条新锻造记录的 item_pda 字段。因此，不同产物可以共享同一个键，而装备来源的 Market 查询会停在第一条物品类型且键匹配的 Backpack 记录。保留的仅 Player Devnet 快照不能证明已部署 Backpack 或 Market 二进制遵循这份源码。"
+    },
+    {
+      "title": "Profile 页面是组合视图",
+      "body": "它把 Profile 与 Appearance 读取结果，同钱包数据、当前运行时位置、cache-first Backpack 查询、选中的快捷栏状态、本地计数器、浏览器存储及客户端计算组合在一起。"
+    },
+    {
+      "title": "程序作用域决定实际读取了哪份 progress",
+      "body": "Chunk 与 Game 会派生彼此独立的 PlayerProgress 地址。当前 refresh 只读取 Chunk 程序域下的账户，所以即使结算成功，Game 程序域下的 Smelting XP 仍可能缺失。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "one-owner-several-records",
+      "eyebrow": "按程序分域的身份",
+      "title": "一个钱包会解析到多份职责不同的记录",
+      "paragraphs": [
+        "当前网站配置指向 Devnet。Profile、Appearance、UsernameIndex 与 Session 属于 Player Program；Precision Gathering 与 Exploration progress 属于独立的 Chunk Program；Backpack、Smelting 与 Market 目前经由统一的 Game Program。PDA 包含自身程序域，因此相同的种子词在 Chunk 与 Game 下仍会生成互不相关的地址。",
+        "PlayerProfile 是紧凑的 owner 与世界锚点；PlayerAppearance 保存可见身份和模型数据；UsernameIndex 保存规范名称声明；Backpack 保存紧密排列的物品栏记录；PlayerProgress 则在更新它的程序域内保存技能历史。这些记录可以重复包含同一个 owner 或 Profile 键，但没有任何程序会自动把它们联接成同一行数据库记录。",
+        "对普通玩家来说，实用规则很简单：一个钱包可以指向多个公开盒子，每个盒子回答不同的问题。读到其中一个盒子，并不能证明其他盒子存在、仍是最新，或彼此一致。"
+      ],
+      "facts": [
+        {
+          "label": "紧凑锚点",
+          "value": "PlayerProfile · 773 字节",
+          "detail": "Player Program 下的一份当前 player-v7 PDA。"
+        },
+        {
+          "label": "可见外观",
+          "value": "PlayerAppearance · 9,612 字节",
+          "detail": "Player Program 下独立的一份 appearance-v1 PDA。"
+        },
+        {
+          "label": "拆分的 progress",
+          "value": "Chunk PDA ≠ Game PDA",
+          "detail": "同一组 progress 种子元组仍受程序域限定。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-one-owner-several-records-v1.webp",
+        "alt": "生成的体素档案室：标准村民站在书桌、镜柜、独立置物架与两座青色顶面石台之间。",
+        "caption": "书桌、镜柜、置物架和两座独立石台让这些记录显得彼此分离，尽管它们都与同一对村民有关。自然的镜面倒影和画面中的道具数量仅用于说明；真实 PDA 地址、程序作用域与字节布局由公式和源码决定。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "owner 键表达关联关系，不是通用账户地址",
+        "body": "Profile、Appearance、UsernameIndex、Session、Backpack、Chunk progress 与 Smelting progress 始终各自派生、各自验证。"
+      }
+    },
+    {
+      "id": "profile-is-not-profile-screen",
+      "eyebrow": "紧凑账户，组合页面",
+      "title": "PlayerProfile 保存公开字段与检查点，而不是整张 Profile 页面",
+      "paragraphs": [
+        "当前初始化会写入 NCKPLY01 magic、version 7、owner、GlobalConfig、world ID、零位置，以及 6 个默认值：生命 100、能量 100、耐力 100、采矿力 1、建造力 1、防御 0。它还会创建 9 个空装备指针字段、1 个空的 equipped-Backpack 指针、时间戳、全零锻造历史，以及有长度上限的名称区域。当前没有任何 Player 指令会修改这 6 个默认属性。",
+        "位置由 3 个有符号 32 位整数组成。Player Program 只会把 Y 与 Core 的最小、最大建造边界比较。当前 Play 选择出生点时不读取 Profile position，也不会把普通行走保存上链；Play 的启动位置改由查询参数中的 pose、本地位置存储或默认 Guardian 起点决定。",
+        "达到 confirmed 的资源采矿路径，是当前可能保存 Profile 检查点的地方。如果经过验证的采矿交易尚未携带这次保存，Play 可以请求一次强制补充位置更新。因此，Profile position 是稀疏的链上检查点，不是出生坐标、实时追踪器，也不能证明角色此刻站在哪里。",
+        "可见的 Profile 面板还会加入来自其他位置的信息：level 取客户端有效技能等级的平均值，reputation 使用本地已确认操作计数器，region 来自运行时位置，balance 来自钱包，stat 卡片则来自客户端技能效果。这些卡片很有用，但并不是对 6 个固定 Profile 属性的直接解码。"
+      ],
+      "facts": [
+        {
+          "label": "初始化属性",
+          "value": "100 · 100 · 100 · 1 · 1 · 0",
+          "detail": "当前 Player 指令集中没有写入这 6 个 u16 值的路径。"
+        },
+        {
+          "label": "位置",
+          "value": "i32 X · i32 Y · i32 Z",
+          "detail": "合约只限制 Y；当前链上保存与经过验证的资源采矿路径绑定。"
+        },
+        {
+          "label": "启动位置",
+          "value": "不从 Profile 读取",
+          "detail": "当前 Play 会选择查询参数 pose、本地已保存位置或默认起点。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-profile-is-not-profile-screen-v1.webp",
+        "alt": "生成的山坡工坊：标准男孩拿着一本小账册，标准女孩整理镜子、衣架、Backpack、工具与地图箱。",
+        "caption": "小账册代表紧凑的 Profile，更大的准备区代表页面从别处取得的信息。镜面倒影、地图纹理与道具摆放只是叙事隐喻；它们不编码精确 offset，不能证明链上检查点，也不展示出生规则。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "把面板理解为组合视图",
+        "body": "一张卡片可以显示正确，却仍不来自 PlayerProfile。在把它称为链上 Profile 状态之前，应先问清是哪个来源提供了它。"
+      }
+    },
+    {
+      "id": "name-and-appearance-precedence",
+      "eyebrow": "名称声明、可见身份与模型代码",
+      "title": "唯一名称声明与可见外观遵循不同规则",
+      "paragraphs": [
+        "PlayerProfile 为名称预留 300 字节，但合约最多接受 32 个字符，且只能使用下划线、ASCII 字母或数字，以及 U+4E00 至 U+9FFF。浏览器预检使用更宽泛的 Unicode Han script 类，因此某些扩展汉字可以通过浏览器，却仍被程序拒绝。对于非空名称，程序只把 ASCII 的 A 到 Z 转为小写，再对 UTF-8 字节计算哈希，并据此派生 UsernameIndex。",
+        "修改 Profile 名称不会关闭旧的 UsernameIndex，清空名称也不会释放早先的声明。只改变字母大小写的重命名会到达同一索引并验证所有权，但已有索引不会用新的显示大小写重写。因此，仅凭 Profile 或 Appearance 中可见的一段字符串，并不能证明对应的规范索引确实存在。",
+        "Appearance upsert 是完整的可见身份路径：它在一条指令中把已验证名称写入 Profile，声明或复用当前 UsernameIndex，并把显示名称、称号、模型类型和模型代码打包进 Appearance。只更新名称会修改 Profile，却不修改 Appearance。当前 Play 优先使用 Appearance.displayName，因此较旧的 Appearance 值可能继续遮住只写入较新 Profile 的名称。",
+        "modelCode 的合约检查刻意保持宽松：它接受 3 至 2,048 个有效 UTF-8 字节，并要求以区分大小写的 NCM 前缀开头。它不验证 NCM 版本、不解码几何体、不把 modelKind 与某种身体绑定，也不要求使用标准村民。当前 Chunk.js loader 接受内置别名，并能渲染 NCM2 与 NCM4。像 NCM 这样只有前缀的值可以通过程序，却仍在渲染时失败。",
+        "玩家为 Appearance 存储出资，但只有配置好的 treasury 才能关闭该账户并接收其中的 lamports。PlayerProfile 与 UsernameIndex 没有 close 指令。不能把存储出资描述成由 owner 控制、可退还的押金。"
+      ],
+      "steps": [
+        {
+          "title": "验证合约规定的精确字符集",
+          "body": "提交前应用 32 字符、300 字节、ASCII、下划线与 U+4E00–U+9FFF 限制；浏览器更宽泛的 Han 检查并非最终权威。"
+        },
+        {
+          "title": "声明或复用规范名称地址",
+          "body": "非空名称对应的 SHA-256 派生 UsernameIndex 必须尚不存在，或已经绑定到同一 owner 与当前 Profile。"
+        },
+        {
+          "title": "可见身份变化时同时更新 Profile 与 Appearance",
+          "body": "完整的 Appearance upsert 会让两份记录保持一致；只写名称则会有意保持 Appearance 不变。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-name-and-appearance-precedence-v1.webp",
+        "alt": "生成的身份摊位：标准女孩面对发光镜子与衣柜，标准男孩在另一侧柜台拿着空白木牌。",
+        "caption": "明亮镜子、空白小木牌与独立笔记本，让 Appearance、Profile 名称和本地回退呈现为具有优先顺序的不同来源。镜子不是传送门，木牌不是密码学证明，衣物数量也不代表账户字段。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "已存储的模型文本不等于已渲染几何体",
+        "body": "链上只证明宽松的 UTF-8 与 NCM 前缀封装。Chunk.js 仍须成功解码可接受的别名、NCM2 body 或 NCM4 body，mesh 才会存在。"
+      }
+    },
+    {
+      "id": "equipment-pointers-not-custody",
+      "eyebrow": "指针、记录与保管位置",
+      "title": "当前装备指针可能把多件锻造物品折叠成同一个键",
+      "paragraphs": [
+        "set_equipment_slot 并不是简单地写入两个字段。authority 必须签名；Profile 必须可写、归 Player 所有、是该 authority 当前的 player-v7 PDA，并且绑定传入且归 Core 所有的 GlobalConfig。Profile 槽位必须有效。对于真实物品，Backpack 必须归可接受的独立 Backpack Program 或统一 Game Program 所有，具有当前布局与玩家 owner，并且等于 PDA(account owner, backpack, player wallet, LE64 backpack ID)。选中的紧密记录还必须通过锻造物品数量、ID、耐久度、grade、level 与 quality 检查。",
+        "验证完成后，Player 只把记录中的 32 字节 item_pda 字段复制到一个 Profile 槽位。Backpack 保持不变：物品不会被转移、预留、移除或锁定。同一个 32 字节值可以写入多个 Profile 槽位。Player 接受两种可能的 Backpack 账户程序所有者，而一份编译后的 Market build 只接受其配置的 Backpack program owner。",
+        "字段名看起来像物品专属地址，但当前已审计的 forge 源码会把 player_profile.key 传给每个新产物，Backpack 随后把该值存为 item_pda。因此，同一 owner 制作的不同锻造记录，即使 item ID、design hash、grade、level、durability 与 Backpack index 都不同，也可能共享同一个 PlayerProfile 公钥。",
+        "当这个键被共享时，Market 的两种挂牌来源会以不同方式出错。对于装备槽挂牌，Market 会读取所选 Profile 槽，从紧凑索引 0 扫描 Backpack，并立即验证第一条物品类型且键匹配的记录。若有效，就移除该 Backpack 记录并清空玩家选择的 Profile 槽；若第一条匹配记录无效，指令会报错，而不会继续寻找后面的同键记录。",
+        "对于直接 Backpack 挂牌，Market 会移除玩家选择的 Backpack 索引，再从槽 0 扫描 Profile 槽，并清空第一条同键指针。因此，共享键可能让装备路径移除玩家预期之外的 Backpack 记录，或让 Backpack 路径清空另一个匹配的 Profile 指针。这些是当前已审计源码的边界；保留的仅 Player Devnet 快照不能证明已部署 Market 二进制或真实挂牌结果与之相同。",
+        "PlayerAppearance 预留了 12 条、每条 576 字节的富结构装备记录，但当前每次 Appearance pack 都会把它们写空。链上 decoder 最多读取 9 个 Profile equipment 指针，但当前 Profile UI 改为渲染选中的快捷栏状态与已同步的 Backpack。生成的工坊图只解释引用与保管位置的区别；它不能证明槽位数量或物品唯一性。"
+      ],
+      "facts": [
+        {
+          "label": "Forge 写入",
+          "value": "record.item_pda = PlayerProfile PDA",
+          "detail": "同一 owner 的不同产物可以共享这个 32 字节值。"
+        },
+        {
+          "label": "Equip 写入",
+          "value": "Profile 槽位 = record.item_pda",
+          "detail": "经过验证的 Backpack 记录仍留在原处，并且没有被锁定。"
+        },
+        {
+          "label": "Market 查询",
+          "value": "装备来源：第一条类型/键匹配",
+          "detail": "直接 Backpack 挂牌则会移除所选记录，再清空第一条同键 Profile 槽。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-equipment-pointers-not-custody-v1.webp",
+        "alt": "生成的装备工坊：锻造镐仍留在女孩打开的 Backpack 中，男孩只把青色标记放进墙架。",
+        "caption": "锻造镐实体仍留在打开的 Backpack 中，只有一枚小标记进入墙架。这个场景讲解的是引用与保管位置的区别。第二只合上的 Backpack、墙架开口、挂钩、人偶与灰色工具都只是辅助布景，不编码精确槽位数量、Market 匹配、程序所有权或物品唯一性。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "不要把当前 forge 路径中的 item_pda 称为物品唯一",
+        "body": "对 Player 而言，它只是一个经过验证的不透明字段；但当前已审计的 Backpack forge 源码会用 owner 的 Profile 地址填充它。因此，装备来源的 Market 查询可能把不同锻造记录折叠在一起。这份仅 Player 的 Devnet 快照不会验证已部署的 Backpack 或 Market 二进制。"
+      }
+    },
+    {
+      "id": "progress-across-programs",
+      "eyebrow": "十项可见技能，四个链上支撑概念",
+      "title": "Progress 分散在不同程序中，随后再与浏览器历史合并",
+      "paragraphs": [
+        "Profile 面板定义了 10 项技能。Precision Gathering 与 Exploration 在 Chunk PlayerProgress 中增长；Smelting 在统一 Game Program 的 Smelting 命名空间下、另一份独立 PlayerProgress 中增长；Forging XP、锻造次数、最佳 grade 和最佳物品 level 则保存在 PlayerProfile。Burden、Craftsmanship、Swiftness、Stamina、Strength 与 Appraisal 在当前程序中没有对应的链上 XP 字段。",
+        "浏览器根据本地活动计数器派生 XP，并加载一个浏览器对象。它先尝试按钱包或 Profile 分域的 localStorage 键；只有该值不存在时，才使用旧版未分域键。这两个浏览器对象不会彼此合并。随后，选中的浏览器对象会与派生计数器及已获取的链上子集逐项技能取最大值合并。",
+        "当前 refresh 只在 gameContext.chunkProgramId 下调用一次 fetchPlayerProgress，并要求账户程序所有者是 Chunk Program。它会从该 Chunk 账户解码 Smelting offset，尽管成功的 Smelting 结算会把相同布局的 PDA 写在 gameContext.smeltingProgramId 下，而该程序目前是统一 Game Program。因此，真实 Smelting XP 可以已经存在，而 Profile 面板获取到的来源仍为零或过期。",
+        "Precision、Smelting 与 Exploration 的客户端阈值公式复现了各自链上数组，但 Forging 没有。Backpack 把 45,000 forging XP 视为 level 10，而通用 UI 曲线在该数值下显示 level 4。Backpack 还会按最终 grade 平方的 25 倍计算获得的 forge XP。Player 不会重算该公式：它验证 forging authority 后，直接对 Backpack 提供的非零 gained_xp 做饱和加法。",
+        "因此，一个较大的显示值可以如实反映浏览器合并规则，却不等于链上真值。仅客户端效果可能使用这个可见最大值，而采矿与 Smelting 结算仍会执行各自程序规则。"
+      ],
+      "facts": [
+        {
+          "label": "链上位置",
+          "value": "Chunk · Game · PlayerProfile",
+          "detail": "4 个有链上支撑的技能概念仍分布在 3 个账户位置。"
+        },
+        {
+          "label": "浏览器存储",
+          "value": "scoped 或 legacy",
+          "detail": "先选择一个本地对象，再与派生值和已获取值取最大值合并。"
+        },
+        {
+          "label": "当前 Smelting 读取",
+          "value": "仅 Chunk 程序域",
+          "detail": "refresh 不会获取 Game 程序域下的 Smelting progress 账户。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-progress-across-programs-v1.webp",
+        "alt": "生成的草地空地：标准村民分别照看采石与冶炼工坊中的青色进度容器，两处之间放着几本笔记本。",
+        "caption": "两座分开的工坊把程序作用域直观呈现出来，中间的笔记本则暗示浏览器历史。笔记本数量和不同容器形状仅用于说明。图片不能证明种子相同、字节布局、账户程序所有者、遗漏读取或最大值合并；这些结论来自公式与源码原文。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "正确的 level 曲线无法弥补遗漏的账户读取",
+        "body": "Smelting 可以在 Game 下成功结算，却仍不会出现在只派生并获取 Chunk PlayerProgress 的 refresh 中。"
+      }
+    },
+    {
+      "id": "what-the-profile-ui-proves",
+      "eyebrow": "逐来源说明",
+      "title": "把每张 Profile 卡片都视为一项有独立来源的声明",
+      "paragraphs": [
+        "当前链上 decoder 会读取 Profile position、固定属性、9 个装备指针、已装备 Backpack、锻造历史和名称。UI 并不会使用每一个已解码字段。它的装备面板把选中的快捷栏记录用于主手，把已同步的 Backpack 数据用于背部槽位，其他概念槽位则保持空白或锁定。",
+        "Backpack 同步采用 cache-first。若按钱包分域缓存的 Backpack 地址仍能加载为 owner 有效的 Backpack，helper 会在读取 Profile.equippedBackpack 之前直接返回它。只有缓存缺失或无效时，才回退到当前 Profile 指针。因此，页面可以显示一只有效 Backpack，却不能证明它刚刚与当前 Profile 选择完成了对账。",
+        "身份同样分层。Appearance 显示名称优先于 Profile 名称；本地 profile 值和内置村民别名可以提供回退。运行时位置、钱包余额、本地计数器与派生技能效果则提供其他卡片。当前 Profile 面板没有可见控件接入现有的 savePlayerName 或 savePlayerAppearance helper，因此 helper 存在并不能证明玩家可在这里编辑身份。",
+        "浏览器链模块与导出的 TypeScript SDK 目前并未在每条名称指令上保持一致。静态源码显示：非空名称更新的 processor 要求 5 个账户，而 SDK 只构造 3 个；Appearance upsert 的 processor 要求 6 个账户，而 SDK 只构造 5 个。浏览器模块会构造正确的 5 账户与 6 账户形式。现有测试断言的是旧版 SDK 列表，因此测试通过不能证明它与已部署合约一致。这里不声称任何缺少证据支持的 Devnet simulation 结果。",
+        "可信的 Profile 页面不需要一个巨型账户，而需要清晰标签与对账：说明账户或本地来源，在正确程序下获取 progress，区分 Backpack 保管位置与 Profile 指针，并明确标出仅本地存在的值。"
+      ],
+      "bullets": [
+        "身份：说明最终采用的是 Appearance、Profile、本地 profile，还是内置回退。",
+        "Backpack：说明该值来自钱包缓存，还是新读取的 Profile 指针回退。",
+        "装备：区分 Backpack 记录、Profile 指针、空 Appearance 记录与选中的快捷栏呈现。",
+        "技能：展示 Chunk、Game、Profile、派生与浏览器来源，不要悄悄把它们的最大值称为链上 XP。",
+        "位置：区分运行时位置、本地启动保存与稀疏链上检查点。",
+        "SDK：把构造出的账户列表与 processor 合约要求对比后，再把测试视为集成证据。"
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-what-the-profile-ui-proves-v1.webp",
+        "alt": "生成的记录工坊：标准女孩在装有 Profile 页面道具的独立托盘旁拿起账册，标准男孩站在镜子旁观察。",
+        "caption": "每件物品都留在自己的托盘里，方便读者追问每项可见声明来自何处。钱袋、指南针、算盘、方块、Backpack、账册、镜子与衣架都只是来源隐喻；它们不是 UI 控件、已验证账户内容，也不能证明当前浏览器已对这些来源完成对账。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "来源说明比“链上”徽章更有用",
+        "body": "Appearance、Profile、Game progress、钱包缓存、运行时或本地派生值等精确标签，能告诉玩家实际观察到的究竟是什么。"
+      }
+    },
+    {
+      "id": "live-devnet-profile-state",
+      "eyebrow": "已保留的 confirmed Devnet 快照",
+      "title": "当前与早期 Profile 世代仍然共存",
+      "paragraphs": [
+        "在 2026 年 7 月 16 日的 confirmed context slot 476,758,441，已保留审计捕获了全部 47 个归 Player Program 所有的账户，并保存原始 Base64 数据与哈希。其中 19 个带有 Profile magic：11 个匹配当前由 owner 派生的 player-v7 PDA，另外 8 个是早期记录。其余已识别账户包括 10 个 Appearance、7 个 UsernameIndex、10 个 Session，以及 1 页 InviteIndex。",
+        "8 个早期 Profile 记录包括 4 个 473 字节的 version-2、3 个 773 字节的 version-3，以及 1 个 773 字节的 version-4。因此，单看长度并不够：4 个早期记录也使用当前的 773 字节长度。当前写入会派生 player-v7，所以由 owner 派生的规范地址、version、布局、owner 与 GlobalConfig 都很重要。",
+        "在 11 个当前 Profile 中，10 个已离开原点，5 个保存了 equipped-Backpack 指针，9 个 equipment 字段均没有任何非零值，2 个具有锻造历史。10 个 Appearance 中预留的 120 个富结构装备 state 全部为零。快照中的 10 个 Session 均已过期，action count 也都是零。这些观察能说明哪些布局正在使用，却不能证明未使用路径绝不可能发生。",
+        "完整的 upgradeable-loader ProgramData 账户为 172,925 字节：先是 45 字节 loader metadata，随后是 172,880 字节 ELF allocation。该 ELF allocation 的哈希为 9158af26bb95eea3848b10ab06dbee822f8c0f30552e7538b494ac6a2ef9f32a，并与保留的本地 172,880 字节产物一致。字节一致并不能证明当前未清理源码工作树可以可复现地构建出它。",
+        "档案场景插图刻意没有复现这些数量。箱子能让早期与当前记录更直观，但只有已保留审计才能确立带日期的数字、原始账户字节、哈希、context slot 与解释边界。"
+      ],
+      "facts": [
+        {
+          "label": "已识别账户",
+          "value": "slot 476,758,441 时为 47 个",
+          "detail": "原始账户字节与哈希已保存在专用 confirmed 快照中。"
+        },
+        {
+          "label": "Profile magic",
+          "value": "11 个当前记录 · 8 个早期记录",
+          "detail": "4 个早期记录同样为 773 字节，因此地址派生至关重要。"
+        },
+        {
+          "label": "ProgramData",
+          "value": "总计 172,925 · ELF 172,880",
+          "detail": "较小的数字不包含 45 字节 loader metadata。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/player-profile-live-devnet-profile-state-v1.webp",
+        "alt": "基于 Chunk.js 山坡生成的档案庭院：标准村民在测量三脚架旁检查干净与风化的箱子。",
+        "caption": "干净与风化的箱子让当前记录和早期记录更易想象，三脚架则暗示一次特定时点的观察。箱子数量、形状与三脚架都只是叙事手段。它们不是 Player Program、RPC client、账户字节，也不是审计总数的证据。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "实时数量只是某个 slot 的证据，不是永久总数",
+        "body": "后续交易可以改变名称、位置、Backpack 指针、锻造历史、Session 与账户数量。在把快照称为“当前状态”之前，应重新运行审计。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "阅读实现代码",
+    "title": "六个公式与八段原样代码摘录，将玩家看到的故事与实际代码联系起来",
+    "summary": "这些公式说明了地址、字节布局、浏览器数据优先级、当前已审计源码中发现的锻造物品共享键、equip 与 Market 检查，以及 XP 合并规则。每个源码块都是从仓库中连续原样复制的一段，便于读者将说明与实际实现逐项对照。"
+  },
+  "formulas": [
+    {
+      "title": "同一个 owner 会解析为多个由不同程序域限定的地址",
+      "expression": "Profile(o)=PDA_P([UTF8(\"player-v7\"),o]); Appearance(o)=PDA_P([UTF8(\"appearance-v1\"),o]); Username(n)=PDA_P([UTF8(\"player-name-v1\"),SHA256(asciiLower(n))]); ChunkProgress(o)=PDA_C([UTF8(\"player-progress\"),GlobalConfig,o]); SmeltingProgress(o)=PDA_G([UTF8(\"player-progress\"),GlobalConfig,o])",
+      "ariaLabel": "Profile 与 Appearance 都在 Player 下派生，而同一组玩家 progress 种子在 Chunk 与 Game 下会派生出不同地址。",
+      "explanation": "P 表示 Player Program，C 表示独立的 Chunk Program，G 表示当前 Smelting 使用的统一 Game Program。即使 owner 和种子字节完全相同，只要程序域改变，PDA 就会改变。",
+      "terms": [
+        {
+          "symbol": "o, n",
+          "meaning": "owner 公钥和已通过验证的玩家名称字符串。"
+        },
+        {
+          "symbol": "asciiLower",
+          "meaning": "只将 ASCII 的 A 到 Z 转为小写；其余所有已被接受的 UTF-8 字节保持不变。"
+        },
+        {
+          "symbol": "P, C, G",
+          "meaning": "Player、Chunk 和统一 Game 的程序域。"
+        }
+      ]
+    },
+    {
+      "title": "Profile 很紧凑，而 Appearance 为富结构渲染数据预留了空间",
+      "expression": "Profile=773 bytes; Appearance=256+300+96+2048+(12×576)=9612 bytes; richEquipmentShare=(12×576)/9612≈71.9%",
+      "ariaLabel": "PlayerProfile 为 773 字节；PlayerAppearance 为 9,612 字节，其中约 71.9% 为 12 条富结构装备记录预留。",
+      "explanation": "Profile 使用 288 字节保存 9 个、每个 32 字节的 equipment 字段。Appearance 为 12 条富结构装备记录预留 6,912 字节，但当前 pack 流程会把这 12 条记录的 state 和 payload 全部重置为零。",
+      "terms": [
+        {
+          "symbol": "12×576",
+          "meaning": "12 条 Appearance 富结构装备记录。"
+        },
+        {
+          "symbol": "300, 96, 2048",
+          "meaning": "为 display-name、title 和 model-code 预留的区域。"
+        },
+        {
+          "symbol": "71.9%",
+          "meaning": "Appearance 字节中为富结构装备预留的近似比例。"
+        }
+      ]
+    },
+    {
+      "title": "可见身份遵循数据来源优先级",
+      "expression": "chainName=Appearance.displayName || Profile.playerName; HUDName=chainName || LocalProfile.name || \"Local Miner\"; AvatarCode=Appearance.modelCode || LocalProfile.modelCode || builtInVillager",
+      "ariaLabel": "链上名称优先使用 Appearance，再使用 Profile；若显示值仍然缺失，则依次由本地数据和内置数据补齐。",
+      "explanation": "双竖线表示选择第一个非空值。这项选择规则解释了为什么只写入较新 Profile 的名称仍可能被较旧的 Appearance 覆盖显示，也解释了为什么即使没有可接受的 Appearance 模型，avatar 仍然可能正常渲染。",
+      "terms": [
+        {
+          "symbol": "||",
+          "meaning": "选择第一个非空值。"
+        },
+        {
+          "symbol": "chainName",
+          "meaning": "先使用 Appearance 的 display name，再使用紧凑 Profile 中的名称。"
+        },
+        {
+          "symbol": "LocalProfile",
+          "meaning": "浏览器中存储的 profile 数据，用作回退或预览来源。"
+        }
+      ]
+    },
+    {
+      "title": "当前已审计的 forge 源码会为不同产物写入相同的 32 字节键",
+      "expression": "For each new forged record j owned by o: ForgedRecord_j.item_pda=ProfilePDA(o); MarketEquipmentBackpackMatch(k)=min{i | Backpack[i].kind=item ∧ Backpack[i].item_pda=k}",
+      "ariaLabel": "在当前已审计源码中，同一 owner 的每条新锻造记录都会得到同一个 PlayerProfile 地址，而装备来源的 Market 查询会选择 Backpack 中第一条物品类型且具有该键的记录。",
+      "explanation": "这些记录的 item ID、design hash、grade、level、quality、durability 和 index 仍然可以不同，但之后复制到 Profile equipment 的字段是共享的。最小值表达式只描述 Market 的装备来源 Backpack 扫描；直接 Backpack 挂牌会使用玩家提供的记录索引，再扫描 Profile 槽寻找第一条同键指针。",
+      "terms": [
+        {
+          "symbol": "j",
+          "meaning": "一条新锻造的 Backpack 记录。"
+        },
+        {
+          "symbol": "k",
+          "meaning": "由 Profile equipment slot 提供的 32 字节值。"
+        },
+        {
+          "symbol": "min{i | …}",
+          "meaning": "装备来源扫描中，从 0 开始的第一条物品类型且键匹配的 Backpack 索引。"
+        }
+      ]
+    },
+    {
+      "title": "Equip 会验证 Backpack 记录，但不会转移保管位置",
+      "expression": "Acceptance checks include: signer(authority); Profile=PDA_Player([\"player-v7\",authority]); 0≤slot<9; B.accountOwner∈{BackpackProgram,GameProgram}; B=PDA_B.accountOwner([\"backpack\",authority,LE64(B.id)]); validForged(B[i]); then Profile.equipment[slot]=B[i].item_pda and B_after=B_before",
+      "ariaLabel": "Equip 要求提供已签名的当前 Profile、一个由有效程序拥有且使用 64 位小端序 ID 派生的 Backpack PDA，以及一条有效的锻造记录；它只复制一个字段，Backpack 本身保持不变。",
+      "explanation": "这只是必要检查项的摘要，并不是“当且仅当”的完整证明。此外还会检查 GlobalConfig 的程序所有权与绑定关系、账户长度、magic、version、内部 player owner、紧密索引、durability、grade、level、quality，以及账户是否可写。",
+      "terms": [
+        {
+          "symbol": "B.accountOwner",
+          "meaning": "拥有 Backpack 账户的 Solana 程序，而不是其数据内部存储的玩家钱包。"
+        },
+        {
+          "symbol": "LE64(B.id)",
+          "meaning": "在 PDA 种子中编码为 8 个小端序字节的 Backpack ID。"
+        },
+        {
+          "symbol": "B_after=B_before",
+          "meaning": "equip 指令会读取 Backpack，但不会移除或锁定其中的记录。"
+        }
+      ]
+    },
+    {
+      "title": "UI 会保留所有传入值中最大的 XP",
+      "expression": "BrowserObject=ScopedStorage || LegacyStorage; XP_UI(s)=max(XP_derived(s),BrowserObject[s],XP_fetchedChain(s)); ForgeOutcomeXP=25×grade²",
+      "ariaLabel": "浏览器先在 scoped storage 与 legacy fallback 之间选择一个，再显示 derived XP、选中的 browser XP 和 fetched chain XP 中的最大值；Backpack 会另行按照 25×grade² 计算 forge XP。",
+      "explanation": "scoped 与 legacy 浏览器对象是二选一的备选项，并不是两个独立的合并输入。grade 平方公式属于 Backpack 的 forge outcome。Player 会验证 forging authority 并累加传入的 gained XP，而不会重新计算该公式。",
+      "terms": [
+        {
+          "symbol": "s",
+          "meaning": "一个在 Profile 中显示的技能。"
+        },
+        {
+          "symbol": "XP_fetchedChain",
+          "meaning": "当前 refresh 返回的子集；目前只读取 Chunk PlayerProgress 与 Profile forging history。"
+        },
+        {
+          "symbol": "grade",
+          "meaning": "Backpack 计算出的单次 forge 最终 grade，范围为 1 到 10。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Forge 会把 PlayerProfile 地址作为 item_pda 传入",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    let clock = Clock::get()?;\n    let outcome = {\n        let mut backpack_data = backpack.try_borrow_mut_data()?;\n        BackpackAccount::forge_equipment_from_verified_materials(\n            &mut backpack_data,\n            owner.key,\n            indexes,\n            item_id,\n            design_hash,\n            player_profile.key,\n            forging_level,\n            clock.slot,\n            requirements,\n        )?\n    };",
+      "explanation": "player_profile.key 出现在本摘录第 10 行，是函数的第 6 个参数 item_pda。在 Backpack 收到该值之前，并不会派生物品专属 PDA。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "读取 clock 后，借用 owner 的 Backpack。"
+        },
+        {
+          "lines": "第 4–13 行",
+          "meaning": "把材料索引和产物元数据传入 forge；提供给 item_pda 参数的是 PlayerProfile 公钥。"
+        },
+        {
+          "lines": "第 14–15 行",
+          "meaning": "返回计算得到的 forge outcome，供后续处理 Profile XP。"
+        }
+      ]
+    },
+    {
+      "title": "Backpack 会把传入的键保存到锻造记录中",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/state.rs",
+      "code": "        let outcome = calculate_forge_outcome(&materials, forging_level);\n        Self::remove_resources_at(data, owner, indexes, updated_slot)?;\n        let output = BackpackSlotRecord {\n            kind: BACKPACK_SLOT_KIND_ITEM,\n            category: BACKPACK_ITEM_CATEGORY_FORGED,\n            flags: 0,\n            quantity: 1,\n            resource: BackpackResourceRecord::default(),\n            item_code: BACKPACK_FORGED_ITEM_CODE,\n            item_id,\n            item_pda: *item_pda,\n            volume_mm3: outcome.volume_mm3,\n            durability_current: outcome.durability_max,\n            durability_max: outcome.durability_max,\n            grade: outcome.grade,\n            item_level: outcome.item_level,\n            quality_bps: outcome.quality_bps,\n            metadata: design_hash,\n        };\n        Self::append_item(data, owner, &output, updated_slot)?;",
+      "explanation": "记录会原样保存传入的 item_pda。其他字段可以区分不同产物，但 Profile equip 与当前 Market 的身份匹配使用的是这个共享的 32 字节字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "计算锻造结果，并消耗选中的材料。"
+        },
+        {
+          "lines": "第 3–19 行",
+          "meaning": "构建一条锻造记录；item_pda 会原样复制，而 item ID、锻造结果与设计元数据分别保存在其他字段中。"
+        },
+        {
+          "lines": "第 20 行",
+          "meaning": "把新记录追加到紧密排列的 Backpack 中。"
+        }
+      ]
+    },
+    {
+      "title": "Appearance 会重新打包可见身份，并清空所有富结构装备",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn pack(dst: &mut [u8], args: &PlayerAppearanceInitArgs) -> ProgramResult {\n        if dst.len() != Self::LEN {\n            return Err(NicechunkPlayerError::InvalidAppearanceData.into());\n        }\n        Self::validate_model_kind(args.model_kind)?;\n        PlayerProfile::validate_name(args.display_name.as_bytes())?;\n        Self::validate_title(args.title)?;\n        Self::validate_model_code(args.model_code)?;\n\n        let mut writer = ByteWriter { dst, offset: 0 };\n        writer.bytes(&PLAYER_APPEARANCE_MAGIC)?;\n        writer.u16(PLAYER_APPEARANCE_VERSION)?;\n        writer.u8(args.bump)?;\n        writer.u8(1)?;\n        writer.pubkey(args.owner)?;\n        writer.pubkey(args.player_profile)?;\n        writer.pubkey(args.global_config)?;\n        writer.pubkey(args.treasury_authority)?;\n        writer.u8(args.model_kind)?;\n        writer.u16(0)?;\n        writer.u16(args.display_name.as_bytes().len() as u16)?;\n        writer.u16(args.title.len() as u16)?;\n        writer.u16(args.model_code.len() as u16)?;\n        writer.u8(APPEARANCE_EQUIPMENT_SLOT_COUNT as u8)?;\n        writer.u64(args.created_slot)?;\n        writer.u64(args.updated_slot)?;\n        writer.i64(args.created_at)?;\n        writer.i64(args.updated_at)?;\n        writer.bytes(&[0_u8; Self::HEADER_LEN - Self::RESERVED_OFFSET])?;\n\n        let display_name_bytes = args.display_name.as_bytes();\n        writer.bytes(display_name_bytes)?;\n        writer.bytes(\n            &[0_u8; PLAYER_NAME_MAX_BYTES][..PLAYER_NAME_MAX_BYTES - display_name_bytes.len()],\n        )?;\n        writer.bytes(args.title)?;\n        writer.bytes(\n            &[0_u8; APPEARANCE_TITLE_MAX_BYTES][..APPEARANCE_TITLE_MAX_BYTES - args.title.len()],\n        )?;\n        writer.bytes(args.model_code)?;\n        writer.bytes(\n            &[0_u8; APPEARANCE_MODEL_CODE_MAX_BYTES]\n                [..APPEARANCE_MODEL_CODE_MAX_BYTES - args.model_code.len()],\n        )?;\n        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {\n            writer.u8(0)?;\n            writer.u8(slot as u8)?;\n            writer.bytes(&[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;\n        }",
+      "explanation": "打包器会验证并重写完整的可见身份记录。最后一轮循环会把每条富结构装备记录的 state 设为零，并用零填满 payload。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "要求账户尺寸完全一致，并验证 model kind、名称、称号与 model-code 边界。"
+        },
+        {
+          "lines": "第 10–29 行",
+          "meaning": "写入账户关联关系、长度、时间戳与固定 header。"
+        },
+        {
+          "lines": "第 31–44 行",
+          "meaning": "写入有长度上限的 display name、title 与 model code，并用零补齐。"
+        },
+        {
+          "lines": "第 45–49 行",
+          "meaning": "重置全部 12 条富结构装备记录。"
+        }
+      ]
+    },
+    {
+      "title": "Player 会先验证一条 Backpack 记录，再复制其中的字段",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "fn set_equipment_slot(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    payload: &[u8],\n) -> ProgramResult {\n    if payload.len() != 2 || (accounts.len() != 3 && accounts.len() != 4) {\n        return Err(NicechunkPlayerError::InvalidInstruction.into());\n    }\n\n    let account_info_iter = &mut accounts.iter();\n    let authority = next_account_info(account_info_iter)?;\n    let player_profile = next_account_info(account_info_iter)?;\n    let global_config = next_account_info(account_info_iter)?;\n\n    validate_player_write_accounts(program_id, authority, player_profile, global_config)?;\n    let slot = payload[0];\n    let backpack_index = payload[1];\n    let item = if backpack_index == CLEAR_EQUIPMENT_BACKPACK_INDEX {\n        if accounts.len() != 3 {\n            return Err(NicechunkPlayerError::InvalidAccountCount.into());\n        }\n        Pubkey::default()\n    } else {\n        if accounts.len() != 4 {\n            return Err(NicechunkPlayerError::InvalidAccountCount.into());\n        }\n        let backpack = next_account_info(account_info_iter)?;\n        if backpack.owner != &NICECHUNK_BACKPACK_PROGRAM_ID\n            && backpack.owner != &NICECHUNK_GAME_PROGRAM_ID\n        {\n            return Err(NicechunkPlayerError::InvalidBackpackProgram.into());\n        }\n        let backpack_data = backpack.try_borrow_data()?;\n        BackpackAccountView::validate_pda_and_owner(\n            &backpack_data,\n            backpack.key,\n            backpack.owner,\n            authority.key,\n        )?;\n        BackpackAccountView::equippable_item_pda_at(&backpack_data, authority.key, backpack_index)?\n    };\n    let clock = Clock::get()?;\n    let mut data = player_profile.try_borrow_mut_data()?;\n    PlayerProfile::write_equipment_slot(&mut data, slot, &item, clock.slot)",
+      "explanation": "索引 255 表示清空；其他索引则要求提供第 4 个 Backpack 账户。Player 写入选中的 32 字节字段之前，会检查程序所有权、Backpack PDA、内部 player owner 与记录有效性。",
+      "walkthrough": [
+        {
+          "lines": "第 1–15 行",
+          "meaning": "验证 payload 结构、取出账户，并核验已签名的当前 Profile 与 GlobalConfig。"
+        },
+        {
+          "lines": "第 16–26 行",
+          "meaning": "选择一个 Profile 槽位，然后清空它，或要求提供 Backpack 账户。"
+        },
+        {
+          "lines": "第 27–40 行",
+          "meaning": "接受两种账户程序所有者之一，验证 Backpack PDA 与玩家所有权，然后读取一条有效的锻造记录。"
+        },
+        {
+          "lines": "第 41–44 行",
+          "meaning": "把返回的公钥字段复制到 Profile。"
+        }
+      ]
+    },
+    {
+      "title": "装备来源的 Market 查询会停在第一条共享键 Backpack 记录",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "fn find_backpack_item_slot_by_pda(\n    data: &[u8],\n    item: &Pubkey,\n) -> Result<([u8; BACKPACK_SLOT_RECORD_LEN], u8), solana_program::program_error::ProgramError> {\n    let item_count = data[BACKPACK_ITEM_COUNT_OFFSET];\n    for index in 0..item_count {\n        let offset = BACKPACK_HEADER_LEN + index as usize * BACKPACK_SLOT_RECORD_LEN;\n        let slot = &data[offset..offset + BACKPACK_SLOT_RECORD_LEN];\n        if slot[0] == BACKPACK_SLOT_KIND_ITEM\n            && &slot[BACKPACK_SLOT_ITEM_PDA_OFFSET..BACKPACK_SLOT_ITEM_PDA_OFFSET + 32]\n                == item.as_ref()\n        {\n            return Ok((copy_valid_backpack_slot(slot)?, index));\n        }\n    }\n    Err(NicechunkMarketError::InvalidEquipmentSource.into())",
+      "explanation": "循环从 0 开始。遇到第一条物品类型且 item_pda 相同的记录时，它会立即验证并返回或报错；匹配条件不会加入 item ID、design hash 或预期 Backpack 索引，第一条匹配无效时也不会继续搜索。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "接收 Backpack 字节，以及来自 equipment 的 32 字节键。"
+        },
+        {
+          "lines": "第 6–13 行",
+          "meaning": "按顺序扫描紧凑记录；遇到第一条物品类型且键相同的记录时，尝试验证并返回或报错，不再扫描后续匹配。"
+        },
+        {
+          "lines": "第 14–16 行",
+          "meaning": "只有检查完所有紧凑记录后，才报告没有匹配项。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器会在不同程序下派生 Chunk 与 Smelting progress",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function derivePlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.chunkProgramId);\n}\n\nfunction deriveSmeltingPlayerProgressPdaForContext(owner, context = gameContext) {\n  return derivePlayerProgressPdaForProgram(owner, context.smeltingProgramId);\n}",
+      "explanation": "两者共用同一个种子 helper，但 context.chunkProgramId 与 context.smeltingProgramId 会把地址放入不同的程序域。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "在 Chunk 程序域下派生 progress 地址。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "在 Smelting 配置的程序下派生其 progress 地址；当前该程序是统一 Game。"
+        }
+      ]
+    },
+    {
+      "title": "当前 refresh 只获取 Chunk 程序域下的 progress 账户",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function fetchPlayerProgress(ownerAddress) {\n  if (!ownerAddress) return null;\n  const owner = typeof ownerAddress === \"string\" ? new PublicKey(ownerAddress) : ownerAddress;\n  const [playerProgress] = derivePlayerProgressPdaForContext(owner, gameContext);\n  const account = await getNicechunkConnection().getAccountInfo(playerProgress, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      publicKey: playerProgress.toBase58(),\n      owner: owner.toBase58(),\n      precisionGatheringXp: 0,\n      smeltingXp: 0,\n      explorationXp: 0,\n    };\n  }\n  if (!account.owner.equals(gameContext.chunkProgramId)) return null;\n  const data = account.data;\n  if (data.length !== playerProgressLength || data.subarray(0, 8).toString(\"utf8\") !== playerProgressMagic) return null;\n  return {\n    publicKey: playerProgress.toBase58(),\n    owner: owner.toBase58(),\n    precisionGatheringXp: Number(data.readBigUInt64LE(playerProgressPrecisionXpOffset)),\n    smeltingXp: Number(data.readBigUInt64LE(playerProgressSmeltingXpOffset)),\n    explorationXp: Number(data.readBigUInt64LE(playerProgressExplorationXpOffset)),\n    programId: account.owner.toBase58(),\n  };\n}",
+      "explanation": "该函数使用 Chunk helper 派生地址，只获取一次，并要求账户归 Chunk 程序所有。从这个账户读取形似 Smelting 的偏移，并不等于获取了独立的 Game 程序域 Smelting 记录。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "只在 confirmed commitment 下派生并获取 Chunk 地址。"
+        },
+        {
+          "lines": "第 6–14 行",
+          "meaning": "当这一份账户不存在时返回全零值。"
+        },
+        {
+          "lines": "第 15–17 行",
+          "meaning": "拒绝非 Chunk 程序所有权与无效布局。"
+        },
+        {
+          "lines": "第 18–26 行",
+          "meaning": "从同一份归 Chunk 程序所有的账户中解码全部 3 个显示偏移。"
+        }
+      ]
+    },
+    {
+      "title": "浏览器存储会先选择一个对象，再进行最大值合并",
+      "language": "JavaScript",
+      "source": "play/play-profile-skills.js",
+      "code": "function loadJsonObject(primaryKey, fallbackKey) {\n  try {\n    const storage = globalThis.localStorage;\n    if (!storage) return {};\n    const raw = storage.getItem(primaryKey) || storage.getItem(fallbackKey);\n    const parsed = raw ? JSON.parse(raw) : {};\n    return parsed && typeof parsed === \"object\" && !Array.isArray(parsed) ? parsed : {};\n  } catch {\n    return {};\n  }\n}\n\nfunction mergeSkillXp(...sources) {\n  const result = {};\n  for (const source of sources) {\n    if (!source || typeof source !== \"object\") continue;\n    for (const [key, value] of Object.entries(source)) {\n      const numeric = Math.max(0, Math.round(Number(value) || 0));\n      result[key] = Math.max(result[key] || 0, numeric);\n    }\n  }\n  return result;\n}",
+      "explanation": "逻辑 OR 会在主存储与回退存储之间选出一个对象。之后的另一次调用再把这个对象与派生计数器、获取到的链上 XP 合并，并为每项技能取最大值。",
+      "walkthrough": [
+        {
+          "lines": "第 1–11 行",
+          "meaning": "选择并解析一个浏览器对象；只有主值不存在时才使用 legacy 键。"
+        },
+        {
+          "lines": "第 13–23 行",
+          "meaning": "遍历所有传入来源，为每项技能保留最大的非负整数值。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义当前 Profile、Appearance、Session、UsernameIndex、InviteIndex 与 Backpack view 的布局、种子、偏移、名称规则、modelCode 边界、LE64 Backpack PDA 验证、固定属性、Profile 写入，以及零填充的 Appearance 富结构装备。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "实现带签名的 Profile 写入、仅限制 Y 轴的位置边界、name index 生命周期、Appearance upsert 与 treasury close、equip 账户检查、两种可接受的 Backpack 账户程序所有者，以及锻造结果接收。"
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "固定 Player 构建所接受的 Core、独立 Backpack、统一 Game、treasury 与相关程序身份。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "把 player_profile.key 作为产物 item_pda 字段传入 forge，随后再把计算出的 gained XP 发送给 Player。"
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "在每条锻造记录中原样保存传入的 item_pda，并定义 outcome 计算、grade 平方 XP、阈值、耐久度、紧密记录与 Backpack 布局。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "验证编译时指定的一个 Backpack 程序所有者，并使用 item_pda 匹配装备。两种挂牌来源要么从索引 0 扫描 Backpack，寻找第一条物品类型且键相同的记录；要么先移除所选 Backpack 记录，再从 0 扫描 Profile 槽寻找第一条同键指针。"
+    },
+    {
+      "path": "programs/nicechunk_market/src/cluster_config.rs",
+      "claim": "选择某个特定 Market 构建所接受的唯一 Backpack 程序身份。"
+    },
+    {
+      "path": "programs/nicechunk_game/Cargo.toml",
+      "claim": "展示当前 Backpack、Smelting 与 Market 命名空间所使用的统一 Game feature 组合。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "定义 Chunk 的 128 字节 PlayerProgress 布局、Precision 与 Exploration 字段、阈值及已探索 chunk 数量。"
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "在已验证的世界操作期间创建并修改 Chunk 程序域下的 PlayerProgress。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "定义 Smelting 程序域下使用相同种子的 Smelting PlayerProgress 布局与 Smelting 阈值规则。"
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "在成功结算时创建或更新 Smelting 程序域下的 progress。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "分别派生 Chunk 与 Smelting progress PDA，解码 Profile 的全部 9 个 equipment 字段，在当前 helper 中只获取 Chunk progress，以 cache-first 方式加载 Backpack，并构建当前的 5 账户与 6 账户名称指令。"
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "在当前 Play refresh 中组合 Profile、Appearance、一份获取到的 progress 对象与 Profile 锻造历史，并构建强制资源采矿检查点。"
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "把已验证的资源采矿标记为当前可以携带或触发链上 Profile 位置检查点的操作类型。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "选择 Play 启动位置时不依赖链上 Profile 位置，并在 confirmed 资源采矿后按需请求补充 Profile 检查点。"
+    },
+    {
+      "path": "play/position-persistence.js",
+      "claim": "在本地保存普通 Play 位置，与链上 Profile 检查点彼此分离。"
+    },
+    {
+      "path": "play/play-profile-skills.js",
+      "claim": "定义 10 项可见技能、本地派生 XP、主存储或 legacy 浏览器选择、通用 UI 曲线，以及跨来源最大值合并。"
+    },
+    {
+      "path": "play/play-profile-ui.js",
+      "claim": "构建 Profile 等级、声望、区域、属性、已选择快捷栏手持物、同步 Backpack，以及空白或锁定的概念装备槽位，但不会渲染 Profile.equipment。"
+    },
+    {
+      "path": "play/play-chain-backpack.js",
+      "claim": "在链模块完成 cache-first 加载后，提供 Profile UI 使用的同步 Backpack 摘要。"
+    },
+    {
+      "path": "play/play-profile-session.js",
+      "claim": "定义链上 Appearance、本地 profile 与内置村民之间当前可见身份及 avatar 的回退优先级。"
+    },
+    {
+      "path": "chunk.js/renderer/avatar-mesh.js",
+      "claim": "解析内置 avatar 别名并渲染 NCM2 与 NCM4，因此仅满足链上前缀要求的 modelCode 仍可能无法构建 mesh。"
+    },
+    {
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "包含较旧的名称限制与账户列表，尚未匹配当前 processor 对非空名称更新与 Appearance upsert 的要求。"
+    },
+    {
+      "path": "tests/nicechunk_player_chunk.ts",
+      "claim": "断言较旧的 SDK 账户构造方式，因此这些测试即使通过，也不能单独证明与已部署 name index 实现一致。"
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "声明网站当前的 Devnet cluster，以及 Player、Chunk、Backpack、Smelting、Market 与 Game 程序配置。"
+    },
+    {
+      "path": "docs/audits/player-profile-devnet-2026-07-16.json",
+      "claim": "保留 confirmed slot 476,758,441 的 Player Program 原始账户字节、哈希、分类、当前与早期 Profile 派生结果、实时字段摘要、ProgramData 长度拆分及本地 ELF 对比。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "names-invites-and-spawn",
+      "href": "/docs/names-invites-and-spawn/",
+      "title": "名称、邀请与出生",
+      "summary": "回顾独立的 UsernameIndex 声明、邀请页面、浏览器草稿与启动规则如何在打开 PlayerProfile 之前作用于玩家。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家 Session 与临时权限",
+      "summary": "区分与 owner 持久关联的 Profile，以及临时游戏权限与到期机制。"
+    },
+    {
+      "slug": "ncm-codes",
+      "href": "/docs/ncm-codes/",
+      "title": "NCM 代码：存储字节、验证边界与重建几何体",
+      "summary": "从 Appearance.modelCode 继续了解当前 NCM2 与 NCM4 renderer 的边界。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制学习路径导航",
+    "heading": {
+      "eyebrow": "继续玩家与钱包路径",
+      "title": "下一步，跟随已保存的外观文本重建可见角色",
+      "summary": "PlayerProfile 会指向一份独立的公开 Appearance 账户。下一篇指南将跟随其中的模型文本，依次了解浏览器如何选择来源、如何用 NCM2 或 NCM4 重建角色、当前装备功能有哪些边界，以及失败时如何安全回退。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "names-invites-and-spawn",
+        "title": "名称、邀请与出生",
+        "summary": "在阅读 Profile 本身之前，先了解唯一名称声明、邀请追加与启动位置交接如何保持彼此分离。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "player-appearance-codes",
+        "title": "PlayerAppearance: 模型代码、角色重建与安全回退",
+        "summary": "了解公开 Appearance PDA 会验证什么、渲染器仍需重建什么，以及为什么一段已保存的代码最终可能回退到另一个可用网格。"
+      }
+    ]
+  }
+}

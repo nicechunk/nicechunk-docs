@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="player-sessions" data-docs-static-source="bd1bf808d52c497622d8f362b26e86825641f7d34f81d1cb88488fe635b548db">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/player-sessions.json" />
+    <meta name="nicechunk:source-sha256" content="bd1bf808d52c497622d8f362b26e86825641f7d34f81d1cb88488fe635b548db" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/player-sessions/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what the ordinary session key can still sign, which actions consume the pass, and what refresh, funding, logout, expiry, and Guardian do not protect." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Player Sessions: Temporary Authority Without a Key Sandbox" />
+    <meta property="og:description" content="Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what the ordinary session key can still sign, which actions consume the pass, and what refresh, funding, logout, expiry, and Guardian do not protect." />
+    <meta property="og:url" content="https://nicechunk.com/docs/player-sessions/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/player-sessions-overview-v2.webp" />
+    <meta property="og:image:alt" content="Generated NiceChunk coastal authorization waystation where the canonical black-haired villager boy uses a durable owner seal beside a separate copper session key while the canonical orange-haired villager girl checks an hourglass and blank stone ledger." />
+    <title>NiceChunk Player Sessions: Temporary Authority Without a Key Sandbox</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/player-sessions/#article",
+  "url": "https://nicechunk.com/docs/player-sessions/",
+  "name": "One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key",
+  "description": "Learn how one wallet approval creates an expiring NiceChunk PlayerSession, what the ordinary session key can still sign, which actions consume the pass, and what refresh, funding, logout, expiry, and Guardian do not protect.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key",
+  "mainEntityOfPage": "https://nicechunk.com/docs/player-sessions/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "One player may use two keys, but the working key remains an ordinary Solana signer",
+    "A 15-byte request names the limits, and both signer roles must approve it",
+    "The chain publishes the pass record; the browser keeps the secret that can use it",
+    "Fifteen audited contract Session branches share BREAK_BLOCK; default Play reachability is separate",
+    "Browser reuse is a heuristic; refresh is conditional, and saving the secret is a second commit",
+    "The 0.1 SOL policy is a refill trigger, not a spending cap or key restriction",
+    "Expiry closes checked gates; logout, key rotation, and Guardian do not revoke the account"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#one-player-two-keys",
+      "name": "One player may use two keys, but the working key remains an ordinary Solana signer"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#two-signature-setup",
+      "name": "A 15-byte request names the limits, and both signer roles must approve it"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#public-record-private-secret",
+      "name": "The chain publishes the pass record; the browser keeps the secret that can use it"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#real-consumer-permission-scope",
+      "name": "Fifteen audited contract Session branches share BREAK_BLOCK; default Play reachability is separate"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#browser-storage-reuse-and-refresh",
+      "name": "Browser reuse is a heuristic; refresh is conditional, and saving the secret is a second commit"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#funding-sol-and-local-wallet",
+      "name": "The 0.1 SOL policy is a refill trigger, not a spending cap or key restriction"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/player-sessions/#expiry-logout-revocation-and-guardian",
+      "name": "Expiry closes checked gates; logout, key rotation, and Guardian do not revoke the account"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/player-sessions-overview-v2.webp",
+    "https://nicechunk.com/docs/media/player-sessions-one-player-two-keys-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-two-signature-setup-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-public-record-private-secret-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-real-consumer-permission-scope-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-browser-storage-reuse-and-refresh-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-funding-sol-and-local-wallet-v1.webp",
+    "https://nicechunk.com/docs/media/player-sessions-expiry-logout-revocation-and-guardian-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Player Sessions</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL · STEP 11</p>
+<h1>One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key</h1>
+<p class="docs-hero-summary">The repository's production /play/ source route is /play/index.html → /play/main.js → play/*, where play-chain-adapter.js resolves a chain module. A retained 2026-07-19 UTC Nginx snapshot instead found /play/index.html referencing a versioned runtime bundle; those runtime bytes name a versioned chain asset as the default candidate when no global or localStorage override wins, and the audit fetched and hashed that candidate separately. The actual module a browser resolves—not an unbuilt source file—defines live behavior. A wallet approval can create an expiring PlayerSession record around a browser-held Keypair, but the Keypair and its SOL do not expire with the record, and the pass does not sandbox it.</p>
+<span class="docs-reading-time">56 min read</span></div>
+<figure class="docs-hero-visual"><img alt="NiceChunk coastal authorization waystation where the canonical black-haired villager boy uses a durable owner seal beside a separate copper session key while the canonical orange-haired villager girl checks an hourglass and blank stone ledger." decoding="async" height="887" loading="eager" src="/docs/media/player-sessions-overview-v2.webp" width="1774" />
+<figcaption class="docs-visual-caption">The owner seal, ordinary copper key, hourglass, blank record, and open path toward mining, building, and storage introduce a long-lived owner and an expiring gameplay pass while keeping the key visibly ordinary. This generated scene uses the canonical villagers, real Chunk.js coast, and baked game materials; it does not perform wallet approval, create a PlayerSession, prove expiry, sandbox a signer, or show current chain state.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">If one wallet approval lets the game keep signing for me, exactly what is authorized, where is the secret stored, what can spend the session-authority address's SOL, and how do I really stop it?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 11 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Repository source route reviewed</dt>
+<dd>The repository's production /play/ route is /play/index.html → /play/main.js → play/* → play/play-chain-adapter.js, and older /src/main.js is outside this claim. Repository source inspection does not prove the loaded asset bytes; identifying those bytes requires inspecting and hashing the resolved URL</dd></div>
+<div class="docs-guide-context-item"><dt>Live Nginx route observed</dt>
+<dd>2026-07-19 UTC live snapshot, retained in the 2026-07-18 documentation audit batch: /play/index.html references /runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js; absent overrides, those runtime bytes name /assets/nicechunkChain.play-bundle-de6020cca220427a.js as the default chain candidate, which the audit fetched separately; /play/main.js and /play/play-chain-adapter.js returned index HTML fallbacks</dd></div>
+<div class="docs-guide-context-item"><dt>Static production byte pins</dt>
+<dd>Static HTTPS GET byte pins from the 2026-07-19 UTC production snapshot: the served production entry /play/index.html has SHA-256 9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f; the referenced versioned runtime bundle /runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js has SHA-256 594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6; and the separately fetched versioned default chain candidate /assets/nicechunkChain.play-bundle-de6020cca220427a.js has SHA-256 2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4. The /assets/nicechunkChain.js manifest alias had the same SHA-256 and identical bytes as the versioned chain candidate. The static snapshot did not observe which candidate a browser actually imported</dd></div>
+<div class="docs-guide-context-item"><dt>Fallback and bulk byte pins</dt>
+<dd>Static HTTPS GET probes found /play/main.js at SHA-256 9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f and /play/play-chain-adapter.js at that same SHA-256 as HTML fallbacks with bytes identical to /play/index.html. The versioned bulk candidate /assets/nicechunkBulkMining.play-bundle-de6020cca220427a.js at SHA-256 766c1d6bcb81d3e983fb7adbc19c616d7fc01dafb7893738edc242e2adc59c07 returned HTTP 404. The unversioned /assets/nicechunkBulkMining.js at the same SHA-256 also returned HTTP 404 and was a non-selected boundary probe—not selected by this runtime</dd></div>
+<div class="docs-guide-context-item"><dt>Capture method boundary</dt>
+<dd>This was a fixed-public-file static HTTPS GET and byte-hash audit, not a browser HAR or instrumented browser session. The production snapshot is a point-in-time observation, not a permanent or future guarantee. It did not invoke placement or Backpack functions, observe a browser dynamic import, or read, set, or exercise any player's global or localStorage override; the returned code bytes only reveal that such override capability exists</dd></div>
+<div class="docs-guide-context-item"><dt>Served feature-byte boundary</dt>
+<dd>The fetched versioned default chain candidate bytes contain the literal function body result chain-placement-disabled, but the static snapshot did not invoke the placement function. Those served chain bytes also contain unified Game Program Backpack namespace one plus both discardBackpackResourceAt and discardBackpackResourcesAt exports; for this static Backpack evidence, no instruction or transaction was constructed or sent. The default fetched candidates lacked the recordBulkMineOnChain export</dd></div>
+<div class="docs-guide-context-item"><dt>Runtime trust boundary</dt>
+<dd>The adapter can prefer a global override or localStorage nicechunk.chainModuleUrl before its versioned and manifest candidates, so those two override mechanisms can change the active module bytes. Dynamic import evaluates module code before later export-shape validation, so never set an untrusted URL; this is a capability warning, not evidence of an observed exploit or compromise</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>18–19 July 2026 · literal source excerpts, visual review evidence, an offline deterministic source audit, one read-only Devnet account snapshot, and one retained live Nginx runtime snapshot</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Owner</dt>
+<dd>The long-lived player public key tied to the PlayerProfile. Think of it as the identity named on the house deed, not the browser's separate session-purpose working key.</dd></div>
+<div class="docs-guide-term"><dt>Session authority</dt>
+<dd>The public key presented as the signer for a session-aware action. In plugin-wallet mode it belongs to a separate browser-held Keypair; in Local Game Wallet mode it is the owner key itself.</dd></div>
+<div class="docs-guide-term"><dt>Keypair</dt>
+<dd>A public address plus private signing bytes. Whoever obtains the private bytes can produce valid signatures for that address; a PlayerSession does not rewrite what the key can sign.</dd></div>
+<div class="docs-guide-term"><dt>PlayerSession</dt>
+<dd>A 184-byte public account owned by the NiceChunk Player Program. Its authorization record can expire; the separate Keypair, address, and SOL do not expire or disappear with it.</dd></div>
+<div class="docs-guide-term"><dt>PDA</dt>
+<dd>A deterministic account address derived from seeds and a program ID. The PlayerSession address uses the word session, the owner public key, and the session-authority public key.</dd></div>
+<div class="docs-guide-term"><dt>Signer</dt>
+<dd>An account marked is_signer for the current instruction. In the reviewed direct browser setup this normally comes from a transaction signature by each distinct key; a program-derived signer in a CPI can instead be authorized with invoke_signed. One matching public key can satisfy both direct setup roles.</dd></div>
+<div class="docs-guide-term"><dt>Action bit</dt>
+<dd>One yes-or-no position inside allowedActions. Bit index 1 has value 2 and is named BREAK_BLOCK; bit index 2 has value 4 and is named PLACE_BLOCK.</dd></div>
+<div class="docs-guide-term"><dt>Consumer</dt>
+<dd>A downstream contract handler branch that reads PlayerSession before performing its own action. The audited capability surface includes Chunk, Building, and Backpack code; that does not prove one default Play asset exposes every branch.</dd></div>
+<div class="docs-guide-term"><dt>Key sandbox</dt>
+<dd>A boundary that would technically prevent a key from signing anything outside an approved set. Current PlayerSession is not such a boundary; it only governs programs that choose to read it.</dd></div>
+<div class="docs-guide-term"><dt>Browser storage</dt>
+<dd>Origin-local data available to browser code. The plugin-session secret is stored as Base64 under an owner-scoped key, which is convenient encoding rather than encryption.</dd></div>
+<div class="docs-guide-term"><dt>Refresh</dt>
+<dd>Updating the allowedActions, expiresAt, updatedSlot, maxActions, and resetting actionCount on the same PlayerSession PDA. It is not a revoke operation.</dd></div>
+<div class="docs-guide-term"><dt>System Program</dt>
+<dd>Solana's native program for ordinary SOL transfers and account operations. A normal Keypair can sign a System Program transfer without involving NiceChunk PlayerSession.</dd></div>
+<div class="docs-guide-term"><dt>Local Game Wallet</dt>
+<dd>A persistent browser wallet whose Base58 private key is stored separately. Current session setup uses its same long-lived key as both owner and sessionAuthority.</dd></div>
+<div class="docs-guide-term"><dt>Chain time</dt>
+<dd>The Clock sysvar timestamp read inside a program. Consumer expiry is decided against this chain timestamp, not merely the browser's clock.</dd></div>
+<div class="docs-guide-term"><dt>Dense index</dt>
+<dd>A position in a packed Backpack array. Removing one position shifts every later record left, so indexes describe current positions rather than permanent item identities.</dd></div>
+<div class="docs-guide-term"><dt>Guardian</dt>
+<dd>NiceChunk's separate realtime and region system. Its current contract, HELLO message, and runtime client do not issue, validate, refresh, or revoke PlayerSession.</dd></div>
+<div class="docs-guide-term"><dt>Retained snapshot</dt>
+<dd>A saved read-only observation from one RPC context. It can prove what was returned at that moment, not a permanent network population, Mainnet state, or possession of any secret key.</dd></div>
+<div class="docs-guide-term"><dt>Lamport and SOL</dt>
+<dd>Lamports are the smallest SOL units: 1 SOL equals 1,000,000,000 lamports. The browser's 0.1 SOL policy is 100,000,000 lamports.</dd></div>
+<div class="docs-guide-term"><dt>Rent funding</dt>
+<dd>Lamports held by a data account so it can remain allocated. PlayerSession PDA rent is separate from spendable SOL at the session-authority address, and the reviewed program has no Session close refund.</dd></div>
+<div class="docs-guide-term"><dt>Bundle, module, and loaded asset</dt>
+<dd>A bundle is packaged browser code; a module is one JavaScript unit; the loaded asset is the exact response chosen at runtime. Repository source can explain intent but cannot prove which packaged bytes a live browser resolved.</dd></div>
+<div class="docs-guide-term"><dt>Browser origin and prefix</dt>
+<dd>An origin is the site's scheme, host, and port storage boundary. A prefix is the beginning of a localStorage key; logout scans several prefixes without restricting the wallet suffix.</dd></div>
+<div class="docs-guide-term"><dt>RPC, slot, and confirmed</dt>
+<dd>RPC is the read interface to a Solana node. A slot identifies a ledger position. Confirmed is a commitment level with strong cluster support but is not the same word as finalized.</dd></div>
+<div class="docs-guide-term"><dt>Devnet and Mainnet</dt>
+<dd>Devnet is Solana's public test network; Mainnet is the production-value network. A Devnet account snapshot must never be presented as Mainnet population or balance evidence.</dd></div>
+<div class="docs-guide-term"><dt>PlayerProfile and GlobalConfig</dt>
+<dd>PlayerProfile is the player's public identity account; GlobalConfig names shared game configuration and world context. Session setup and consumers compare selected relationships to these accounts.</dd></div>
+<div class="docs-guide-term"><dt>Base58</dt>
+<dd>A reversible text encoding used for the Local Game Wallet secret. Like Base64, it changes representation rather than encrypting or protecting the private bytes.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>The pass limits a NiceChunk consumer, not the Keypair</strong>
+<p>A consumer can reject a session-aware request after expiresAt or when its action bit is missing. The same ordinary session Keypair can still sign an independent System Program transfer that never references PlayerSession or invokes the Player Program.</p></article>
+<article class="docs-key-point"><strong>Setup has two signer roles, even when one key fills both</strong>
+<p>Create or refresh requires owner and sessionAuthority to be signers. Distinct plugin-wallet keys produce two signatures; Local Game Wallet puts the same public key in both roles, so one signature satisfies both checks.</p></article>
+<article class="docs-key-point"><strong>The chain record is public; the signing secret stays client-side</strong>
+<p>The 184-byte account exposes public keys, mask, expiry, and counters. Plugin mode saves the private session bytes as Base64 in owner-scoped localStorage; Base64 is not encryption and never belongs in the public record.</p></article>
+<article class="docs-key-point"><strong>BREAK_BLOCK currently reaches much farther than its name suggests</strong>
+<p>Fifteen audited contract Session-aware branches use bit index 1, value 2: five Chunk handlers, eight Building tags 0–7, and two four-account Backpack branches. That capability count is not proof that one default Play asset reaches all 15; the retained live asset confirms unified Game Backpack routing and disabled placement but exposes no bulk-mining export.</p></article>
+<article class="docs-key-point"><strong>10,000 is stored, not enforced</strong>
+<p>Repository Session builders request PlayerSession read-only, handlers only borrow and inspect it, no consumer calls Player Program to increment it, and no handler compares actionCount with maxActions. Those independent facts—not the meta alone—make 10,000 a stored value rather than a current action limit.</p></article>
+<article class="docs-key-point"><strong>Refresh, logout, and Guardian are not revocation</strong>
+<p>A same-key request selects the same PDA but rewrites it only when all stored relationships and current Profile checks pass; a new key creates another rent-funded PDA without stopping or refunding the old one. Logout only attempts best-effort local deletion and changes no chain account or SOL balance, while Guardian remains independent.</p></article>
+<article class="docs-key-point"><strong>Chain setup and browser secret saving are two separate commits</strong>
+<p>The owner transaction may broadcast or confirm before the new session secret reaches localStorage. A storage failure, ambiguous confirmation, or page close can leave funded authority and PDA state without a durable browser key; retries can create and fund additional authorities.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#one-player-two-keys">One player may use two keys, but the working key remains an ordinary Solana signer</a></li>
+<li><a href="#two-signature-setup">A 15-byte request names the limits, and both signer roles must approve it</a></li>
+<li><a href="#public-record-private-secret">The chain publishes the pass record; the browser keeps the secret that can use it</a></li>
+<li><a href="#real-consumer-permission-scope">Fifteen audited contract Session branches share BREAK_BLOCK; default Play reachability is separate</a></li>
+<li><a href="#browser-storage-reuse-and-refresh">Browser reuse is a heuristic; refresh is conditional, and saving the secret is a second commit</a></li>
+<li><a href="#funding-sol-and-local-wallet">The 0.1 SOL policy is a refill trigger, not a spending cap or key restriction</a></li>
+<li><a href="#expiry-logout-revocation-and-guardian">Expiry closes checked gates; logout, key rotation, and Guardian do not revoke the account</a></li>
+<li><a href="#technical-details">Separate the account predicate, the ordinary key, and the browser lifecycle</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="one-player-two-keys"><p class="docs-eyebrow">IDENTITY AND SIGNING POWER</p>
+<h2>One player may use two keys, but the working key remains an ordinary Solana signer</h2>
+<p class="docs-prose">Start with one player and two account roles. The owner is the long-lived identity behind the PlayerProfile. The sessionAuthority is the key presented to a consumer for repeated work. In plugin-wallet mode these roles normally use distinct keys: the wallet keeps the durable owner key, while the browser stores a separate session-purpose Keypair. That does not create a second player, transfer the Backpack, or make the girl in the teaching scene an authority; both roles still refer back to the same owner.</p>
+<p class="docs-prose">The record address is P_session = PDA(PlayerProgram, ["session", owner, sessionAuthority]). The literal session seed and both public keys are ordered inputs under the Player Program ID. Reusing the same owner and sessionAuthority selects the same PDA, although matching an address alone does not guarantee that refresh will pass its stored relationship checks. Changing only the session authority selects a different PDA for the same player.</p>
+<p class="docs-prose">The important boundary is outside that PDA. A session Keypair is an ordinary Solana signer, not a NiceChunk-only key. It can create a fresh signature for an independent System Program transfer without referencing PlayerSession and without invoking the Player Program. Session expiry, allowedActions, maxActions, and actionCount are not a key sandbox and do not protect the SOL held at the session address; those fields matter only to code that deliberately reads them. The PlayerSession record expires, but the Keypair, address, private bytes, and ordinary signing ability do not.</p>
+<p class="docs-prose">Local Game Wallet changes the role arrangement. Its same long-lived key fills both roles: owner = sessionAuthority, so the same key acts in both account positions and derives PDA(PlayerProgram, ["session", owner, owner]). Successful setup can create or refresh that on-chain PDA without a separate session-purpose signing secret. The client flag usesGameplaySession: false only says there is no separate gameplay Keypair; by itself it does not prove that the PDA exists or that setup succeeded.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Long-lived role</span>
+<strong>owner</strong>
+<p>The public identity checked against PlayerProfile and stored at byte offset 12 in PlayerSession.</p></article>
+<article class="docs-fact"><span>Working signer role</span>
+<strong>sessionAuthority</strong>
+<p>A plugin browser Keypair or, in Local Game Wallet mode, the same long-lived owner key.</p></article>
+<article class="docs-fact"><span>Deterministic address</span>
+<strong>PDA(PlayerProgram, ["session", owner, sessionAuthority])</strong>
+<p>Both public keys affect the address; private bytes are never PDA seeds.</p></article>
+<article class="docs-fact"><span>Plugin-wallet arrangement</span>
+<strong>owner ≠ sessionAuthority</strong>
+<p>The reviewed repository plugin flow uses a durable wallet identity plus a separate browser-held session signer.</p></article>
+<article class="docs-fact"><span>Local Game Wallet arrangement</span>
+<strong>owner = sessionAuthority</strong>
+<p>The same key fills both roles and is long-lived rather than a separate session-purpose wallet.</p></article>
+<article class="docs-fact"><span>Offline transfer proof</span>
+<strong>System Program · 1 lamport · valid signature · 0 broadcasts</strong>
+<p>The deterministic audit constructed and verified an ordinary transfer without outputting a private key, referencing PlayerSession, or contacting a network.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk coastal locker scene where the canonical boy keeps one durable owner seal secured above one Backpack while holding a separate copper working key, and the canonical girl points to the single player&#39;s work area without receiving either key." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-one-player-two-keys-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">One locker, one Backpack, a secured durable seal, and a hand-held copper key keep two credentials attached to one player's work area. The generated physical metaphor does not prove key ownership, derive a PDA, reveal private bytes, establish browser origin, or show that either key signed a transaction.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Treat the session secret like a funded hot key</strong>
+<p>The pass can narrow what audited NiceChunk consumers accept, but it cannot stop the same private key from signing a different transaction message. A signature is not reusable across arbitrary messages; control of the key is what creates another valid signature. Keep its SOL exposure small and protect browser access.</p></aside></section>
+<section class="docs-content-section" id="two-signature-setup"><p class="docs-eyebrow">ONE APPROVAL TRANSACTION</p>
+<h2>A 15-byte request names the limits, and both signer roles must approve it</h2>
+<p class="docs-prose">The Player Program dispatches instruction tag 4 to create_or_refresh_player_session. The reviewed repository and SDK builders serialize 15 bytes in total: one tag byte plus a 14-byte payload made from an eight-byte expiresAt, a two-byte allowedActions mask, and a four-byte maxActions. In the full data, tag starts at offset 0, expiresAt at offset 1, allowedActions at offset 9, and maxActions at offset 11. Six accounts accompany it: owner, sessionAuthority, PlayerProfile, PlayerSession, GlobalConfig, and System Program.</p>
+<p class="docs-prose">The owner must be a writable signer, and the session authority must be a signer. In the reviewed direct browser transaction, distinct keys normally produce two transaction signatures: one from the wallet owner and one from the browser Keypair. When the same public key occupies both roles, one transaction signature can satisfy both account-role checks. The contract itself observes AccountInfo.is_signer; a CPI PDA signer can have different mechanics, so the two-private-key explanation is specific to this direct client flow.</p>
+<p class="docs-prose">The program rejects expiresAt unless it is in the future, meaning expiresAt &gt; chain Clock time. It also rejects a zero mask, any bit outside the two declared bits, and maxActions = 0. The reviewed repository and retained live chain asset use an eight-hour request, allowedActions mask 6 (0b0110), and maxActions 10,000. Those are client defaults: the contract does not impose an eight-hour maximum.</p>
+<p class="docs-prose">If the canonical PDA already belongs to Player Program, tag 4 can refresh it only after the existing owner, authority, playerProfile, and globalConfig all match the current inputs and the current player-v7 Profile precondition passes. Otherwise the owner funds allocation of a new canonical PDA. Selecting the same address is therefore not a guarantee of rewrite success. Repository Session builders request PlayerSession writable for setup; their later Session-aware consumers request it read-only.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Instruction selector</span>
+<strong>tag 4</strong>
+<p>The first byte selects create_or_refresh_player_session.</p></article>
+<article class="docs-fact"><span>Production data size</span>
+<strong>15-byte instruction data</strong>
+<p>1 tag + 8 expiresAt + 2 allowedActions + 4 maxActions.</p></article>
+<article class="docs-fact"><span>Instruction-data offsets</span>
+<strong>tag @ 0 · expiresAt @ 1 · allowedActions @ 9 · maxActions @ 11</strong>
+<p>The handler receives only the final 14 bytes after dispatch removes the tag.</p></article>
+<article class="docs-fact"><span>Owner requirement</span>
+<strong>owner must be a writable signer</strong>
+<p>The owner also pays for setup fees, optional funding, profile creation, and Session allocation.</p></article>
+<article class="docs-fact"><span>Authority requirement</span>
+<strong>sessionAuthority must be a signer</strong>
+<p>Possession of the public address alone cannot create or refresh its Session.</p></article>
+<article class="docs-fact"><span>Distinct keys</span>
+<strong>two different public keys require both signatures</strong>
+<p>The plugin wallet and session-purpose Keypair approve the same setup transaction.</p></article>
+<article class="docs-fact"><span>Matching keys</span>
+<strong>one key and one signature satisfy both roles</strong>
+<p>Both signer checks observe the same signed public key in Local Game Wallet mode.</p></article>
+<article class="docs-fact"><span>Default permission</span>
+<strong>allowedActions = 6 = 0b0110</strong>
+<p>The mask combines BREAK_BLOCK value 2 and PLACE_BLOCK value 4.</p></article>
+<article class="docs-fact"><span>Default duration</span>
+<strong>28,800 seconds · 8 hours</strong>
+<p>A production browser choice, not a maximum accepted duration in the Player Program.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk registration press where the canonical boy places a durable owner seal and separate copper session key into two sockets around one blank record while the canonical girl observes an alternate fixture where one key spans both role sockets." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-two-signature-setup-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The two-socket press represents two required signer roles, and the alternate spanning key represents one public key filling both account positions. These generated mechanisms do not collect signatures, serialize tag 4, prove atomic execution, create or refresh an account, place a private key on-chain, or show a successful Local Game Wallet transaction.</figcaption></figure>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>One wallet prompt does not mean one signer</strong>
+<p>A plugin may show one owner approval dialog, while the browser also applies the session-purpose Keypair signature to that same transaction. The program independently requires both signer roles.</p></aside></section>
+<section class="docs-content-section" id="public-record-private-secret"><p class="docs-eyebrow">184 PUBLIC BYTES, PRIVATE SIGNING MATERIAL</p>
+<h2>The chain publishes the pass record; the browser keeps the secret that can use it</h2>
+<p class="docs-prose">PlayerSession is a fixed 184-byte public record beginning with NCKSES01. Anyone reading the account can see its public owner, session authority, linked profile and configuration, world, mask, timestamps, and stored counters. Public keys identify accounts; they are not private signing bytes. The record cannot reveal the secret half of the session Keypair.</p>
+<p class="docs-prose">Plugin-wallet mode stores that private half in localStorage under nicechunk.session.v1.&lt;owner&gt;. The JSON contains the public key, secretKey encoded as Base64, expiresAt, and savedAt. Base64 is not encryption or protection; it is a reversible text encoding. Browser code or an extension able to read this origin's storage may copy the secret. The public account and private secret therefore have different visibility and different risks.</p>
+<p class="docs-prose">The table below follows the Rust pack order and matching SDK decoder. Offsets count from the first byte, so owner starts at byte 12 after eight magic bytes, two version bytes, one bump byte, and one active byte. The Devnet capture calls byte 11 initialized; the SDK calls it active; current consumers ignore it under either name. Multi-byte integers use the implementation's little-endian readers and writers. Refresh changes mask, expiry, updatedSlot, and maxActions and resets actionCount, while createdSlot and createdAt remain creation metadata.</p>
+<p class="docs-prose">A read-only capture on 2026-07-18 retained 10 PlayerSession records for 8 unique owners at confirmed Devnet context slot 477236696. RPC getBlockTime for that context slot returned 2026-07-18T21:56:51Z, and all 10 records were expired relative to that retained block time. The capture did not directly read the Clock sysvar used by a consumer. Five records had owner = sessionAuthority and five used distinct authorities, while one owner had three Sessions; public equality does not prove which client created them.</p>
+<p class="docs-prose">The referenced Profiles were six current v7 records, three historical v2 records, and one historical v3 record. A customized direct contract call that supplies the stored historical Profile can make a matching 773-byte v3 record pass the selected consumer shape, owner, and configuration checks; a 473-byte v2 record fails the 773-byte length gate. Repository-default builders instead derive the current player-v7 Profile, so this custom compatibility does not prove a default Play path can use a historical Session pointer or complete later action rules.</p>
+<p class="docs-prose">The Session, Profile, and GlobalConfig program-account reads share context slot 477236696. Player Program and Player ProgramData used supplemental nearby context slots at +1 and +2, not the exact shared account context. Their hashes bind only the observed Player deployment bytes—not Chunk, Building, unified Game, Backpack, or Guardian—and do not prove this dirty source tree was reproducibly compiled to the deployment.</p>
+<p class="docs-prose">This is a single confirmed Devnet snapshot, not a Mainnet claim, finalized guarantee, permanent population total, or proof that anyone possessed a corresponding secret. It did not read session-authority balances or browser storage. The retained context-slot RPC block time supports the expiry classification, while live consumers independently read Clock.unix_timestamp when an instruction executes.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>magic</span>
+<strong>offset 0 · 8 bytes · NCKSES01</strong>
+<p>The account-family marker checked before the consumer reads public fields.</p></article>
+<article class="docs-fact"><span>version</span>
+<strong>offset 8 · 2 bytes · u16</strong>
+<p>Packed as version 1, although current audited consumers do not read it.</p></article>
+<article class="docs-fact"><span>bump</span>
+<strong>offset 10 · 1 byte · u8</strong>
+<p>The canonical PDA bump stored during setup; current consumers do not read it.</p></article>
+<article class="docs-fact"><span>active</span>
+<strong>offset 11 · 1 byte · u8 boolean</strong>
+<p>Creation writes 1; current consumer views do not check this byte.</p></article>
+<article class="docs-fact"><span>owner</span>
+<strong>offset 12 · 32 bytes · public key</strong>
+<p>The persistent player identity resolved from the Session.</p></article>
+<article class="docs-fact"><span>sessionAuthority</span>
+<strong>offset 44 · 32 bytes · public key</strong>
+<p>The signer public key that a consumer compares with the presented authority.</p></article>
+<article class="docs-fact"><span>playerProfile</span>
+<strong>offset 76 · 32 bytes · public key</strong>
+<p>The Profile account expected by the current action.</p></article>
+<article class="docs-fact"><span>globalConfig</span>
+<strong>offset 108 · 32 bytes · public key</strong>
+<p>Checked by Chunk and Building; Backpack's Session view does not read it.</p></article>
+<article class="docs-fact"><span>worldId</span>
+<strong>offset 140 · 2 bytes · u16</strong>
+<p>Stored from GlobalConfig at creation; current audited consumers do not read it.</p></article>
+<article class="docs-fact"><span>allowedActions</span>
+<strong>offset 142 · 2 bytes · u16 mask</strong>
+<p>A consumer checks whether its requested bit is present.</p></article>
+<article class="docs-fact"><span>expiresAt</span>
+<strong>offset 144 · 8 bytes · i64 Unix seconds</strong>
+<p>A consumer rejects the record when this is less than or equal to chain time.</p></article>
+<article class="docs-fact"><span>createdSlot</span>
+<strong>offset 152 · 8 bytes · u64</strong>
+<p>The creation slot; refresh leaves it unchanged.</p></article>
+<article class="docs-fact"><span>updatedSlot</span>
+<strong>offset 160 · 8 bytes · u64</strong>
+<p>Creation copies createdSlot; refresh replaces it with the current slot.</p></article>
+<article class="docs-fact"><span>createdAt</span>
+<strong>offset 168 · 8 bytes · i64 Unix seconds</strong>
+<p>The chain timestamp recorded when the account was first packed.</p></article>
+<article class="docs-fact"><span>maxActions</span>
+<strong>offset 176 · 4 bytes · u32</strong>
+<p>Must be nonzero at setup but is not read by current audited consumers.</p></article>
+<article class="docs-fact"><span>actionCount</span>
+<strong>offset 180 · 4 bytes · u32</strong>
+<p>Created and refreshed as zero, then left unchanged by current read-only consumers.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk archive scene where the canonical boy places the copper session key into an open unlatched wooden storage drawer while the canonical girl inspects a separate public stone record whose fitted recesses contain no private key." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-public-record-private-secret-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The open drawer represents ordinary browser-accessible storage, while the public stone plinth represents a chain account containing public fields but not the secret key. The generated scene is not a localStorage dump, Base64 decoder, access-control test, byte decoder, PDA derivation, or proof that a particular secret was copied or protected.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Public consistency is not secret possession</strong>
+<p>A canonical address, matching bump, valid mask, and unexpired timestamp can describe a well-formed public record. None of those observations proves that the reader owns or has protected the private session key.</p></aside></section>
+<section class="docs-content-section" id="real-consumer-permission-scope"><p class="docs-eyebrow">WHAT ACTUALLY READS THE PASS</p>
+<h2>Fifteen audited contract Session branches share BREAK_BLOCK; default Play reachability is separate</h2>
+<p class="docs-prose">The source-derived capability matrix identifies 15 audited contract handlers with a PlayerSession-aware branch: five Chunk handlers, eight Building handlers, and two Backpack handlers. All 15 such branches request BREAK_BLOCK bit index 1, whose value or permission mask is 2. Fifteen does not mean or prove that one default Play bundle reaches, exports, or calls every handler; actual reachability depends on the runtime-resolved asset and call graph.</p>
+<p class="docs-prose">The five Chunk handlers are mine_block, mine_block_with_rewards, fell_tree_with_rewards, batch_mine_with_rewards, and range_mine_with_rewards. Current repository source defines both batch tag 20 and range tag 21 builders but its default bulk call points to range. The retained 2026-07-19 default live chain candidate exposes no recordBulkMineOnChain export and produced zero exact writeUInt8(20, 0) / writeUInt8(21, 0) literal matches; that exact-string search does not exclude equivalent encodings such as variables, hexadecimal bytes, or Buffer constructors. The one versioned dedicated bulk candidate named by the runtime returned 404. A separately probed unversioned bulk URL also returned 404 but was not the nonempty-version runtime's default. These byte observations separate contract capability from default live Play reachability and remain override-dependent.</p>
+<p class="docs-prose">The eight Building handlers are create_build_site, register_build_site_chunks, begin_building_upload, write_building_shard, finalize_building, cancel_building_upload, migrate_legacy_build_site, and begin_build_site_resize. They are Building instruction tags 0 through 7, and every one uses BREAK_BLOCK action index 1. Building tag 8 is not a ninth Session flow: it publishes a Guardian blueprint through a separate fixed-publisher path. cancel_building_upload can return manifest and shard rent to sessionAuthority, so this bit can authorize a SOL destination as well as construction state.</p>
+<p class="docs-prose">Backpack routing has two layers. The repository-default gameContext and the retained live chain candidate target the unified Game Program 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7 for Backpack. Namespace byte 1 wraps the inner Backpack data: single removal is [1, 2, index], and batch removal begins [1, 4, count, ...]. The unified Game Program strips namespace one and delegates the remaining payload to the shared nicechunk_backpack handler.</p>
+<p class="docs-prose">Each Backpack handler also has two account shapes. Its four-account Session-aware branch reads authority, PlayerProfile, PlayerSession, and Backpack, then requests BREAK_BLOCK bit 1. Its two-account owner-direct branch uses owner signer plus Backpack and bypasses PlayerSession entirely. Repository and retained live chain-client discard builders use the four-account unified-Game form, but the contract's owner-direct form means it would be wrong to say every Backpack removal requires a Session.</p>
+<p class="docs-prose">Both forms remove a dense packed Backpack slot or reference. remove_resource shifts later fixed-size records left; remove_resources rejects empty, duplicate, or out-of-range indexes and removes valid choices high to low. Neither checks slot kind, type, or category, so material/resource, block, smelting, blueprint, and forged equipment/item references are structurally in scope. The removal only shifts and clears the packed Backpack record; it does not close, modify, or refund an underlying item PDA that the record may reference.</p>
+<p class="docs-prose">Repository Session-aware builders request all 15 PlayerSession metas read-only, but read-only is not the sole reason actionCount does not change. The handlers borrow or inspect Session data immutably, never read or compare actionCount with maxActions, do not own the Player Program account, and contain no Player Program increment instruction or CPI. Therefore actionCount is not incremented or updated and 10,000 is not a current limit, even though a different transaction could merge account privileges more broadly.</p>
+<p class="docs-prose">At least six control fields are ignored: the validators do not read or check version, bump, active, worldId, maxActions, or actionCount; createdSlot, updatedSlot, and createdAt also do not authorize actions. Chunk and Building read globalConfig while Backpack's Session view omits it. Chunk and Building require sessionAuthority signer+writable; Backpack's Session branch requires signer but not writable. All require 184 bytes, NCKSES01, and Player Program ownership, but none derives the canonical PlayerSession PDA. This defense-in-depth gap is not proof that an attacker can freely create arbitrary Player-owned accounts.</p>
+<p class="docs-prose">Historical Profile compatibility is narrower than a length check. A custom direct call that supplies a stored, pointer-matched 773-byte v3 Profile may pass selected Session and Profile predicates; 473-byte v2 fails length. Repository-default builders derive current player-v7 instead, so a historical Profile observation does not mean default Play can reach or use that old Session. The other Profile fields version, bump, initialized, worldId, and canonical Profile PDA are not all enforced by every consumer either.</p>
+<p class="docs-prose">PLACE_BLOCK is bit index 2 with value 4, but it has zero audited contract consumers. The reviewed repository method and retained live chain candidate return the literal reason chain-placement-disabled before submitting ordinary placement. Storing mask 6 therefore does not make PLACE_BLOCK an on-chain placement permission.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Chunk · 5 consumers</span>
+<strong>mine_block · mine_block_with_rewards · fell_tree_with_rewards · batch_mine_with_rewards · range_mine_with_rewards</strong>
+<p>Normal mining, rewarded mining, tree felling, batch mining, and range mining all request action index 1.</p></article>
+<article class="docs-fact"><span>Building · 8 consumers</span>
+<strong>create_build_site · register_build_site_chunks · begin_building_upload · write_building_shard · finalize_building · cancel_building_upload · migrate_legacy_build_site · begin_build_site_resize</strong>
+<p>All Building tags 0–7 share BREAK_BLOCK rather than a dedicated building permission.</p></article>
+<article class="docs-fact"><span>Backpack · 2 consumers</span>
+<strong>remove_resource · remove_resources</strong>
+<p>Each four-account Session-aware branch requests BREAK_BLOCK; each handler also has a two-account owner-direct branch that does not read Session.</p></article>
+<article class="docs-fact"><span>Permission used</span>
+<strong>BREAK_BLOCK · bit index 1 · value 2</strong>
+<p>15 of 15 audited consumers use this one bit.</p></article>
+<article class="docs-fact"><span>Permission unused</span>
+<strong>PLACE_BLOCK · bit index 2 · value 4 · 0 consumers</strong>
+<p>The current ordinary placement method reports chain-placement-disabled.</p></article>
+<article class="docs-fact"><span>Mutation result</span>
+<strong>15 read-only PlayerSession metas · 0 writable consumer metas</strong>
+<p>Builders request read-only and handlers only inspect Session; none reads the counter or invokes Player Program to increment it.</p></article>
+<article class="docs-fact"><span>Highlighted control fields no consumer reads</span>
+<strong>version · bump · active · worldId · maxActions · actionCount</strong>
+<p>createdSlot, updatedSlot, and createdAt are also not authorization inputs; their presence does not make any of these fields an implemented gate.</p></article>
+<article class="docs-fact"><span>Backpack deletion type gate</span>
+<strong>none</strong>
+<p>Dense removal validates owner and indexes, shifts or clears only the packed reference, and neither restricts slot kind nor closes an item PDA.</p></article>
+<article class="docs-fact"><span>Repository and retained live Backpack route</span>
+<strong>Game Program 6Curn… · namespace 1 · inner tags 2 and 4</strong>
+<p>Outer forms begin [1, 2, index] and [1, 4, count, ...], then unified Game delegates the remaining payload to shared Backpack code.</p></article>
+<article class="docs-fact"><span>Live bulk reachability snapshot</span>
+<strong>versioned dedicated bulk candidate 404 · no bulk export in fetched default chain candidate</strong>
+<p>The separately fetched unversioned bulk URL was only a deployment-boundary probe, not the nonempty-version runtime's selected default candidate.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk courtyard where the canonical boy uses one copper key at a central turnstile opening toward connected quarry, construction, and mixed Backpack sorting areas while the canonical girl surveys an unused second placement socket." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-real-consumer-permission-scope-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The connected quarry, Building yard, and mixed dense sorting bench suggest one permission reaching several kinds of work, while the capped second socket suggests an unwired path. The generated scene does not prove bit values, enumerate 15 handlers, execute Backpack deletion, demonstrate index shifts, or establish chain-placement-disabled.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Read the consumer, not the permission label</strong>
+<p>A bit name describes a contract branch; the resolved client asset and call site decide whether a player can reach it. Bit 1 spans Session-aware mining, Building, and generic dense Backpack-reference removal branches, while owner-direct Backpack removal bypasses Session and bit 2 has no audited consumer.</p></aside></section>
+<section class="docs-content-section" id="browser-storage-reuse-and-refresh"><p class="docs-eyebrow">CLIENT CONVENIENCE VERSUS CHAIN AUTHORITY</p>
+<h2>Browser reuse is a heuristic; refresh is conditional, and saving the secret is a second commit</h2>
+<p class="docs-prose">Plugin-wallet mode saves the session-purpose Keypair under nicechunk.session.v1.&lt;owner wallet&gt;. Reuse begins with the copied browser expiresAt and requires localExpiresAt &gt; now + 900 seconds, a 15-minute skew. It derives that authority's PDA, but its on-chain Session test is only that the account has nonempty data. It does not decode or validate Session length, magic, stored owner, authority, Profile pointer, mask, or chain expiresAt before the branch proceeds.</p>
+<p class="docs-prose">The separately derived canonical-address Profile goes through selected checks: Player Program ownership, 773-byte decodable NCKPLY01 shape, stored owner, and GlobalConfig. The helper reads but does not enforce Profile version or initialized, so calling it a “current v7 Profile” would be too strong. Reuse is therefore a browser convenience heuristic, not the authoritative gate; a consumer can still reject the key for its actual Session, Profile, expiry, permission, or action rules.</p>
+<p class="docs-prose">Reuse may still ask the owner wallet to sign. The branch calls funding before a complete on-chain Session validation; when balance is below 0.1 SOL, it builds an owner-to-authority System transfer and requests wallet approval. Only a fresh-enough, adequately funded stored key can avoid a new owner transaction. Approving a top-up is not proof that the pass is usable, because a later consumer can reject the Session after the SOL transfer has confirmed.</p>
+<p class="docs-prose">The same owner and same authority select the same PDA, but address selection does not guarantee a rewrite. Refresh requires the existing record's stored owner, sessionAuthority, playerProfile, and globalConfig to match the tag-4 inputs, requires the old authority to sign, and first requires the current player-v7 Profile PDA. Only then can it replace allowedActions, expiresAt, updatedSlot, and maxActions and reset actionCount. The contract accepts any still-future expiry, so a correctly approved refresh can shorten as well as lengthen time; the repository client normally asks for now + 8 hours.</p>
+<p class="docs-prose">That pointer rule matters to old accounts. A Session that still stores a historical v2 or v3 Profile pointer hits the same PDA for the same authority but cannot refresh in place against the required current player-v7 pointer. Plugin mode can choose a new authority and create a new PDA pointing at the current Profile, while the old PDA and rent remain. Local Game Wallet fixes authority = owner, so the same-address historical-pointer case has no automatic key-rotation escape in this flow. This is a source-level compatibility boundary, not an observed failure in the retained snapshot, whose five owner-equals-authority records all pointed at current v7.</p>
+<p class="docs-prose">The repository and SDK tag-4 builders mark an existing PlayerProfile read-only. Player Program's ensure_player_profile_current fast path checks only length, NCKPLY01 magic, owner, and GlobalConfig; it does not enforce version or initialized. If a Player-Program-owned, existing nonempty current player-v7 PDA fails one of those selected checks, the repair branch can top up rent, realloc to 773 bytes, and repack—operations needing writable privilege. An older layout is only in this conditional repair-risk scope when one of the selected length, magic, owner, or GlobalConfig checks fails. A missing or new Profile receives a writable initialize instruction that normally raises transaction-level privilege, but an existing nonempty Profile does not. Automatic repair may therefore fail unless another instruction makes it writable. This audit observed no production failure evidence; it records a conditional integration risk, not proof that every old Profile fails.</p>
+<p class="docs-prose">Rotation is not revocation. Missing or damaged plugin storage leads to a new Keypair and different PDA. Creating that new PDA does not stop, deactivate, close, or refund the old one, and it locks another allocation's rent. The old record can remain usable with its old secret until its own expiry and gates pass. One Devnet owner having three Sessions is only a coexistence snapshot, not proof that all three were simultaneously usable.</p>
+<p class="docs-prose">Chain setup and browser secret persistence are non-atomic. The client broadcasts and waits for the owner setup transaction before calling storeGameplaySession; then localStorage.setItem performs a separate browser write. RPC confirmation ambiguity, page closure, unavailable storage, quota or permission errors, or a thrown setItem can leave a funded authority and PlayerSession on chain without a durable local secret. A later retry may generate another authority, transfer another target balance, and allocate another rent-funded PDA. No one outcome is guaranteed, but the two commits can strand repeated balances and rent.</p>
+<p class="docs-prose">Local Game Wallet has a different reuse shortcut. A five-minute in-memory ready cache can skip RPC and report a newly recomputed now + 8 hours instead of the record's real expiresAt. Five minutes bounds only the no-RPC cache window, not the expiry overstatement: a cached existing Session could have been just above the 15-minute freshness floor, so the synthetic local time may materially exceed the chain record. Outside the cache, its RPC freshness helper checks Player ownership, 184-byte magic, stored owner and authority, and expiresAt &gt; now + 900, but does not cross-check Session playerProfile, globalConfig, allowedActions, version, active, or maxActions. The consumer remains final.</p>
+<p class="docs-prose">Finally, play-chain-adapter.js can dynamically import a global override or localStorage nicechunk.chainModuleUrl before its normal candidates. Dynamic import executes and evaluates module code before the adapter checks whether expected exports exist. Never paste or configure an untrusted module URL: same-origin-accessible browser secrets may be exposed to code that runs. This is a capability and trust warning, not evidence that an override exploit or compromise has occurred.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Storage scope</span>
+<strong>nicechunk.session.v1.&lt;owner wallet&gt;</strong>
+<p>The wallet address selects one browser record, but logout later scans the entire prefix across owners.</p></article>
+<article class="docs-fact"><span>Reuse window</span>
+<strong>localExpiresAt &gt; now + 900 seconds</strong>
+<p>The current 15-minute client skew prompts refresh before the copied local expiry.</p></article>
+<article class="docs-fact"><span>Same key</span>
+<strong>same owner + same authority → same PDA selection</strong>
+<p>Rewrite occurs only after both signer roles, stored owner/authority/Profile/Config relationships, and current Profile preconditions pass.</p></article>
+<article class="docs-fact"><span>New key</span>
+<strong>same owner + new authority → different PDA</strong>
+<p>The address changes because authority is a seed; another account allocation locks another rent balance.</p></article>
+<article class="docs-fact"><span>Old Session</span>
+<strong>not revoked by new-key setup</strong>
+<p>The old authority may still use its old record until expiry; new-key creation writes no old account.</p></article>
+<article class="docs-fact"><span>Final decision</span>
+<strong>consumer checks remain authoritative</strong>
+<p>A reused browser key can still be rejected by chain-time expiry, missing bits, identity mismatches, or action rules.</p></article>
+<article class="docs-fact"><span>Plugin Session presence test</span>
+<strong>account data is merely nonempty</strong>
+<p>Reuse does not first decode Session magic, length, stored relationships, mask, or chain expiry.</p></article>
+<article class="docs-fact"><span>Plugin Profile predicate</span>
+<strong>program owner · 773 bytes · NCKPLY01 · owner · GlobalConfig</strong>
+<p>The canonical-address query does not enforce decoded version or initialized.</p></article>
+<article class="docs-fact"><span>Possible reuse prompt</span>
+<strong>balance below 0.1 SOL → owner top-up approval</strong>
+<p>Funding happens before complete Session authorization; successful funding does not prove later use will pass.</p></article>
+<article class="docs-fact"><span>Two persistence commits</span>
+<strong>broadcast/confirmation first · localStorage secret second</strong>
+<p>Failure between them can leave chain state and funds without a durable browser copy of the key.</p></article>
+<article class="docs-fact"><span>Local Game Wallet cache</span>
+<strong>5-minute no-RPC window · synthetic now + 8 hours</strong>
+<p>Five minutes bounds RPC bypass, not how far the displayed local expiry may overstate the actual record.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk maintenance bench where the canonical boy returns the same copper key from an open owner cubby to its fitted stone record while the canonical girl turns its hourglass, beside a different key and second record that leave the first intact." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-browser-storage-reuse-and-refresh-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">Open cubbies, two differently shaped keys, separate record stands, an outer inspection tray, and an hourglass stage reuse, refresh, and coexistence. They do not inspect localStorage, decode chain fields, derive canonical PDAs, prove a signature or extension, deactivate an older record, or establish any current expiry.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Rotation without revocation leaves overlap</strong>
+<p>For an attacker holding only an independent plugin session key, that old record's expiry ends its checked NiceChunk access. It does not erase the key or SOL. If the owner or Local Game Wallet key is compromised, the attacker can approve a new or refreshed future Session, so expiry is not the final compromise stop-loss.</p></aside></section>
+<section class="docs-content-section" id="funding-sol-and-local-wallet"><p class="docs-eyebrow">FEES, BALANCES, AND PERSISTENT LOCAL KEYS</p>
+<h2>The 0.1 SOL policy is a refill trigger, not a spending cap or key restriction</h2>
+<p class="docs-prose">A separate session-purpose Keypair needs SOL in its ordinary sessionAuthority System account to pay transaction fees and, where an action creates accounts, rent funding. The reviewed repository source and retained live chain candidate use a minimum of 100,000,000 lamports, or 0.1 SOL, and clamp the configured target to at least that value. Below 0.1 SOL the owner may be asked to transfer toward the target; at or above the threshold, a higher target is not automatically filled.</p>
+<p class="docs-prose">That top-up target is not a cap, limit, budget, escrow, or on-chain authorization rule. PlayerSession stores neither target nor balance. The Session record can expire, but the Keypair, address, and private signing bytes do not expire, erase, or revoke themselves. Expiry, allowedActions, maxActions, and actionCount do not protect or restrict the address's SOL and cannot stop the same key from signing an ordinary SystemProgram.transfer that never consults Player Program.</p>
+<p class="docs-prose">Repository chain code and the retained live candidate use the session Keypair as fee payer for supported later calls. Fees and account rent can reduce its balance, while any controller of the private key can create a different ordinary transfer signature. The offline one-lamport System Program proof verifies that signing shape without a real balance, live blockhash, broadcast, or fund movement, so it proves ordinary signing capability rather than successful execution.</p>
+<p class="docs-prose">Do not combine authority balance with PlayerSession PDA rent. The retained Devnet accounts each held 2,171,520 lamports as the observed rent-exempt minimum for a separate 184-byte PDA; the snapshot did not query authority balances. A new authority creates another PDA and locks another rent allocation. Because the reviewed Player Program has no Session close path, expiry, rotation, and logout do not refund that rent.</p>
+<p class="docs-prose">Logout also does not sweep the authority's SOL. If best-effort cleanup successfully deletes the only nicechunk.session.v1.&lt;owner&gt; copy and no backup exists, normal UI flow no longer has the private bytes needed to move the old address's remaining SOL. Reconnecting can create and fund a new key instead. This loss is not guaranteed—copies may exist or deletion may fail—but there is no automatic recovery or pre-logout drain, so 0.1 SOL is not a guaranteed maximum loss.</p>
+<p class="docs-prose">Local Game Wallet is a different and larger risk shape. Its owner = sessionAuthority, so one persistent local key can satisfy both setup roles and later wallet authority. The browser stores that long-lived private key as an unencrypted plain Base58 string under separate Local Game Wallet keys. Its full wallet balance is exposed to that key, and plugin-session logout does not delete it. usesGameplaySession: false says only that there is no separate gameplay Keypair; it does not prove an on-chain PDA exists. After successful setup, the flow can use PDA(PlayerProgram, ["session", owner, owner]).</p>
+<p class="docs-prose">If only an independent plugin session key leaks, the old record's chain expiry eventually blocks its audited NiceChunk branches. If the owner wallet secret or Local Game Wallet key leaks, the attacker can occupy both required setup roles or choose a new authority and create or refresh a future Session. Session expiry is therefore not final containment for owner-key compromise, and short expiries cannot repair loss of the long-lived key.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Minimum refill policy</span>
+<strong>100,000,000 lamports · 0.1 SOL</strong>
+<p>Present in reviewed repository and retained live chain bytes; it is not a field in the 184-byte Session.</p></article>
+<article class="docs-fact"><span>Configured target</span>
+<strong>browser-scoped value clamped to at least 0.1 SOL</strong>
+<p>Used to calculate an owner transfer only when the address is below the minimum threshold.</p></article>
+<article class="docs-fact"><span>Separate Session PDA rent</span>
+<strong>2,171,520 lamports in the retained Devnet snapshot</strong>
+<p>Observed on each 184-byte PlayerSession PDA; a new authority allocates another PDA, and no reviewed Session close refunds it.</p></article>
+<article class="docs-fact"><span>Later signer</span>
+<strong>session Keypair is fee payer</strong>
+<p>The chain client sets transaction.feePayer to the Keypair public key and signs with that Keypair.</p></article>
+<article class="docs-fact"><span>Independent signer power</span>
+<strong>ordinary System Program transfer</strong>
+<p>No PlayerSession account or Player Program invocation is required by that separate transaction.</p></article>
+<article class="docs-fact"><span>Plugin mode</span>
+<strong>owner ≠ sessionAuthority</strong>
+<p>The owner funds a separate, limited-balance address but PlayerSession still does not enforce that balance.</p></article>
+<article class="docs-fact"><span>Local Game Wallet mode</span>
+<strong>owner = sessionAuthority</strong>
+<p>One persistent key fills both roles; the status flag does not itself prove Session setup or PDA existence.</p></article>
+<article class="docs-fact"><span>Persistent local secret</span>
+<strong>Base58 · unencrypted plain browser storage</strong>
+<p>This long-lived Local Game Wallet secret is separate from nicechunk.session.v1.&lt;owner&gt;.</p></article>
+<article class="docs-fact"><span>What actually expires</span>
+<strong>PlayerSession authorization record</strong>
+<p>The Keypair, address, SOL control, and ability to sign another message do not expire with that record.</p></article>
+<article class="docs-fact"><span>Successful plugin logout risk</span>
+<strong>sole secret may disappear before balance is swept</strong>
+<p>Without another copy, the normal UI cannot recover that old authority's SOL; the PDA rent also remains allocated.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk funding bench where the canonical boy moves unmarked fee ingots from an owner chest to an exposed box attached to the copper session key, which fits both a session turnstile and ordinary supply lock, while the canonical girl warns beside a one-key dual-role fixture." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-funding-sol-and-local-wallet-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The exposed fee box, ordinary copper key, separate locks, owner chest, and dual-role fixture teach funding and signer scope without using literal currency UI. The generated props do not identify SOL, measure fees or rent, perform a transfer, prove unrestricted signing power, establish loss, or verify the Local Game Wallet relationship.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Funding policy reduces friction, not cryptographic authority</strong>
+<p>A smaller balance can reduce exposure, but only key custody and transaction construction control an ordinary address outside Session-aware consumers. Expiry and masks do not wrap SOL in a protected account, and owner-key compromise can create another future Session.</p></aside></section>
+<section class="docs-content-section" id="expiry-logout-revocation-and-guardian"><p class="docs-eyebrow">HOW AUTHORITY REALLY ENDS</p>
+<h2>Expiry closes checked gates; logout, key rotation, and Guardian do not revoke the account</h2>
+<p class="docs-prose">A Chunk, Building, or Backpack Session branch rejects when expiresAt &lt;= Clock.unix_timestamp. That closes this old public record's checked gate; it does not expire, erase, revoke, or zero the Keypair, address, private bytes, or SOL. The copied browser time is only a hint and cannot make a chain-expired record valid.</p>
+<p class="docs-prose">The reviewed Player Program has no close, revoke, or deactivate instruction for PlayerSession and no owner-only kill switch. Refresh of a distinct old authority requires that old authority to sign; replacement authority creates another PDA without changing or refunding the old one. The owner therefore cannot immediately close a stolen independent Session through this interface.</p>
+<p class="docs-prose">Expiry is meaningful only after naming which secret leaked. If an attacker holds only an independent plugin session key, expiry is the cutoff for that old record's audited NiceChunk branches, although the key can still sign ordinary transactions and control remaining SOL. If the owner wallet or Local Game Wallet key is stolen or compromised, that key can approve a new authority or, when owner = sessionAuthority, satisfy both setup roles and create or refresh another future Session. Expiry is not a final or complete compromise stop-loss for the long-lived owner key.</p>
+<p class="docs-prose">Logout is best-effort browser cleanup, not a verified deletion. clearWalletSession first attempts four wallet-identity removals, then tries to enumerate localStorage. If storage.length or storage.key enumeration throws, it returns and skips the runtime-prefix pass. When enumeration succeeds, it attempts every key beginning nicechunk.session.v1., nicechunk.equippedBackpack.v1., nicechunk.sessionFundingLamports.v1., or nicechunk.sessionFundingAcknowledged.v1. Each removeItem error is caught and swallowed, and the helper does not read back or confirm success.</p>
+<p class="docs-prose">The prefix pass is not limited to the connected wallet. A successful scan can delete another owner's only or last browser copy of a plugin session secret, while an error can leave a supposedly cleared secret behind. Logout therefore does not guarantee deletion, and its cross-owner reach is a risk rather than proof that every matching key was removed.</p>
+<p class="docs-prose">Logout does not alter on-chain PlayerSession state, send a revoke, close or refund the Session PDA, or drain, recover, return, or refund the authority address's SOL. It also does not delete the separately stored Local Game Wallet private key. If the only plugin secret is successfully removed before its balance is swept, the normal UI may lose access to that SOL even while the public Session and rent remain. A copied key elsewhere may keep using an unexpired old record if its gates pass.</p>
+<p class="docs-prose">Guardian is independent of this lifecycle. Realtime HELLO sends an unsigned public wallet hint plus nonce—not possession proof, PlayerSession, or wallet signature. Guardian Program manages registry, operators, endpoints, and blueprints; Guardian does not issue, validate, refresh, or revoke PlayerSession. Building tag 8 is a separate fixed-publisher Guardian blueprint path, not one of Building's eight Session-aware tags.</p>
+<p class="docs-prose">At confirmed Devnet context slot 477236696, the retained 2026-07-18 RPC getBlockTime value classified all 10 Session records as expired. This was not a direct Clock sysvar read. Session/Profile/Config reads shared that slot, while Player Program and ProgramData hash reads used supplemental nearby +1 and +2 contexts and cover only Player deployment bytes. Expired records remaining visible show allocation can outlive authorization, but this one confirmed Devnet snapshot is not Mainnet, an ongoing monitor, or a permanent population count.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Consumer expiry rule</span>
+<strong>expiresAt &lt;= chain time → reject</strong>
+<p>The decision uses Clock.unix_timestamp inside each audited consumer.</p></article>
+<article class="docs-fact"><span>Immediate owner revocation</span>
+<strong>no close · no revoke · no deactivate instruction</strong>
+<p>The reviewed Player Program dispatch exposes create or refresh but no Session lifecycle kill handler.</p></article>
+<article class="docs-fact"><span>Old-key refresh</span>
+<strong>old sessionAuthority signature required</strong>
+<p>Owner consent alone cannot extend or overwrite a distinct old authority's canonical Session.</p></article>
+<article class="docs-fact"><span>Logout storage scope</span>
+<strong>best-effort attempts across four runtime prefixes and all owner suffixes</strong>
+<p>Enumeration failure skips the prefix pass; each removeItem error is swallowed and no success read-back occurs.</p></article>
+<article class="docs-fact"><span>Logout chain effect</span>
+<strong>none</strong>
+<p>No revoke, Session PDA close or rent refund, session-authority SOL drain, or other on-chain Session transaction is sent.</p></article>
+<article class="docs-fact"><span>Local Game Wallet after logout</span>
+<strong>persistent private key remains</strong>
+<p>Plugin-session cleanup does not clear the separate Base58 secret.</p></article>
+<article class="docs-fact"><span>Guardian input</span>
+<strong>wallet public-key hint and nonce</strong>
+<p>No PlayerSession, session authority, session secret, or wallet signature is sent in HELLO.</p></article>
+<article class="docs-fact"><span>Retained Devnet boundary</span>
+<strong>2026-07-18 · slot 477,236,696 · 10 expired records</strong>
+<p>Expiry used context-slot RPC getBlockTime rather than a direct Clock sysvar read; Player deployment hashes used nearby +1/+2 contexts.</p></article>
+<article class="docs-fact"><span>Successful cross-owner cleanup risk</span>
+<strong>another owner's sole browser secret can be removed</strong>
+<p>That deletion still does not sweep its SOL, refund its Session rent, or remove copies outside this browser origin.</p></article>
+<article class="docs-fact"><span>Long-lived-key compromise</span>
+<strong>owner or Local Game Wallet key can authorize another future Session</strong>
+<p>Expiry contains only the old record used by an attacker who lacks the owner key; it is not complete owner-key recovery.</p></article></div>
+<figure class="docs-section-visual"><img alt="NiceChunk late-afternoon waystation where the canonical boy clears copper keys from every open session cubby while a copied key and intact stone record remain elsewhere, the canonical girl checks a closed expired gate, and an unconnected Guardian tower stands far away." decoding="async" height="887" loading="lazy" src="/docs/media/player-sessions-expiry-logout-revocation-and-guardian-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The empty hourglass, closed gate, intact public record, prefix-wide cubby cleanup, untouched long-lived key, surviving copy, two-socket refresh press, and distant tower separate expiry, local logout, missing revocation, and Guardian. The generated scene does not execute any check, delete real storage, move SOL, close an account, preserve a real secret, or prove Guardian independence.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Know which key you are trying to contain</strong>
+<p>Short expiry helps when only an independent session key leaks. It does not repair an owner or Local Game Wallet compromise. Protect both secrets, keep session-purpose balances modest, recover funds before logout when possible, and remember that logout only attempts to remove copies it can enumerate.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">VERIFY THE BOUNDARY</p>
+<h2>Separate the account predicate, the ordinary key, and the browser lifecycle</h2>
+<p>The formulas translate signer roles, byte layout, permission bits, consumer reads, reuse, funding, and expiry into plain tests. Literal excerpts separate the repository production /play/ source route, the runtime-resolved live Nginx assets retained on 2026-07-19 UTC, contract capability, SDK serialization, offline derivation, and Devnet account snapshot.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Two roles describe one player's session</h3>
+<div aria-label="A Player Session names one long-lived owner role and one session-authority signing role for the same player." class="docs-formula-expression" role="math"><code>roles = { owner: long-lived identity, sessionAuthority: signer presented to consumers }</code></div>
+<p class="docs-technical-explanation">The public keys may be different in plugin-wallet mode or identical in Local Game Wallet mode. Account roles are logical positions; they do not guarantee two different physical secrets.</p>
+<dl class="docs-formula-terms"><dt>owner</dt>
+<dd>The persistent public key checked by PlayerProfile.</dd>
+<dt>sessionAuthority</dt>
+<dd>The signer public key compared by a session-aware consumer.</dd></dl></article>
+<article class="docs-formula"><h3>Canonical PlayerSession address</h3>
+<div aria-label="The Session PDA is derived under the Player Program from the word session, the owner, and the session-authority public key in that order." class="docs-formula-expression" role="math"><code>P_session = PDA(PlayerProgram, ["session", owner, sessionAuthority])</code></div>
+<p class="docs-technical-explanation">The two public keys are address inputs. Keeping both identical inputs returns the same PDA; replacing the authority returns a different PDA and does not write the earlier account.</p>
+<dl class="docs-formula-terms"><dt>P_session</dt>
+<dd>The deterministic 184-byte public account address.</dd>
+<dt>PlayerProgram</dt>
+<dd>The NiceChunk Player Program whose ID defines the PDA domain.</dd></dl></article>
+<article class="docs-formula"><h3>Direct browser signer count follows distinct public keys</h3>
+<div aria-label="Distinct owner and authority keys require two signatures, while one matching key can satisfy both signer account roles with one signature." class="docs-formula-expression" role="math"><code>setupSigners = { owner, sessionAuthority }; owner != sessionAuthority ⇒ 2 signatures; owner = sessionAuthority ⇒ 1 signature satisfies both roles</code></div>
+<p class="docs-technical-explanation">This describes the reviewed direct browser transaction. The contract actually checks is_signer on both account positions; equal metas can rely on one transaction signature, while a CPI PDA signer may use invoke_signed instead of a private key.</p>
+<dl class="docs-formula-terms"><dt>setupSigners</dt>
+<dd>The public keys whose account roles must be marked as signers.</dd></dl></article>
+<article class="docs-formula"><h3>Reviewed repository setup instruction size</h3>
+<div aria-label="The reviewed repository create-or-refresh builder uses one tag byte and a fourteen-byte payload, for fifteen bytes total." class="docs-formula-expression" role="math"><code>setupDataBytes = 1 tag + 8 expiresAt + 2 allowedActions + 4 maxActions = 15 bytes</code></div>
+<p class="docs-technical-explanation">Tag 4 selects the handler. The contract receives the remaining fourteen bytes as payload and reads the timestamp, mask, and stored maximum from fixed offsets.</p>
+<dl class="docs-formula-terms"><dt>tag</dt>
+<dd>The one-byte instruction selector whose current value is 4.</dd></dl></article>
+<article class="docs-formula"><h3>Core create-or-refresh acceptance</h3>
+<div aria-label="Setup requires both signer roles, a future expiry, a nonzero mask containing only values two and four, and a nonzero stored maximum." class="docs-formula-expression" role="math"><code>setupCoreOK = ownerSigned AND sessionSigned AND expiresAt &gt; Clock.unix_timestamp AND allowedActions != 0 AND (allowedActions &amp; ~6) = 0 AND maxActions &gt; 0</code></div>
+<p class="docs-technical-explanation">PDA, ownership, Profile, GlobalConfig, System Program, and writable-account checks also run. The expression isolates the signer and payload requirements most visible to players.</p>
+<dl class="docs-formula-terms"><dt>6</dt>
+<dd>The union of the only two declared setup permission bits.</dd></dl></article>
+<article class="docs-formula"><h3>Default permission mask</h3>
+<div aria-label="The reviewed repository and retained live client bytes combine BREAK BLOCK at bit index one and PLACE BLOCK at bit index two into decimal mask six." class="docs-formula-expression" role="math"><code>defaultAllowedActions = (1 &lt;&lt; 1) | (1 &lt;&lt; 2) = 2 | 4 = 6 = 0b0110</code></div>
+<p class="docs-technical-explanation">A mask records which bits are present. It does not prove that a corresponding consumer exists, and current PLACE_BLOCK has no audited consumer.</p>
+<dl class="docs-formula-terms"><dt>1 &lt;&lt; n</dt>
+<dd>Move one binary bit left by n positions.</dd></dl></article>
+<article class="docs-formula"><h3>Fixed record length</h3>
+<div aria-label="The sixteen packed fields add up exactly to the fixed one-hundred-eighty-four-byte Player Session record." class="docs-formula-expression" role="math"><code>184 = 8 + 2 + 1 + 1 + 32 + 32 + 32 + 32 + 2 + 2 + 8 + 8 + 8 + 8 + 4 + 4 bytes</code></div>
+<p class="docs-technical-explanation">The sum follows the literal Rust writer and the SDK decoder order. Offsets are byte positions inside this exact fixed-length public account.</p>
+<dl class="docs-formula-terms"><dt>32</dt>
+<dd>The byte length of each Solana public key field.</dd></dl></article>
+<article class="docs-formula"><h3>Chunk and Building consumer gate</h3>
+<div aria-label="Chunk and Building require a Player-owned one-hundred-eighty-four-byte NCKSES01 record, a signed writable authority, matching Profile and Global Config, future expiry, and requested action bit." class="docs-formula-expression" role="math"><code>gateCB(a,t) = ownedByPlayerProgram AND length=184 AND magic=NCKSES01 AND sessionSignedWritable AND authorityMatch AND profileMatch AND globalConfigMatch AND expiresAt &gt; t AND (allowedActions &amp; (1 &lt;&lt; a)) != 0</code></div>
+<p class="docs-technical-explanation">Their helpers then validate the owner-backed Profile and continue into action-specific rules. This expression includes the fixed length and magic predicates but not every downstream rule; they do not derive the canonical Session PDA or read the six omitted control fields.</p>
+<dl class="docs-formula-terms"><dt>a</dt>
+<dd>The requested action-bit index, currently fixed to 1 in these consumers.</dd>
+<dt>t</dt>
+<dd>Clock.unix_timestamp read during the instruction.</dd></dl></article>
+<article class="docs-formula"><h3>Backpack consumer gate</h3>
+<div aria-label="Backpack checks a Player-owned one-hundred-eighty-four-byte NCKSES01 record, the signed authority, matching Profile, future expiry, and the requested action bit before owner-backed deletion." class="docs-formula-expression" role="math"><code>gateBackpack(a,t) = ownedByPlayerProgram AND length=184 AND magic=NCKSES01 AND sessionSigned AND authorityMatch AND profileMatch AND expiresAt &gt; t AND (allowedActions &amp; (1 &lt;&lt; a)) != 0</code></div>
+<p class="docs-technical-explanation">Unlike Chunk and Building, Backpack requires the authority to sign but not to be writable, and its Session view does not compare GlobalConfig. It later validates Profile owner and the owner's Backpack PDA; this expression is the shared Session gate rather than every deletion rule.</p>
+<dl class="docs-formula-terms"><dt>gateBackpack</dt>
+<dd>The shared PlayerSession part of either dense removal handler.</dd></dl></article>
+<article class="docs-formula"><h3>Highlighted control fields omitted by every audited consumer</h3>
+<div aria-label="Every audited Session view omits six highlighted control fields, and its creation and update metadata also do not participate in authorization." class="docs-formula-expression" role="math"><code>unreadControlFields = { version, bump, active, worldId, maxActions, actionCount }; alsoNotConsumed = { createdSlot, updatedSlot, createdAt }</code></div>
+<p class="docs-technical-explanation">A stored field has no enforcement effect unless a consumer reads and applies it. Backpack additionally omits globalConfig, while Chunk and Building compare that field.</p>
+<dl class="docs-formula-terms"><dt>unreadControlFields</dt>
+<dd>The six control fields explicitly tracked as ignored by all three consumer views.</dd>
+<dt>alsoNotConsumed</dt>
+<dd>Creation and update metadata retained in the record but not used by the consumer gates.</dd></dl></article>
+<article class="docs-formula"><h3>Audited contract Session-branch total</h3>
+<div aria-label="Five Chunk handlers, eight Building handlers, and two Backpack handlers expose fifteen audited contract Session-aware branches." class="docs-formula-expression" role="math"><code>auditedSessionBranches = 5 Chunk + 8 Building + 2 Backpack = 15</code></div>
+<p class="docs-technical-explanation">This is a contract and repository-builder capability surface, not proof that one default Play runtime reaches all fifteen. Every counted Session branch requests BREAK_BLOCK; Backpack also keeps owner-direct branches outside this count.</p>
+<dl class="docs-formula-terms"><dt>auditedSessionBranches</dt>
+<dd>Handlers with a traced PlayerSession-aware account branch, independent of default live client reachability.</dd></dl></article>
+<article class="docs-formula"><h3>Actual permission consumption</h3>
+<div aria-label="BREAK BLOCK value two is requested by all fifteen audited contract Session branches, while PLACE BLOCK value four is requested by none." class="docs-formula-expression" role="math"><code>BREAK_BLOCK = 1 &lt;&lt; 1 = 2 → 15 audited contract Session branches; PLACE_BLOCK = 1 &lt;&lt; 2 = 4 → 0 audited contract consumers</code></div>
+<p class="docs-technical-explanation">The contract matrix, not the friendly name, defines capability. Default runtime reachability remains asset-dependent, and reviewed ordinary placement returns chain-placement-disabled before a Session consumer is submitted.</p>
+<dl class="docs-formula-terms"><dt>→</dt>
+<dd>Maps a stored bit to the number of audited consumer paths using it.</dd></dl></article>
+<article class="docs-formula"><h3>No implemented action-count ceiling</h3>
+<div aria-label="Read-only builder requests, read-only handler logic, no action-count read, and no Player increment call together leave action count unchanged and unenforced." class="docs-formula-expression" role="math"><code>builders request read-only AND handlers only inspect Session AND actionCount is unread AND no Player increment CPI ⇒ actionCountAfter = actionCountBefore; actionCount &lt; maxActions predicate = absent</code></div>
+<p class="docs-technical-explanation">Read-only account meta is not the sole barrier because transaction privileges can merge. The independent handler behavior, Player ownership boundary, missing comparison, and missing increment instruction establish the current non-enforcement.</p>
+<dl class="docs-formula-terms"><dt>absent</dt>
+<dd>No such comparison exists in the audited authorization paths.</dd></dl></article>
+<article class="docs-formula"><h3>Unified Game Backpack envelope</h3>
+<div aria-label="The default unified Game route prefixes Backpack single and batch removal data with namespace byte one before inner tags two and four." class="docs-formula-expression" role="math"><code>single outer data = [namespace 1, inner tag 2, index]; batch outer data = [namespace 1, inner tag 4, count, indexes...]</code></div>
+<p class="docs-technical-explanation">Game Program removes the first namespace byte and delegates the remaining payload to shared Backpack code. This explains why outer live bytes and inner Backpack handler tags are both correct descriptions of one route.</p>
+<dl class="docs-formula-terms"><dt>namespace 1</dt>
+<dd>The unified Game selector for Backpack instructions.</dd></dl></article>
+<article class="docs-formula"><h3>Stored ten thousand is not a cap</h3>
+<div aria-label="The browser writes ten thousand into max actions, but current consumers do not enforce ten thousand as a successful-action cap." class="docs-formula-expression" role="math"><code>stored maxActions = 10,000 != enforced successful-action limit</code></div>
+<p class="docs-technical-explanation">The value is visible public data and must be nonzero at setup. Without a consumer read, comparison, and counter update, it remains descriptive storage rather than a ceiling.</p>
+<dl class="docs-formula-terms"><dt>!=</dt>
+<dd>Means the two ideas must not be treated as equivalent.</dd></dl></article>
+<article class="docs-formula"><h3>Plugin browser reuse heuristic</h3>
+<div aria-label="The plugin browser reuses a stored key from copied local time, nonempty Session data, and selected canonical Profile shape and relationship checks." class="docs-formula-expression" role="math"><code>reuseClient = storedKey AND localExpiresAt &gt; now + 900 AND sessionPdaNonemptyData AND canonicalProfileSelectedGate</code></div>
+<p class="docs-technical-explanation">Session data is not decoded here. The Profile predicate checks program owner, 773 bytes, NCKPLY01, stored owner, and GlobalConfig but does not enforce version or initialized. Consumers remain final.</p>
+<dl class="docs-formula-terms"><dt>900</dt>
+<dd>The current fifteen-minute refresh skew in seconds.</dd></dl></article>
+<article class="docs-formula"><h3>Refresh and rotation address outcomes</h3>
+<div aria-label="The same key tuple selects the same address but rewrites only after stored relationships pass; a new authority selects another PDA and leaves the old account unchanged." class="docs-formula-expression" role="math"><code>same owner + same authority ⇒ same PDA selection; rewrite only if stored owner, authority, Profile, Config and current player-v7 preconditions match; new authority ⇒ different PDA AND old PDA unchanged</code></div>
+<p class="docs-technical-explanation">The repository normally asks for now plus eight hours, but any still-future expiry may shorten or lengthen time. A historical Profile pointer can make same-PDA refresh fail; a new authority adds another rent-funded account.</p>
+<dl class="docs-formula-terms"><dt>unchanged</dt>
+<dd>The replacement-key transaction does not pass the older account as writable.</dd></dl></article>
+<article class="docs-formula"><h3>Chain setup and secret storage are separate commits</h3>
+<div aria-label="The owner transaction can reach the chain before a separate browser write durably saves the new session secret." class="docs-formula-expression" role="math"><code>wallet broadcast/confirmation → PlayerSession and funding may exist; then localStorage.setItem(secret) → browser recovery copy may exist</code></div>
+<p class="docs-technical-explanation">There is no atomic rollback joining these two systems. Confirmation ambiguity, page closure, unavailable storage, quota failure, or setItem exception can leave chain state and funds without a saved browser secret; retries may create another key and PDA.</p>
+<dl class="docs-formula-terms"><dt>→</dt>
+<dd>Execution order, not a guarantee that the later step succeeds.</dd></dl></article>
+<article class="docs-formula"><h3>Local Game Wallet cache reports synthetic expiry</h3>
+<div aria-label="A five-minute Local Game Wallet ready-cache hit skips RPC and reports now plus eight hours without changing or reading the Session record." class="docs-formula-expression" role="math"><code>readyCacheAge &lt; 300 seconds ⇒ skip RPC and report expiresAt = now + 28,800; on-chain expiresAt remains unchanged</code></div>
+<p class="docs-technical-explanation">Five minutes limits only how long RPC is bypassed. A cached existing record may have been near the fifteen-minute freshness floor, so the synthetic reported expiry can materially overstate chain expiry by far more than five minutes.</p>
+<dl class="docs-formula-terms"><dt>300</dt>
+<dd>The in-memory cache lifetime in seconds, not an expiry-error bound.</dd></dl></article>
+<article class="docs-formula"><h3>Current top-up policy</h3>
+<div aria-label="The browser tops up only below zero-point-one SOL and then fills toward the configured target, which is not a spending cap." class="docs-formula-expression" role="math"><code>topUp = balance &lt; 0.1 SOL ? max(0, configuredTarget - balance) : 0</code></div>
+<p class="docs-technical-explanation">The minimum and target are browser policy, not an escrow or cap. During reuse, this top-up can request another owner-wallet approval before the Session has been fully validated, so funding does not prove usability.</p>
+<dl class="docs-formula-terms"><dt>balance</dt>
+<dd>The confirmed SOL balance of the separate plugin session address.</dd></dl></article>
+<article class="docs-formula"><h3>Ordinary transfer bypasses the pass record</h3>
+<div aria-label="A valid session-key signature can authorize an ordinary System Program transfer without referencing Player Session or invoking Player Program." class="docs-formula-expression" role="math"><code>ordinaryTransferSignatureValid = sessionKeySignature AND SystemProgram.transfer; PlayerSessionReferenced = false; PlayerProgramInvoked = false</code></div>
+<p class="docs-technical-explanation">The retained proof uses a synthetic unfunded key, stays offline, sends no transaction, and exposes no private key. It proves signature capability, not executable balance or real fund movement.</p>
+<dl class="docs-formula-terms"><dt>ordinaryTransferSignatureValid</dt>
+<dd>Cryptographic construction and signature verification, not a broadcast result.</dd></dl></article>
+<article class="docs-formula"><h3>Rotation allocates rent without closing the old account</h3>
+<div aria-label="A new authority creates another rent-funded Session PDA, while the reviewed Player Program has no Session close or rent-refund instruction." class="docs-formula-expression" role="math"><code>new sessionAuthority ⇒ new PlayerSession PDA + another rent allocation; reviewed close/refund instruction = absent</code></div>
+<p class="docs-technical-explanation">The retained Devnet minimum was 2,171,520 lamports for each 184-byte Session. Expiry, logout, and key replacement do not reclaim an older PDA's lamports under the reviewed lifecycle.</p>
+<dl class="docs-formula-terms"><dt>another rent allocation</dt>
+<dd>A separate account balance, not the temporary authority's 0.1 SOL refill target.</dd></dl></article>
+<article class="docs-formula"><h3>Logout is a best-effort attempt</h3>
+<div aria-label="Logout tries identity and cross-owner prefix removals, but enumeration or individual deletion failures can leave records behind and no success check follows." class="docs-formula-expression" role="math"><code>logout = attempt identity removals; if enumeration succeeds, attempt every matching prefix removal; per-key exceptions are swallowed; success is not verified</code></div>
+<p class="docs-technical-explanation">Even a successful local secret deletion sends no chain instruction, drains no authority SOL, closes no Session PDA, and leaves the separate Local Game Wallet secret untouched.</p>
+<dl class="docs-formula-terms"><dt>attempt</dt>
+<dd>A requested local operation whose success is neither guaranteed nor verified.</dd></dl></article>
+<article class="docs-formula"><h3>Consumer expiry rule</h3>
+<div aria-label="A current consumer accepts the time portion only while expires at is strictly greater than the chain Clock timestamp." class="docs-formula-expression" role="math"><code>authorizedAtUse = expiresAt &gt; Clock.unix_timestamp</code></div>
+<p class="docs-technical-explanation">When expiresAt is equal to or below chain time, the checked Session path rejects. The public account may remain allocated after this authority ends.</p>
+<dl class="docs-formula-terms"><dt>Clock.unix_timestamp</dt>
+<dd>The chain-provided Unix timestamp inside the program.</dd></dl></article>
+<article class="docs-formula"><h3>Retained Devnet observation</h3>
+<div aria-label="One confirmed Devnet snapshot on July eighteenth at slot four-seven-seven-two-three-six-six-nine-six retained ten Sessions for eight owners, all expired." class="docs-formula-expression" role="math"><code>snapshot(2026-07-18, confirmed slot 477236696, RPC getBlockTime) = 10 PlayerSessions, 8 unique owners, 10 expired relative to retained block time</code></div>
+<p class="docs-technical-explanation">RPC getBlockTime supplied 2026-07-18T21:56:51Z; the capture did not directly read Clock sysvar. Session/Profile/Config shared the context slot, while Player Program and ProgramData hashes used supplemental +1/+2 slots and cover only Player deployment bytes.</p>
+<dl class="docs-formula-terms"><dt>snapshot</dt>
+<dd>One shared RPC context whose retained bytes can be checked offline.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository Play source declares the modular entry</h3>
+<span class="docs-code-language">HTML</span>
+<code class="docs-code-source">play/index.html</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="HTML">    &lt;script type="module" src="./main.js"&gt;&lt;/script&gt;</code></pre>
+<p class="docs-technical-explanation">This repository source tag declares the intended production /play/ source route through /play/main.js and play/*. It is not the retained live served byte route: the 2026-07-19 Nginx snapshot returned a versioned bundle from /play/index.html.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Load main.js as an ES module relative to /play/index.html.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The repository modular entry wires player sync, chain loading, and wallet-session control</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/main.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">import { createPlayChainPlayerSync } from "./play-chain-player.js";
+import { loadPlayChainModule, mineShouldSavePlayerPosition } from "./play-chain-adapter.js";
+import { createPlayChainSession, WALLET_SESSION_CHANGED_EVENT } from "./play-chain-session.js";</code></pre>
+<p class="docs-technical-explanation">The repository working-tree entry imports PlayerProfile synchronization, the chain-module loader and mining position-save predicate, and the wallet-session controller; the older /src/main.js is outside this route. This is source evidence, not the retained live served module: direct /play/main.js returned index HTML in the snapshot.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Import the PlayerProfile synchronization module declared by this repository source-tree route, not retained live served bytes.</p></li>
+<li><strong>Lines 2–3</strong>
+<p>Import the repository chain-module loader, mining position-save predicate, and wallet-session lifecycle; the retained live served bytes came from a versioned bundle instead.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Player state declares the Session family and PDA seed</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">pub const PLAYER_SESSION_MAGIC: [u8; 8] = *b"NCKSES01";
+pub const PLAYER_SESSION_VERSION: u16 = 1;
+pub const PLAYER_SESSION_SEED: &amp;[u8] = b"session";</code></pre>
+<p class="docs-technical-explanation">These constants identify the 184-byte public record family and the literal first seed used by the canonical PDA.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Name the account family and current packed version written during setup.</p></li>
+<li><strong>Line 3</strong>
+<p>Fix the UTF-8 seed word used before owner and session authority.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Rust packs all sixteen public fields in order</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        writer.bytes(&amp;PLAYER_SESSION_MAGIC)?;
+        writer.u16(PLAYER_SESSION_VERSION)?;
+        writer.u8(args.bump)?;
+        writer.u8(1)?;
+        writer.pubkey(args.owner)?;
+        writer.pubkey(args.session_authority)?;
+        writer.pubkey(args.player_profile)?;
+        writer.pubkey(args.global_config)?;
+        writer.u16(args.world_id)?;
+        writer.u16(args.allowed_actions)?;
+        writer.i64(args.expires_at)?;
+        writer.u64(args.created_slot)?;
+        writer.u64(args.created_slot)?;
+        writer.i64(args.created_at)?;
+        writer.u32(args.max_actions)?;
+        writer.u32(0)?;</code></pre>
+<p class="docs-technical-explanation">The sequential writers produce the offset table shown above. updatedSlot begins as createdSlot, and actionCount begins as zero.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Write magic, version, bump, and the initialized or active byte.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Write the four public keys for owner, authority, Profile, and GlobalConfig.</p></li>
+<li><strong>Lines 9–16</strong>
+<p>Write world, mask, expiry, slots, creation time, maximum, and zero action count.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Refresh resets the stored counter but does not revoke</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        dst[Self::UPDATED_SLOT_OFFSET..Self::UPDATED_SLOT_OFFSET + 8]
+            .copy_from_slice(&amp;updated_slot.to_le_bytes());
+        dst[Self::MAX_ACTIONS_OFFSET..Self::MAX_ACTIONS_OFFSET + 4]
+            .copy_from_slice(&amp;max_actions.to_le_bytes());
+        dst[Self::ACTION_COUNT_OFFSET..Self::ACTION_COUNT_OFFSET + 4]
+            .copy_from_slice(&amp;0_u32.to_le_bytes());
+        Ok(())</code></pre>
+<p class="docs-technical-explanation">A refresh updates the slot and stored maximum and writes actionCount back to zero. No close, revoke, or deactivate behavior appears in this method.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Replace updatedSlot and maxActions on the same validated account.</p></li>
+<li><strong>Lines 5–7</strong>
+<p>Reset actionCount to zero and finish without closing the account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Setup requires both signer account roles</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    if !owner.is_signer || !owner.is_writable {
+        return Err(NicechunkPlayerError::InvalidPayer.into());
+    }
+    if !session_authority.is_signer {
+        return Err(NicechunkPlayerError::InvalidSessionAuthority.into());
+    }
+    if !player_session.is_writable {
+        return Err(NicechunkPlayerError::InvalidWritableAccount.into());
+    }</code></pre>
+<p class="docs-technical-explanation">Distinct owner and session keys both have to sign the setup transaction. If their public keys match, the same transaction signature satisfies both signer metas.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Require the owner to sign and remain writable as setup payer.</p></li>
+<li><strong>Lines 4–6</strong>
+<p>Require possession of the session-authority secret through its signature.</p></li>
+<li><strong>Lines 7–9</strong>
+<p>Allow create or refresh to write the canonical Session account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Player Program restricts setup payload and derives the canonical PDA</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let expires_at = read_i64(payload, 0);
+    let allowed_actions = read_u16(payload, 8);
+    let max_actions = read_u32(payload, 10);
+    let allowed_mask = SESSION_ACTION_BREAK_BLOCK | SESSION_ACTION_PLACE_BLOCK;
+    if allowed_actions == 0 || allowed_actions &amp; !allowed_mask != 0 || max_actions == 0 {
+        return Err(NicechunkPlayerError::InvalidInstruction.into());
+    }
+
+    let clock = Clock::get()?;
+    if expires_at &lt;= clock.unix_timestamp {
+        return Err(NicechunkPlayerError::InvalidInstruction.into());
+    }
+
+    let (expected_player_profile, profile_bump) =
+        Pubkey::find_program_address(&amp;[PLAYER_PROFILE_SEED, owner.key.as_ref()], program_id);
+    require_key_eq(
+        player_profile.key,
+        &amp;expected_player_profile,
+        NicechunkPlayerError::InvalidPlayerProfilePda,
+    )?;
+    let (expected_player_session, bump) = Pubkey::find_program_address(
+        &amp;[
+            PLAYER_SESSION_SEED,
+            owner.key.as_ref(),
+            session_authority.key.as_ref(),
+        ],
+        program_id,
+    );</code></pre>
+<p class="docs-technical-explanation">The payload must use only declared bits, a nonzero maximum, and future expiry. PDA derivation then binds the literal seed, owner, and session authority under Player Program.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Decode the fourteen-byte payload and reject zero or unknown permission values.</p></li>
+<li><strong>Lines 9–12</strong>
+<p>Compare expiresAt with the chain Clock rather than the browser clock.</p></li>
+<li><strong>Lines 14–28</strong>
+<p>Derive the canonical Profile and Session addresses from their ordered public seeds.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The SDK uses the same Session seed tuple</h3>
+<span class="docs-code-language">TypeScript</span>
+<code class="docs-code-source">sdk/nicechunk-player.ts</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="TypeScript">  return PublicKey.findProgramAddressSync(
+    [Buffer.from(PLAYER_SESSION_SEED), owner.toBuffer(), sessionAuthority.toBuffer()],
+    programId,
+  );</code></pre>
+<p class="docs-technical-explanation">Independent clients can reproduce the Player Program's address because the SDK keeps the identical seed order.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Derive one PDA from the session literal, owner bytes, authority bytes, and Player Program ID.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The SDK serializes tag four and fifteen bytes</h3>
+<span class="docs-code-language">TypeScript</span>
+<code class="docs-code-source">sdk/nicechunk-player.ts</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="TypeScript">  const data = Buffer.alloc(15);
+  data.writeUInt8(4, 0);
+  data.writeBigInt64LE(BigInt(expiresAt), 1);
+  data.writeUInt16LE(allowedActions, 9);
+  data.writeUInt32LE(maxActions, 11);</code></pre>
+<p class="docs-technical-explanation">This mirrors the production builder: one selector byte precedes the fourteen bytes parsed by the Rust handler.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Allocate fifteen bytes and write instruction tag four first.</p></li>
+<li><strong>Lines 3–5</strong>
+<p>Write expiry, action mask, and maximum in little-endian form.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The SDK decoder follows the same field order</h3>
+<span class="docs-code-language">TypeScript</span>
+<code class="docs-code-source">sdk/nicechunk-player.ts</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="TypeScript">  const decoded: DecodedPlayerSession = {
+    magic: bytes(8).toString("utf8"),
+    version: u16(),
+    bump: u8(),
+    active: u8() === 1,
+    owner: pubkey(),
+    sessionAuthority: pubkey(),
+    playerProfile: pubkey(),
+    globalConfig: pubkey(),
+    worldId: u16(),
+    allowedActions: u16(),
+    expiresAt: i64(),
+    createdSlot: u64(),
+    updatedSlot: u64(),
+    createdAt: i64(),
+    maxActions: u32(),
+    actionCount: u32(),
+  };</code></pre>
+<p class="docs-technical-explanation">The decoder consumes the same sixteen fields as Rust pack. The derived audit checks that both orders and byte widths still agree.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–9</strong>
+<p>Decode the header and four public keys before reaching world state.</p></li>
+<li><strong>Lines 10–18</strong>
+<p>Decode mask, time, slots, creation time, maximum, and action count.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk reads expiry and the requested action bit</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        if read_i64(data, PLAYER_SESSION_EXPIRES_AT_OFFSET) &lt;= now {
+            return Err(NicechunkChunkError::PlayerSessionExpired);
+        }
+        let allowed_actions = read_u16(data, PLAYER_SESSION_ALLOWED_ACTIONS_OFFSET);
+        if action &gt;= 16 || allowed_actions &amp; (1_u16 &lt;&lt; action) == 0 {
+            return Err(NicechunkChunkError::SessionActionNotAllowed);
+        }</code></pre>
+<p class="docs-technical-explanation">After identity comparisons, Chunk rejects expiry at or before chain time and a missing requested bit. This range contains no maxActions or actionCount read.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Reject a Session whose stored expiry is no longer in the future.</p></li>
+<li><strong>Lines 4–7</strong>
+<p>Read allowedActions and require the consumer's bit to be present.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk dispatch names all five audited Session consumers</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    match tag {
+        5 =&gt; mine_block(program_id, accounts, payload),
+        6 =&gt; initialize_chunk_broken(program_id, accounts, payload),
+        7 =&gt; initialize_resource_drop_table(program_id, accounts, payload),
+        8 =&gt; mine_block_with_rewards(program_id, accounts, payload),
+        9 =&gt; fell_tree_with_rewards(program_id, accounts, payload),
+        10 =&gt; apply_civilization_resource_drop_receipt(program_id, accounts, payload),
+        11 =&gt; initialize_surface_decoration_table(program_id, accounts, payload),
+        12 =&gt; verify_surface_decoration(program_id, accounts, payload),
+        13 =&gt; apply_civilization_surface_decoration_receipt(program_id, accounts, payload),
+        15 =&gt; register_build_site_chunk(program_id, accounts, payload),
+        20 =&gt; batch_mine_with_rewards(program_id, accounts, payload),
+        21 =&gt; range_mine_with_rewards(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkChunkError::InvalidInstruction.into()),
+    }</code></pre>
+<p class="docs-technical-explanation">The audit traces Session metas from production builders to five handlers in this dispatch: tags 5, 8, 9, 20, and 21.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–13</strong>
+<p>Map Chunk instruction tags to handlers, including the five Session-aware mining and tree paths.</p></li>
+<li><strong>Line 14</strong>
+<p>Reject any tag outside this explicit dispatch table.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Building mirrors the expiry and permission gate</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_building/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        if read_i64(data, PLAYER_SESSION_EXPIRES_AT_OFFSET) &lt;= now {
+            return Err(NicechunkBuildingError::PlayerSessionExpired);
+        }
+        let allowed_actions = read_u16(data, PLAYER_SESSION_ALLOWED_ACTIONS_OFFSET);
+        if action &gt;= 16 || allowed_actions &amp; (1_u16 &lt;&lt; action) == 0 {
+            return Err(NicechunkBuildingError::SessionActionNotAllowed);
+        }</code></pre>
+<p class="docs-technical-explanation">Building uses the same fixed offsets for expiry and allowedActions. Its current shared helper passes action index 1 for tags 0–7.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Reject when the public record has reached its chain-time expiry.</p></li>
+<li><strong>Lines 4–7</strong>
+<p>Require the Building helper's requested bit in allowedActions.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Building dispatch separates eight Session flows from Guardian publish</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_building/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    match tag {
+        0 =&gt; create_build_site(program_id, accounts, payload),
+        1 =&gt; register_build_site_chunks(program_id, accounts, payload),
+        2 =&gt; begin_building_upload(program_id, accounts, payload),
+        3 =&gt; write_building_shard(program_id, accounts, payload),
+        4 =&gt; finalize_building(program_id, accounts, payload),
+        5 =&gt; cancel_building_upload(program_id, accounts, payload),
+        6 =&gt; migrate_legacy_build_site(program_id, accounts, payload),
+        7 =&gt; begin_build_site_resize(program_id, accounts, payload),
+        8 =&gt; publish_guardian_blueprint(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkBuildingError::InvalidInstruction.into()),
+    }</code></pre>
+<p class="docs-technical-explanation">The audited matrix finds PlayerSession on all eight handlers at tags 0–7. Tag 8 is a separate fixed-publisher Guardian CPI and does not use PlayerSession.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–9</strong>
+<p>Dispatch the eight construction lifecycle handlers that share action index one.</p></li>
+<li><strong>Lines 10–12</strong>
+<p>Keep Guardian blueprint publishing and invalid tags outside that Session consumer set.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Single Backpack removal shifts the dense array without a type check</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    pub fn remove_resource_at(
+        data: &amp;mut [u8],
+        owner: &amp;Pubkey,
+        index: u8,
+        updated_slot: u64,
+    ) -&gt; ProgramResult {
+        Self::validate_owner(data, owner)?;
+        let item_count = data[Self::ITEM_COUNT_OFFSET];
+        if index &gt;= item_count {
+            return Err(NicechunkBackpackError::InvalidResourceIndex.into());
+        }
+
+        let start = Self::RECORDS_OFFSET + index as usize * BACKPACK_SLOT_RECORD_LEN;
+        let end = Self::RECORDS_OFFSET + item_count as usize * BACKPACK_SLOT_RECORD_LEN;
+        if start + BACKPACK_SLOT_RECORD_LEN &lt; end {
+            data.copy_within(start + BACKPACK_SLOT_RECORD_LEN..end, start);
+        }
+        let last_start =
+            Self::RECORDS_OFFSET + (item_count - 1) as usize * BACKPACK_SLOT_RECORD_LEN;
+        data[last_start..last_start + BACKPACK_SLOT_RECORD_LEN].fill(0);
+        data[Self::ITEM_COUNT_OFFSET] = item_count.saturating_sub(1);</code></pre>
+<p class="docs-technical-explanation">The method validates owner and index, shifts every later fixed-size record left, clears the old last slot, and reduces count. It never reads a slot kind or category.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–11</strong>
+<p>Validate Backpack ownership and ensure the dense index exists.</p></li>
+<li><strong>Lines 13–17</strong>
+<p>Copy later packed records left over the selected record.</p></li>
+<li><strong>Lines 18–21</strong>
+<p>Clear the final duplicate and reduce the packed item count.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack Session removal asks for BREAK_BLOCK</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let player_session_data = player_session.try_borrow_data()?;
+    let session = PlayerSessionView::validate(
+        &amp;player_session_data,
+        session_authority.key,
+        player_profile.key,
+        SESSION_ACTION_BREAK_BLOCK,
+        clock.unix_timestamp,
+    )?;
+    drop(player_session_data);
+
+    let player_profile_data = player_profile.try_borrow_data()?;
+    PlayerProfileView::validate_owner(&amp;player_profile_data, &amp;session.owner)?;
+    drop(player_profile_data);
+    validate_existing_backpack_pda(program_id, backpack, &amp;session.owner)?;
+
+    let mut backpack_data = backpack.try_borrow_mut_data()?;
+    BackpackAccount::remove_resource_at(&amp;mut backpack_data, &amp;session.owner, index, clock.slot)</code></pre>
+<p class="docs-technical-explanation">The single-removal session path borrows PlayerSession read-only, requests BREAK_BLOCK, resolves its owner, and mutates the owner-backed Backpack rather than Session.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–9</strong>
+<p>Read and validate PlayerSession using the BREAK_BLOCK permission constant.</p></li>
+<li><strong>Lines 11–14</strong>
+<p>Bind the resolved owner to PlayerProfile and the canonical Backpack.</p></li>
+<li><strong>Lines 16–17</strong>
+<p>Borrow only Backpack mutably and perform dense-index removal.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository browser policy sets time and funding defaults</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const sessionDurationSeconds = 8 * 60 * 60;
+const sessionRefreshSkewSeconds = 15 * 60;
+const lamportsPerSol = 1_000_000_000;
+const minimumSessionFundingLamports = 100_000_000;</code></pre>
+<p class="docs-technical-explanation">These repository source constants define duration, skew, conversion, and minimum funding. They are not by themselves the retained live served bytes; the separate production snapshot hashes the live candidate and confirms equivalent literals.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Set the requested duration and early-refresh window in seconds.</p></li>
+<li><strong>Lines 3–4</strong>
+<p>Define SOL conversion and the browser minimum funding threshold.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Plugin reuse trusts a local window and account presence</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  if (stored &amp;&amp; stored.expiresAt &gt; nowSeconds + sessionRefreshSkewSeconds) {
+    const [playerSession] = derivePlayerSessionPda(owner, stored.keypair.publicKey);
+    const [playerProfile] = derivePlayerProfilePda(owner);
+    const [account, sessionAccount, profileAccount] = await conn.getMultipleAccountsInfo(
+      [playerSession, stored.keypair.publicKey, playerProfile],
+      "confirmed",
+    );
+    const sessionBalance = accountLamports(sessionAccount);
+    if (account?.data?.length &amp;&amp; isCurrentPlayerProfileAccount(profileAccount, owner)) {
+      await fundGameplaySessionIfNeeded(provider, stored.keypair.publicKey, sessionBalance, conn);</code></pre>
+<p class="docs-technical-explanation">This repository source branch uses copied time, nonempty Session data, selected Profile checks, and funding; it is not the retained live served excerpt. It does not fully decode the Session, and low balance can prompt an owner top-up before consumer validation.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Require the local expiry window and derive addresses from the stored authority.</p></li>
+<li><strong>Lines 4–7</strong>
+<p>Read Session, session-address balance, and Profile together at confirmed commitment.</p></li>
+<li><strong>Lines 8–10</strong>
+<p>Accept nonempty Session data plus the selected Profile gate and top up the stored authority if needed.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet puts the owner in both Session roles</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  tx.add(createOrRefreshPlayerSessionInstruction({
+    owner,
+    sessionAuthority: owner,
+    playerProfile,
+    playerSession,
+    expiresAt,
+  }));
+
+  await signAndSendKeypairTransaction(keypair, tx, conn);</code></pre>
+<p class="docs-technical-explanation">In repository source, the same owner key occupies both Session roles and signs the direct transaction. This excerpt is not the retained live served asset, and successful execution—not usesGameplaySession:false—would establish the PDA.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Build tag four with the owner public key in both account roles.</p></li>
+<li><strong>Line 9</strong>
+<p>Sign and submit with the one persistent Local Game Wallet Keypair.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Ordinary placement is currently disabled before submission</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export async function recordBlockPlacementOnChain(_target, _renderType, _toolSlot = 0) {
+  return { submitted: false, reason: "chain-placement-disabled" };
+}</code></pre>
+<p class="docs-technical-explanation">This repository source method returns chain-placement-disabled without submission; it is not the retained live served excerpt. The separately hashed live chain candidate contains the same literal behavior at capture time.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Return the literal disabled reason without constructing or sending a chain placement transaction.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Plugin mode stores private session bytes as Base64</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function storeGameplaySession(owner, session) {
+  if (!hasLocalStorage()) return;
+  localStorage.setItem(sessionStorageKey(owner), JSON.stringify({
+    publicKey: session.keypair.publicKey.toBase58(),
+    secretKey: bytesToBase64(session.keypair.secretKey),
+    expiresAt: session.expiresAt,
+    savedAt: Date.now(),
+  }));
+}</code></pre>
+<p class="docs-technical-explanation">This repository source stores Base64 rather than encrypted private bytes under an owner suffix. It is not the retained live served byte evidence, and localStorage access remains a browser trust boundary.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Require browser storage and select the owner-scoped Session record.</p></li>
+<li><strong>Lines 4–8</strong>
+<p>Save public key, Base64 secret bytes, copied expiry, and save time.</p></li>
+<li><strong>Line 9</strong>
+<p>Complete the local-only storage helper without any chain call.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The session Keypair becomes an ordinary transaction fee payer</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {
+  transaction.feePayer = signer.publicKey;
+  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+  transaction.recentBlockhash = blockhash;
+  transaction.lastValidBlockHeight = lastValidBlockHeight;
+  transaction.sign(signer);</code></pre>
+<p class="docs-technical-explanation">This repository source helper makes an ordinary Keypair fee payer and signer without a Session wrapper. It is not the retained live served excerpt; the offline audit separately verifies the cryptographic System-transfer shape.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Use the supplied Keypair's public key as transaction fee payer.</p></li>
+<li><strong>Lines 3–5</strong>
+<p>Fetch a recent confirmed blockhash and its validity boundary.</p></li>
+<li><strong>Line 6</strong>
+<p>Apply the ordinary Keypair signature to the constructed transaction.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository Play adapter forwards placement into a resolved module</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-adapter.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  async function submitPlace(pending) {
+    if (!pending) return skipped("missing-pending");
+    if (!isEnabled()) return skipped("chain-sync-disabled");
+    if (!getWalletAddress()) return skipped("wallet-unavailable");
+    const module = await loadPlayChainModule();
+    if (typeof module.recordBlockPlacementOnChain !== "function") return skipped("record-placement-unavailable");
+    const renderType = module.renderTypeForBlockId?.(pending.blockId) ?? null;
+    const result = await module.recordBlockPlacementOnChain(blockFromPending(pending), renderType, pending.hotbarSlotIndex ?? 0);
+    return normalizeChainResult(result);
+  }</code></pre>
+<p class="docs-technical-explanation">This repository adapter source resolves a module and then calls recordBlockPlacementOnChain only if that loaded module exports it. It is not the retained live served adapter bytes; direct /play/play-chain-adapter.js returned HTML, and actual behavior depends on the resolved asset or trusted override.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Require a pending placement, enabled adapter, and connected wallet.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Load the runtime-resolved module and call its ordinary placement method; this repository source tree is not retained live served bytes.</p></li>
+<li><strong>Lines 9–10</strong>
+<p>Normalize the non-submitted disabled result for the Play controller.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Logout attempts all matching runtime prefixes</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-auth-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function clearWalletSession(storage = globalThis.localStorage) {
+  for (const key of Object.values(walletSessionKeys)) remove(storage, key);
+  const keys = [];
+  try {
+    for (let index = 0; index &lt; storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key) keys.push(key);
+    }
+  } catch {
+    return;
+  }
+  for (const key of keys) {
+    if (runtimeCachePrefixes.some((prefix) =&gt; key.startsWith(prefix))) remove(storage, key);
+  }
+}</code></pre>
+<p class="docs-technical-explanation">The function does not filter runtime caches to the connected owner. It attempts every matching removal, but enumeration or per-key errors can prevent deletion, so this is best-effort cleanup rather than a success guarantee.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Attempt removal of the four wallet-identity fields from this browser origin.</p></li>
+<li><strong>Lines 3–11</strong>
+<p>Try to enumerate localStorage keys; an exception returns before the runtime-prefix pass.</p></li>
+<li><strong>Lines 12–15</strong>
+<p>Attempt each matching prefix removal regardless of owner suffix; this range does not verify success.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Play logout performs local cleanup and best-effort plugin disconnect</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function disconnectWallet() {
+    const provider = detectWalletProvider();
+    try {
+      if (provider?.disconnect) {
+        Promise.resolve(provider.disconnect()).catch(() =&gt; {
+          // The local session is already cleared; plugin disconnect is best effort.
+        });
+      }
+    } catch {
+      // Some wallet plugins throw when already disconnected.
+    }
+    clearWalletSession();
+    state.walletAddress = "";
+    state.sessionLamports = getStoredSessionLamports("");
+    resetWalletBalance();
+    dispatchWalletChanged("");</code></pre>
+<p class="docs-technical-explanation">This handler attempts provider disconnect and browser cleanup on a best-effort basis, then resets in-memory presentation. It contains no System transfer, PlayerSession close, revoke, or refund transaction and does not verify storage deletion.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–10</strong>
+<p>Ask the wallet provider to disconnect but tolerate rejection or an already-disconnected state.</p></li>
+<li><strong>Lines 11–15</strong>
+<p>Call best-effort local cleanup, then reset in-memory wallet and balance presentation.</p></li>
+<li><strong>Line 16</strong>
+<p>Notify Play that the visible wallet address is now empty.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet stores a persistent Base58 secret</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/localGameWallet.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function storeLocalGameWalletKeypair(keypair, source = "created") {
+  const address = keypair.publicKey.toBase58();
+  const secretKey = bs58.encode(keypair.secretKey);
+  const createdAt = String(Date.now());
+  if (!hasLocalStorage()) throw new Error("Browser local storage is unavailable.");
+  localStorage.setItem(localGameWalletKeys.address, address);
+  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);</code></pre>
+<p class="docs-technical-explanation">The persistent owner's private bytes are turned into a plain Base58 string and stored under Local Game Wallet keys, separate from plugin-session cleanup.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Prepare the public address, Base58 secret text, and creation time.</p></li>
+<li><strong>Lines 5–7</strong>
+<p>Require localStorage and save both public address and unencrypted secret string.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian HELLO contains a wallet hint and random nonce</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian-client.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  encodeHello(position) {
+    const chunk = this.worldToChunk(position?.x ?? 0, position?.z ?? 0);
+    const bytes = new Uint8Array(HELLO_SIZE);
+    const view = new DataView(bytes.buffer);
+    view.setUint8(0, MSG_HELLO);
+    view.setUint8(1, PROTOCOL_VERSION);
+    view.setUint16(2, 0, true);
+    this.writeWalletHint(bytes, 4);
+    view.setInt32(36, chunk.x, true);
+    view.setInt32(40, chunk.z, true);
+    const nonce = randomNonceWords();
+    view.setUint32(44, nonce.low, true);
+    view.setUint32(48, nonce.high, true);
+    return bytes.buffer;
+  }</code></pre>
+<p class="docs-technical-explanation">The realtime greeting writes a public wallet hint, chunk coordinates, and nonce. It does not insert PlayerSession, session authority, private bytes, or wallet signature.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Allocate the HELLO frame and write its message and protocol header.</p></li>
+<li><strong>Lines 8–10</strong>
+<p>Write the wallet public-key hint and current chunk coordinates.</p></li>
+<li><strong>Lines 11–15</strong>
+<p>Add random nonce words and return the unsigned message bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian runtime receives walletAddress rather than PlayerSession</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-guardian.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  function createGuardianClient(wallet) {
+    return createNiceChunkGuardianClient({
+      walletAddress: wallet,
+      url: state.guardianUrl,
+      playerName: String(getPlayerName?.() || "Local Miner"),
+      chunkSize: chunks?.chunkSize || 16,
+      onReady: (info) =&gt; {
+        state.connected = true;</code></pre>
+<p class="docs-technical-explanation">The runtime constructs its separate realtime client from the wallet public address and world presentation data, not from a PlayerSession input.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Create the Guardian client using the current wallet address as an identity hint.</p></li>
+<li><strong>Lines 4–8</strong>
+<p>Provide endpoint and presentation context, then register an independent onReady callback.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Guardian Program dispatch has its own lifecycle</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_guardian/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    match tag {
+        0 =&gt; initialize_registry(program_id, accounts),
+        1 =&gt; register_genesis_guardian(program_id, accounts, payload),
+        2 =&gt; register_guardian(program_id, accounts, payload),
+        5 =&gt; update_guardian_endpoint(program_id, accounts, payload),
+        6 =&gt; update_guardian_blueprint(program_id, accounts, payload),
+        8 =&gt; update_guardian_operator(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkGuardianError::InvalidInstruction.into()),
+    }</code></pre>
+<p class="docs-technical-explanation">The current Guardian dispatch manages registry, enrollment, endpoint, blueprint, and operator state. The full audited contract contains no PlayerSession reference or session lifecycle handler.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Map Guardian tags only to Guardian registry and region-management handlers.</p></li>
+<li><strong>Lines 8–9</strong>
+<p>Reject unsupported tags rather than accepting a Session revoke operation.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Offline audit proves ordinary transfer signing without a network</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/derive-player-sessions-audit.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const instruction = SystemProgram.transfer({
+    fromPubkey: sessionAuthority.publicKey,
+    toPubkey: recipient,
+    lamports: 1,
+  });
+  const transaction = new Transaction({
+    feePayer: sessionAuthority.publicKey,
+    recentBlockhash: Keypair.generate().publicKey.toBase58(),
+  }).add(instruction);
+  transaction.sign(sessionAuthority);
+  const playerSessionReferenced = instruction.keys.some(({ pubkey }) =&gt; pubkey.equals(playerSession));
+  const playerProgramInvoked = instruction.programId.equals(new PublicKey(playerProgramId));
+  const source = instruction.keys[0];
+  const signaturePresent = transaction.signatures.length === 1 &amp;&amp; transaction.signatures[0].signature !== null;
+  const signatureValid = transaction.verifySignatures();
+  assert(instruction.programId.equals(SystemProgram.programId), "Offline transfer did not target System Program.");
+  assert(source.pubkey.equals(sessionAuthority.publicKey), "Offline transfer source differs from the session authority.");
+  assert(source.isSigner &amp;&amp; source.isWritable, "Offline transfer source is not a writable signer.");
+  assert(instruction.keys.length === 2, "System transfer account list drifted from two keys.");
+  assert(!playerSessionReferenced, "Offline System transfer unexpectedly references PlayerSession.");
+  assert(!playerProgramInvoked, "Offline System transfer unexpectedly invokes Player Program.");
+  assert(signaturePresent &amp;&amp; signatureValid, "Temporary session Keypair could not sign an ordinary System transfer offline.");</code></pre>
+<p class="docs-technical-explanation">Fresh test keys sign one unbroadcast lamport transfer entirely offline. Assertions confirm System Program, a writable signer, no Session account, no Player Program, and a valid signature.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–10</strong>
+<p>Construct a one-lamport System transfer and sign it with a generated session-authority Keypair.</p></li>
+<li><strong>Lines 11–15</strong>
+<p>Measure Session references, invoked program, signer meta, and signature validity.</p></li>
+<li><strong>Lines 16–22</strong>
+<p>Fail the audit if the ordinary transfer starts depending on PlayerSession or cannot verify.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The retained derived report records the transfer boundary</h3>
+<span class="docs-code-language">JSON</span>
+<code class="docs-code-source">docs/audits/player-sessions-derived-2026-07-18.json</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JSON">  "systemTransferProbe": {
+    "networkRequests": 0,
+    "broadcasts": 0,
+    "lamports": 1,
+    "instructionProgramId": "11111111111111111111111111111111",
+    "instructionAccountCount": 2,
+    "sourceIsSigner": true,
+    "sourceIsWritable": true,
+    "playerSessionAccountReferenced": false,
+    "playerProgramInvoked": false,
+    "signaturePresent": true,
+    "signatureValid": true,
+    "privateKeyOutput": false
+  },</code></pre>
+<p class="docs-technical-explanation">The saved output exposes the verifiable result without retaining private key bytes and without claiming a broadcast or real fund movement.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Record zero network activity and the native System Program instruction shape.</p></li>
+<li><strong>Lines 7–10</strong>
+<p>Record signer requirements and absence of PlayerSession and Player Program.</p></li>
+<li><strong>Lines 11–13</strong>
+<p>Record signature presence, successful verification, and no private-key output.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Devnet check mode protects the snapshot privacy boundary</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/capture-player-sessions-devnet.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  assert(report.privacyBoundary.sessionSigningSecretBytesRetained === false, "Privacy boundary drifted.");
+  assert(report.privacyBoundary.walletFilesRead === false, "Wallet-file boundary drifted.");
+  assert(report.privacyBoundary.browserStorageRead === false, "Browser-storage boundary drifted.");
+  assert(report.reproduction.checkModeUsesNetwork === false, "Local check unexpectedly claims network use.");
+  assertNoSecretFields(report);</code></pre>
+<p class="docs-technical-explanation">Offline report checking explicitly rejects retained session secrets, wallet-file reads, browser-storage reads, network use, or secret-shaped report fields.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Require that no session secret, wallet file, or browser storage entered the capture.</p></li>
+<li><strong>Lines 4–5</strong>
+<p>Keep check mode offline and scan the retained report for forbidden secret fields.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>One retained Devnet summary shows expired accounts can remain</h3>
+<span class="docs-code-language">JSON</span>
+<code class="docs-code-source">docs/audits/player-sessions-devnet-2026-07-18.json</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JSON">  "summary": {
+    "retainedPlayerSessions": 10,
+    "currentAtContextBlockTime": 0,
+    "expiredAtContextBlockTime": 10,
+    "uniqueOwners": 8,
+    "uniqueSessionAuthorities": 10,
+    "ownerEqualsAuthoritySessions": 5,
+    "distinctAuthoritySessions": 5,
+    "ownersWithMultipleSessions": 1,
+    "maximumSessionsForOneOwner": 3,
+    "sessionsForOwnersWithMultipleSessions": 3,
+    "canonicalSessionPdas": 10,</code></pre>
+<p class="docs-technical-explanation">At confirmed context slot 477236696, all ten retained public Session records were expired, and one owner had three records. Presence is not current authorization.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Count ten retained Sessions, zero current records, and ten expired records at context time.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Count eight owners and split equal-key versus distinct-authority arrangements.</p></li>
+<li><strong>Lines 9–12</strong>
+<p>Record multi-Session coexistence and canonical-PDA observations in this one snapshot.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The SDK tag-four builder keeps PlayerProfile read-only</h3>
+<span class="docs-code-language">TypeScript</span>
+<code class="docs-code-source">sdk/nicechunk-player.ts</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="TypeScript">  const [globalConfig] = deriveGlobalConfigPda(coreProgramId);
+  const data = Buffer.alloc(15);
+  data.writeUInt8(4, 0);
+  data.writeBigInt64LE(BigInt(expiresAt), 1);
+  data.writeUInt16LE(allowedActions, 9);
+  data.writeUInt32LE(maxActions, 11);
+  return new TransactionInstruction({
+    programId: playerProgramId,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: true },
+      { pubkey: sessionAuthority, isSigner: true, isWritable: false },
+      { pubkey: playerProfile, isSigner: false, isWritable: false },
+      { pubkey: playerSession, isSigner: false, isWritable: true },
+      { pubkey: globalConfig, isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  });</code></pre>
+<p class="docs-technical-explanation">The independent SDK writes tag 4 and marks PlayerProfile read-only while PlayerSession is writable. This literal account-meta shape is the evidence behind the conditional Profile-repair integration risk.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Derive GlobalConfig and serialize the fifteen-byte tag-four instruction data.</p></li>
+<li><strong>Lines 7–16</strong>
+<p>Declare both signer roles, a read-only PlayerProfile, a writable Session, and the remaining read-only accounts.</p></li>
+<li><strong>Lines 17–18</strong>
+<p>Attach the serialized data and finish the SDK instruction object.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository tag-four builder also keeps PlayerProfile read-only</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const data = Buffer.alloc(15);
+  data.writeUInt8(4, 0);
+  data.writeBigInt64LE(BigInt(expiresAt), 1);
+  data.writeUInt16LE(sessionAllowedActions, 9);
+  data.writeUInt32LE(sessionMaxActions, 11);
+
+  return new TransactionInstruction({
+    programId: playerProgramId,
+    keys: [
+      { pubkey: owner, isSigner: true, isWritable: true },
+      { pubkey: sessionAuthority, isSigner: true, isWritable: false },
+      { pubkey: playerProfile, isSigner: false, isWritable: false },
+      { pubkey: playerSession, isSigner: false, isWritable: true },
+      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },
+      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+    ],
+    data,
+  });</code></pre>
+<p class="docs-technical-explanation">This repository source-tree builder repeats the SDK's read-only PlayerProfile and writable PlayerSession metas. It is not retained live served bytes; the production snapshot separately pins the fetched chain candidate.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Serialize repository defaults into tag-four data; this source tree is not retained live served bytes.</p></li>
+<li><strong>Lines 7–16</strong>
+<p>Request owner and authority signers, keep Profile read-only, and make only PlayerSession writable for setup.</p></li>
+<li><strong>Lines 17–18</strong>
+<p>Finish this repository instruction object without proving what live bytes a browser loaded.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Player Profile validation failure can enter rent, realloc, and repack</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    {
+        let data = player_profile.try_borrow_data()?;
+        if PlayerProfile::validate_owner_and_config(&amp;data, owner, global_config.key).is_ok() {
+            return Ok(());
+        }
+    }
+
+    if player_profile.owner == program_id {
+        let rent = Rent::get()?;
+        let lamports = rent.minimum_balance(PlayerProfile::LEN);
+        if player_profile.lamports() &lt; lamports {
+            let transfer = system_instruction::transfer(
+                payer.key,
+                player_profile.key,
+                lamports - player_profile.lamports(),
+            );
+            invoke(
+                &amp;transfer,
+                &amp;[
+                    payer.clone(),
+                    player_profile.clone(),
+                    system_program_account.clone(),
+                ],
+            )?;
+        }
+        if player_profile.data_len() != PlayerProfile::LEN {
+            player_profile.realloc(PlayerProfile::LEN, false)?;
+        }
+    } else {
+        if player_profile.owner != &amp;system_program::ID || player_profile.data_len() != 0 {
+            return Err(NicechunkPlayerError::InvalidSystemAccount.into());
+        }
+        create_or_allocate_player_profile_pda(
+            payer,
+            player_profile,
+            system_program_account,
+            program_id,
+            owner,
+            bump,
+        )?;
+    }
+
+    let mut data = player_profile.try_borrow_mut_data()?;
+    PlayerProfile::pack_default(
+        &amp;mut data,
+        bump,
+        owner,
+        global_config.key,
+        global_config_view.world_id,
+        "",
+        clock.slot,
+        clock.unix_timestamp,
+    )</code></pre>
+<p class="docs-technical-explanation">Passing the selected owner-and-configuration validation returns immediately. Failure enters a conditional path that may transfer rent, realloc program-owned data, or allocate an empty System account, then repack a default Profile; those writes explain why a read-only tag-four meta can be risky.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Return without mutation when the selected existing Profile validation succeeds.</p></li>
+<li><strong>Lines 8–28</strong>
+<p>For Player-owned data, top up rent when needed and realloc only when the length differs.</p></li>
+<li><strong>Lines 29–41</strong>
+<p>Otherwise accept only an empty System-owned account and allocate the canonical Profile PDA.</p></li>
+<li><strong>Lines 43–53</strong>
+<p>Borrow Profile data mutably and repack its current default fields after the conditional repair path.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Unified Game namespace one delegates to Backpack</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_game/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">const NS_BACKPACK: u8 = 1;
+const NS_CHUNK: u8 = 2;
+const NS_SMELTING: u8 = 3;
+const NS_MARKET: u8 = 4;
+
+pub fn process_instruction(
+    program_id: &amp;solana_program::pubkey::Pubkey,
+    accounts: &amp;[AccountInfo],
+    instruction_data: &amp;[u8],
+) -&gt; ProgramResult {
+    let (tag, payload) = instruction_data
+        .split_first()
+        .ok_or(NicechunkGameError::InvalidInstruction)?;
+
+    match *tag {
+        NS_BACKPACK =&gt; nicechunk_backpack::process_instruction(program_id, accounts, payload),
+        NS_CHUNK =&gt; nicechunk_chunk::process_instruction(program_id, accounts, payload),
+        NS_SMELTING =&gt; nicechunk_smelting::process_instruction(program_id, accounts, payload),
+        NS_MARKET =&gt; nicechunk_market::process_instruction(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkGameError::InvalidInstruction.into()),
+    }
+}</code></pre>
+<p class="docs-technical-explanation">The unified Game Program treats the first byte as a namespace. Namespace 1 removes that outer byte and passes the remaining inner tag and payload to the shared Backpack instruction handler.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Assign namespace byte one to Backpack and distinct values to the other game families.</p></li>
+<li><strong>Lines 6–13</strong>
+<p>Split the first byte from the remaining payload and reject empty instruction data.</p></li>
+<li><strong>Lines 15–22</strong>
+<p>Delegate namespace one to nicechunk_backpack and reject unknown namespaces.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack's two-account branch is owner-direct</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    if payload.len() != 1 || (accounts.len() != 2 &amp;&amp; accounts.len() != 4) {
+        return Err(NicechunkBackpackError::InvalidInstruction.into());
+    }
+
+    let index = payload[0];
+    let account_info_iter = &amp;mut accounts.iter();
+
+    if accounts.len() == 2 {
+        let owner = next_account_info(account_info_iter)?;
+        let backpack = next_account_info(account_info_iter)?;
+
+        if !owner.is_signer || !owner.is_writable {
+            return Err(NicechunkBackpackError::InvalidPayer.into());
+        }
+        if !backpack.is_writable {
+            return Err(NicechunkBackpackError::InvalidWritableAccount.into());
+        }
+        require_key_eq(
+            backpack.owner,
+            program_id,
+            NicechunkBackpackError::InvalidBackpackOwner,
+        )?;
+        validate_existing_backpack_pda(program_id, backpack, owner.key)?;
+
+        let clock = Clock::get()?;
+        let mut backpack_data = backpack.try_borrow_mut_data()?;
+        return BackpackAccount::remove_resource_at(
+            &amp;mut backpack_data,
+            owner.key,
+            index,
+            clock.slot,
+        );
+    }</code></pre>
+<p class="docs-technical-explanation">The handler explicitly accepts either two or four accounts. With two, it requires the owner signer and writable Backpack and returns after direct dense-index removal without reading PlayerSession.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Accept exactly the single-index payload and either the two-account or four-account shape.</p></li>
+<li><strong>Lines 8–23</strong>
+<p>In the two-account shape, validate the owner signer and canonical writable Backpack.</p></li>
+<li><strong>Lines 25–33</strong>
+<p>Mutate the owner's Backpack directly and return before any Session-aware branch.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Backpack's four-account branch validates a Session</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_backpack/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let session_authority = next_account_info(account_info_iter)?;
+    let player_profile = next_account_info(account_info_iter)?;
+    let player_session = next_account_info(account_info_iter)?;
+    let backpack = next_account_info(account_info_iter)?;
+
+    if !session_authority.is_signer {
+        return Err(NicechunkBackpackError::InvalidSessionAuthority.into());
+    }
+    if !backpack.is_writable {
+        return Err(NicechunkBackpackError::InvalidWritableAccount.into());
+    }
+    require_key_eq(
+        backpack.owner,
+        program_id,
+        NicechunkBackpackError::InvalidBackpackOwner,
+    )?;
+    require_key_eq(
+        player_profile.owner,
+        &amp;NICECHUNK_PLAYER_PROGRAM_ID,
+        NicechunkBackpackError::InvalidPlayerProgram,
+    )?;
+    require_key_eq(
+        player_session.owner,
+        &amp;NICECHUNK_PLAYER_PROGRAM_ID,
+        NicechunkBackpackError::InvalidPlayerProgram,
+    )?;
+
+    let clock = Clock::get()?;
+    let player_session_data = player_session.try_borrow_data()?;
+    let session = PlayerSessionView::validate(
+        &amp;player_session_data,
+        session_authority.key,
+        player_profile.key,
+        SESSION_ACTION_BREAK_BLOCK,
+        clock.unix_timestamp,
+    )?;</code></pre>
+<p class="docs-technical-explanation">After the two-account early return, the remaining four accounts are authority, Profile, Session, and Backpack. This branch checks the authority signature, Player Program ownership, chain time, and BREAK_BLOCK permission before later removal.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Consume the four Session-aware account roles in their contract order.</p></li>
+<li><strong>Lines 6–26</strong>
+<p>Require the authority signature, writable Backpack, and expected owning programs.</p></li>
+<li><strong>Lines 28–36</strong>
+<p>Read chain time and ask PlayerSessionView for BREAK_BLOCK authorization.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository mask and maximum defaults are separate constants</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const sessionAllowedActions = (1 &lt;&lt; 1) | (1 &lt;&lt; 2);
+const sessionMaxActions = 10_000;</code></pre>
+<p class="docs-technical-explanation">These adjacent repository source-tree constants combine BREAK_BLOCK and PLACE_BLOCK into mask 6 and request maxActions 10,000. They are not retained live served bytes and do not prove either field is enforced by consumers.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Combine bit indexes one and two into repository mask value six.</p></li>
+<li><strong>Line 2</strong>
+<p>Choose the stored maximum of ten thousand in source, not an enforced live-byte limit.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository wallet helper waits for confirmed before returning</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function signAndSendWalletTransaction(provider, transaction, conn = getNicechunkConnection(), extraSigners = []) {
+  transaction.feePayer = provider.publicKey;
+
+  if (typeof conn.prepareTransaction === "function") {
+    await conn.prepareTransaction(transaction, { commitment: "confirmed" });
+  } else {
+    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash("confirmed");
+    transaction.recentBlockhash = blockhash;
+    transaction.lastValidBlockHeight = lastValidBlockHeight;
+  }
+
+  for (const signer of extraSigners) transaction.partialSign(signer);
+
+  if (typeof provider.signTransaction === "function") {
+    const signed = await provider.signTransaction(transaction);
+    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), "wallet");
+    await confirmTransactionByHttpPolling(conn, {
+      signature,
+      blockhash: transaction.recentBlockhash,
+      lastValidBlockHeight: transaction.lastValidBlockHeight,
+    }, "confirmed");
+    return signature;
+  }
+
+  if (typeof provider.signAndSendTransaction !== "function") {
+    throw new Error("Wallet does not support transaction signing.");
+  }
+  const result = await provider.signAndSendTransaction(transaction);
+  const signature = typeof result === "string" ? result : result?.signature;
+  if (!signature) throw new Error("Wallet did not return a transaction signature.");
+  await confirmTransactionByHttpPolling(conn, {
+    signature,
+    blockhash: transaction.recentBlockhash,
+    lastValidBlockHeight: transaction.lastValidBlockHeight,
+  }, "confirmed");
+  return signature;
+}</code></pre>
+<p class="docs-technical-explanation">This repository source-tree helper broadcasts through one of two wallet APIs and awaits HTTP polling at confirmed commitment before it returns. It is not retained live served bytes and does not make the following browser storage write part of the chain transaction.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–12</strong>
+<p>Prepare the repository transaction and apply any extra signer signatures; these are not retained live served bytes.</p></li>
+<li><strong>Lines 14–23</strong>
+<p>With signTransaction, broadcast serialized bytes and wait for confirmed polling before return.</p></li>
+<li><strong>Lines 25–37</strong>
+<p>With signAndSendTransaction, require a signature and likewise await confirmed polling before return.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository setup stores the secret only after the wallet helper returns</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);
+  const session = { keypair, expiresAt };
+  storeGameplaySession(owner, session);
+  markGameplaySessionReady(owner, keypair.publicKey, targetLamports);</code></pre>
+<p class="docs-technical-explanation">In this repository source tree, setup awaits the broadcasting-and-confirming wallet helper before calling storeGameplaySession. It is not retained live served bytes, and the later localStorage write is a second, non-atomic commit that can still fail.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Await the repository wallet helper's confirmed return; this source is not retained live served bytes.</p></li>
+<li><strong>Lines 2–3</strong>
+<p>Only afterward assemble the local record and ask localStorage to persist the secret.</p></li>
+<li><strong>Line 4</strong>
+<p>Mark the in-memory ready cache after the separate persistence call completes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository ready cache has a five-minute TTL</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const chunkDeltaCacheTtlMs = 60_000;
+const gameplaySessionStatusCacheTtlMs = 60_000;
+const gameplaySessionReadyCacheTtlMs = 5 * 60_000;
+const resourceDropTableCacheTtlMs = 10 * 60_000;
+const chunkDeltaCache = new Map();
+const initializedChunkBrokenCache = new Set();
+const gameplaySessionStatusCache = new Map();
+const gameplaySessionReadyCache = new Map();</code></pre>
+<p class="docs-technical-explanation">The repository source-tree ready-cache TTL is five minutes and has its own Map. It is not retained live served bytes; the duration limits cache age, not Session record expiry or possible synthetic-time overstatement.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Declare separate repository cache lifetimes, including five minutes for gameplay readiness.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Allocate the independent cache collections; these declarations are not retained live served bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet cache hit returns synthetic now plus duration before RPC</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const nowSeconds = Math.floor(Date.now() / 1000);
+  const expiresAt = nowSeconds + sessionDurationSeconds;
+  if (isGameplaySessionReadyCached(owner, owner)) {
+    return { keypair, expiresAt, localGameWallet: true };
+  }
+
+  const conn = getNicechunkConnection();
+  const [playerProfile] = derivePlayerProfilePda(owner);
+  const [playerSession] = derivePlayerSessionPda(owner, owner);</code></pre>
+<p class="docs-technical-explanation">This repository source-tree Local Game Wallet branch computes now plus the eight-hour sessionDurationSeconds and returns it on a ready-cache hit before creating the connection used for RPC reads. It is not retained live served bytes, and this expiresAt is synthetic rather than the confirmed record value.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Compute a fresh repository-local now-plus-eight-hours candidate, not an on-chain expiry read.</p></li>
+<li><strong>Lines 3–5</strong>
+<p>Return that synthetic expiry immediately when the five-minute ready cache still matches.</p></li>
+<li><strong>Lines 7–9</strong>
+<p>Only a cache miss reaches connection and PDA setup for later RPC checks; this source is not retained live served bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Per-key logout removal swallows storage exceptions</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-auth-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function remove(storage, key) {
+  try {
+    storage?.removeItem?.(key);
+  } catch {
+    // Logout still redirects even when browser storage is unavailable.
+  }
+}</code></pre>
+<p class="docs-technical-explanation">Each identity or prefix deletion uses this helper. A removeItem exception is caught and ignored, so the caller continues without proving that the browser actually deleted that key.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Attempt one optional removeItem call for the supplied storage key.</p></li>
+<li><strong>Lines 4–7</strong>
+<p>Swallow an exception so logout can continue and redirect without a deletion guarantee.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Devnet capture classifies expiry with context-slot block time</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/capture-player-sessions-devnet.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const [blockTimeUnix, rentMinimumLamports, playerProgram] = await Promise.all([
+    connection.getBlockTime(snapshot.contextSlot),
+    connection.getMinimumBalanceForRentExemption(lengths.playerSession, commitment),
+    inspectUpgradeableProgram(connection, ids.playerProgram, snapshot.contextSlot),
+  ]);
+  if (blockTimeUnix === null) {
+    throw new Error(`No block time is available for confirmed context slot ${snapshot.contextSlot}.`);
+  }</code></pre>
+<p class="docs-technical-explanation">The capture requests RPC getBlockTime for the shared confirmed context slot and refuses to classify records without it. This is not a direct read of the Clock sysvar that on-chain consumers use during execution.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Read the context-slot block time alongside rent and supplemental Player deployment information.</p></li>
+<li><strong>Lines 6–8</strong>
+<p>Stop the capture if RPC cannot supply a timestamp for the confirmed context slot.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Devnet report records shared and supplemental contexts separately</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/capture-player-sessions-devnet.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    capture: {
+      endpoint: redactEndpoint(endpoint),
+      endpointSource: process.env.NICECHUNK_DEVNET_RPC ? "NICECHUNK_DEVNET_RPC" : "runtime-public-default",
+      endpointFingerprintSha256: sha256(Buffer.from(redactEndpoint(endpoint), "utf8")),
+      endpointCredentialMaterialRetained: false,
+      commitment,
+      rpcVersion,
+      genesisHash,
+      minimumRequestedSlot: snapshot.minimumSlot,
+      programAccountsContextSlot: snapshot.contextSlot,
+      allProgramAccountQueriesShareOneContext: true,
+      contextSlots: snapshot.contexts,
+      contextBlockTimeUnix: blockTimeUnix,
+      contextBlockTime: new Date(blockTimeUnix * 1_000).toISOString(),
+      sharedContextAttempt: snapshot.attempt,
+      supplementalAccountContextSlots: {
+        playerProgram: playerProgram.contextSlot,
+        playerProgramData: playerProgram.programData.contextSlot,
+      },
+      maximumSupplementalContextSlotDelta: Math.max(
+        playerProgram.contextSlot,
+        playerProgram.programData.contextSlot,
+      ) - snapshot.contextSlot,</code></pre>
+<p class="docs-technical-explanation">The script records the common program-account slot separately from Player Program and ProgramData supplemental slots. In the retained report those latter contexts are +1 and +2, so their hashes are nearby deployment observations rather than the exact shared Session/Profile/Config context.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–10</strong>
+<p>Retain redacted endpoint metadata, commitment, and the shared program-account context slot.</p></li>
+<li><strong>Lines 11–15</strong>
+<p>Record that program-account queries share one context and attach its RPC block time.</p></li>
+<li><strong>Lines 16–23</strong>
+<p>Keep Player Program and ProgramData supplemental slots and their maximum delta distinct.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Retained production report states its date and static privacy boundary</h3>
+<span class="docs-code-language">JSON</span>
+<code class="docs-code-source">docs/audits/player-sessions-production-2026-07-18.json</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JSON">  "schemaVersion": 1,
+  "kind": "nicechunk-player-sessions-production-runtime-snapshot",
+  "auditDate": "2026-07-18",
+  "snapshotDate": "2026-07-19",
+  "captureStartedAt": "2026-07-19T00:44:27.337Z",
+  "capturedAt": "2026-07-19T00:44:32.257Z",
+  "productionOrigin": "https://nicechunk.com",
+  "scope": {
+    "statement": "A byte-pinned snapshot of the public NiceChunk production entry, runtime bundle, and runtime-resolved chain-module candidates.",
+    "productionSnapshotNotPermanentFact": true,
+    "repositorySourceUsedAsProductionEvidence": false,
+    "rawResponseBodiesRetained": false,
+    "retainedInstead": "Full response SHA-256/length/status metadata plus byte offsets and hashed short literal contexts.",
+    "dateSemantics": "auditDate names the documentation audit batch and output filename; snapshotDate is the real UTC date of the HTTPS observation."
+  },
+  "privacyAndNetworkBoundary": {
+    "transport": "TLS HTTPS only",
+    "requestMethod": "GET",
+    "fixedPublicHost": "nicechunk.com",
+    "requestsMade": 10,
+    "requestBodiesSent": 0,
+    "authorizationHeadersSent": false,
+    "cookiesSent": false,
+    "queryCredentialsSent": false,
+    "browserStorageRead": false,
+    "walletKeyMaterialRead": false,
+    "rpcMethodsCalled": [],
+    "transactionsConstructed": 0,
+    "transactionsSent": 0,
+    "note": "Static JavaScript contains storage-key and secretKey field names; this capture reads code bytes only and never reads any player's stored values."
+  },</code></pre>
+<p class="docs-technical-explanation">This retained artifact calls 2026-07-18 the documentation audit batch and 2026-07-19 the actual UTC HTTPS observation date. It describes a fixed public GET byte audit—not a browser HAR—and says no browser storage, wallet keys, RPC accounts, or player overrides were read.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–15</strong>
+<p>Separate auditDate from snapshotDate and state that the point-in-time byte snapshot is not permanent.</p></li>
+<li><strong>Lines 16–24</strong>
+<p>Record TLS GET transport without bodies, authorization, cookies, or query credentials.</p></li>
+<li><strong>Lines 25–31</strong>
+<p>Record zero browser-storage, key, RPC, and transaction access; only static code bytes were inspected.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Retained production entry binds served path to body hash</h3>
+<span class="docs-code-language">JSON</span>
+<code class="docs-code-source">docs/audits/player-sessions-production-2026-07-18.json</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JSON">    {
+      "id": "playIndex",
+      "requestUrl": "https://nicechunk.com/play/index.html",
+      "finalUrl": "https://nicechunk.com/play/index.html",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "text/html",
+      "contentEncoding": null,
+      "contentLengthHeader": 55636,
+      "bodyLength": 55636,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+      "etag": "\"6a5ba988-d954\"",
+      "lastModified": "Sat, 18 Jul 2026 16:27:52 GMT",
+      "cacheControl": "no-store, no-cache, must-revalidate",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },</code></pre>
+<p class="docs-technical-explanation">The retained live served entry tuple is path, 200 HTML status, body length, and SHA-256. The hash covers the decoded HTTP entity body, which makes this static response auditable without claiming browser execution.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Identify the served production index URL, final URL, HTTP status, and content type.</p></li>
+<li><strong>Lines 9–18</strong>
+<p>Bind its decoded body length and SHA-256 to the explicit identity-encoding hash boundary.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Retained runtime and default chain candidate have distinct byte pins</h3>
+<span class="docs-code-language">JSON</span>
+<code class="docs-code-source">docs/audits/player-sessions-production-2026-07-18.json</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JSON">    {
+      "id": "versionedRuntime",
+      "requestUrl": "https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+      "finalUrl": "https://nicechunk.com/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/javascript",
+      "contentEncoding": null,
+      "contentLengthHeader": 989679,
+      "bodyLength": 989679,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+      "etag": "\"6a5ba404-f19ef\"",
+      "lastModified": "Sat, 18 Jul 2026 16:04:20 GMT",
+      "cacheControl": "max-age=31536000, public, max-age=31536000, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },
+    {
+      "id": "versionedChain",
+      "requestUrl": "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+      "finalUrl": "https://nicechunk.com/assets/nicechunkChain.play-bundle-de6020cca220427a.js",
+      "redirected": false,
+      "status": 200,
+      "ok": true,
+      "contentType": "application/javascript",
+      "contentEncoding": null,
+      "contentLengthHeader": 112446,
+      "bodyLength": 112446,
+      "contentLengthHeaderMatchesBody": true,
+      "sha256": "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+      "etag": "\"6a5ba455-1b73e\"",
+      "lastModified": "Sat, 18 Jul 2026 16:05:41 GMT",
+      "cacheControl": "max-age=31536000, public, immutable",
+      "hashBoundary": "sha256 covers the decoded HTTP entity body bytes in [0, bodyLength); Accept-Encoding was identity."
+    },</code></pre>
+<p class="docs-technical-explanation">The runtime bundle and separately fetched default chain candidate are different served resources with different hashes. Static fetching proves their observed bytes, but not which candidate an individual browser actually imported after override resolution.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–18</strong>
+<p>Bind the live versioned runtime URL, JavaScript response, length, and decoded-body hash.</p></li>
+<li><strong>Lines 19–36</strong>
+<p>Bind the separate versioned default chain candidate URL, response metadata, and hash boundary.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production capture checker pins entry, runtime, and chain roles</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/capture-player-sessions-production.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const expectedBuildVersion = "play-bundle-de6020cca220427a";
+const expectedRuntimePath = "/runtime/play-bundle-de6020cca220427a/assets/index-BPPMv-5b.js";
+const expectedChainPath = "/assets/nicechunkChain.play-bundle-de6020cca220427a.js";
+
+const expectedResources = Object.freeze({
+  playIndex: {
+    requestUrl: "https://nicechunk.com/play/index.html",
+    status: 200,
+    contentType: "text/html",
+    bodyLength: 55_636,
+    sha256: "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+  },
+  playMainFallback: {
+    requestUrl: "https://nicechunk.com/play/main.js",
+    status: 200,
+    contentType: "text/html",
+    bodyLength: 55_636,
+    sha256: "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+  },
+  playAdapterFallback: {
+    requestUrl: "https://nicechunk.com/play/play-chain-adapter.js",
+    status: 200,
+    contentType: "text/html",
+    bodyLength: 55_636,
+    sha256: "9caed4fdcbd50702fbae99068771ccf9ce108046f918251996bc2e85363ae48f",
+  },
+  versionedRuntime: {
+    requestUrl: `https://nicechunk.com${expectedRuntimePath}`,
+    status: 200,
+    contentType: "application/javascript",
+    bodyLength: 989_679,
+    sha256: "594a23c33a6bc37a73064f3631cf69bbd8f6a24e7c0168bf829b11bc0a9036c6",
+  },
+  versionedChain: {
+    requestUrl: `https://nicechunk.com${expectedChainPath}`,
+    status: 200,
+    contentType: "application/javascript",
+    bodyLength: 112_446,
+    sha256: "2fd4d2f3a36e67a97db59e8b6c8263fbeb2753e5eff6df3d8814f7a6a42ce9f4",
+  },</code></pre>
+<p class="docs-technical-explanation">The capture checker assigns distinct expected resource IDs to the live entry, two HTML fallbacks, versioned runtime, and versioned chain candidate, then pins each path, response shape, length, and SHA-256.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Pin the build label and distinct runtime and default chain candidate paths.</p></li>
+<li><strong>Lines 6–25</strong>
+<p>Pin the served index and two direct repository-module URL HTML fallback responses.</p></li>
+<li><strong>Lines 26–40</strong>
+<p>Pin the versioned runtime and separately fetched versioned chain candidate bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Production capture records a static GET-only boundary</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">scripts/capture-player-sessions-production.mjs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const unsignedReport = {
+    schemaVersion: 1,
+    kind: "nicechunk-player-sessions-production-runtime-snapshot",
+    auditDate,
+    snapshotDate: captureStartedAt.slice(0, 10),
+    captureStartedAt,
+    capturedAt: new Date().toISOString(),
+    productionOrigin,
+    scope: {
+      statement: "A byte-pinned snapshot of the public NiceChunk production entry, runtime bundle, and runtime-resolved chain-module candidates.",
+      productionSnapshotNotPermanentFact: true,
+      repositorySourceUsedAsProductionEvidence: false,
+      rawResponseBodiesRetained: false,
+      retainedInstead: "Full response SHA-256/length/status metadata plus byte offsets and hashed short literal contexts.",
+      dateSemantics: "auditDate names the documentation audit batch and output filename; snapshotDate is the real UTC date of the HTTPS observation.",
+    },
+    privacyAndNetworkBoundary: {
+      transport: "TLS HTTPS only",
+      requestMethod: "GET",
+      fixedPublicHost: "nicechunk.com",
+      requestsMade: resources.length,
+      requestBodiesSent: 0,
+      authorizationHeadersSent: false,
+      cookiesSent: false,
+      queryCredentialsSent: false,
+      browserStorageRead: false,
+      walletKeyMaterialRead: false,
+      rpcMethodsCalled: [],
+      transactionsConstructed: 0,
+      transactionsSent: 0,
+      note: "Static JavaScript contains storage-key and secretKey field names; this capture reads code bytes only and never reads any player's stored values.",
+    },</code></pre>
+<p class="docs-technical-explanation">The capture script labels repository source as non-production evidence and records fixed-host TLS GETs with no browser storage, wallet key, RPC, or transaction access. This is a static byte snapshot, not a HAR, override read, or execution trace.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–16</strong>
+<p>Record the point-in-time byte scope, date semantics, and repository-versus-served evidence boundary.</p></li>
+<li><strong>Lines 17–25</strong>
+<p>Record fixed-host TLS GET transport without request bodies, credentials, or cookies.</p></li>
+<li><strong>Lines 26–32</strong>
+<p>Record no browser values, wallet keys, RPC calls, transaction construction, or sends.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>play/index.html</code>
+<p>Loads ./main.js as the production module entry for /play/ and contains the current player-facing session-funding explanation.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Imports the modular Play chain adapter, wallet-session controller, player synchronization, placement, mining, and Guardian runtime used by the production route.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Forwards ordinary placement to recordBlockPlacementOnChain and normalizes its current non-submission result.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Implements the visible wallet lifecycle, funding presentation, best-effort provider disconnect, local cleanup call, and login redirect.</p></article>
+<article class="docs-evidence-item"><code>play/play-auth-session.js</code>
+<p>Defines the four wallet identity keys, four runtime cache prefixes, and prefix-wide logout scan across all owner suffixes.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian-client.js</code>
+<p>Encodes Guardian HELLO with a public wallet hint, chunk coordinates, and nonce but no PlayerSession or wallet signature.</p></article>
+<article class="docs-evidence-item"><code>play/play-guardian.js</code>
+<p>Creates the Guardian realtime client from walletAddress and presentation context without accepting PlayerSession input.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Implements current eight-hour duration, fifteen-minute skew, mask 6, stored maximum 10,000, 0.1 SOL policy, owner-scoped secret storage, reuse, setup, disabled placement, and ordinary Keypair signing.</p></article>
+<article class="docs-evidence-item"><code>src/localGameWallet.js</code>
+<p>Stores the long-lived Local Game Wallet secret as Base58 in browser storage and provides the Keypair that fills owner and sessionAuthority roles.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-player.ts</code>
+<p>Publishes matching Session constants, PDA derivation, 15-byte tag-four instruction builder, signer metas, and the complete fixed-layout decoder.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>Defines Session magic, version, seed, permission bits, 184-byte pack order, refresh mutation, counter reset, and stored relationship checks.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Dispatches tag 4, requires both signer roles, checks payload and future chain time, derives the canonical PDA, and exposes no Session close, revoke, or deactivate handler.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines Chunk's selected-field PlayerSession view and validates authority, Profile, GlobalConfig, expiry, and action bit without reading six stored fields.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Dispatches the five audited Session-aware mining and tree handlers and passes action index 1 through the shared read-only Session validation path.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/state.rs</code>
+<p>Defines Building's selected-field PlayerSession view with the same authority, Profile, GlobalConfig, expiry, and action-bit checks.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_building/src/lib.rs</code>
+<p>Dispatches all Building tags 0–7 through the shared action-index-1 path while tag 8 publishes Guardian blueprint state through a separate fixed-publisher CPI.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines Backpack's Session view plus dense single and batch removal that shift records without checking slot kind, type, or category.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Dispatches session-aware remove_resource and remove_resources using BREAK_BLOCK and mutates the owner-backed Backpack while keeping PlayerSession read-only.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_game/src/lib.rs</code>
+<p>Defines unified Game namespace byte one and delegates its remaining instruction payload to the shared NiceChunk Backpack handler.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_guardian/src/lib.rs</code>
+<p>Implements Guardian registry, endpoint, blueprint, and operator handlers without referencing PlayerSession or providing its lifecycle operations.</p></article>
+<article class="docs-evidence-item"><code>scripts/derive-player-sessions-audit.mjs</code>
+<p>Deterministically derives byte layout, setup defaults, selected consumer reads, 15-handler matrix, lifecycle boundaries, Guardian independence, and an offline ordinary System transfer proof.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-derived-2026-07-18.json</code>
+<p>Retains the zero-network derived results, source hashes, 15 read-only consumers, no implemented action ceiling, no PLACE consumer, no revoke path, and valid ordinary transfer signature.</p></article>
+<article class="docs-evidence-item"><code>scripts/capture-player-sessions-devnet.mjs</code>
+<p>Captures read-only Devnet program accounts at a shared context and checks retained bytes, PDAs, distributions, privacy boundaries, and offline reproduction.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-devnet-2026-07-18.json</code>
+<p>Retains one confirmed Devnet snapshot at context slot 477236696 with ten canonical Session records for eight owners, all expired at that chain time.</p></article>
+<article class="docs-evidence-item"><code>scripts/capture-player-sessions-production.mjs</code>
+<p>Captures fixed public NiceChunk HTTPS resources, hashes decoded response bodies, and checks the retained entry, runtime, fallback, candidate, and privacy boundaries offline.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-production-2026-07-18.json</code>
+<p>Retains the 2026-07-19 UTC static production observation inside the 2026-07-18 documentation audit batch with path, response, hash, literal, and non-execution boundaries.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Configures the current runtime chain cluster as Devnet and records the Player, Chunk, Building, Backpack, and Core program IDs used by the capture.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/cluster_config.rs</code>
+<p>Pins the Player Program's expected Core and Backpack program IDs used in owner and configuration validation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_core/src/state.rs</code>
+<p>Defines the canonical GlobalConfig layout and world fields that setup reads before packing worldId and GlobalConfig into PlayerSession.</p></article>
+<article class="docs-evidence-item"><code>src/rpcConfig.js</code>
+<p>Resolves the runtime Solana cluster and endpoint configuration used by the production chain client and retained Devnet capture.</p></article>
+<article class="docs-evidence-item"><code>play/tests/play-auth-session.test.mjs</code>
+<p>Exercises wallet logout cleanup behavior, including removal of scoped runtime caches while preserving unrelated browser storage.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_player_chunk.ts</code>
+<p>Checks PlayerSession PDA derivation, serialized mask and expiry, account ordering, and session-aware Chunk mining instruction behavior.</p></article>
+<article class="docs-evidence-item"><code>play/placement-controller.js</code>
+<p>Coordinates local placement prediction, chain-adapter submission, confirmation, and rollback around the currently disabled chain placement result.</p></article>
+<article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Coordinates the player-facing mining action that can eventually call one of the session-aware Chunk consumer paths.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-backpack.js</code>
+<p>Synchronizes the owner-backed Backpack visible to Play, whose dense records are changed by the audited Backpack removal handlers.</p></article>
+<article class="docs-evidence-item"><code>play/tests/play-chain-adapter.test.mjs</code>
+<p>Exercises production adapter normalization for submitted and skipped chain-action results, including placement delegation.</p></article></div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Move from authority boundaries into funding and expiry decisions</h2>
+<p>This guide separates the public pass from the ordinary signer and shows which controls are absent. The next guide turns those boundaries into practical choices about SOL, refresh timing, expiry, recovery, and replacement keys.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/skills-xp-and-progress/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>Skills, XP, and Progress: How One Action Becomes a Level</strong>
+<p>Review which progress belongs to the browser and which belongs to public program accounts before granting a temporary signer permission to request more actions.</p></a>
+<a class="docs-path-navigation-card" href="/docs/session-funding-and-expiry/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time</strong>
+<p>Separate the browser's 0.1 SOL target from owner, session-authority, and PlayerSession-rent balances, then compare browser policy windows with Solana Clock before deciding whether to top up, reuse, refresh, replace, or recover a key.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+{
+  "_meta": {
+    "language": "ru",
+    "label": "Russian",
+    "version": "docs-locale-ru-1775eb0499084fa5",
+    "contentHash": "1775eb0499084fa5"
+  },
+  "common": {
+    "language": "Язык",
+    "comingSoon": "Скоро",
+    "languageNative": {
+      "en": "English",
+      "es": "Español",
+      "fr": "Français",
+      "de": "Deutsch",
+      "ja": "日本語",
+      "ru": "Русский",
+      "ko": "한국어",
+      "zhHant": "繁體中文",
+      "zhHans": "简体中文"
+    }
+  },
+  "siteHeader": {
+    "brandName": "NICECHUNK",
+    "brandHomeAria": "Главная NiceChunk",
+    "primaryNavigationAria": "Основная навигация",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "routes": {
+      "home": "Главная",
+      "roadbook": "План",
+      "worldRules": "Правила",
+      "resources": "Ресурсы",
+      "ncm": "NCM",
+      "ncfm": "NCFM",
+      "elements": "Элементы",
+      "fairness": "Честность",
+      "proofOfFrontier": "Доказательство",
+      "seed": "Сид",
+      "guardians": "Стражи",
+      "contracts": "Контракты",
+      "civilization": "Цивилизация",
+      "trust": "Доверие",
+      "docs": "Документы",
+      "enterWorld": "Войти в мир"
+    }
+  },
+  "meta": {
+    "title": "Полевое руководство NiceChunk",
+    "description": "Понятная игрокам документация NiceChunk, основанная на работающей игре, публичных правилах и поведении развёрнутых программ."
+  },
+  "accessibility": {
+    "skipContent": "Перейти к содержанию"
+  },
+  "brand": {
+    "name": "NICECHUNK",
+    "guide": "ПОЛЕВОЕ РУКОВОДСТВО",
+    "homeAria": "Главная NiceChunk"
+  },
+  "navigation": {
+    "aria": "Навигация по документации",
+    "guide": "Руководство",
+    "worldRules": "Правила мира",
+    "programs": "Программы",
+    "enterWorld": "Войти в мир"
+  },
+  "status": {
+    "loading": "Загрузка полевого руководства",
+    "loadingDetail": "Загружается один документ на выбранном языке.",
+    "failed": "Не удалось загрузить эту страницу руководства.",
+    "failedDetail": "Проверьте соединение или вернитесь к оглавлению руководства."
+  },
+  "actions": {
+    "backToIndex": "Вернуться к оглавлению",
+    "guideIndex": "Полевое руководство",
+    "openGuide": "Открыть руководство →"
+  },
+  "footer": {
+    "statement": "Материал основан на действующих правилах и программном коде. Утверждения ограничены тем, что может доказать реализация.",
+    "fairness": "Справедливость",
+    "trust": "Доверие",
+    "roadmap": "План развития"
+  },
+  "translation": {
+    "fallbackTitle": "Показан английский оригинал",
+    "fallbackBody": "У этой темы есть отдельный языковой файл, но проверенный перевод ещё не готов. Английский оригинал показан без машинного перевода технических утверждений."
+  },
+  "labels": {
+    "guideMetrics": "Охват полевого руководства",
+    "breadcrumb": "Навигационная цепочка",
+    "keyPoints": "Ключевые моменты",
+    "onThisPage": "На этой странице",
+    "evidenceEyebrow": "СВИДЕТЕЛЬСТВА РЕАЛИЗАЦИИ",
+    "evidenceTitle": "На чём основаны эти утверждения",
+    "evidenceIntro": "Каждое утверждение намеренно ограничено конкретным путём реализации. Эти ссылки нужны для проверки, а не для оформления."
+  },
+  "statusLabels": {
+    "ready": "Проверено",
+    "preview": "На проверке",
+    "planned": "Запланировано"
+  },
+  "calloutLabels": {
+    "note": "Как это читать",
+    "boundary": "Граница реализации",
+    "verified": "Что гарантирует код"
+  }
+}

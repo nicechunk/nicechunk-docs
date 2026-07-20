@@ -1,0 +1,540 @@
+{
+  "_meta": {
+    "language": "ko",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-resource-drop-rules-ko-da4157fb6836181b",
+    "contentHash": "da4157fb6836181b"
+  },
+  "kind": "topic",
+  "slug": "resource-drop-rules",
+  "shortTitle": "Resource Drop Rules",
+  "seo": {
+    "title": "NiceChunk ResourceDropTable PDA: Deterministic Extra Drops and Runtime Boundaries",
+    "description": "Trace NiceChunk exploration extras from ordered ResourceDropTable bytes through coordinate hashing, skill-weighted thresholds, lossy Backpack writes, and the current split-program boundary."
+  },
+  "hero": {
+    "eyebrow": "FOUNDATION 18 · RESOURCE DROP RULES",
+    "title": "One coordinate can resolve one ordered extra, but a hit is not a stored reward",
+    "summary": "NiceChunk does not ask the browser to roll exploration drops. The standalone Chunk Program reads a program-owned ResourceDropTable, recalculates spatial facts, applies the player's on-chain Exploration level, and selects the first ordered rule that passes. The required mined block and optional extras then follow different Backpack capacity rules, so a successful roll can still be omitted from a full inventory.",
+    "readingTime": "17 min read",
+    "visual": {
+      "src": "/docs/media/resource-drop-rules-overview-v1.webp",
+      "alt": "The canonical villager boy mines a layered stone face beside clear voxel water while the villager girl receives ordinary fragments and a small cyan rare resource near an open backpack.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "The program resolves the extra",
+      "body": "Source block, altitude, depth, ordered rule bytes, a canonical seed, coordinates, rule salt, and pre-transaction Exploration XP determine the result; browser RNG, transaction slot, and wallet address do not."
+    },
+    {
+      "title": "Execution scope is split",
+      "body": "Current Play mining sends tag 8 to the standalone Chunk Program and reads its table. A second table owned by the unified Game Program has identical rule bytes at the audited slot, but it is not an account of that mining transaction."
+    },
+    {
+      "title": "A match can be lost at capacity",
+      "body": "The base mined block is a required append. Surface decoration and exploration extras are ordered secondary appends that stop when the Backpack fills, while Exploration XP still advances when the extra was resolved."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "RECOMPUTABLE DROP MATH",
+    "title": "Rebuild the result from bytes, coordinates, and player progress",
+    "summary": "These equations model the implemented resolver. They preserve integer arithmetic, ordered first-hit semantics, and the distinction between producing an extra and actually storing it."
+  },
+  "formulas": [
+    {
+      "title": "Active PDA and bounded account length",
+      "expression": "P_drop = PDA([\"resource-drops-v2\", GlobalConfig], ChunkProgram); bytes(N) = 16 + 23N, 1 <= N <= 64",
+      "explanation": "The active table address is derived under the standalone Chunk Program ID. The audited table has N = 37, so its exact account length is 867 bytes.",
+      "terms": [
+        {
+          "symbol": "P_drop",
+          "meaning": "The ResourceDropTable account supplied to the current reward-bearing mining instruction."
+        },
+        {
+          "symbol": "N",
+          "meaning": "The row count stored in byte 10 of the 16-byte header."
+        }
+      ]
+    },
+    {
+      "title": "Spatial eligibility for one ordered row",
+      "expression": "a = y - seaLevel; d = surface(x,z) - y; eligible_i = (source = source_i) AND (a_min_i <= a <= a_max_i) AND (d_min_i <= d <= d_max_i)",
+      "explanation": "Altitude is relative to the canonical sea level and depth is relative to the generated surface above the coordinate. A row that fails any bound is skipped before its probability is tested.",
+      "terms": [
+        {
+          "symbol": "a",
+          "meaning": "Signed altitude above or below the program's canonical sea level."
+        },
+        {
+          "symbol": "d",
+          "meaning": "Generated surface height minus the mined world Y coordinate."
+        },
+        {
+          "symbol": "i",
+          "meaning": "The current row in stored table order."
+        }
+      ]
+    },
+    {
+      "title": "Exploration level and effective threshold",
+      "expression": "L(xp) = max { k in [0,10] : xp >= T_k }; c_eff_i = min(10000, floor(c_i x (100 + 10L) / 100))",
+      "explanation": "The program maps Exploration XP through eleven cumulative thresholds. Each level adds ten percent of the base basis-point threshold; level 10 doubles it, subject to the 10,000 basis-point cap.",
+      "terms": [
+        {
+          "symbol": "T_k",
+          "meaning": "The cumulative Exploration XP threshold for level k."
+        },
+        {
+          "symbol": "c_i",
+          "meaning": "The row's base chance in basis points."
+        },
+        {
+          "symbol": "c_eff_i",
+          "meaning": "The integer threshold after the player's Exploration multiplier."
+        }
+      ]
+    },
+    {
+      "title": "Coordinate roll and first-hit selection",
+      "expression": "r_i = H(seed,x,y,z,700 + salt_i) mod 10000; winner = first i where eligible_i AND r_i < c_eff_i",
+      "explanation": "Every eligible row uses its own salt. A failed roll continues to the next row; the first passing row returns immediately, so overlapping row probabilities must not be added and table order is part of the rule.",
+      "terms": [
+        {
+          "symbol": "H",
+          "meaning": "The program's 32-bit seed-and-coordinate hash with fixed wrapping arithmetic."
+        },
+        {
+          "symbol": "winner",
+          "meaning": "At most one ResourceDropTable extra returned for this mined block."
+        }
+      ]
+    },
+    {
+      "title": "Deterministic extra volume",
+      "expression": "v = v_min + (H(seed,x,y,z,900 + salt_winner) mod (v_max - v_min + 1))",
+      "explanation": "A second salt domain selects an inclusive integer volume in cubic millimeters. Equal minimum and maximum values bypass the modulo and return that fixed volume.",
+      "terms": [
+        {
+          "symbol": "v",
+          "meaning": "The volume encoded into the extra Backpack block record."
+        },
+        {
+          "symbol": "v_min, v_max",
+          "meaning": "The inclusive volume bounds stored in the winning 23-byte row."
+        }
+      ]
+    },
+    {
+      "title": "Produced extras versus stored extras",
+      "expression": "secondaryWritten = prefix(filter_present([decorationHit, extraHit]), freeSlotsAfterBase); deltaXP_exploration = 1 if transactionCommits AND extraHit else 0",
+      "explanation": "This compact model first removes absent records, then keeps the ordered prefix that fits after the strict base append, with visible decoration before the exploration extra when both exist. XP tests the resolved extra rather than storage, but any later instruction error rolls the entire transaction back.",
+      "terms": [
+        {
+          "symbol": "freeSlotsAfterBase",
+          "meaning": "Remaining Backpack capacity after the required mined-block record is stored."
+        },
+        {
+          "symbol": "prefix",
+          "meaning": "The ordered leading secondary records that fit before capacity is reached."
+        },
+        {
+          "symbol": "filter_present",
+          "meaning": "Removal of any secondary type that did not resolve, before capacity is applied."
+        },
+        {
+          "symbol": "extraHit",
+          "meaning": "The ResourceDropTable resolver returned an extra before the Backpack CPI."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The table format fixes header, row, count, and denominator bounds",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "pub const RESOURCE_DROP_TABLE_MAGIC: [u8; 8] = *b\"NCKDRP02\";\npub const RESOURCE_DROP_TABLE_VERSION: u8 = 2;\npub const RESOURCE_DROP_TABLE_SEED: &[u8] = b\"resource-drops-v2\";\npub const RESOURCE_DROP_TABLE_HEADER_LEN: usize = 16;\npub const RESOURCE_DROP_RULE_LEN: usize = 23;\npub const RESOURCE_DROP_RULE_MAX_COUNT: usize = 64;\npub const RESOURCE_DROP_CHANCE_DENOMINATOR: u32 = 10_000;",
+      "explanation": "These constants make malformed magic, version, row count, and exact account length fail closed before any row is resolved."
+    },
+    {
+      "title": "The resolver filters spatial bounds, rolls each row, and returns the first hit",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "    let rule_count = ResourceDropTableState::validate_header(data)?;\n    let surface = generated_surface_height(global_config, world_x, world_z);\n    let altitude = world_y.saturating_sub(global_config.sea_level);\n    let depth = surface.saturating_sub(world_y);\n    for index in 0..rule_count {\n        let offset = RESOURCE_DROP_TABLE_HEADER_LEN + index * RESOURCE_DROP_RULE_LEN;\n        let rule = ResourceDropRule::unpack(&data[offset..offset + RESOURCE_DROP_RULE_LEN])?;\n        if rule.source_block_id != source_block_id\n            || altitude < rule.min_altitude\n            || altitude > rule.max_altitude\n            || depth < rule.min_depth\n            || depth > rule.max_depth\n        {\n            continue;\n        }\n        let roll = hash_coord3(\n            &global_config.world_seed,\n            world_x,\n            world_y as i32,\n            world_z,\n            700_u32.saturating_add(rule.salt as u32),\n        ) % RESOURCE_DROP_CHANCE_DENOMINATOR;\n        let chance_bps =\n            PlayerProgressState::exploration_chance_bps(rule.chance_bps, exploration_xp);\n        if roll < chance_bps as u32 {\n            let span = rule.max_volume_mm3.saturating_sub(rule.min_volume_mm3);\n            let volume_mm3 = if span == 0 {\n                rule.min_volume_mm3\n            } else {\n                let volume_roll = hash_coord3(\n                    &global_config.world_seed,\n                    world_x,\n                    world_y as i32,\n                    world_z,\n                    900_u32.saturating_add(rule.salt as u32),\n                ) % span.saturating_add(1);\n                rule.min_volume_mm3.saturating_add(volume_roll)\n            };\n            return Ok(Some(ResourceExtraDrop {\n                block_id: rule.drop_block_id,\n                volume_mm3,\n            }));\n        }\n    }\n    Ok(None)\n}",
+      "explanation": "There is no slot, wallet, transaction signature, or browser random value here. Stored order matters because a successful row returns immediately."
+    },
+    {
+      "title": "Exploration changes the threshold with integer arithmetic",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/state.rs",
+      "code": "    pub fn exploration_chance_bps(chance_bps: u16, exploration_xp: u64) -> u16 {\n        let level = Self::exploration_level_from_xp(exploration_xp) as u32;\n        let weighted = (chance_bps as u32)\n            .saturating_mul(100_u32.saturating_add(level.saturating_mul(10)))\n            / 100;\n        weighted.min(RESOURCE_DROP_CHANCE_DENOMINATOR) as u16\n    }",
+      "explanation": "The UI phrase plus ten percent per level corresponds to multiplying the row's own threshold, not adding ten percentage points."
+    },
+    {
+      "title": "Decoration precedes exploration in the lossy secondary batch",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let mut secondary_rewards = Vec::with_capacity(2);\n    // Visible surface decoration has priority over an invisible exploration\n    // bonus when only one slot remains after the mined block is stored.\n    if let Some(decoration) = surface_decoration_drop {\n        secondary_rewards.push(BackpackBlockReward {\n            world_x: args.world_x,\n            packed_y: pack_backpack_resource_y(\n                decoration.surface_y.saturating_add(1),\n                decoration.drop_block_id,\n                global_config_view.min_build_y,\n            ),\n            world_z: args.world_z,\n            volume_mm3: gathered_volume_mm3,\n            metadata: pack_surface_decoration_metadata(\n                decoration.rule_id,\n                decoration.decoration_id,\n            ),\n        });\n    }\n    if let Some(drop) = extra_drop {\n        secondary_rewards.push(BackpackBlockReward {\n            world_x: args.world_x,\n            packed_y: pack_backpack_resource_y(\n                args.world_y,\n                drop.block_id,\n                global_config_view.min_build_y,\n            ),\n            world_z: args.world_z,\n            volume_mm3: drop.volume_mm3,\n            metadata: 0,\n        });\n    }\n    append_backpack_block_resources_lossy(\n        program_id,\n        backpack_program,\n        chunk_broken,\n        global_config,\n        player_profile,\n        backpack,\n        chunk_x,\n        chunk_z,\n        bump,\n        &secondary_rewards,\n    )?;",
+      "explanation": "This runs only after the required base append. The Backpack batch stops at capacity and still returns success, so transaction confirmation alone does not prove that the exploration row was stored."
+    },
+    {
+      "title": "The browser sends the Chunk-owned rule accounts to tag 8",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function createMineBlockWithRewardsInstruction({ authority, block, owner, backpack, expectedBlockId, context = gameContext }) {\n  if (!owner) throw new Error(\"owner is required for canonical mining\");\n  if (!backpack) throw new Error(\"backpack is required for reward mining\");\n  if (!Number.isInteger(expectedBlockId)) throw new Error(\"expectedBlockId is required for canonical mining\");\n  const [chunkBrokenPda] = deriveChunkBrokenPdaForContext(blockChunkX(block.x), blockChunkZ(block.z), context);\n  const [foundationChunkPda] = deriveFoundationChunkPdaForContext(blockChunkX(block.x), blockChunkZ(block.z), context);\n  const [resourceDropTable] = deriveResourceDropTablePdaForContext(context);\n  const [surfaceDecorationTable] = deriveSurfaceDecorationTablePdaForContext(context);\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, authority);\n  const [playerProgress] = derivePlayerProgressPdaForContext(owner, context);\n  const data = Buffer.alloc(13);\n  data.writeUInt8(8, 0);\n  data.writeInt32LE(block.x, 1);\n  data.writeInt16LE(block.y, 5);\n  data.writeInt32LE(block.z, 7);\n  data.writeUInt16LE(expectedBlockId, 11);\n\n  return new TransactionInstruction({\n    programId: context.chunkProgramId,\n    keys: [\n      { pubkey: authority, isSigner: true, isWritable: true },\n      { pubkey: playerProfile, isSigner: false, isWritable: false },\n      { pubkey: playerSession, isSigner: false, isWritable: false },\n      { pubkey: playerProgress, isSigner: false, isWritable: true },\n      { pubkey: chunkBrokenPda, isSigner: false, isWritable: true },\n      { pubkey: foundationChunkPda, isSigner: false, isWritable: false },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: resourceDropTable, isSigner: false, isWritable: false },\n      { pubkey: surfaceDecorationTable, isSigner: false, isWritable: false },\n      { pubkey: context.backpackProgramId, isSigner: false, isWritable: false },\n      { pubkey: backpack, isSigner: false, isWritable: true },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n    ],\n    data: contextInstructionData(context, gameNamespaceChunk, data),\n  });",
+      "explanation": "The instruction program is context.chunkProgramId, so PDA derivation and owner checks are anchored to the standalone Chunk Program even though the Backpack program is the unified Game Program."
+    },
+    {
+      "title": "A Civilization replacement must preserve the existing row count",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let rule_count = ResourceDropTableState::validate_payload(payload)?;\n    let update = CivilizationTableUpdateAccounts::parse(accounts)?;\n    require_key_eq(\n        update.table.owner,\n        program_id,\n        NicechunkChunkError::InvalidResourceDropTableData,\n    )?;\n    validate_global_config(update.global_config)?;\n    let bump = validate_rule_table_pda(\n        program_id,\n        update.table.key,\n        update.global_config.key,\n        RESOURCE_DROP_TABLE_SEED,\n        NicechunkChunkError::InvalidResourceDropTablePda,\n    )?;\n    {\n        let table_data = update.table.try_borrow_data()?;\n        let existing_count = ResourceDropTableState::validate_header(&table_data)?;\n        if existing_count != rule_count {\n            return Err(NicechunkChunkError::InvalidResourceDropTableData.into());\n        }\n    }\n    update.execute(program_id, payload)?;\n    let mut data = update.table.try_borrow_mut_data()?;\n    ResourceDropTableState::pack_payload(&mut data, bump, payload)",
+      "explanation": "The adapter checks the program-owned PDA, validates a matching Civilization receipt flow, and rewrites the same-sized payload. It cannot resize a 37-row table to another count."
+    },
+    {
+      "title": "The current E2E script explicitly derives the Game Program shadow table",
+      "language": "TypeScript",
+      "source": "scripts/civilization-resource-drops-e2e.ts",
+      "code": "const [globalConfig] = deriveGlobalConfigPda();\nconst [resourceDropTable] = deriveResourceDropTablePda({\n  globalConfig,\n  programId: NICECHUNK_GAME_PROGRAM_ID,\n});",
+      "explanation": "This address is not the Chunk-owned table passed by current Play mining. An executed receipt against this shadow PDA proves that adapter target only, not a live rule change for the standalone mining path."
+    }
+  ],
+  "sections": [
+    {
+      "id": "active-execution-path",
+      "eyebrow": "CURRENT EXECUTION DOMAIN",
+      "title": "The table that matters is the one owned by the program doing the mining",
+      "paragraphs": [
+        "Current Play uses a split context. Reward-bearing mining is sent directly to the standalone Chunk Program GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj, while Backpack, Smelting, and Marketplace instructions are routed through the unified Game Program 6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7. The mining instruction therefore derives ChunkBroken, PlayerProgress, ResourceDropTable, and SurfaceDecorationTable under the Chunk Program ID, then invokes the Game Program's Backpack namespace for storage.",
+        "At finalized slot 476,371,044, the active ResourceDropTable was Hf3MpkMq5E3f6uCR1RQKLw2DiC4TgcvhDkmuSvttdhHT. A second 867-byte ResourceDropTable exists at FBdf5NXSL7R7YQK52j8sc4NeuJ2i9qjfYt4TyRdq9SR2 under the Game Program. Their 851 rule bytes matched exactly, but the Game-owned account is not supplied to the current mining transaction. Equal contents today do not make the accounts interchangeable."
+      ],
+      "facts": [
+        {
+          "label": "Active mining program",
+          "value": "GnVKn...13wbj",
+          "detail": "The browser sends un-namespaced tag 8 directly to the standalone Chunk Program."
+        },
+        {
+          "label": "Active drop table",
+          "value": "Hf3M...tdhHT",
+          "detail": "Derived from resource-drops-v2 plus GlobalConfig under the Chunk Program ID; owner and PDA are checked by the program."
+        },
+        {
+          "label": "Storage program",
+          "value": "6Curn...2UP7",
+          "detail": "The accepted mining instruction invokes namespace 1 of the unified Game Program to append Backpack records."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A function name is not an execution proof",
+        "body": "The client export named deriveGameResourceDropTablePda currently returns the Chunk-derived address. Verify the transaction program, account owner, and PDA seeds together instead of inferring scope from a helper name."
+      }
+    },
+    {
+      "id": "table-bytes",
+      "eyebrow": "BOUNDED PDA DATA",
+      "title": "Thirty-seven ordered rows encode twelve kinds of exploration extra",
+      "paragraphs": [
+        "The account begins with NCKDRP02, version 2, its PDA bump, and a row count inside a 16-byte header. Every 23-byte row stores source block ID, drop block ID, base chance in basis points, signed altitude bounds, signed depth bounds, one-byte salt, and inclusive minimum and maximum volume. Validation rejects an empty or oversized table, a wrong exact length, forbidden air, water, or bedrock IDs, chance above 10,000, reversed ranges, zero minimum volume, and minimum volume above maximum.",
+        "The audited account contained 37 rows across 16 source block types and 12 extra types. Base chances ranged from 10 to 900 basis points and encoded volumes ranged from 4,000 to 1,627,120,000 cubic millimeters. Its rule-body SHA-256 was 5fc213f6ed94777fbc0aeaa99cbea53282743a03d8f27e7498de2b9ef6be55ca, exactly matching the current local encoder output."
+      ],
+      "bullets": [
+        "Lava, ice, toxic water, coral, dead coral, reed, vine, dry grass, dead bush, thorn, dead wood, and giant root are ResourceDropTable outputs.",
+        "Cotton and the five color flowers belong to the separate SurfaceDecorationTable path, not this exploration-extra table.",
+        "The v2 header has no revision or updated-slot field, so a historical version must be named by an observed slot plus its account or rule-body hash.",
+        "A development-wallet signer can initialize each program-derived table only while its PDA is still an empty system account.",
+        "The local JavaScript rule fixture is initialization and presentation input; after governance changes, public PDA bytes remain the runtime authority."
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "The current bytes are independently reproducible",
+        "body": "The audit stores finalized RPC metadata and both raw 867-byte table payloads. Decoding the active account reproduces NCKDRP02, version 2, bump 254, 37 rows, the exact account hash, and the local rule-body hash."
+      }
+    },
+    {
+      "id": "deterministic-resolution",
+      "eyebrow": "ORDERED COORDINATE HASHING",
+      "title": "The same accepted inputs replay the same roll without a random oracle",
+      "paragraphs": [
+        "Before reading an exploration row, the mining program validates the player session and accounts, derives the target chunk, checks foundation protection, recalculates the canonical block at the submitted coordinate, rejects a mismatched expected block, and rejects air, water, or bedrock. GlobalConfig is the PDA identity anchor here, while GlobalConfigView substitutes the Chunk Program's compiled canonical seed, height limits, and sea level for terrain evaluation.",
+        "The resolver computes altitude and generated depth once, then scans stored rows from index zero. Each eligible row hashes the canonical seed, integer x, y, z, and 700 plus its salt into a value from 0 through 9,999. A failed eligible roll continues; the first successful row returns one block ID and one volume. The transaction slot, blockhash, signer, wallet, and browser RNG are absent."
+      ],
+      "steps": [
+        {
+          "title": "Recalculate the source",
+          "body": "Derive the canonical generated block from the integer coordinate and reject a client mismatch."
+        },
+        {
+          "title": "Filter the row",
+          "body": "Require the source block ID, altitude range, and generated-depth range to match."
+        },
+        {
+          "title": "Compare the threshold",
+          "body": "Hash the coordinate in the chance salt domain and compare its 0-to-9,999 roll with the player-weighted row threshold."
+        },
+        {
+          "title": "Return the first winner",
+          "body": "Use the volume salt domain for an inclusive size and stop scanning immediately."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Deterministic does not mean identical for every player forever",
+        "body": "The result is deterministic for a specific program version, ordered table, canonical seed, coordinate, source block, and pre-transaction Exploration XP. A different XP threshold, table revision, or program upgrade can change the answer."
+      }
+    },
+    {
+      "id": "exploration-weight",
+      "eyebrow": "PLAYER-SPECIFIC THRESHOLDS",
+      "title": "Exploration doubles the row's own chance by level ten",
+      "paragraphs": [
+        "Exploration has eleven cumulative XP thresholds from level 0 through 10: 0, 1,250, 4,961, 11,975, 22,994, 38,636, 59,462, 85,991, 118,707, 158,068, and 204,510. The program selects the greatest reached level, multiplies the row's base threshold by 100 plus ten times that level, divides by 100 with integer truncation, and caps the result at 10,000.",
+        "Every resolved ResourceDropTable extra adds one Exploration XP after the Backpack CPI returns, while every successful ordinary tag 8 mine adds one Precision Gathering XP. The Exploration increment checks extra_drop.is_some(), not whether the lossy secondary append had room. Mining order can therefore affect later coordinates: an earlier committed hit can cross a level threshold, raising the deterministic comparison threshold for a later transaction. If the strict base append or any later operation errors, Solana transaction atomicity rolls back both XP changes with the other writes."
+      ],
+      "facts": [
+        {
+          "label": "Level 0 multiplier",
+          "value": "1.0x base threshold",
+          "detail": "The current 10-to-900 basis-point table range remains 10 to 900."
+        },
+        {
+          "label": "Level 10 multiplier",
+          "value": "2.0x base threshold",
+          "detail": "The current range becomes 20 to 1,800 basis points before the universal cap."
+        },
+        {
+          "label": "XP per resolved extra",
+          "value": "1",
+          "detail": "The program advances XP even when Backpack capacity prevents the extra record from being written."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Ten percent means relative weight",
+        "body": "A 60-basis-point row becomes 66 at level 1, not 1,060. The multiplier applies to that row's base threshold."
+      }
+    },
+    {
+      "id": "backpack-storage",
+      "eyebrow": "STRICT BASE, LOSSY SECONDARIES",
+      "title": "Confirmation proves the transaction, not that every produced secondary fit",
+      "paragraphs": [
+        "The instruction first records the mined coordinate, then performs a strict Backpack CPI for the canonical base block. If that append cannot fit, the CPI errors and the entire transaction rolls back. Base volume comes from Precision Gathering: 1,000,000 cubic millimeters multiplied by ten plus ten times Precision level, then divided by 100, so level 0 stores 100,000 and level 10 stores 1,000,000. It next prepares up to two secondary records: a visible SurfaceDecorationTable drop first and the ResourceDropTable extra second. Decoration inherits gathered base volume; only the exploration extra uses the inclusive volume range in its own table row. The Backpack batch appends present records until capacity and then returns success.",
+        "The Play client checks only that one slot is available before ordinary mining. With exactly one free slot, the base block fills it and all secondaries are omitted. With two free slots and both secondary types resolved, the base and decoration fill them and the exploration extra is omitted. The transaction can still confirm, the block can disappear, and Exploration XP can increase.",
+        "After confirmation, Play retries the full Backpack PDA using successive waits of 0, 180, 500, and 1,200 milliseconds until its updated slot advances and at least the required base-count increment is visible. Ignoring RPC time, those cumulative attempts begin near 0, 180, 680, and 1,880 milliseconds. That full refresh reveals every secondary that actually fit. The local pending reward animation and resources-collected counter are based on planned base blocks, so they do not independently report the real exploration result."
+      ],
+      "bullets": [
+        "The Backpack program validates a ChunkBroken PDA signer, GlobalConfig, PlayerProfile ownership, the player owner, and a correctly derived Backpack PDA.",
+        "The chain accepts a player-owned Backpack selected by the client; it does not compare that address with the Profile equipped-backpack pointer.",
+        "A raw ResourceDropTable block record is not yet a forge material item. The current production path is raw Backpack resource, Smelting conversion, then material-aware Forging."
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Do not promise that every hit enters the Backpack",
+        "body": "The current invariant is weaker: the base record must fit, secondary records are best effort, and XP follows resolution rather than storage. A product guarantee would require reserving capacity, making the extra strict, or returning and using an actual-written count."
+      }
+    },
+    {
+      "id": "coverage-and-compatibility",
+      "eyebrow": "REACHABILITY AND SCHEMA LIMITS",
+      "title": "Not every configured row is reachable through every mining action",
+      "paragraphs": [
+        "Ordinary single-block mining passes both rule tables to tag 8. A normal multi-block natural tree instead selects the tree-fell plan and sends tag 9. That instruction has no ResourceDropTable account and never calls the exploration resolver; it records tree blocks and base tree rewards only, and it does not add Exploration XP. Five current rows involving trunk or pineTrunk to vine, dead wood, or giant root are therefore normally bypassed by natural-tree felling. An isolated trunk that falls back to tag 8 can still resolve them, and a separately mined leaves block can still resolve its vine row.",
+        "Support collapse is also selective. Its primary block and only the capacity-selected reward blocks use reward-bearing tag 8; other confirmed collapse removals use tag 5 without ResourceDropTable evaluation. The rule table therefore applies per reward-bearing instruction, not automatically to every block removed by a larger local mining plan.",
+        "The current table's largest drop block ID is 45, which the present Backpack packing and Play decoder can represent. Table validation does not itself restrict a future Civilization patch to the browser's known render map or safe packed-ID range. A syntactically valid higher ID could become an on-chain slot that the current client decodes as unknown or omits from the visible Backpack."
+      ],
+      "facts": [
+        {
+          "label": "Ordinary mine",
+          "value": "tag 8",
+          "detail": "Reads ResourceDropTable and SurfaceDecorationTable and can resolve one exploration extra."
+        },
+        {
+          "label": "Natural tree fell",
+          "value": "tag 9",
+          "detail": "Does not receive or resolve ResourceDropTable rows."
+        },
+        {
+          "label": "Current maximum output ID",
+          "value": "45",
+          "detail": "Safe for the current decoder; future governed IDs need an explicit cross-program and renderer compatibility rule."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "A table row can be valid yet operationally dormant",
+        "body": "Binary validation proves row shape and bounds. Reachability also depends on which action planner and instruction the player path selects."
+      }
+    },
+    {
+      "id": "governance-boundary",
+      "eyebrow": "MUTABILITY AND PROOF SCOPE",
+      "title": "Civilization can replace bounded bytes, but the target program and PDA must be exact",
+      "paragraphs": [
+        "The Chunk source exposes a Civilization adapter for ResourceDropTable replacement. It validates the existing program-owned PDA, the new 37-row payload, the target program and target PDA committed by the RuleBook, a threshold-met tally, an executed receipt, and the adapter authority. It then rewrites the same-sized table atomically. Because the account cannot be resized in this path, the replacement row count must equal the existing count.",
+        "The current civilization-resource-drops E2E script explicitly derives and updates the Game Program-owned FBdf5... table. Current Play mining reads the standalone Chunk-owned Hf3M... table instead. The script demonstrates a real adapter path for its chosen target, but it is not evidence that current mining rules changed. Its initialization fallback also forces the Civilization power authority as payer, while tag 7 requires the different GlobalConfig development wallet; that branch would fail if the shadow table did not already exist. A live governance proposal must bind to the Chunk Program and active PDA if it is meant to affect current mining.",
+        "At the audited slot, both deployed program ELF hashes matched the current local artifacts. Both programs also retained upgrade authority 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud, so table governance is not the only mutability boundary. Program upgrades can change derivation, validation, hashing, reward ordering, or storage behavior."
+      ],
+      "bullets": [
+        "Re-derive the target PDA from seed, GlobalConfig, and the intended program ID.",
+        "Read owner, magic, version, count, exact length, and rule-body hash from finalized RPC bytes.",
+        "Decode every row and validate output IDs against the Backpack schema, Game dispatcher, and current Chunk.js render map before publishing a patch.",
+        "Record both finalized slot and rule-body hash because the v2 ResourceDropTable header has no revision or updated-slot field.",
+        "Test ordinary mining, near-full Backpack capacity, simultaneous decoration and extra hits, and the separate tree-fell path.",
+        "After execution, re-read the active PDA and a real Backpack mutation instead of relying on the static resource atlas or a successful shadow-table receipt."
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Current snapshot, not permanent immutability",
+        "body": "Finalized slot 476,371,044 proves the two table owners, exact bytes, rule-body parity, deployed artifact parity, missing Game-owned surface table, and recorded upgrade authorities at that time. Later state must be read again."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/audits/resource-drop-rules-devnet-2026-07-15.json",
+      "claim": "Records finalized Devnet account bytes, PDA derivations, owners, table hashes, active runtime mapping, deployed artifact parity, image metadata, and explicit scope notes."
+    },
+    {
+      "path": "docs/media/resource-drop-rules-overview-v1.webp",
+      "claim": "Provides the text-free villager quest scene using voxel strata, baked material language, and a calm translucent game-water plane."
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "Declares the current Devnet cluster and split Chunk versus unified Backpack, Smelting, and Market program addresses."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Defines canonical world constants, the ResourceDropTable binary schema, row validation, Exploration thresholds, coordinate hashing, ordered resolution, and volume selection."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Implements reward-bearing mining, account and PDA checks, strict base append, ordered lossy secondaries, Exploration XP updates, tree felling, table initialization, and Civilization replacement."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/errors.rs",
+      "claim": "Enumerates explicit invalid table PDA, invalid table data, rule authority, and mining validation errors."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/cluster_config.rs",
+      "claim": "Pins the Core, Player, Backpack/Game, Civilization, and other program identities trusted by the standalone Chunk Program."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/civilization_adapter.rs",
+      "claim": "Decodes Civilization RuleBook, tally, receipt, patch hash, target program, target PDA, status, and adapter-authority requirements."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "Validates Chunk reward authority and dispatches strict single-resource and lossy batch append instructions."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "Implements Backpack capacity checks, strict append failure, and lossy prefix writes that return success at capacity."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/cluster_config.rs",
+      "claim": "Pins the standalone Chunk Program identity accepted as the mined-resource authority."
+    },
+    {
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "Routes namespace 1 to Backpack logic and defines the unified Game Program dispatch boundary."
+    },
+    {
+      "path": "sdk/nicechunk-chunk.ts",
+      "claim": "Derives table PDAs, encodes 23-byte rows, builds initialization and mining instructions, and builds Civilization replacement payloads."
+    },
+    {
+      "path": "src/data/resourceDropRules.js",
+      "claim": "Defines the current 37-row local fixture, drop size profiles, source and output IDs, chance bounds, altitude, depth, salts, and encoded volumes."
+    },
+    {
+      "path": "src/world/blocks.js",
+      "claim": "Maps canonical block IDs to render and resource identities used by the local fixture."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Defines the split game context, derives the active table, performs the limited readiness precheck, builds tag 8, signs mining, reads PlayerProgress, and decodes Backpack records."
+    },
+    {
+      "path": "src/rpcConfig.js",
+      "claim": "Defines the public Devnet RPC endpoint used by the browser when no private override is configured."
+    },
+    {
+      "path": "play/mining-controller.js",
+      "claim": "Creates local pending base-reward groups after physical tool contact without attempting to resolve the authoritative extra table."
+    },
+    {
+      "path": "play/play-chain-adapter.js",
+      "claim": "Selects ordinary mining, tree felling, or support collapse and delegates the signed transaction to the chain module."
+    },
+    {
+      "path": "play/tree-mining-plan.js",
+      "claim": "Selects the multi-block natural-tree path that routes trunk mining away from ordinary tag 8."
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "Confirms local deltas only after the chain adapter succeeds and creates animations from local planned reward groups."
+    },
+    {
+      "path": "play/play-chain-backpack.js",
+      "claim": "Retries full Backpack reads after mutations and converts only recognized, decodable chain slots into visible Play inventory entries."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Requests the post-confirmation Backpack refresh using an advanced updated slot and a minimum base-count increment."
+    },
+    {
+      "path": "play/game-state.js",
+      "claim": "Treats merged chain Backpack slots as authoritative and disables local mining-resource insertion."
+    },
+    {
+      "path": "play/play-surface-decoration-sync.js",
+      "claim": "Separately reads and resolves the active SurfaceDecorationTable used for cotton, flowers, and visible surface identity."
+    },
+    {
+      "path": "resource_rule/resource_rule.js",
+      "claim": "Builds the public resource atlas from local fixtures, illustrating why that presentation is not a replacement for live PDA reads."
+    },
+    {
+      "path": "scripts/civilization-resource-drops-e2e.ts",
+      "claim": "Exercises a real Civilization receipt flow but explicitly targets the Game Program-owned ResourceDropTable rather than the active standalone Chunk table."
+    },
+    {
+      "path": "tests/nicechunk_player_chunk.ts",
+      "claim": "Tests 37-row PDA derivation, encoding, initialization, and Civilization replacement instruction shape; ordered first-hit behavior is established by the Rust resolver source."
+    },
+    {
+      "path": "docs/audits/global-config-genesis-devnet-2026-07-15.json",
+      "claim": "Records the current GlobalConfig development wallet used to distinguish table initialization authority from the Civilization power authority."
+    },
+    {
+      "path": "scripts/update-locales.mjs",
+      "claim": "Contains the sole editable non-English locale dictionary source used to generate page-specific documentation locale files."
+    },
+    {
+      "path": "scripts/check-docs-i18n.mjs",
+      "claim": "Checks English-only sources, page-specific locale generation, exact verbatim snippets, referenced evidence, raster media, and absence of image captions."
+    },
+    {
+      "path": "forging/chain-adapter.js",
+      "claim": "Reads the equipped Backpack but exposes only material-category item slots to the forging transaction path."
+    },
+    {
+      "path": "src/data/smeltingRules.js",
+      "claim": "Defines the conversion layer from raw resource identities into material items consumed by later crafting workflows."
+    },
+    {
+      "path": "target/deploy/nicechunk_chunk.so",
+      "claim": "Matches the 214,816-byte ELF hash recovered from the finalized Chunk ProgramData account."
+    },
+    {
+      "path": "target/deploy/nicechunk_game.so",
+      "claim": "Matches the 396,592-byte ELF hash recovered from the finalized unified Game ProgramData account."
+    }
+  ]
+}

@@ -1,0 +1,559 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-wallet-login-and-safety-zh-Hans-9995828ea02a719c",
+    "contentHash": "9995828ea02a719c"
+  },
+  "kind": "topic",
+  "slug": "wallet-login-and-safety",
+  "shortTitle": "钱包登录与安全",
+  "seo": {
+    "title": "钱包登录与安全：连接究竟允许什么",
+    "description": "了解外部钱包连接后 NiceChunk 会获得什么、消息签名批准与交易签名批准有何不同、批准前应检查什么，以及哪些秘密绝不能交给任何人。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制 01 · 外部钱包安全",
+    "title": "连接共享的是地址，不是地址背后的秘密",
+    "summary": "连接 Phantom、Solflare、Backpack 或其他注入式 Solana 钱包，只会让 NiceChunk 请求它的公开地址，并在之后分别请求其他批准。仅仅连接不会把私钥交给网站，不会批准消息签名或交易签名，也不会自行创建角色或写入链上数据。",
+    "readingTime": "阅读约 14 分钟",
+    "visual": {
+      "src": "/docs/media/wallet-login-and-safety-overview-v1.webp",
+      "alt": "这幅教学场景使用 NiceChunk 标准村民模型与真实 Chunk.js 山坡参考生成：女孩摊开空手向男孩打招呼，身旁仍放着一只紧闭的木箱。",
+      "caption": "打招呼代表分享公开身份；紧闭的木箱代表从未交到别人手里的签名秘密。两者都只是教学比喻，不是游戏中的钱包物品或连接状态标记；这张图也不能证明已经批准了任何请求或交易。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "连接钱包究竟允许什么？哪些信息绝不能分享？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制 · 第 1 步，共 15 步"
+      },
+      {
+        "label": "适合读者",
+        "value": "没有编程或区块链基础的普通玩家"
+      },
+      {
+        "label": "当前网络",
+        "value": "Solana Devnet（开发网）· 客户端目标网络，钱包检测仅为尽力而为"
+      },
+      {
+        "label": "审核依据",
+        "value": "2026 年 7 月 15 日 · 当前工作树与本地钱包流程证据"
+      }
+    ],
+    "terms": [
+      {
+        "term": "外部钱包",
+        "meaning": "独立的钱包应用或浏览器扩展，例如 Phantom、Solflare 或 Backpack。它自己保管签名密钥，并决定是否批准每一种受支持的请求。"
+      },
+      {
+        "term": "钱包 Provider（提供方）",
+        "meaning": "已安装的钱包向网页开放的接口。NiceChunk 会通过这个接口分别请求 connect（连接）、signMessage（消息签名）或 signTransaction（交易签名）；它们是不同的调用。"
+      },
+      {
+        "term": "钱包公开地址",
+        "meaning": "连接后返回的公开 Solana 标识。它不是可以花费资产的秘密，但任何知道地址的人都能查看并关联它的公开活动。"
+      },
+      {
+        "term": "私钥",
+        "meaning": "能够为钱包生成有效签名的秘密字节。拿到它的人可能可以控制该钱包，因此绝不能把它发送给别人，也不能填进普通的连接表单。"
+      },
+      {
+        "term": "助记词/恢复短语",
+        "meaning": "可以恢复钱包控制权的一组种子词。请把它视为钱包本身：绝不分享、拍照、上传，也不要输入任何网站。"
+      },
+      {
+        "term": "连接请求",
+        "meaning": "让网站得知所选钱包公开地址的提示。它不是消息签名，也不是 Solana 交易。"
+      },
+      {
+        "term": "消息签名",
+        "meaning": "对一组确切字节进行的签名，通常对应可读文字。它可以证明某把密钥为这条消息签过名，但本身不会提交 Solana 交易。"
+      },
+      {
+        "term": "交易签名",
+        "meaning": "批准包含指令与账户的确切交易字节。签好的请求仍需发送并被接受，共享状态才可能改变。"
+      },
+      {
+        "term": "来源（origin）与域名",
+        "meaning": "发起批准请求的网站地址。连接或签名前先核对它，避免仿冒网站借走你对真网站的信任。"
+      },
+      {
+        "term": "网络或集群（cluster）",
+        "meaning": "钱包或 RPC 正在使用的 Solana 环境。本客户端以 Devnet 为目标，但它的钱包网络检测不是对集群的密码学证明。"
+      },
+      {
+        "term": "内置 Game Wallet（游戏钱包）",
+        "meaning": "登录页提供的一条独立路径，密钥由浏览器保存。它与连接外部钱包不是同一种安全模型；下一篇指南会说明它的存储、签名、备份、删除与恢复边界。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "得到的是公开地址，不是私钥",
+      "body": "普通外部钱包连接流程会取得所选公开地址，并记录一份本地绑定；签名秘密始终由钱包自己保管。"
+    },
+    {
+      "title": "三种请求，三次决定",
+      "body": "连接钱包、签署一条登录消息和签署一笔交易，分别使用不同的钱包操作。批准其中一种，不会悄悄批准另外两种。"
+    },
+    {
+      "title": "先读清楚；绝不泄露秘密",
+      "body": "核对真实网站、请求类型、消息或交易详情、网络、金额和手续费。绝不要发送助记词/恢复短语、私钥、私钥 JSON 数据或钱包密码。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "public-connection",
+      "eyebrow": "连接边界",
+      "title": "按下 Connect（连接）只会公开一个钱包地址",
+      "paragraphs": [
+        "安装了受支持的外部钱包后，NiceChunk 会调用该钱包 Provider 的 connect 方法。玩家批准后，Provider 返回一个公钥。页面随后尝试检查钱包网络，或将其切换到客户端要求的 Devnet 集群，并在当前浏览器中保存地址、钱包名称和绑定时间。这些本地字段只用于让网站记住之后该查找哪一组公开玩家记录。",
+        "这条路径不会请求私钥，不会签署消息或交易，不会创建链上账户或角色，也不能证明明天仍是同一个人在控制钱包。当前桌面模拟审计会提供公钥、简单的 connect 与 Devnet 网络 stub（桩），以及对公开 Appearance 账户的确定性空值读取，但不提供私钥、消息签名器或交易签名器；界面仍会进入角色创建。因此，NiceChunk 的普通外部钱包按钮表示的是浏览器本地连接状态，不是经过服务器认证的登录会话。"
+      ],
+      "facts": [
+        {
+          "label": "页面会收到什么",
+          "value": "一个公开地址和钱包标签",
+          "detail": "页面会保存这些值与本地绑定时间戳，方便后续页面选择同一个公开身份。"
+        },
+        {
+          "label": "什么仍留在钱包里",
+          "value": "外部钱包的私钥",
+          "detail": "经过审核的 NiceChunk 代码会请求 Provider 操作与公钥；它不会请求导出外部钱包的私钥。但这并不是对钱包扩展本身的安全认证。"
+        },
+        {
+          "label": "哪些系统没有参与",
+          "value": "Guardian 与世界重建",
+          "detail": "Guardian 不负责认证这次登录；重建地形也无法说明谁控制着钱包。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/wallet-login-and-safety-public-connection-v1.webp",
+        "alt": "这幅教学场景使用标准村民模型与真实 Chunk.js 山坡参考生成：女孩和男孩隔着距离以空手相认，同一只紧闭的木箱仍留在女孩身后。",
+        "caption": "两人的空手招呼代表只识别公开地址，没有交接任何物品。木箱只是私钥的比喻，并非游戏道具；仅仅连接不会签署消息、发送交易，也不能证明钱包控制权一直没有改变。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "已连接，不等于完成密码学登录",
+        "body": "普通注入式钱包路径只接受 connect 与一个公开地址。目前只有独立的 Phantom 移动端辅助流程会签署并验证登录 challenge（挑战消息）；即便如此，它仍是浏览器本地验证，不是服务器会话。"
+      }
+    },
+    {
+      "id": "separate-approvals",
+      "eyebrow": "批准边界",
+      "title": "Connect（连接）、signMessage（消息签名）和 signTransaction（交易签名）是三个独立选择",
+      "paragraphs": [
+        "当前 Phantom 移动端辅助流程会生成可读的 challenge 文本，其中包含网站域名、origin（来源）、返回路径、随机 nonce（一次性随机值）和签发时间。在钱包内置浏览器里，它请求 Phantom 签署这些确切的消息字节。回到页面后，TweetNaCl 会用公钥验证签名，再保存同样的浏览器绑定。这个过程不会构建交易、不会支付手续费，也不会改变任何 Solana 账户；而且并非每个桌面端、Solflare 或 Backpack 入口都会使用这份消息证明。",
+        "之后的链上动作需要再次决定。对于受支持的交易，客户端会准备一笔交易，并向 Provider 单独请求批准。NiceChunk 要么自行发送签好的字节，要么使用 Provider 的 sign-and-send（签名并发送）方法，随后通过已配置的 RPC 轮询到 confirmed（已确认）。玩家即使已经连接钱包，仍可拒绝这次请求。返回交易签名并不等于执行已经成功，confirmed 也不能被改称为 finalized（最终确定）。Gameplay Session（游戏会话）只有先经过钱包所有者批准的一笔链上交易，才能减少重复提示；这套范围更窄的临时权限系统有单独指南。"
+      ],
+      "facts": [
+        {
+          "label": "Connect（连接）",
+          "value": "公开所选钱包地址",
+          "detail": "这一步不包含消息签名或交易签名。"
+        },
+        {
+          "label": "signMessage（消息签名）",
+          "value": "签署确切的链下字节",
+          "detail": "当前辅助流程会在浏览器中验证已签名的消息字节，并另行检查证明中的 domain（域名）与 origin（来源）字段。它不会提交交易，但当前验证器不会强制一次性使用，也不会根据这些字段完整重建 challenge 文本。"
+        },
+        {
+          "label": "signTransaction（交易签名）",
+          "value": "批准确切的指令与账户",
+          "detail": "该请求仍需发送并被接受；当前客户端等待的是 confirmed，不是 finalized。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/wallet-login-and-safety-separate-approvals-v1.webp",
+        "alt": "这幅教学场景使用标准村民模型与真实 Chunk.js 山坡参考生成：三块天然石头彼此分开，女孩只站上第一块，男孩在第三块之后等待，紧闭的木箱仍留在她身后。",
+        "caption": "三块没有标记的石头只是三个独立选择的教学比喻，不是按钮，也不代表真实钱包状态。站上第一块不会自动跨过后两块；紧闭的木箱依然代表从未交出去的秘密。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "不要把移动端辅助流程称为严格的一次性服务器会话",
+        "body": "浏览器会验证提交的消息签名，并另行检查证明中的 domain 与 origin 字段。它会记录 used-nonce（已使用随机值）标记，却不会读取该标记；它不要求浏览器中必须保存待处理 challenge，也不会拒绝未来时间或无法解析的 issuedAt 值。因此，应把它视为浏览器本地的证明检查，而不是严格满足“近期生成、绑定域名、一次性使用”的服务器会话。"
+      }
+    },
+    {
+      "id": "inspect-the-request",
+      "eyebrow": "玩家检查清单",
+      "title": "批准前先停一下，检查这次请求的确切内容",
+      "paragraphs": [
+        "先核对真实网站的 origin。再判断请求类型：connect、签署可读消息，还是签署交易。消息请求要逐行阅读；域名、用途、nonce 上下文或返回路径只要有一项不符合预期，就取消。交易请求要检查钱包实际显示的每项细节，包括网络、请求动作、程序、账户、金额、转账，以及在可用时显示的预估手续费。如果钱包没有展示足够信息让你理解请求，就拒绝它；使用可信的交易解码器或区块浏览器检查后，再决定是否重试。",
+        "NiceChunk 当前以 Solana Devnet 为目标，但钱包网络检查只是 best effort（尽力而为）。代码会根据 Provider 属性或看起来像 RPC 的值推测集群，并尝试多种钱包切换方法。当 Provider 没有报告可检测的网络，且不支持自动切换时，代码仍可能带着 unknown（未知）与 unverified（未验证）标记继续。项目还允许使用本地 HTTPS RPC 覆盖值，目前也不会比较 genesis hash（创世哈希）。因此，“network ready（网络就绪）”标签只是有用的界面提示，并不是每个钱包与 RPC 请求都抵达了你所期望且经独立验证集群的密码学证明。"
+      ],
+      "steps": [
+        {
+          "title": "检查请求来自哪里",
+          "body": "使用官方网站，并阅读钱包显示的 origin。照搬的界面设计或熟悉的 Logo 都不足以证明网站是真的。"
+        },
+        {
+          "title": "认清请求类型",
+          "body": "Connect 应只公开地址；signMessage 会签署确切字节；交易则可能改变账户或花费资金。"
+        },
+        {
+          "title": "读懂请求内容与后果",
+          "body": "检查钱包实际显示的每项细节。如果动作、程序、账户、转账、金额或手续费被隐藏或含糊不清，就拒绝请求，并使用可信的解码器检查。"
+        },
+        {
+          "title": "重要操作要独立核对网络",
+          "body": "客户端以 Devnet 为目标，但未知 Provider 可能走过 unverified 分支。请自行确认钱包网络，并使用可信的 Devnet 区块浏览器检查最终签名。"
+        },
+        {
+          "title": "拒绝任何不符合预期的请求",
+          "body": "拒绝意外请求，可以避免批准这一次请求。只有弄清它为何出现后，才从官方游戏重新发起动作。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "Connect 连接请求",
+          "value": "本身不会花费 SOL",
+          "detail": "它请求所选钱包公开地址与连接许可。"
+        },
+        {
+          "label": "消息请求",
+          "value": "本身不会写入链上",
+          "detail": "仍然要认真阅读，因为只要某个验证方接受那条确切消息，这份签名就可能被再次用作证据。"
+        },
+        {
+          "label": "交易请求",
+          "value": "可能改变状态或转移价值",
+          "detail": "检查钱包实际显示的每项细节。如果动作、账户、转账、手续费支付方、金额或网络无法理解，就拒绝请求，并使用可信的解码器检查。"
+        },
+        {
+          "label": "网络标签",
+          "value": "尽力而为的检测",
+          "detail": "当前代码没有 genesis-hash 检查，并且可能明确把未知 Provider 标记为 unverified。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/wallet-login-and-safety-inspect-request-v1.webp",
+        "alt": "这幅教学场景使用标准村民模型与真实 Chunk.js 山坡参考生成：女孩观察一块完好的石头体素，镐子闲置在草地上，男孩在远处等待。",
+        "caption": "完好的石头与放在地上的镐子代表在一次确切动作前暂停；它们不是钱包提示或交易预览。真实细节必须在钱包里阅读，这幅平静的生成场景没有表示请求已获批准、Devnet 已验证或操作已成功。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "note",
+        "title": "拒绝是正常的安全控制",
+        "body": "一项合法游戏动作只要仍然有效，通常可以重新发起；但秘密一旦泄露给错误的请求，关闭弹窗也无法让它重新变回秘密。"
+      }
+    },
+    {
+      "id": "keep-secrets-private",
+      "eyebrow": "秘密与退出边界",
+      "title": "绝不分享签名秘密，也要知道 Disconnect 无法撤销什么",
+      "paragraphs": [
+        "绝不要把助记词/恢复短语、私钥、私钥 JSON 数组、钱包密码或复制来的认证秘密发送给任何人、聊天、客服账号、表单或普通外部钱包连接流程。钱包公开地址本来就是可见的，但它会关联公开活动与余额，因此分享地址仍有隐私影响。也不要转发意外出现的已签名登录证明；应取消流程，再从官方网站重新开始。",
+        "登录页还提供独立的 NiceChunk 内置 Game Wallet，可以创建或导入一把由浏览器保存的私钥。这不是外部钱包连接。绝不要把主钱包导入其中；如果选择这条路径，只使用专门创建、仅存少量资产的游戏钱包。下一篇指南会具体说明它的 Base58 编码、浏览器存储、备份、丢失与同源脚本风险，而不会假装两种钱包模型可以互换。",
+        "Disconnect（断开连接）主要是在本地清理。登录页会尝试断开 Provider，并清除连接字段；Play 退出还会清除用户名与按钱包划分的运行时缓存，再返回登录页。Provider 断开只是 best effort。两条路径都不会撤销已完成的交易、抹去公开历史、关闭 PDA、立即撤销已有的链上 Gameplay Session、返还该 Session 密钥剩余的 SOL，也不会删除另行保存的内置 Game Wallet 私钥。"
+      ],
+      "steps": [
+        {
+          "title": "如果提示要求助记词/恢复短语或外部钱包私钥",
+          "body": "立即停止，不要粘贴。关闭页面，再通过可信书签或手动输入地址打开官方网站。"
+        },
+        {
+          "title": "如果你只批准了一次陌生连接",
+          "body": "在网站中断开连接，并检查钱包的已连接应用列表。请记住，这不会撤销你另外签署过的交易。"
+        },
+        {
+          "title": "如果你签署了自己不理解的内容",
+          "body": "记录确切的消息或交易签名，用可信工具检查；如果该请求授予了危险权限，请转移有价值的资产。"
+        },
+        {
+          "title": "如果助记词/恢复短语或私钥已经泄露",
+          "body": "把该钱包视为已经失陷。在可信设备与钱包应用中创建全新钱包并转移剩余资产，不要依赖 Disconnect。"
+        }
+      ],
+      "facts": [
+        {
+          "label": "绝不泄露",
+          "value": "助记词/恢复短语、私钥、秘密 JSON 或密码",
+          "detail": "任何拿到可用签名秘密的人，都可能以该钱包的身份行动。"
+        },
+        {
+          "label": "Disconnect 会改变什么",
+          "value": "本地绑定与部分运行时缓存",
+          "detail": "登录页与 Play 退出执行的具体清理不同，而且 Provider 断开可能失败。"
+        },
+        {
+          "label": "Disconnect 不会改变什么",
+          "value": "已完成的链上状态与另行保存的秘密",
+          "detail": "公开历史、PDA、在链上规则终止前仍有效的现有 Session 权限，以及内置 Game Wallet 记录，仍是彼此独立的问题。"
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/wallet-login-and-safety-keep-secrets-private-v1.webp",
+        "alt": "这幅教学场景使用标准村民模型与真实 Chunk.js 山坡参考生成：女孩抱着同一只紧闭的木箱离开，男孩、完好的石头和未使用的镐子仍留在原处。",
+        "caption": "女孩始终保管紧闭木箱，代表秘密没有交出去；木箱不是游戏钱包物品。没有变化的石头与地形说明另一件事：离开或断开连接不会抹去已经完成的共享历史，不会撤销所有权限，也不会删除另行保存的密钥。",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "秘密一旦分享，就已经泄露",
+        "body": "Disconnect 可以结束本地连接关系，却无法让已被复制的助记词/恢复短语或私钥重新变回秘密。"
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "读懂请求",
+    "title": "五段源码把连接、证明、网络提示、交易批准与退出明确分开",
+    "summary": "这个公式是玩家安全规则，不是密码学协议。五段源码分别展示真实的外部钱包 connect 路径、移动端消息签名、之后独立发生的交易签名与 confirmed 等待、未验证网络分支，以及本地退出行为。"
+  },
+  "formulas": [
+    {
+      "title": "同一个钱包，也不会把三种请求合并成一次许可",
+      "expression": "Connect(公开地址) ≠ SignMessage(确切字节) ≠ SignTransaction(确切指令、账户、手续费支付方)",
+      "ariaLabel": "使用公开地址连接，与签署确切消息字节不是同一种操作；两者也都不同于签署一笔包含确切指令、账户与手续费支付方的交易。",
+      "explanation": "符号 ≠ 表示“不是同一种操作”。Connect 让页面得知一个公开地址；SignMessage 证明钱包为某一组确切字节签过名，但不会提交 Solana 交易；SignTransaction 批准一笔准备好的交易，而该交易仍需发送并被接受。三种操作都不会要求外部钱包公开私钥，也都不能悄悄证明后续阶段已经成功。",
+      "terms": [
+        {
+          "symbol": "Connect(address)",
+          "meaning": "玩家接受连接请求后，Provider 返回所选钱包公开地址。"
+        },
+        {
+          "symbol": "SignMessage(exact bytes)",
+          "meaning": "Provider 签署一条确切的链下消息。验证只能在验证器自身检查范围内，证明这把密钥与这条消息之间的签名关系。"
+        },
+        {
+          "symbol": "SignTransaction(...) ",
+          "meaning": "Provider 签署包含指令、账户、手续费支付方与近期 blockhash 的确切交易字节；提交与确认仍是之后才能观察到的阶段。"
+        },
+        {
+          "symbol": "≠",
+          "meaning": "批准一种操作，不会预先批准另外两种操作。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "普通外部钱包路径只接收公钥",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "async function connectWallet(wallet) {\n  selectedWallet = wallet;\n  statusLine.textContent = t(\"login.status.connecting\", { wallet: wallet.name });\n\n  try {\n    const result = await wallet.provider.connect();\n    const publicKey = result?.publicKey || wallet.provider.publicKey;\n    if (!publicKey) throw new Error(t(\"login.status.publicKeyMissing\"));\n\n    await ensureLoginWalletNetwork(wallet.provider);\n    walletAddress = publicKey.toString();\n    persistConnectedWallet({ walletAddress, walletName: wallet.name });\n    await initialize();\n  } catch (error) {\n    statusLine.textContent = loginNetworkErrorMessage(error) || error?.message || t(\"login.status.connectFailed\");\n  }\n}",
+      "explanation": "页面请求已安装的 Provider 连接，要求它返回公钥，执行独立的网络检查，并保存浏览器绑定后再继续。这个函数中没有 signMessage，也没有交易调用。catch 分支会显示失败，而不会凭空编造一个已连接地址。",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "记住所选的钱包按钮，并告知玩家 Provider 正在开始连接。"
+        },
+        {
+          "lines": "5-8",
+          "meaning": "请求钱包连接，并且只接受包含公钥的返回结果。"
+        },
+        {
+          "lines": "10-13",
+          "meaning": "执行网络检查，把公钥转换成地址字符串，保存本地绑定，再刷新登录状态。"
+        },
+        {
+          "lines": "14-17",
+          "meaning": "如果连接或网络步骤失败，就显示错误，不要把这个函数当作连接成功继续推进。"
+        }
+      ]
+    },
+    {
+      "title": "Phantom 移动端辅助流程会单独请求消息签名",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "    const connectResult = await provider.connect();\n    const publicKey = publicKeyToString(connectResult?.publicKey || provider.publicKey);\n    if (!publicKey) throw new Error(\"Missing wallet public key.\");\n    await ensureLoginWalletNetwork(provider);\n\n    const encodedMessage = new TextEncoder().encode(challenge.message);\n    const signResult = await provider.signMessage(encodedMessage, \"utf8\");\n    const signature = signatureToBytes(signResult);\n    if (!signature?.length) throw new Error(\"Missing wallet signature.\");\n\n    const proof = {\n      version: 1,\n      walletName: \"Phantom\",\n      publicKey,\n      signature: bs58.encode(signature),\n      challenge,\n    };",
+      "explanation": "这是 Phantom 钱包内置浏览器中的另一条路径。它先连接并检查网络，把确切 challenge 消息编码成字节，再明确调用 signMessage。得到的本地证明包含公钥、签名与 challenge，不含私钥，也不会创建 Solana 交易。浏览器随后使用 TweetNaCl 验证它，但仍受上文所述重放与 challenge 绑定限制约束。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "在钱包内置浏览器中连接，取得公开地址，并执行同样的 best-effort 网络检查。"
+        },
+        {
+          "lines": "6-9",
+          "meaning": "把确切的 challenge 文本转换成字节，请求消息签名，并拒绝空结果。"
+        },
+        {
+          "lines": "11-17",
+          "meaning": "只打包证明版本、钱包标签、公钥、编码后的签名与原始 challenge，交给本地验证。"
+        }
+      ]
+    },
+    {
+      "title": "之后的交易有自己独立的签名与确认等待",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  for (const signer of extraSigners) transaction.partialSign(signer);\n\n  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }",
+      "explanation": "只有在这段源码之前已经为交易设置手续费支付方与近期 blockhash 后，才会运行该分支。额外签名者先签名，随后外部 Provider 会收到单独的 signTransaction 请求。NiceChunk 发送这些签好的字节，轮询到 confirmed 后才返回签名。批准连接不会执行这些代码，而且该函数不会等待 finalized。",
+      "walkthrough": [
+        {
+          "lines": "1",
+          "meaning": "添加这条确切指令所需的任何额外签名；它们不能替代钱包所有者的签名。"
+        },
+        {
+          "lines": "3-5",
+          "meaning": "如果钱包支持交易签名，请它签署准备好的字节，再发送序列化后的已签名交易。"
+        },
+        {
+          "lines": "6-10",
+          "meaning": "结合预先设置的 blockhash 有效范围轮询返回的签名，直到满足客户端的 confirmed 条件，或流程失败。"
+        },
+        {
+          "lines": "11-12",
+          "meaning": "只有完成这段等待后，该分支才把签名返回给调用方。"
+        }
+      ]
+    },
+    {
+      "title": "未知的钱包网络可以明确保持为 unverified",
+      "language": "JavaScript",
+      "source": "src/solanaNetwork.js",
+      "code": "  onStatus?.({ type: \"switching\", requiredCluster, detectedCluster });\n  let switchResult = null;\n  try {\n    switchResult = await requestWalletSolanaClusterSwitch(provider, requiredCluster);\n  } catch (error) {\n    if (!detectedCluster && !isUserRejectedError(error)) {\n      onStatus?.({ type: \"ready\", requiredCluster, detectedCluster: \"\" });\n      return {\n        requiredCluster,\n        detectedCluster: \"\",\n        switched: false,\n        unknown: true,\n        unverified: true,\n        switchUnsupported: error?.code === \"unsupported\",\n      };",
+      "explanation": "客户端先报告正在尝试切换。如果检测不到集群，而且切换失败并非玩家拒绝造成，该分支可能在报告 ready 的同时返回 unknown 与 unverified 标记。这是一项兼容性选择，不是 genesis-hash 检查，也不能证明 Provider 与 RPC 已对齐。",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "告诉界面正在尝试切换，然后调用某一种 Provider 专用切换方法。"
+        },
+        {
+          "lines": "5-7",
+          "meaning": "只有在没有检测到集群，且失败不是玩家明确拒绝时，才进入兼容分支。"
+        },
+        {
+          "lines": "8-15",
+          "meaning": "返回所需集群作为提示，同时如实标记：检测到的集群为空、未切换、unknown、unverified。"
+        }
+      ]
+    },
+    {
+      "title": "Play 退出会清理本地状态，并把 Provider 断开视为 best effort",
+      "language": "JavaScript",
+      "source": "play/play-chain-session.js",
+      "code": "  function disconnectWallet() {\n    const provider = detectWalletProvider();\n    try {\n      if (provider?.disconnect) {\n        Promise.resolve(provider.disconnect()).catch(() => {\n          // The local session is already cleared; plugin disconnect is best effort.\n        });\n      }\n    } catch {\n      // Some wallet plugins throw when already disconnected.\n    }\n    clearWalletSession();\n    state.walletAddress = \"\";\n    state.sessionLamports = getStoredSessionLamports(\"\");\n    resetWalletBalance();\n    dispatchWalletChanged(\"\");\n    globalThis.location?.replace?.(buildWalletLoginUrl({\n      redirectPath: `${globalThis.location?.pathname || \"/play/\"}${globalThis.location?.search || \"\"}${globalThis.location?.hash || \"\"}`,\n      autoConnect: false,\n    }));",
+      "explanation": "Play 会请求可用的 Provider 断开连接，但故意忽略失败，以便本地退出继续进行。随后它清除钱包会话，重置本地钱包与余额显示，通知其他组件发生变化，再返回登录页。这里没有提交 revoke（撤销）或 close（关闭）指令，不会删除另行保存的内置 Game Wallet 记录，不会逆转已完成交易，也不会返还临时 Session 密钥中的资金。",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "找到当前 Provider，并在可能时请求它断开；玩家拒绝或已经断开的错误都不会阻止本地退出。"
+        },
+        {
+          "lines": "12-16",
+          "meaning": "清除浏览器钱包会话与按钱包划分的显示状态，再通知其他本地组件当前没有选中钱包。"
+        },
+        {
+          "lines": "17-20",
+          "meaning": "返回登录路由，携带一条可安全回到当前游戏页面的本地路径，并且不自动重新连接。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "login/login.js",
+      "claim": "检测外部 Provider，区分普通 connect 与 Phantom 移动端消息辅助流程，检查配置的网络，保存浏览器绑定，并实现登录页断开连接。"
+    },
+    {
+      "path": "login/index.html",
+      "claim": "展示当前外部钱包选项，以及单独标注的内置 Game Wallet 创建与导入警告。"
+    },
+    {
+      "path": "src/walletSession.js",
+      "claim": "定义钱包绑定字段、本地清理与安全的同站重定向，并提供一个目前尚未接入已审核运行时的事件监听辅助函数。"
+    },
+    {
+      "path": "src/solanaNetwork.js",
+      "claim": "以 Devnet 为目标，根据 Provider 属性推测钱包集群，尝试多种切换方法，并暴露 unknown、unverified 的兼容分支。"
+    },
+    {
+      "path": "src/rpcConfig.js",
+      "claim": "定义默认 Devnet RPC 选项，并允许使用本地保存的 HTTPS 覆盖值，但没有 genesis-hash 验证步骤。"
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "单独请求外部钱包批准准备好的交易；要么自行发送已签名字节，要么把 sign-and-send（签名并发送）交给 Provider，并等待 confirmed；同时还实现了彼此独立的 Gameplay Session 系统。"
+    },
+    {
+      "path": "play/main.js",
+      "claim": "要求 Play 启动前存在本地钱包绑定；缺少绑定时会跳转到登录页。"
+    },
+    {
+      "path": "play/play-chain-session.js",
+      "claim": "管理 Play 钱包面板，并在本地退出期间把 Provider 断开视为 best effort。"
+    },
+    {
+      "path": "play/play-auth-session.js",
+      "claim": "清除身份与按钱包划分的运行时缓存，并拒绝不安全的协议相对登录返回目标。"
+    },
+    {
+      "path": "src/localGameWallet.js",
+      "claim": "实现独立的浏览器持有 Game Wallet 记录；专门的后续指南会检查它的私钥存储、直接签名、备份与删除行为。"
+    },
+    {
+      "path": "scripts/audit-wallet-flows.mjs",
+      "claim": "检查构建后的“无钱包”状态，以及使用确定性 Appearance 账户缺失响应的注入式模拟 Provider 连接路径；不使用真实扩展、私钥、消息签名器或交易签名器。"
+    },
+    {
+      "path": "docs/wallet-flow-audit.md",
+      "claim": "准确说明模拟浏览器审计覆盖什么，并明确排除真实扩展、移动端深链、网络切换、真实 RPC 正确性与交易签名。"
+    },
+    {
+      "path": "play/tests/play-auth-session.test.mjs",
+      "claim": "测试绑定要求、按钱包划分的本地清理，以及对不安全协议相对重定向目标的拒绝。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "four-truth-layers",
+      "href": "/docs/four-truth-layers/",
+      "title": "四层事实",
+      "summary": "当钱包提示、本地界面状态、达到 confirmed 的交易与账户读取同时出现时，回到证据标签，分清它们各自能证明什么。"
+    },
+    {
+      "slug": "local-game-wallet-backup-and-risk",
+      "href": "/docs/local-game-wallet-backup-and-risk/",
+      "title": "本地 Game Wallet：备份、签名与恢复",
+      "summary": "从创建或导入开始，沿着内置密钥查看浏览器存储、备份、直接签名、Disconnect、删除与恢复边界。"
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDA",
+      "summary": "了解已连接地址可以拥有或选择哪些公开记录，同时不要把这些记录误认为钱包秘密。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "玩家会话与临时权限",
+      "summary": "查看这套由所有者另行批准的临时密钥系统：它可以减少提示，但不会变成所有者钱包。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "“玩家、钱包与控制”学习路径导航",
+    "heading": {
+      "eyebrow": "继续“玩家与钱包”路径",
+      "title": "下一步：充值前先看懂内置 Game Wallet",
+      "summary": "下一篇指南会追踪这把浏览器持有的私钥，说明它从创建或导入，到备份、直接签名、Disconnect、删除以及恢复边界的完整过程。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "four-truth-layers",
+        "title": "四层事实",
+        "summary": "回顾本地界面、中继提示、交易与经过验证的记录各自能够证明什么。"
+      },
+      {
+        "label": "下一篇指南",
+        "slug": "local-game-wallet-backup-and-risk",
+        "title": "本地 Game Wallet：备份、签名与恢复",
+        "summary": "从创建或导入开始，沿着内置密钥查看浏览器存储、备份、直接签名、Disconnect、删除与恢复边界。"
+      }
+    ]
+  }
+}

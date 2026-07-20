@@ -1,0 +1,970 @@
+{
+  "_meta": {
+    "language": "ru",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-character-creation-ru-61ab4f46d285bf28",
+    "contentHash": "61ab4f46d285bf28"
+  },
+  "kind": "topic",
+  "slug": "character-creation",
+  "shortTitle": "Character Creation",
+  "seo": {
+    "title": "Character Creation: Name, NCM Model, and On-Chain Records",
+    "description": "Follow NiceChunk character creation from local wallet binding and name lookup through two fixed NCM previews, one Player transaction, three public records, local cache, invite, and spawn boundaries."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL 04 · CHARACTER CREATION",
+    "title": "Creating a character is one chain write surrounded by several local steps",
+    "summary": "The current creation page starts from a browser wallet binding, checks a name without reserving it, previews one of two fixed NCM2 villagers, calculates a candidate spawn locally, and then asks the owner wallet to approve one Player Program transaction. On first creation that transaction can create a PlayerProfile, PlayerAppearance, and UsernameIndex together; on later upserts it rewrites or validates them according to each record's rules. Only after the transaction returns at confirmed does the page try to write character caches, attempt a separate invite transaction when needed, and redirect to Play. Those outcomes are related, but they are not one proof.",
+    "readingTime": "28 min read",
+    "visual": {
+      "src": "/docs/media/character-creation-overview-v1.webp",
+      "alt": "In a teaching scene based on the canonical NiceChunk villagers and a real Chunk.js hillside reference, the boy works a wooden press above three distinct counter forms—two shallow trays and one open case containing a small block-pattern model—while the girl watches; separate cyan and orange frames remain away from the counter.",
+      "caption": "The press and three counter forms represent one approved action processing three separate public records: first creation can create all three, while a later upsert may rewrite a record or only validate it. The open model case represents the chosen NCM body, while the distant cyan frame and separate orange tray represent spawn and invite outcomes outside that character transaction. Every object is a teaching metaphor, not a wallet control, PDA, transaction, model decoder, spawn marker, or in-game status indicator.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "What really happens when I choose a name and model, approve Create Character, and enter the world?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 4 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Implemented boundary",
+        "value": "Local preparation · owner-signed Player transaction · confirmed result · local cache · optional second invite transaction"
+      },
+      {
+        "label": "Reviewed",
+        "value": "16 July 2026 · current dirty working tree, canonical NCM fixtures, contract source, and finalized Devnet rent and deployment observations"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Wallet binding",
+        "meaning": "The public address and binding time saved by the login page in this browser. The creation page requires those local fields before it opens; their presence is not a fresh cryptographic proof that the wallet provider is connected or controlled now."
+      },
+      {
+        "term": "Name availability read",
+        "meaning": "A confirmed RPC lookup of the predictable UsernameIndex address for a proposed name. A missing account means the name appears available at that read; it does not reserve the address or guarantee a later transaction will win."
+      },
+      {
+        "term": "Canonical name hash",
+        "meaning": "SHA-256 over the UTF-8 name after ASCII A through Z are changed to lowercase. Other characters are left unchanged. Alice and alice therefore address the same UsernameIndex."
+      },
+      {
+        "term": "NCM2 code",
+        "meaning": "Compact text that the client decoder can turn into colored cuboids. The two current creation choices are checked-in canonical strings; the page does not generate a new body code from player choices."
+      },
+      {
+        "term": "Model kind",
+        "meaning": "One byte stored as 1 for male or 2 for female by the current client. The program validates only those two numbers; it does not prove that kind 2 contains the canonical girl geometry."
+      },
+      {
+        "term": "Transaction",
+        "meaning": "A signed packet of exact instructions and accounts sent to Solana. Character creation builds one transaction containing a compute-budget instruction and one Player Program instruction."
+      },
+      {
+        "term": "Upsert",
+        "meaning": "One operation that can create a missing record or handle an existing one. It does not mean every record is appended or rewritten in the same way: this character flow rewrites Profile and Appearance data, validates an existing same-name index, and creates another index when a different unused name is chosen."
+      },
+      {
+        "term": "RPC read",
+        "meaning": "A request to a Solana network server for public account data. It can report what that server observed at a stated commitment, but a read is not a wallet signature, account lock, name reservation, or transaction."
+      },
+      {
+        "term": "PDA",
+        "meaning": "A predictable program-owned account address derived from public inputs. A PDA has no wallet private key. Character creation derives different addresses for the profile, appearance, and name index."
+      },
+      {
+        "term": "PlayerProfile",
+        "meaning": "The 773-byte owner-linked public record. During first creation it receives defaults and the chosen display name; later upserts keep the account and rewrite its name and update slot."
+      },
+      {
+        "term": "PlayerAppearance",
+        "meaning": "The 9,612-byte public record containing owner and profile links, treasury close authority, model kind, display name, title, NCM code, timestamps, and twelve visible-equipment records."
+      },
+      {
+        "term": "UsernameIndex",
+        "meaning": "The 256-byte one-name-one-owner lookup record addressed by the canonical name hash. It makes a direct uniqueness check possible without scanning every player account."
+      },
+      {
+        "term": "Lamport",
+        "meaning": "The smallest native SOL unit. One SOL equals 1,000,000,000 lamports, so programs keep integer lamport balances even when the page displays a decimal SOL amount."
+      },
+      {
+        "term": "Rent-exempt minimum",
+        "meaning": "Lamports required for a data account under the observed Solana rent schedule. The owner funds missing accounts and shortfalls when the program allocates or reallocates them; the current existing-Appearance path also tops up its rent balance. A valid existing Profile or UsernameIndex returns without a general rent top-up. Transaction fees are separate."
+      },
+      {
+        "term": "Confirmed",
+        "meaning": "The commitment at which the current transaction helper stops waiting. It is stronger than merely sending a signature, but it is not the same label as finalized and says nothing by itself about later local cache or invite work."
+      },
+      {
+        "term": "Finalized",
+        "meaning": "A stronger Solana commitment label for a transaction rooted by the network. The current creation helper returns once its confirmed condition is met, so the page must not silently relabel that result as finalized."
+      },
+      {
+        "term": "Local character cache",
+        "meaning": "Editable localStorage data written after the character transaction returns. The name uses one global nicechunk.username key; gender, model code, label, and creation time are each attempted in both legacy-global and wallet-scoped keys. These writes are unguarded, so an exception can leave a partial cache."
+      },
+      {
+        "term": "Invite registration",
+        "meaning": "A separate Player Program transaction that may append the new wallet to an inviter's page. It happens after the character transaction and can fail without undoing the character."
+      },
+      {
+        "term": "Pending invite spawn",
+        "meaning": "A wallet-scoped browser record containing a locally calculated position, camera angles, Guardian Region, and invite parameters. The page calls a best-effort helper that catches storage failure, so persistence is not guaranteed. It is not written by the character instruction, and the current play/main.js runtime does not consume it."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "Checking a name is preparation, not ownership",
+      "body": "The page reads a UsernameIndex before enabling the next step, then ordinarily reuses that cached available or owned result at submission. Only the program's accepted transaction can establish or validate the owner relationship."
+    },
+    {
+      "title": "The current choice is exactly two fixed models",
+      "body": "The boy is a 353-character NCM2 string with 56 cuboids; the girl is a 451-character NCM2 string with 70 cuboids. Previewing or copying either string makes no chain write."
+    },
+    {
+      "title": "One owner approval can touch three records",
+      "body": "Instruction tag 8 receives six accounts and atomically processes the owner's PlayerProfile, PlayerAppearance, and canonical UsernameIndex. First creation can create all three; a same-name upsert validates the existing name index without rewriting it."
+    },
+    {
+      "title": "Confirmed character, cached login, invite, and spawn are different outcomes",
+      "body": "The page attempts cache writes only after confirmed, then separately attempts invite registration and redirects. Cache failure can make the page report failure after the chain already committed; the Play runtime later fetches Profile and Appearance, invite failure does not roll back creation, and the current Play entry never applies the pending spawn record."
+    }
+  ],
+  "sections": [
+    {
+      "id": "before-create-is-preparation",
+      "eyebrow": "ENTRY, NAME, AND SPAWN PREPARATION",
+      "title": "Wallet binding and name lookup prepare a request; they do not create a character",
+      "paragraphs": [
+        "The creation page begins by reading the shared browser wallet session. If walletAddress or walletBoundAt is missing, it returns to login. If both strings exist, it displays the shortened address and continues without demanding a fresh message signature or transaction signature at boot. This means the first screen knows which public address the browser says is bound; it has not yet proved that an injected wallet is connected now, that the same person controls it, or that any Player account exists.",
+        "As the player types, the frontend trims the name, limits it to 32 Unicode characters and 300 UTF-8 bytes, and accepts ASCII letters, digits, underscore, or any character matched by JavaScript's Script=Han property. After a 420-millisecond pause it derives a UsernameIndex from SHA-256 of the name with only ASCII uppercase letters lowercased, then reads that address at confirmed. A missing record enables the next step. A record already owned by the current wallet is also treated as usable. Alice and alice therefore collide deliberately, while non-ASCII characters are not case-folded.",
+        "That read is not a reservation. The ordinary submit path does not force a second RPC read when the matching local status is already available or owned; it reuses that result. If it does perform another lookup and the helper returns null after an RPC error, the current expression result?.available !== false also evaluates true, so only an explicit available: false blocks that preflight. Another transaction can claim the same missing UsernameIndex before this player submits, but the Player Program repeats the PDA and owner checks inside the transaction. There is also a validation mismatch: the browser's Script=Han category includes Han characters outside the contract's narrower U+4E00 through U+9FFF range. Such a name can look valid and available in the page but still be rejected by the program. The final program result, not the green-looking preparation state, decides whether the name was accepted.",
+        "Before asking the wallet to sign, the page also calculates a candidate spawn from invite or Genesis Guardian Region information and a locally available world configuration. That position is not included in the character instruction. It is saved to a pending browser record only after the character transaction returns, so neither name lookup nor spawn calculation creates a profile, appearance, name claim, or position write."
+      ],
+      "facts": [
+        {
+          "label": "Page entry requires",
+          "value": "Two local wallet-binding fields",
+          "detail": "walletAddress and walletBoundAt route the browser into creation; they are not a fresh wallet-control proof."
+        },
+        {
+          "label": "Lookup timing",
+          "value": "420 ms debounce, then confirmed RPC read",
+          "detail": "The check derives one UsernameIndex and reads it; no account is locked or reserved by that request."
+        },
+        {
+          "label": "Submit preflight",
+          "value": "Cached success is normally reused",
+          "detail": "The helper blocks explicit available=false, but a null error result can currently pass; the on-chain program remains the authority."
+        },
+        {
+          "label": "Name identity",
+          "value": "ASCII-case-insensitive",
+          "detail": "Only A through Z are lowercased before SHA-256, so Alice and alice share one predictable name address."
+        },
+        {
+          "label": "Candidate spawn",
+          "value": "Local preparation only",
+          "detail": "The selected position and camera values are absent from instruction tag 8 and are not PlayerProfile position data."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-before-create-is-preparation-v2.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy holds one plain rectangular wooden inspection card with a centered square inset beside a rack of six equal empty recesses while the girl observes; an open empty chest and an empty shallow tray remain separate on the counter.",
+        "caption": "The plain card held outside six equal empty rack recesses represents a proposed name being compared with an addressable index space without entering or claiming it. The empty chest and tray show that preparation has not produced a character record or reserved result. These are teaching metaphors, not a key, credential, wallet proof, hash, RPC response, PDA, transaction, reservation, or availability guarantee.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Available now does not mean reserved for you",
+        "body": "Treat the name check as a useful preview. If another accepted transaction creates that canonical UsernameIndex first, your later transaction should fail atomically instead of taking the name."
+      }
+    },
+    {
+      "id": "two-fixed-model-previews",
+      "eyebrow": "CURRENT MODEL CHOICE AND CONTRACT BOUNDARY",
+      "title": "The client previews two fixed canonical NCM2 models; the contract validates a much wider text envelope",
+      "paragraphs": [
+        "The current page contains exactly two hard-coded choices. The male choice matches the checked-in chr_peasant_guy_blackhair.ncm text after its final newline is removed, and the female choice likewise matches chr_peasant_girl_orangehair.ncm after its final newline is removed. The original fixture files are 354 and 452 bytes including those line endings; the submitted strings are 353 and 451 bytes. The local NCM decoder turns the selected text into cuboids, Three.js draws those boxes, and drag movement rotates the preview. Nothing is minted, uploaded, or derived from the player's face, and the label Generated Chain Code is misleading because the page selects existing canonical text rather than generating a new body.",
+        "The boy code contains 353 ASCII characters and decodes to 56 cuboids in 8 colors. The girl contains 451 characters and decodes to 70 cuboids in 10 colors. Both begin with NCM2 and are well below the Appearance model-code ceiling of 2,048 UTF-8 bytes. Copying the code copies public model text to the clipboard; it neither proves that the clipboard is private nor creates an on-chain record.",
+        "The current client sends model kind 1 with the boy and model kind 2 with the girl. The Player Program itself checks only that kind is 1 or 2, that the code is valid UTF-8, that it is from 1 through 2,048 bytes, and that the text begins with the case-sensitive letters NCM. It does not call the NCM decoder, verify cuboid geometry, require NCM2 specifically, compare the bytes with either canonical fixture, or bind kind 2 to the girl code. The official page is narrower than what the current contract accepts.",
+        "The stored Appearance can contain name, title, one body-model code, and twelve visible-equipment records, but creation sends an empty title and the program initializes every Appearance equipment record as empty. The sentence all character data is on-chain is therefore too broad: the candidate spawn, invite result, browser labels, animation, camera, and other gameplay state are outside this body-code write."
+      ],
+      "facts": [
+        {
+          "label": "Canonical boy",
+          "value": "353 characters · 56 cuboids",
+          "detail": "NCM2, 8 colors, and 353 UTF-8 bytes before the fixture file's newline."
+        },
+        {
+          "label": "Canonical girl",
+          "value": "451 characters · 70 cuboids",
+          "detail": "NCM2, 10 colors, and 451 UTF-8 bytes before the fixture file's newline."
+        },
+        {
+          "label": "Client choice",
+          "value": "Exactly two fixed strings",
+          "detail": "The page has no body editor, random generator, upload, or arbitrary-code input in its normal creation flow."
+        },
+        {
+          "label": "Program validation",
+          "value": "Kind 1 or 2 · UTF-8 · 1–2,048 bytes · prefix NCM",
+          "detail": "The program does not decode geometry or prove that a gender label matches a particular body string."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-two-fixed-model-previews-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy stands in a neutral preview pose on one stone pedestal while the girl waits beside a second empty pedestal; a small layered color sample sits between them.",
+        "caption": "The occupied and empty pedestals represent switching between two available fixed previews rather than creating a third body. The layered sample represents compact model color data. The cyan edge light is explanatory artwork, not an NCM validator, selected-state proof, mint, upload, or chain confirmation.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "NCM-prefixed is not the same as geometry-verified",
+        "body": "A client can decode the two official fixtures, but the current program stores any accepted UTF-8 text with a case-sensitive NCM prefix inside the size limit. Readers must not upgrade that prefix check into a full model audit."
+      }
+    },
+    {
+      "id": "one-transaction-three-records",
+      "eyebrow": "OWNER APPROVAL, ACCOUNTS, AND STORAGE FUNDING",
+      "title": "One owner-signed instruction processes three public records atomically, but does not always rewrite all three",
+      "paragraphs": [
+        "When Create Character is pressed, the page calls ensureNameAvailable, which normally reuses the matching available or owned result already in memory rather than forcing another RPC read. It then selects the current fixed model and calls createPlayerAppearanceOnChain. The chain adapter asks the wallet provider for the owner public key, derives the three PDAs, maps female to model kind 2 and every other submitted gender value to 1, and builds one transaction. The first instruction raises the compute-unit limit to 240,000. The second is Player Program instruction tag 8 with exactly six accounts: owner, PlayerProfile, PlayerAppearance, GlobalConfig, System Program, and UsernameIndex.",
+        "The program requires the owner to sign and be writable, checks the writable record accounts, checks the System Program and Core-owned GlobalConfig, and derives the owner-linked profile and appearance addresses itself. It ensures the profile exists, writes the chosen name into it, and creates or validates the canonical UsernameIndex. For the same existing name and owner, UsernameIndex validation returns without rewriting that account. It then creates or validates the Appearance and packs the model and metadata. If any check or allocation fails, the instruction fails as one unit; the page should not describe a partial successful character.",
+        "At the finalized Devnet rent schedule observed on 16 July 2026, an empty 773-byte profile required 0.00627096 SOL, a 9,612-byte appearance required 0.0677904 SOL, and a 256-byte name index required 0.00267264 SOL. A first creation missing all three therefore needed about 0.076734 SOL in account balances plus the transaction fee. An existing profile, appearance, or name index can change the amount actually added, and a failed transaction can still have fee consequences. These figures are observations, not a permanent quote.",
+        "The page copy says the reserve is not payment to the team, but the actual custody boundary needs more detail. The funded lamports sit in program-owned accounts while those accounts exist. Player Program tag 9 allows only the configured protocol treasury authority to close PlayerAppearance, requires the recipient to be that same treasury, and transfers all Appearance lamports there. The player has no corresponding Appearance close-and-reclaim instruction in the current program. This does not mean the whole first-creation amount is paid immediately to the treasury, but it does mean the player should not be promised unilateral recovery of the Appearance reserve.",
+        "Upsert also means replace for Appearance, not append. When an existing Appearance is written again, the program preserves its original creation slot and time but repacks the complete record and initializes all twelve Appearance equipment records to empty. It can therefore erase visible-equipment records stored in that Appearance. NameIndex has different behavior: a same-name upsert only validates the existing index, while a new name creates a new index and does not release the wallet's earlier name index."
+      ],
+      "facts": [
+        {
+          "label": "Player instruction",
+          "value": "Tag 8 · six accounts",
+          "detail": "One compute-budget instruction precedes one upsert_player_appearance instruction in the same transaction."
+        },
+        {
+          "label": "Profile record",
+          "value": "player-v7 · 773 bytes",
+          "detail": "First-creation rent observation: 6,270,960 lamports, or 0.00627096 SOL."
+        },
+        {
+          "label": "Appearance record",
+          "value": "appearance-v1 · 9,612 bytes",
+          "detail": "First-creation rent observation: 67,790,400 lamports; protocol treasury is the stored close authority."
+        },
+        {
+          "label": "Name record",
+          "value": "player-name-v1 + hash · 256 bytes",
+          "detail": "First-creation rent observation: 2,672,640 lamports; the address represents the ASCII-lowercased name identity."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-one-transaction-three-records-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the boy turns one wooden press whose beam reaches three separate work positions: a single block tray, a shaped-name tray, and an open chest containing a layered model; the girl observes with empty hands.",
+        "caption": "The single press represents one owner-approved instruction, while the three separate work positions represent PlayerProfile, UsernameIndex, and PlayerAppearance. The mechanical linkage illustrates atomic processing only; it is not a transaction builder, signer, account derivation, rent meter, or proof that any Devnet write succeeded.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "boundary",
+        "title": "Storage funding and reclaim authority are separate questions",
+        "body": "Ask both who supplies the lamports now and who the program allows to reclaim them later. For PlayerAppearance, the current answer is player-funded creation and protocol-treasury-only closure."
+      }
+    },
+    {
+      "id": "confirmed-is-not-everything",
+      "eyebrow": "CONFIRMATION, CACHE, INVITE, AND PLAY HANDOFF",
+      "title": "A confirmed character does not prove that every later browser and invite step succeeded",
+      "paragraphs": [
+        "The shared transaction helper sends the signed transaction and stops waiting at confirmed. Only after createPlayerAppearanceOnChain returns a submitted result does the page try to save the username and character information. The name is written only to the global nicechunk.username key. Gender, model code, label, and creation time are each written twice: once under a legacy global key and once under a wallet-scoped key. Those setItem calls have no local try/catch. If storage throws after the chain result, the outer creation catch reports failure and leaves the player on the page even though the accepted transaction cannot be rolled back by that browser error; earlier writes can remain while later ones are missing. Successful localStorage writes make later screens faster, but remain editable device data rather than another signature, chain account, or independent verification.",
+        "This distinction matters at the login gateway. If a username is already present and the wallet-scoped character-code key exists, resolveBoundWalletCharacter calls showReady without fetching PlayerAppearance again. When that shortcut is absent, login reads the owner Appearance, checks its owner and program through the chain adapter, and rebuilds the cache from the returned model code. The shortcut does not mean the entire game trusts cache forever: after play/main.js starts, its chainPlayer initial refresh asynchronously fetches PlayerProfile and PlayerAppearance together with progress. The honest boundary is that login can skip the read, while Play later performs its own public-record synchronization.",
+        "After the unguarded character-cache writes succeed, creation calls best-effort helpers that attempt to save a pending invite spawn and a local invite receipt, then calls registerInviteResult. Those two helpers catch localStorage failures, so reaching the invite step does not prove that either local record was persisted. When a valid referrer exists, registerInviteResult calls registerInviteOnChain, which builds and submits a separate transaction against an InviteIndex page. A missing inviter page, duplicate record, wallet problem, rejection, RPC error, or program failure can produce a non-submitted or failed result. The character transaction is already complete and is not rolled back; the page attempts to record that result, warns when a valid-referrer append was not submitted, and still redirects to Play.",
+        "The pending spawn record is another separate boundary. The creation page calculates it from a Guardian Region and terrain height, but instruction tag 8 does not write that position. The repository's older src/main.js consumes this local record; the current play/main.js entry does not import or call consumePendingInviteSpawn. On the reviewed runtime, attempting to save the draft—or even finding it in storage—is therefore not evidence that Play applied it. The page must not turn Character appearance created on-chain into a claim that cache, invite, spawn, finalization, or every visible Play state also succeeded."
+      ],
+      "steps": [
+        {
+          "title": "Check the character transaction itself",
+          "body": "Use the full signature returned by approved diagnostic tooling on Solana Explorer with cluster=devnet. Confirm that the transaction succeeded, contains Player Program CHZHsBCGn58ih2WrPfKSYhvCEjMPGhArTiYCH7AWWBkB, and invokes tag 8 with the expected owner and derived accounts. A success label without the full signature is weaker evidence."
+        },
+        {
+          "title": "Read all three addresses after confirmation",
+          "body": "Derive PlayerProfile and PlayerAppearance from the owner, and UsernameIndex from SHA-256 of the ASCII-lowercased name. Verify each account address, Player Program owner, exact data length, magic, stored owner, and relevant name or model fields."
+        },
+        {
+          "title": "Test the cache boundary in a clean browser",
+          "body": "Open a separate private browser with no character localStorage and bind the same wallet. A real Appearance should be discoverable by RPC and repopulate the session. A ready screen that appears only in the old browser demonstrates cache convenience, not chain reconstruction."
+        },
+        {
+          "title": "Check invite and spawn separately",
+          "body": "If an invite was supplied, inspect its separate signature and the inviter's InviteIndex rather than assuming character success appended it. Then observe the actual Play starting position; the pending local spawn record is not currently consumed by play/main.js."
+        }
+      ],
+      "facts": [
+        {
+          "label": "Transaction wait",
+          "value": "confirmed, not finalized",
+          "detail": "The helper returns after its confirmed polling condition; the page does not wait for the finalized label."
+        },
+        {
+          "label": "Cache timing",
+          "value": "After the character result, without a storage guard",
+          "detail": "A setItem failure can enter the outer error path after the chain committed; the interface cannot undo that transaction."
+        },
+        {
+          "label": "Play identity sync",
+          "value": "Asynchronous Profile and Appearance reads",
+          "detail": "The login gateway may skip Appearance, but play/main.js starts a forced chainPlayer refresh that fetches both public records."
+        },
+        {
+          "label": "Invite timing",
+          "value": "Separate later transaction",
+          "detail": "Invite failure is recorded or logged but does not reverse the already confirmed character transaction."
+        },
+        {
+          "label": "Spawn handoff",
+          "value": "Best-effort local save, not applied by current Play entry",
+          "detail": "The save helper catches localStorage failure and reports no persistence result. src/main.js contains a consumer, but the reviewed play/main.js runtime does not."
+        }
+      ],
+      "visual": {
+        "src": "/docs/media/character-creation-confirmed-is-not-everything-v1.webp",
+        "alt": "In a teaching scene based on the canonical villagers and a real Chunk.js hillside reference, the girl stands beside three green-edged record forms inside a timber workshop while a separate orange-edged open case remains in another room and the boy looks toward a distant cyan ground frame outside.",
+        "caption": "The grouped green records represent the character transaction's related records; the separate orange case represents later invite handling, and the distant cyan frame represents a candidate spawn handoff. Their physical separation teaches that one confirmed result does not prove the others. The colors and objects are not real commitment indicators, localStorage, InviteIndex data, or spawn application evidence.",
+        "width": 1774,
+        "height": 887
+      },
+      "callout": {
+        "tone": "verified",
+        "title": "Name the exact outcome you verified",
+        "body": "Character transaction confirmed, Appearance read back, browser cache written, cached login accepted, invite appended, spawn applied, and transaction finalized are seven different statements. Report only the ones for which you have matching evidence."
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "READ THE IMPLEMENTATION",
+    "title": "The code separates preview, program write, and later browser work",
+    "summary": "These excerpts show the name-rule mismatch, fixed-model preview, transaction construction, UsernameIndex behavior, Appearance replacement and closure, confirmed polling, cache behavior, separate invite submission, and spawn handoff. The plain-language notes explain what each excerpt proves and what remains outside it."
+  },
+  "formulas": [
+    {
+      "title": "The implemented creation sequence",
+      "expression": "local binding → name read → fixed NCM preview → local spawn candidate → owner transaction → confirmed → character-cache attempt → { success: best-effort spawn/receipt saves + optional invite → redirect; failure: error UI, no chain rollback }",
+      "ariaLabel": "Local wallet binding leads to a name read, fixed NCM preview, local spawn candidate, owner transaction, confirmed result, and character-cache attempt. Cache success leads to best-effort pending-spawn and receipt saves, an optional invite, and redirect; cache failure leads to an error interface without chain rollback.",
+      "explanation": "The arrows show execution order, not equal authority. The first four stages prepare inputs on the device. The owner transaction is the character write. After confirmed, an unguarded character-cache error can stop the later spawn, invite, and redirect path without undoing the transaction. The pending-spawn and receipt helpers catch their own storage errors, so reaching the invite or redirect does not prove those local drafts were saved. A successful redirect also does not prove that the current Play runtime consumed a pending spawn.",
+      "terms": [
+        {
+          "symbol": "name read",
+          "meaning": "A point-in-time lookup of one predictable UsernameIndex, not a reservation."
+        },
+        {
+          "symbol": "owner transaction",
+          "meaning": "One wallet-approved transaction containing compute budget and Player Program tag 8."
+        },
+        {
+          "symbol": "confirmed",
+          "meaning": "The commitment where the current helper returns; it is not the finalized label."
+        },
+        {
+          "symbol": "character-cache attempt",
+          "meaning": "The unguarded global-name plus global and wallet-scoped character localStorage writes after the transaction; an exception enters the outer error path and can leave a partial cache."
+        },
+        {
+          "symbol": "best-effort spawn/receipt saves",
+          "meaning": "Two later localStorage helpers that catch storage errors internally. Calling them does not prove that either record was persisted."
+        },
+        {
+          "symbol": "optional invite transaction",
+          "meaning": "A second submission that is skipped without a valid referrer and can fail independently."
+        }
+      ]
+    },
+    {
+      "title": "The three public addresses are derived differently",
+      "expression": "Profile = PDA(Player, \"player-v7\", owner); Appearance = PDA(Player, \"appearance-v1\", owner); Name = PDA(Player, \"player-name-v1\", SHA256(ASCII-lowercase(name)))",
+      "ariaLabel": "Profile derives from the Player Program, player v7 label and owner; Appearance derives from the Player Program, appearance v1 label and owner; Name derives from the Player Program, player name v1 label and SHA-256 of the ASCII-lowercased name.",
+      "explanation": "The same wallet creates two owner-based addresses, while the name record is based on a public canonical hash. PDA here means predictable public account address, not a recovery phrase or secret seed. The Player Program ID is also part of every PDA derivation.",
+      "terms": [
+        {
+          "symbol": "owner",
+          "meaning": "The public key that must sign the character instruction and is stored in the records."
+        },
+        {
+          "symbol": "ASCII-lowercase(name)",
+          "meaning": "Change A through Z to a through z and leave other UTF-8 characters unchanged."
+        },
+        {
+          "symbol": "SHA256",
+          "meaning": "A 32-byte public digest used as a fixed-size PDA seed; it is not encryption."
+        }
+      ]
+    },
+    {
+      "title": "The two official fixtures are only a small subset of the accepted model envelope",
+      "expression": "{(1, canonical boy NCM2), (2, canonical girl NCM2)} ⊂ {(kind, code) | kind ∈ {1, 2}; code is UTF-8; 1–2,048 bytes; code starts with case-sensitive NCM}",
+      "ariaLabel": "The two official model-kind and fixture pairs are a strict subset of the model-kind and code pairs accepted by the current Player Program.",
+      "explanation": "A strict subset means every official page choice fits the contract rules, but many other strings can fit those rules too. The client offers exactly two decoded fixtures. The program validates only the kind number, UTF-8 and byte limits, and the NCM prefix; it does not prove NCM2 geometry or pair one fixture with one kind.",
+      "terms": [
+        {
+          "symbol": "left-hand set",
+          "meaning": "The two exact trimmed strings that the official creation page lets a player preview and submit."
+        },
+        {
+          "symbol": "⊂",
+          "meaning": "Strict subset: everything on the left is allowed on the right, but the right side also allows other values."
+        },
+        {
+          "symbol": "accepted model envelope",
+          "meaning": "The outer text-and-size checks enforced by the Player Program; it is not a full NCM geometry validation."
+        }
+      ]
+    },
+    {
+      "title": "Observed first-creation storage funding",
+      "expression": "0.00627096 SOL + 0.06779040 SOL + 0.00267264 SOL = 0.07673400 SOL, plus transaction fee",
+      "ariaLabel": "The observed profile rent minimum plus appearance rent minimum plus username index rent minimum equals zero point zero seven six seven three four SOL, plus transaction fee.",
+      "explanation": "This sum assumes all three accounts are absent and uses finalized Devnet rent queries captured on 16 July 2026. Existing funded accounts can reduce the lamports added. Network rent rules and fees can change, and the current Appearance close path sends reclaimed Appearance lamports to the protocol treasury rather than the player.",
+      "terms": [
+        {
+          "symbol": "0.00627096 SOL",
+          "meaning": "Observed rent-exempt minimum for 773 PlayerProfile bytes."
+        },
+        {
+          "symbol": "0.06779040 SOL",
+          "meaning": "Observed rent-exempt minimum for 9,612 PlayerAppearance bytes."
+        },
+        {
+          "symbol": "0.00267264 SOL",
+          "meaning": "Observed rent-exempt minimum for 256 UsernameIndex bytes."
+        },
+        {
+          "symbol": "transaction fee",
+          "meaning": "A separate fee for processing the transaction; it is not included in the account-balance sum."
+        }
+      ]
+    },
+    {
+      "title": "One result cannot stand in for every later result",
+      "expression": "characterConfirmed ≠ appearanceReadBack ≠ cacheWritten ≠ cacheTrusted ≠ inviteRegistered ≠ spawnApplied ≠ finalized",
+      "ariaLabel": "Character confirmed is not the same observation as appearance read back, cache written, cached login trusted, invite registered, spawn applied, or finalized.",
+      "explanation": "The not-equal signs do not say that later steps always fail. They say each claim has its own evidence source and failure boundary. A careful status message names the exact stage instead of compressing all seven into created.",
+      "terms": [
+        {
+          "symbol": "characterConfirmed",
+          "meaning": "The tag 8 transaction satisfied the client's confirmed wait."
+        },
+        {
+          "symbol": "appearanceReadBack",
+          "meaning": "A later RPC read found the derived Appearance account and validated its program owner and stored owner before decoding it."
+        },
+        {
+          "symbol": "cacheWritten",
+          "meaning": "The creation page's unguarded username and character cache sequence completed without throwing; this is still editable device state."
+        },
+        {
+          "symbol": "cacheTrusted",
+          "meaning": "The login UI accepted wallet-scoped browser data; that can happen without a new Appearance read."
+        },
+        {
+          "symbol": "inviteRegistered",
+          "meaning": "A separate append transaction succeeded or an existing matching InviteIndex record was independently verified."
+        },
+        {
+          "symbol": "spawnApplied",
+          "meaning": "The actual Play runtime used the intended position, not merely that creation attempted to save a local draft."
+        },
+        {
+          "symbol": "finalized",
+          "meaning": "The transaction later reached Solana's stronger finalized commitment; the creation helper does not wait for this label."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "The availability check reads one derived name account",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "export async function checkPlayerNameAvailability(playerName, ownerAddress = null) {\n  const { normalized } = encodePlayerName(playerName);\n  if (!normalized) return { available: false, reason: \"empty-player-name\" };\n  const [usernameIndex] = await deriveUsernameIndexPdaForName(normalized);\n  const account = await getNicechunkConnection().getAccountInfo(usernameIndex, \"confirmed\");\n  if (!account?.data?.length) {\n    return {\n      available: true,\n      usernameIndex: usernameIndex.toBase58(),\n      playerName: normalized,\n    };\n  }",
+      "explanation": "The client normalizes the proposed text, derives one predictable UsernameIndex, and performs a confirmed read. When no data is returned it reports available to the interface. There is no lock, reservation transaction, signature, or later-state guarantee in this excerpt.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Normalize the submitted name and reject an empty result before any RPC request."
+        },
+        {
+          "lines": "4-5",
+          "meaning": "Derive the canonical name PDA and read exactly that account at confirmed."
+        },
+        {
+          "lines": "6-12",
+          "meaning": "Treat a missing account as available for this response and return the candidate address and display name."
+        }
+      ]
+    },
+    {
+      "title": "The browser accepts the Unicode Script=Han category",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function encodePlayerName(playerName) {\n  const normalized = String(playerName ?? \"\").trim();\n  if (Array.from(normalized).length > playerNameMaxChars) {\n    throw new Error(`Player name is too long: max ${playerNameMaxChars} characters.`);\n  }\n  if (!/^[\\p{Script=Han}A-Za-z0-9_]*$/u.test(normalized)) {\n    throw new Error(\"Player name contains unsupported characters.\");\n  }\n  const bytes = Buffer.from(normalized, \"utf8\");\n  if (bytes.length > playerNameMaxBytes) {\n    throw new Error(`Player name is too large: max ${playerNameMaxBytes} UTF-8 bytes.`);\n  }\n  return { normalized, bytes };\n}",
+      "explanation": "The browser counts Unicode characters, applies its byte ceiling, and accepts ASCII letters, digits, underscore, or any character in JavaScript's broad Script=Han property. This is a useful client check, but it is not the contract's exact rule and cannot promise that submission will pass.",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "Trim the text and enforce the browser's character-count ceiling."
+        },
+        {
+          "lines": "6-8",
+          "meaning": "Apply the broad Script=Han-or-ASCII pattern used by the page."
+        },
+        {
+          "lines": "9-14",
+          "meaning": "Encode UTF-8, enforce the byte ceiling, and return the normalized text and bytes."
+        }
+      ]
+    },
+    {
+      "title": "The contract accepts only its explicit Han code-point interval",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_name(name: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if name.len() > PLAYER_NAME_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidPlayerName);\n        }\n        let value =\n            core::str::from_utf8(name).map_err(|_| NicechunkPlayerError::InvalidPlayerName)?;\n        let mut char_count = 0usize;\n        for ch in value.chars() {\n            char_count += 1;\n            if char_count > PLAYER_NAME_MAX_CHARS {\n                return Err(NicechunkPlayerError::InvalidPlayerName);\n            }\n            let valid =\n                ch == '_' || ch.is_ascii_alphanumeric() || ('\\u{4e00}'..='\\u{9fff}').contains(&ch);\n            if !valid {\n                return Err(NicechunkPlayerError::InvalidPlayerName);\n            }\n        }\n        Ok(value)\n    }",
+      "explanation": "The Player Program independently checks UTF-8, the same configured size ceilings, and an explicit character rule. Its Han interval is only U+4E00 through U+9FFF, which is narrower than JavaScript Script=Han. A character outside that interval can pass the page's green preparation state and still fail the transaction.",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "Reject an over-budget or invalid UTF-8 byte sequence before inspecting characters."
+        },
+        {
+          "lines": "7-12",
+          "meaning": "Count Unicode scalar values and enforce the contract's character ceiling."
+        },
+        {
+          "lines": "13-20",
+          "meaning": "Allow only underscore, ASCII alphanumeric, or the explicit U+4E00–U+9FFF interval."
+        }
+      ]
+    },
+    {
+      "title": "Submission normally reuses cached availability and treats only explicit false as blocked",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "async function ensureNameAvailable(name) {\n  const normalized = String(name || \"\").trim();\n  if (!isValidName(normalized)) return false;\n  if (nameAvailability.name === normalized && nameAvailability.status === \"available\") return true;\n  if (nameAvailability.name === normalized && nameAvailability.status === \"owned\") return true;\n  const result = await checkCurrentNameAvailability(normalized);\n  return result?.available !== false;\n}",
+      "explanation": "A matching available or owned status returns immediately without a fresh RPC read. When another check is needed, the final comparison rejects only the literal value false. Because null?.available is undefined and undefined is not false, an RPC-error null can pass this preflight. The Player Program's PDA and owner checks remain the final authority and can still reject the transaction.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Trim the name and stop on a local format failure."
+        },
+        {
+          "lines": "4-5",
+          "meaning": "Reuse an in-memory success for the exact same text rather than reading the name account again."
+        },
+        {
+          "lines": "6-7",
+          "meaning": "When a lookup runs, block explicit unavailable but currently allow null or other results that are not literal false."
+        }
+      ]
+    },
+    {
+      "title": "Selecting a model decodes and previews already supplied text",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "function selectModel(index) {\n  activeIndex = Math.max(0, Math.min(characterModels.length - 1, index));\n  const model = characterModels[activeIndex];\n  currentCharacter = decodeNcm(model.code);\n  selectedModelName.textContent = t(model.labelKey);\n  chainCode.value = model.code;\n  codeBytes.textContent = String(new TextEncoder().encode(model.code).length);\n  boxCount.textContent = String(currentCharacter.boxes.length);\n  codePrefix.textContent = model.code.split(\":\", 1)[0] || \"NCM\";\n  genderCards.forEach((card) => card.classList.toggle(\"is-active\", card.dataset.gender === model.gender));\n  renderCharacter(currentCharacter);\n  updateCreateState();\n}",
+      "explanation": "characterModels is the two-entry array defined above this function. Selection clamps to that array, decodes its existing code, displays byte and cuboid counts, and renders a local preview. The function does not generate a new NCM string, ask the wallet to sign, or write an account.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Choose one entry from the fixed array; an out-of-range index is clamped back into that array."
+        },
+        {
+          "lines": "4-9",
+          "meaning": "Decode the selected string and expose its label, exact text, UTF-8 byte count, cuboid count, and prefix."
+        },
+        {
+          "lines": "10-12",
+          "meaning": "Update the local selected style, draw the decoded cuboids, and reevaluate whether the page can continue."
+        }
+      ]
+    },
+    {
+      "title": "The page waits for the character call, then performs unguarded browser cache writes",
+      "language": "JavaScript",
+      "source": "player_creat/player_creat.js",
+      "code": "    const model = characterModels[activeIndex];\n    const spawnState = await createInitialSpawnState();\n    const { createPlayerAppearanceOnChain } = await import(\"../src/chain/nicechunkChain.js\");\n    const result = await createPlayerAppearanceOnChain({\n      playerName: name,\n      gender: model.gender,\n      title: \"\",\n      ncmCode: model.code,\n    });\n    if (result?.submitted === false) throw new Error(result.reason || \"player-appearance-not-saved\");\n    persistUsername(name);\n    localStorage.setItem(characterStorageKeys.gender, model.gender);\n    localStorage.setItem(characterStorageKeys.code, model.code);\n    localStorage.setItem(characterStorageKeys.label, t(model.labelKey));\n    localStorage.setItem(characterStorageKeys.createdAt, String(Date.now()));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.gender), model.gender);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.code), model.code);\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.label), t(model.labelKey));\n    localStorage.setItem(walletCharacterStorageKey(characterStorageKeys.createdAt), String(Date.now()));",
+      "explanation": "The spawn candidate is calculated first but is not passed to createPlayerAppearanceOnChain. The awaited character call receives only name, gender label, empty title, and fixed model code. Browser name and model caches are written afterward, but these setItem calls have no inner error guard. A storage exception reaches submitCharacter's outer catch after the chain may already be confirmed, so the UI can say failure without reversing the public records.",
+      "walkthrough": [
+        {
+          "lines": "1-2",
+          "meaning": "Choose the fixed model and calculate a candidate spawn as separate local preparation."
+        },
+        {
+          "lines": "3-10",
+          "meaning": "Load the chain adapter, await the appearance upsert, and turn an explicit not-submitted result into failure."
+        },
+        {
+          "lines": "11-19",
+          "meaning": "Only afterward save the name plus legacy and wallet-scoped copies of the model selection in localStorage."
+        }
+      ]
+    },
+    {
+      "title": "The chain adapter builds one 240,000-unit transaction",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const [playerProfile] = derivePlayerProfilePda(provider.publicKey);\n  const [appearance] = derivePlayerAppearancePda(provider.publicKey);\n  const [usernameIndex] = await deriveUsernameIndexPdaForName(normalized);\n  const modelKind = String(gender).toLowerCase() === \"female\" ? 2 : 1;\n  const tx = new Transaction();\n  tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 240_000 }));\n  tx.add(createUpsertPlayerAppearanceInstruction({\n    authority: provider.publicKey,\n    playerProfile,\n    appearance,\n    usernameIndex,\n    modelKind,\n    playerNameBytes: nameBytes,\n    titleBytes,\n    codeBytes,\n  }));\n  const conn = getNicechunkConnection();\n  const signature = await signAndSendWalletTransaction(provider, tx, conn);",
+      "explanation": "The public owner determines the profile and appearance addresses, while the canonical name determines the index. The transaction contains a compute-budget instruction and one upsert instruction, then goes through the separate wallet signing and confirmed-submission helper. The locally calculated spawn is absent.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Derive three different PDAs and map the client gender label to the one-byte model kind."
+        },
+        {
+          "lines": "5-16",
+          "meaning": "Build one transaction with a 240,000 compute-unit limit and the exact character payload and accounts."
+        },
+        {
+          "lines": "17-18",
+          "meaning": "Submit through the wallet path and await the helper's result before returning to the creation page."
+        }
+      ]
+    },
+    {
+      "title": "Instruction tag 8 names all six accounts",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const header = Buffer.alloc(8);\n  header.writeUInt8(8, 0);\n  header.writeUInt8(Number(modelKind) === 2 ? 2 : 1, 1);\n  header.writeUInt16LE(name.length, 2);\n  header.writeUInt16LE(title.length, 4);\n  header.writeUInt16LE(code.length, 6);\n  return new TransactionInstruction({\n    programId: playerProgramId,\n    keys: [\n      { pubkey: authority, isSigner: true, isWritable: true },\n      { pubkey: playerProfile, isSigner: false, isWritable: true },\n      { pubkey: appearance, isSigner: false, isWritable: true },\n      { pubkey: deriveGlobalConfigPda(), isSigner: false, isWritable: false },\n      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },\n      { pubkey: usernameIndex, isSigner: false, isWritable: true },\n    ],\n    data: Buffer.concat([header, name, title, code]),\n  });",
+      "explanation": "The first header byte chooses Player Program tag 8. The remaining header declares model kind and byte lengths, followed by the exact name, title, and code bytes. The six account metas show which public records can change and which owner must sign; no invite index or spawn position is present.",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "Encode the instruction tag, normalized model kind, and three byte lengths into an eight-byte header."
+        },
+        {
+          "lines": "7-16",
+          "meaning": "Target the Player Program and declare one signer, three writable PDAs, GlobalConfig, and the System Program."
+        },
+        {
+          "lines": "17-18",
+          "meaning": "Concatenate the header and exact text bytes into the instruction payload."
+        }
+      ]
+    },
+    {
+      "title": "An existing name index is validated; a missing one is created",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let name_hash = canonical_player_name_hash(player_name);\n    let (expected_username_index, bump) = username_index_pda(program_id, &name_hash);\n    require_key_eq(\n        username_index.key,\n        &expected_username_index,\n        NicechunkPlayerError::InvalidUsernameIndexPda,\n    )?;\n    if username_index.owner == program_id {\n        let data = username_index.try_borrow_data()?;\n        return UsernameIndex::validate_owner_or_available(\n            &data,\n            owner,\n            player_profile,\n            global_config,\n            &name_hash,\n        );\n    }\n    if username_index.owner != &system_program::ID || username_index.data_len() != 0 {\n        return Err(NicechunkPlayerError::UsernameAlreadyTaken.into());\n    }\n    create_or_allocate_username_index_pda(\n        payer,\n        username_index,\n        system_program_account,\n        program_id,\n        &name_hash,\n        bump,\n    )?;\n    let mut data = username_index.try_borrow_mut_data()?;\n    UsernameIndex::pack(\n        &mut data,\n        &UsernameIndexInitArgs {\n            bump,\n            owner,\n            player_profile,\n            global_config,\n            name_hash: &name_hash,\n            display_name: player_name,\n            created_slot: clock.slot,\n        },\n    )\n}",
+      "explanation": "The program derives the index for the submitted canonical name. If that account is already Player-owned, it returns from validation without repacking it. If the address is still an empty System account, it allocates and packs a new index. Tag 8 supplies only this one submitted-name index, so changing to a new name creates the new index but provides no earlier index for this path to close or release.",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "Hash the submitted canonical name, derive its exact PDA, and reject a different address."
+        },
+        {
+          "lines": "8-17",
+          "meaning": "For an existing Player-owned index, validate its owner and linked records, then return without rewriting it."
+        },
+        {
+          "lines": "18-28",
+          "meaning": "Reject a nonempty foreign account; otherwise allocate the missing index at the derived address."
+        },
+        {
+          "lines": "29-42",
+          "meaning": "Pack the owner, linked profile, configuration, canonical hash, display name, and creation slot into a new index."
+        }
+      ]
+    },
+    {
+      "title": "Only the configured treasury can close Appearance and receive its lamports",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "fn close_player_appearance(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {\n    if accounts.len() != 3 {\n        return Err(NicechunkPlayerError::InvalidAccountCount.into());\n    }\n    let account_info_iter = &mut accounts.iter();\n    let treasury_authority = next_account_info(account_info_iter)?;\n    let appearance = next_account_info(account_info_iter)?;\n    let recipient = next_account_info(account_info_iter)?;\n\n    if !treasury_authority.is_signer || !treasury_authority.is_writable || !recipient.is_writable {\n        return Err(NicechunkPlayerError::InvalidTreasuryAuthority.into());\n    }\n    require_key_eq(\n        treasury_authority.key,\n        &NICECHUNK_TREASURY_AUTHORITY,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        recipient.key,\n        treasury_authority.key,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        appearance.owner,\n        program_id,\n        NicechunkPlayerError::InvalidAppearanceOwner,\n    )?;\n\n    {\n        let data = appearance.try_borrow_data()?;\n        PlayerAppearance::validate_treasury_authority(&data, treasury_authority.key)?;\n        let owner = PlayerAppearance::owner(&data)?;\n        let (expected_appearance, _) =\n            Pubkey::find_program_address(&[PLAYER_APPEARANCE_SEED, owner.as_ref()], program_id);\n        require_key_eq(\n            appearance.key,\n            &expected_appearance,\n            NicechunkPlayerError::InvalidAppearancePda,\n        )?;\n    }\n    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;\n    Ok(())\n}",
+      "explanation": "Tag 9 is not a player refund path. It requires the configured treasury to sign, requires the receiving account to be that same treasury, checks the program-owned owner-derived Appearance, clears its data, and transfers every lamport to the treasury. The player funds Appearance creation but has no corresponding close-and-reclaim instruction here.",
+      "walkthrough": [
+        {
+          "lines": "1-8",
+          "meaning": "Require exactly the treasury signer, the Appearance account, and the recipient."
+        },
+        {
+          "lines": "10-27",
+          "meaning": "Require writable accounts, the configured treasury key, the same key as recipient, and Player Program ownership."
+        },
+        {
+          "lines": "29-40",
+          "meaning": "Verify the treasury stored in Appearance and the Appearance PDA derived from its player owner."
+        },
+        {
+          "lines": "41-52",
+          "meaning": "Zero the account data, transfer all lamports to the treasury recipient, and leave Appearance with zero lamports."
+        }
+      ]
+    },
+    {
+      "title": "The contract checks an envelope, not NCM geometry",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "    pub fn validate_model_kind(model_kind: u8) -> Result<(), NicechunkPlayerError> {\n        if model_kind != CHARACTER_MODEL_KIND_MALE && model_kind != CHARACTER_MODEL_KIND_FEMALE {\n            return Err(NicechunkPlayerError::InvalidCharacterModelKind);\n        }\n        Ok(())\n    }\n\n    pub fn validate_title(title: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if title.len() > APPEARANCE_TITLE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidAppearanceTitle);\n        }\n        core::str::from_utf8(title).map_err(|_| NicechunkPlayerError::InvalidAppearanceTitle)\n    }\n\n    pub fn validate_model_code(code: &[u8]) -> Result<&str, NicechunkPlayerError> {\n        if code.is_empty() || code.len() > APPEARANCE_MODEL_CODE_MAX_BYTES {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        let value =\n            core::str::from_utf8(code).map_err(|_| NicechunkPlayerError::InvalidCharacterCode)?;\n        if !value.starts_with(\"NCM\") {\n            return Err(NicechunkPlayerError::InvalidCharacterCode);\n        }\n        Ok(value)\n    }",
+      "explanation": "The program admits only model kinds 1 and 2, validates UTF-8 title and code sizes, and requires an NCM prefix. There is no NCM decoder, cuboid count, palette check, NCM2 version requirement, or comparison between model kind and fixture bytes in these validators.",
+      "walkthrough": [
+        {
+          "lines": "1-6",
+          "meaning": "Accept exactly the two numeric model-kind values; this validates a label byte, not body geometry."
+        },
+        {
+          "lines": "8-13",
+          "meaning": "Require the optional title to fit its byte budget and be valid UTF-8."
+        },
+        {
+          "lines": "15-25",
+          "meaning": "Require a nonempty in-budget UTF-8 model string with case-sensitive NCM prefix, then return the text without decoding it."
+        }
+      ]
+    },
+    {
+      "title": "Repacking Appearance initializes all twelve visible-equipment records as empty",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/state.rs",
+      "code": "        writer.bytes(args.model_code)?;\n        writer.bytes(\n            &[0_u8; APPEARANCE_MODEL_CODE_MAX_BYTES]\n                [..APPEARANCE_MODEL_CODE_MAX_BYTES - args.model_code.len()],\n        )?;\n        for slot in 0..APPEARANCE_EQUIPMENT_SLOT_COUNT {\n            writer.u8(0)?;\n            writer.u8(slot as u8)?;\n            writer.bytes(&[0_u8; APPEARANCE_EQUIPMENT_SLOT_LEN - 2])?;\n        }",
+      "explanation": "After writing and padding the model code, pack writes state zero and zero-filled bytes for every Appearance equipment slot. The same pack routine runs for a new record and an upsert of an existing record, so a later character upsert can clear visible-equipment records already stored there.",
+      "walkthrough": [
+        {
+          "lines": "1-5",
+          "meaning": "Write the exact model-code bytes and pad the fixed 2,048-byte code region with zeros."
+        },
+        {
+          "lines": "6-10",
+          "meaning": "For all twelve slots, write empty state, the slot number, and zeros for the rest of the fixed record."
+        }
+      ]
+    },
+    {
+      "title": "The wallet helper waits for confirmed, not finalized",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }\n\n  if (typeof provider.signAndSendTransaction !== \"function\") {\n    throw new Error(\"Wallet does not support transaction signing.\");\n  }\n  const result = await provider.signAndSendTransaction(transaction);\n  const signature = typeof result === \"string\" ? result : result?.signature;\n  if (!signature) throw new Error(\"Wallet did not return a transaction signature.\");\n  await confirmTransactionByHttpPolling(conn, {\n    signature,\n    blockhash: transaction.recentBlockhash,\n    lastValidBlockHeight: transaction.lastValidBlockHeight,\n  }, \"confirmed\");\n  return signature;",
+      "explanation": "Both supported wallet paths submit a signed transaction and then call the same HTTP polling helper with the literal commitment confirmed. A returned signature here means that polling condition was met. It does not say that the page waited for Solana's later finalized label.",
+      "walkthrough": [
+        {
+          "lines": "1-10",
+          "meaning": "For wallets that sign locally, serialize, submit, poll to confirmed, and return the signature."
+        },
+        {
+          "lines": "12-17",
+          "meaning": "For sign-and-send wallets, require support and require an actual returned signature."
+        },
+        {
+          "lines": "18-23",
+          "meaning": "Poll that second path to the same confirmed commitment and then return."
+        }
+      ]
+    },
+    {
+      "title": "Pending spawn and invite receipt saves swallow storage errors",
+      "language": "JavaScript",
+      "source": "src/player/inviteSpawn.js",
+      "code": "export function storePendingInviteSpawn(walletAddress, payload) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !payload) return;\n  try {\n    localStorage.setItem(inviteSpawnStorageKey(wallet), JSON.stringify({\n      ...payload,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Spawn still works from the chain PDA if local storage is unavailable.\n  }\n}\n\nexport function consumePendingInviteSpawn(walletAddress, { surfaceHeight } = {}) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet) return null;\n  const key = inviteSpawnStorageKey(wallet);\n  try {\n    const raw = localStorage.getItem(key);\n    if (!raw) return null;\n    localStorage.removeItem(key);\n    const parsed = JSON.parse(raw);\n    const state = parsed?.position\n      ? {\n          position: parsed.position,\n          yaw: Number.isFinite(Number(parsed.yaw)) ? Number(parsed.yaw) : Math.PI * 0.25,\n          cameraPitch: Number.isFinite(Number(parsed.cameraPitch)) ? Number(parsed.cameraPitch) : -0.42,\n          guardianRegion: normalizeGuardianRegion(parsed.guardianRegion),\n        }\n      : guardianSpawnStateForRegion(parsed?.guardianRegion, { surfaceHeight });\n    return state;\n  } catch {\n    localStorage.removeItem(key);\n    return null;\n  }\n}\n\nexport function storeInviteReceipt(walletAddress, receipt) {\n  const wallet = normalizeParam(walletAddress);\n  if (!wallet || !receipt) return;\n  try {\n    localStorage.setItem(inviteReceiptStorageKey(wallet), JSON.stringify({\n      ...receipt,\n      storedAt: Date.now(),\n    }));\n  } catch {\n    // Non-critical analytics cache.\n  }\n}",
+      "explanation": "Both save helpers return no success value and catch localStorage exceptions internally. Their caller therefore continues whether the write succeeded or failed and cannot infer persistence from the absence of an exception. The middle function shows how a runtime can consume and delete a saved spawn, but merely defining that consumer does not prove that the current Play entry calls it.",
+      "walkthrough": [
+        {
+          "lines": "1-12",
+          "meaning": "Attempt the wallet-scoped pending-spawn write; swallow any storage exception and report no result."
+        },
+        {
+          "lines": "14-36",
+          "meaning": "A caller that uses the consumer reads once, removes the draft, normalizes it, and returns null on failure."
+        },
+        {
+          "lines": "38-49",
+          "meaning": "Attempt the wallet-scoped invite-receipt write; again swallow storage failure and report no result."
+        }
+      ]
+    },
+    {
+      "title": "Invite registration constructs and submits another transaction",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const pageIndex = Number(targetPage.pageIndex);\n  const [inviteIndex] = deriveInviteIndexPda(inviter, pageIndex);\n  const previousInviteIndex = pageIndex > 0 ? deriveInviteIndexPda(inviter, pageIndex - 1)[0] : null;\n  const tx = new Transaction().add(createAppendInviteRegistrationInstruction({\n    invited: provider.publicKey,\n    inviter,\n    inviteIndex,\n    pageIndex,\n    previousInviteIndex,\n  }));\n  const conn = getNicechunkConnection();\n  const signature = await signAndSendWalletTransaction(provider, tx, conn);\n  return {\n    submitted: true,\n    signature,\n    invited: provider.publicKey.toBase58(),\n    inviter: inviter.toBase58(),\n    inviteIndex: inviteIndex.toBase58(),\n    pageIndex,\n    capacity: inviteIndexCapacity,\n    programId: playerProgramId.toBase58(),\n  };\n}",
+      "explanation": "This is the end of registerInviteOnChain, not the character upsert. It derives an InviteIndex page, creates a new Transaction containing the append instruction, asks the wallet path to submit it, and returns its own signature. Character confirmation cannot substitute for this separate signature or InviteIndex read.",
+      "walkthrough": [
+        {
+          "lines": "1-3",
+          "meaning": "Choose and derive the inviter's target InviteIndex page and optional previous page."
+        },
+        {
+          "lines": "4-10",
+          "meaning": "Build a new transaction containing the invite append accounts and page information."
+        },
+        {
+          "lines": "11-23",
+          "meaning": "Submit separately and return a distinct signature and InviteIndex result."
+        }
+      ]
+    },
+    {
+      "title": "Only the alternate startup path shown here consumes the pending spawn",
+      "language": "JavaScript",
+      "source": "src/main.js",
+      "code": "async function resolveConfiguredInitialPlayerState() {\n  const inviteSpawnState = consumePendingInviteSpawn(currentSession.walletAddress, { surfaceHeight });\n  const normalizedInviteState = normalizedStartupPlayerState(inviteSpawnState);\n  if (normalizedInviteState) return normalizedInviteState;\n\n  const chainPlayerState = await loadPlayerPdaPositionState();\n  if (chainPlayerState) return chainPlayerState;",
+      "explanation": "This older or alternate src/main.js path explicitly consumes the wallet-scoped spawn draft before falling back to the chain Player position. The audited current entry is play/main.js, whose captured source contains no import or call of consumePendingInviteSpawn. The excerpt proves that a consumer exists elsewhere; the source audit, not this excerpt alone, establishes that it is absent from the reviewed Play entry.",
+      "walkthrough": [
+        {
+          "lines": "1-4",
+          "meaning": "Consume and normalize a pending invite spawn, then prefer it when valid."
+        },
+        {
+          "lines": "6-7",
+          "meaning": "Only after that alternate local handoff fails does this path try Player position state."
+        }
+      ]
+    },
+    {
+      "title": "The login gateway can accept a wallet-scoped cache before reading Appearance",
+      "language": "JavaScript",
+      "source": "login/login.js",
+      "code": "async function resolveBoundWalletCharacter(sequence) {\n  if (username && hasLocalCharacterCreated(walletAddress)) {\n    await maybeRegisterInviteForExistingCharacter({ displayName: username, playerName: username });\n    if (sequence !== loginResolutionSequence) return;\n    showReady();\n    return;\n  }\n\n  statusLine.textContent = t(\"login.status.networkChecking\");\n  try {\n    const { fetchPlayerAppearanceForOwner } = await import(\"../src/chain/nicechunkChain.js\");\n    const appearance = await fetchPlayerAppearanceForOwner(walletAddress);\n    if (sequence !== loginResolutionSequence) return;\n\n    if (appearance?.modelCode) {\n      restoreCharacterSessionFromAppearance(appearance);\n      await maybeRegisterInviteForExistingCharacter(appearance);\n      showReady();\n      return;\n    }",
+      "explanation": "The first branch requires only a local username and wallet-scoped character-code key, optionally handles an invite, and shows ready without an Appearance RPC read. The second branch performs the chain read only when that cache shortcut did not return. This is specifically a login-gateway convenience boundary: play/main.js later starts an asynchronous Profile and Appearance refresh, so the excerpt does not show Play permanently replacing chain state with cache.",
+      "walkthrough": [
+        {
+          "lines": "1-7",
+          "meaning": "If both local signals exist, run optional invite handling and mark the login interface ready."
+        },
+        {
+          "lines": "9-13",
+          "meaning": "Otherwise begin the network path and fetch the wallet's public Appearance account."
+        },
+        {
+          "lines": "15-20",
+          "meaning": "When chain data contains a model code, restore browser state from it, handle invite separately, and then show ready."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "path": "player_creat/player_creat.js",
+      "claim": "Defines the two fixed NCM2 model strings, local wallet-session entry check, debounced name lookup, frontend name rules, local preview, candidate spawn calculation, character call, one global username write, global and wallet-scoped model-field writes, best-effort pending-spawn and receipt calls, separate invite attempt, and redirect."
+    },
+    {
+      "path": "player_creat/index.html",
+      "claim": "Contains the current user-facing Generated Chain Code, all character data, storage reserve, and not payment to team statements whose stronger implications are qualified in this guide."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Derives the three PDAs, canonicalizes ASCII case for the name hash, reads name availability, enforces client byte envelopes, constructs tag 8 and its six accounts, requests wallet submission, waits at confirmed, and decodes owner-checked Appearance data."
+    },
+    {
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Routes tag 8, validates signer and accounts, computes the ASCII-lowercased name hash, ensures Profile and UsernameIndex without releasing an earlier index, creates or validates Appearance, preserves creation metadata, repacks it, and gives tag 9 close and reclaim authority only to the configured treasury."
+    },
+    {
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Defines account seeds and exact lengths, the narrower contract name character range, Appearance fields and twelve equipment records, NCM prefix-only model validation, and full pack behavior."
+    },
+    {
+      "path": "programs/nicechunk_player/src/cluster_config.rs",
+      "claim": "Defines the current protocol treasury authority stored in Appearance and required by the close path."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_guy_blackhair.ncm",
+      "claim": "Provides the canonical boy NCM2 fixture: 354 file bytes including the final newline, whose 353-byte trimmed text matches the creation-page string and decodes to 56 cuboids in 8 colors."
+    },
+    {
+      "path": "public/media/vox/chr_peasant_girl_orangehair.ncm",
+      "claim": "Provides the canonical girl NCM2 fixture: 452 file bytes including the final newline, whose 451-byte trimmed text matches the creation-page string and decodes to 70 cuboids in 10 colors."
+    },
+    {
+      "path": "src/vox/ncm.js",
+      "claim": "Implements the browser-side NCM decoder used by the preview; the Player Program does not execute this JavaScript decoder."
+    },
+    {
+      "path": "login/login.js",
+      "claim": "Shows the login shortcut that combines one global username with a wallet-scoped character-code key to skip a new Appearance read, plus the fallback chain read that restores browser character data."
+    },
+    {
+      "path": "src/player/inviteSpawn.js",
+      "claim": "Defines invite parameter parsing, Guardian Region spawn calculation, best-effort wallet-scoped pending-spawn and receipt storage that catches localStorage failures, and pending-spawn consumption for runtimes that call it."
+    },
+    {
+      "path": "play/main.js",
+      "claim": "Is the current Play entry reviewed for this guide, starts a forced asynchronous PlayerProfile and PlayerAppearance refresh, and does not import or call consumePendingInviteSpawn."
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "Implements the Play-side refresh that fetches PlayerProfile, PlayerAppearance, and progress concurrently after the login gateway has finished."
+    },
+    {
+      "path": "src/main.js",
+      "claim": "Contains an older or alternate startup path that does consume the pending invite spawn, demonstrating why its presence elsewhere must not be attributed to the current Play entry."
+    },
+    {
+      "path": "target/deploy/nicechunk_player.so",
+      "claim": "The retained local Player artifact is 172,880 bytes and matched the finalized Devnet ProgramData allocation hash during the dated audit; modified source files postdate the artifact and are not thereby proven deployed."
+    },
+    {
+      "path": "docs/audits/character-creation-devnet-2026-07-16.json",
+      "claim": "Records finalized Devnet genesis, RPC version, Player Program and ProgramData observations, local-artifact comparison, account-size rent queries, source hashes, NCM measurements, and explicit deployment limits."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "CONTINUE THE PLAYER AND WALLET PATH",
+      "title": "Next, separate the name, invite record, and candidate spawn",
+      "summary": "Character creation can hand off a name, invite hints, and candidate spawn data, but they are not one promise. The next reviewed guide shows which result is an on-chain name lookup, which wallet appends an invite row, which hints remain editable, and what current Play startup actually uses."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "seed-whitelist-and-message-signatures",
+        "title": "Seed Whitelist and Message Signatures",
+        "summary": "Review why an exact off-chain message proof and central campaign record are different from this owner-signed Player transaction."
+      },
+      {
+        "label": "Next reviewed guide",
+        "slug": "names-invites-and-spawn",
+        "title": "Names, Invites, and Spawn",
+        "summary": "Learn why a unique UsernameIndex, an invited-wallet ledger row, and a browser-side candidate spawn are three separate results."
+      }
+    ]
+  },
+  "related": [
+    {
+      "slug": "wallet-login-and-safety",
+      "href": "/docs/wallet-login-and-safety/",
+      "title": "Wallet Login and Safety",
+      "summary": "Review why browser connection, message signature, transaction signature, submission, and confirmation are separate decisions."
+    },
+    {
+      "slug": "ncm-codes",
+      "href": "/docs/ncm-codes/",
+      "title": "NCM Codes and On-Chain Models",
+      "summary": "Decode the compact body fixtures and distinguish browser geometry validation from the Player Program's current prefix and size checks."
+    },
+    {
+      "slug": "player-profile",
+      "href": "/docs/player-profile/",
+      "title": "PlayerProfile PDAs",
+      "summary": "Inspect the profile record that character creation creates or rewrites while the same instruction separately creates, rewrites, or validates Appearance and UsernameIndex."
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "Player Sessions and Delegated Actions",
+      "summary": "Contrast owner-signed character creation with later bounded gameplay actions that may use a temporary session authority."
+    }
+  ]
+}

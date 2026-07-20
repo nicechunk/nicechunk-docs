@@ -1,0 +1,245 @@
+{
+  "_meta": {
+    "language": "zh-Hant",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-deterministic-world-zh-Hant-cab084e02df3b726",
+    "contentHash": "cab084e02df3b726"
+  },
+  "kind": "topic",
+  "slug": "deterministic-world",
+  "shortTitle": "Deterministic World",
+  "seo": {
+    "title": "The Deterministic NiceChunk World",
+    "description": "Learn how NiceChunk reconstructs untouched terrain from canonical inputs and keeps mined-block state separate from the base world."
+  },
+  "hero": {
+    "eyebrow": "FOUNDATION 01 · WORLD GENERATION",
+    "title": "The untouched world is a reproducible answer",
+    "summary": "Give one implementation of the current world algorithm the same canonical seed, bounds, and integer coordinate, and it returns the same base block. Chunk.js draws terrain locally, while the chunk program independently calculates the protocol block it expects when an action needs verification.",
+    "readingTime": "7 min read",
+    "visual": {
+      "src": "/docs/media/deterministic-world-overview-v3.webp",
+      "alt": "The villager girl places a seed cube into a coordinate compass while the villager boy compares a generated grass block and records a mined coordinate separately; identical terrain echoes appear across the lattice.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "Same question, same answer",
+      "body": "The generators use integer coordinates and fixed integer-style hashing, so each implementation can recalculate an untouched location without accepting the player's claimed block as fact."
+    },
+    {
+      "title": "Changes are another layer",
+      "body": "A mined coordinate is recorded separately. It does not rewrite the formula that defines the original terrain around it."
+    },
+    {
+      "title": "Trees are spatial structures",
+      "body": "Trunks and leaves occupy many voxel coordinates, so trees remain part of the canonical spatial generator rather than the one-face decoration table."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "IMPLEMENTATION BOUNDARY",
+    "title": "Reproducibility belongs to one implementation; parity needs a direct test",
+    "summary": "The equations separate two claims that are easy to confuse. A fixed implementation can reproduce its own answer, while agreement between Chunk.js and Rust remains a protocol invariant that must be exercised across both implementations."
+  },
+  "formulas": [
+    {
+      "title": "Determinism inside one implementation",
+      "expression": "B_impl(p) = G_impl(S, p, C), where p = (x, y, z) in Z^3",
+      "explanation": "For one fixed implementation, the same 32-byte seed, integer coordinate, and canonical constants produce the same base-block answer. This equation does not by itself prove that two independent implementations agree.",
+      "terms": [
+        {
+          "symbol": "B_impl(p)",
+          "meaning": "The base block returned by one particular generator implementation at coordinate p."
+        },
+        {
+          "symbol": "G_impl",
+          "meaning": "One fixed JavaScript or Rust world-generation implementation."
+        },
+        {
+          "symbol": "S",
+          "meaning": "The normalized 32-byte world seed used by that implementation."
+        },
+        {
+          "symbol": "p",
+          "meaning": "An integer voxel coordinate in three-dimensional space."
+        },
+        {
+          "symbol": "C",
+          "meaning": "The chunk size, build bounds, sea level, terrain limit, and other canonical constants."
+        }
+      ]
+    },
+    {
+      "title": "Cross-implementation parity requirement",
+      "expression": "Parity(P) = true iff for every p in P: G_JS(S, p, C) = G_Rust(S, p, C)",
+      "explanation": "Parity is established only for coordinates exercised by a fixture that runs both implementations with the same canonical inputs. The current golden suite imports neither Chunk.js nor Rust, so this remains a protocol requirement rather than a property those tests directly prove.",
+      "terms": [
+        {
+          "symbol": "P",
+          "meaning": "The set of coordinates covered by a direct cross-language parity fixture."
+        },
+        {
+          "symbol": "G_JS",
+          "meaning": "The Chunk.js coordinate query under canonical inputs."
+        },
+        {
+          "symbol": "G_Rust",
+          "meaning": "The chunk program's independent Rust calculation under the corresponding canonical inputs."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Chunk.js normalizes the coordinate query",
+      "language": "JavaScript",
+      "source": "chunk.js/world/world-generator.js",
+      "code": "export function getBlockAt(worldSeed, worldX, worldY, worldZ, ruleVersion = DEFAULT_GENERATION_VERSION, options = {}) {\n  const config = createWorldGeneratorConfig({ ...options, worldSeed, generationVersion: ruleVersion });\n  const x = Math.trunc(worldX);\n  const y = Math.trunc(worldY);\n  const z = Math.trunc(worldZ);\n  return blockAtConfig(config, x, y, z);\n}",
+      "explanation": "The public query converts every component to an integer and resolves terrain, fluid, and eligible generated-tree voxels through the complete coordinate path. The generationVersion field is carried in the configuration, but the current generator does not use it to select a different algorithm."
+    },
+    {
+      "title": "Rust rejects a mismatched generated block",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let block_id = generated_block_id_at(global_config_view, &generated_args);\n    if args.expected_block_id != block_id {\n        return Err(NicechunkChunkError::GeneratedBlockMismatch.into());\n    }",
+      "explanation": "The chunk program independently recalculates the block ID and rejects the action when the player's expected block does not match its result."
+    }
+  ],
+  "sections": [
+    {
+      "id": "coordinate-question",
+      "eyebrow": "THE MENTAL MODEL",
+      "title": "A coordinate is a question to the world",
+      "paragraphs": [
+        "Imagine asking, “What was originally at x, y, z?” In the browser, Chunk.js normalizes the configured seed into 32 bytes and applies the configured canonical bounds. The current Rust program instead uses its own fixed canonical seed, chunk size, build bounds, terrain limit, and sea level rather than reading terrain parameters from the legacy Core account.",
+        "Chunk.js builds terrain and fluid arrays for nearby chunks, then generates tree instances separately. Its getBlockAt() query is the complete coordinate answer because it resolves terrain, water, and eligible tree voxels together. The chunk program has an independent Rust implementation that calculates the protocol result used for action checks."
+      ],
+      "facts": [
+        {
+          "label": "Location unit",
+          "value": "Integer voxel",
+          "detail": "Mining verification addresses one exact x, y, z block coordinate."
+        },
+        {
+          "label": "Current chunk width",
+          "value": "16 × 16",
+          "detail": "Chunk coordinates and local coordinates are converted back into world coordinates."
+        },
+        {
+          "label": "Base result",
+          "value": "Block ID",
+          "detail": "The program recalculates the expected block type before accepting a mine."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Deterministic does not mean every game state is generated",
+        "body": "The claim applies to the untouched canonical base world. Mined blocks, backpack contents, foundations, buildings, and other player state use their own records."
+      }
+    },
+    {
+      "id": "seeded-arithmetic",
+      "eyebrow": "HOW IT STAYS REPRODUCIBLE",
+      "title": "Seeded integer arithmetic replaces a hidden dice roll",
+      "paragraphs": [
+        "The Chunk.js world engine normalizes the seed to bytes, hashes those bytes with coordinate values and purpose-specific salts, and interpolates fixed-range noise values. A salt lets terrain height, moisture, trees, and other layers use distinct repeatable number streams.",
+        "Chunk.js carries a generationVersion field through its configuration, but the current generator does not select alternate algorithms from it. The existing wide golden suite exercises the legacy browser generator and a JavaScript protocol mirror; it neither imports Chunk.js nor runs Rust. The chunk program independently implements fixed canonical constants and block logic, so JavaScript-to-Rust equality is an intended protocol invariant, not a property the current tests directly prove."
+      ],
+      "steps": [
+        {
+          "title": "Normalize the world input",
+          "body": "In the browser, normalize the configured seed into 32 bytes and apply the canonical bounds. On chain, the current Rust program substitutes the fixed canonical seed and bounds instead of reading terrain values from the legacy Core account."
+        },
+        {
+          "title": "Hash the location",
+          "body": "Hash the coordinate components needed by each layer. Two-dimensional terrain noise uses x and z with a fixed y component of zero, while ore, tree, and other volume decisions include height where required."
+        },
+        {
+          "title": "Build the column",
+          "body": "Use repeatable terrain factors to find surface and water levels, then resolve the block at the requested height."
+        },
+        {
+          "title": "Check stable fixtures",
+          "body": "Golden tests sample wide coordinate ranges in the legacy browser generator and a JavaScript protocol mirror. They can expose changes in those paths, but they are not a direct Chunk.js-to-Rust comparison."
+        }
+      ]
+    },
+    {
+      "id": "base-and-deltas",
+      "eyebrow": "STATE LAYERS",
+      "title": "The base answer and the player's edit are kept apart",
+      "paragraphs": [
+        "When a mine is accepted, the program records a compact coordinate in the ChunkBroken PDA for that chunk. The base generator can still say which block originally belonged there; the delta says that this specific block has already been removed.",
+        "The play client reads chunk PDAs in batches, decodes their mined-coordinate lists, and applies those deltas over generated terrain. That is why a shared world can preserve player edits without storing a full second copy of every untouched chunk."
+      ],
+      "bullets": [
+        "Base terrain answers what originally exists at a coordinate.",
+        "ChunkBroken answers which generated coordinates have been mined.",
+        "The backpack records accepted rewards instead of trusting a local inventory animation.",
+        "Foundation and building systems keep their own state; they are not implied by the terrain formula."
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A local cache is not the authority",
+        "body": "The client may cache decoded chunk snapshots for speed, but it checks account ownership and replaces rendered chain deltas from RPC snapshots."
+      }
+    },
+    {
+      "id": "tree-exception",
+      "eyebrow": "WHY TREES ARE DIFFERENT",
+      "title": "A tree is one generated structure across many blocks",
+      "paragraphs": [
+        "A tree can cross chunk edges and fill a trunk plus a canopy of leaf voxels. The generator therefore derives the tree candidate, height, type, and occupied volume from its spatial rules, then answers every affected coordinate consistently.",
+        "Trees are the only natural decoration family resolved by canonical spatial generation. Plants, flowers, shrubs, cactus models, moss, lichen, mushrooms, and pebbles must be resolved from a fetched and valid SurfaceDecorationTable PDA and bound to their supporting terrain face. When no valid table is installed, those non-tree surface decorations remain disabled."
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Why the boundary matters",
+        "body": "Keeping one-face objects out of the core generator lets their distributions change through a PDA rule-table update without adding item-specific recognition branches to the chunk program."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "chunk.js/world/world-generator.js",
+      "claim": "Defines the current seeded chunk generator, canonical defaults, terrain profiles, water, and generated tree instances."
+    },
+    {
+      "path": "chunk.js/core/hash.js",
+      "claim": "Implements seed normalization, coordinate hashing, and fixed-range noise interpolation used by the shared engine."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Contains the chunk program's canonical block, surface, water, tree, and coordinate calculations plus compact ChunkBroken state."
+    },
+    {
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Recalculates the generated block during mining and records accepted mined coordinates and backpack rewards."
+    },
+    {
+      "path": "play/play-chain-chunk-deltas.js",
+      "claim": "Fetches, validates, decodes, caches, and incrementally applies ChunkBroken PDA snapshots to the rendered world."
+    },
+    {
+      "path": "tests/worldgen_golden.ts",
+      "claim": "Pins representative and wide-range results from the legacy JavaScript generation paths; it is compatibility evidence, not a direct Chunk.js-to-Rust parity proof."
+    }
+  ],
+  "related": [
+    {
+      "slug": "rule-pdas",
+      "href": "/docs/rule-pdas/",
+      "title": "Rule PDAs and Surface Life",
+      "summary": "See how mutable one-face decoration rules are kept outside the canonical tree generator."
+    },
+    {
+      "slug": "verified-actions",
+      "href": "/docs/verified-actions/",
+      "title": "From Fast Feedback to Verified Action",
+      "summary": "Follow one mined coordinate from local tool contact to accepted shared state."
+    }
+  ]
+}

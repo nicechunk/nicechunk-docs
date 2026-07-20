@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="civilization-rule-lifecycle" data-docs-static-source="1da2b9900839150bc4762df4e64405d1a7c18433df38e6565f1776727dcee0c1">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/civilization-rule-lifecycle.json" />
+    <meta name="nicechunk:source-sha256" content="1da2b9900839150bc4762df4e64405d1a7c18433df38e6565f1776727dcee0c1" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/civilization-rule-lifecycle/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Audit NiceChunk Civilization&#39;s six-instruction Devnet lifecycle, fixed-size PDA accounts, centrally attested citizen power, caller-selected tallies, governable adapter signer gate, atomic target updates, live account evidence, and current website submission boundary." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Civilization Rule Lifecycle: Power, Tallies, and Atomic Adapters" />
+    <meta property="og:description" content="Audit NiceChunk Civilization&#39;s six-instruction Devnet lifecycle, fixed-size PDA accounts, centrally attested citizen power, caller-selected tallies, governable adapter signer gate, atomic target updates, live account evidence, and current website submission boundary." />
+    <meta property="og:url" content="https://nicechunk.com/docs/civilization-rule-lifecycle/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/civilization-rulebooks-overview-v1.webp" />
+    <meta property="og:image:alt" content="In one game-anime coastal workshop mission, the canonical black-haired villager boy and orange-haired villager girl place green and red resource cubes on opposite pans of a brass balance beside a closed rule ledger, while a mechanical shaft links the weighing platform to a lit stone furnace amid Chunk.js-style grass, flowers, stone, trees, and blue water." />
+    <title>Civilization Rule Lifecycle: Power, Tallies, and Atomic Adapters</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#article",
+  "url": "https://nicechunk.com/docs/civilization-rule-lifecycle/",
+  "name": "Civilization Rule Lifecycle: Centrally Attested Power, Caller-Selected Tallies, and Atomic Adapters",
+  "description": "Audit NiceChunk Civilization's six-instruction Devnet lifecycle, fixed-size PDA accounts, centrally attested citizen power, caller-selected tallies, governable adapter signer gate, atomic target updates, live account evidence, and current website submission boundary.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Civilization Rule Lifecycle: Centrally Attested Power, Caller-Selected Tallies, and Atomic Adapters",
+  "mainEntityOfPage": "https://nicechunk.com/docs/civilization-rule-lifecycle/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Devnet accepts the six instructions while the production page still says upgrade required",
+    "The account graph is deterministic, public, and permanently allocated",
+    "One key attests the total and every citizen allocation",
+    "Finalize produces a caller-selected passing certificate, not a complete election result",
+    "The target adapter, not the Receipt alone, proves an applied governable patch",
+    "Live accounts show legacy single-sign history; simulations show the current schema"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#deployment-and-ui-gate",
+      "name": "Devnet accepts the six instructions while the production page still says upgrade required"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#pda-graph-and-layouts",
+      "name": "The account graph is deterministic, public, and permanently allocated"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#central-power-attestation",
+      "name": "One key attests the total and every citizen allocation"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#caller-selected-tally",
+      "name": "Finalize produces a caller-selected passing certificate, not a complete election result"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#receipt-and-atomic-adapters",
+      "name": "The target adapter, not the Receipt alone, proves an applied governable patch"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/civilization-rule-lifecycle/#live-devnet-evidence",
+      "name": "Live accounts show legacy single-sign history; simulations show the current schema"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/civilization-rulebooks-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Civilization Rule Lifecycle</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">CIVILIZATION 15 · ATTESTED POWER AND ATOMIC ADAPTERS</p>
+<h1>Civilization Rule Lifecycle: Centrally Attested Power, Caller-Selected Tallies, and Atomic Adapters</h1>
+<p class="docs-hero-summary">NiceChunk's deployed Civilization Program can publish a power snapshot, settle per-citizen power, publish and sign a RuleBook, recount a supplied signature set, and issue an execution receipt. The account graph is inspectable, but power is declared by one fixed authority rather than calculated from game receipts, finalization counts only the signatures a caller includes, and only a target program's atomic adapter can make a receipt and target write prove one transaction outcome. The production Rule Library can build and simulate this schema while its submit switch remains disabled.</p>
+<span class="docs-reading-time">17 min read</span></div>
+<figure class="docs-hero-visual"><img alt="In one game-anime coastal workshop mission, the canonical black-haired villager boy and orange-haired villager girl place green and red resource cubes on opposite pans of a brass balance beside a closed rule ledger, while a mechanical shaft links the weighing platform to a lit stone furnace amid Chunk.js-style grass, flowers, stone, trees, and blue water." decoding="async" height="887" loading="eager" src="/docs/media/civilization-rulebooks-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Six instructions create six persistent account families</strong>
+<p>The effective order is power snapshot, zero or more citizen settlements, RuleBook publication, zero or more signatures, tally finalization, and receipt execution. Fixed seeds make every account independently addressable and decodable.</p></article>
+<article class="docs-key-point"><strong>Power is attested, not derived</strong>
+<p>The same fixed key is the current program upgrade authority and the only key allowed to publish total power or settle citizen power. The program does not calculate those values from mining, building, market, or other gameplay receipts.</p></article>
+<article class="docs-key-point"><strong>A passing tally is a selected certificate</strong>
+<p>Finalize reads only the Signature PDAs supplied in that transaction. A target adapter must then sign through its own PDA and update the target in the same atomic transaction if the receipt is meant to prove an applied rule.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#deployment-and-ui-gate">Devnet accepts the six instructions while the production page still says upgrade required</a></li>
+<li><a href="#pda-graph-and-layouts">The account graph is deterministic, public, and permanently allocated</a></li>
+<li><a href="#central-power-attestation">One key attests the total and every citizen allocation</a></li>
+<li><a href="#caller-selected-tally">Finalize produces a caller-selected passing certificate, not a complete election result</a></li>
+<li><a href="#receipt-and-atomic-adapters">The target adapter, not the Receipt alone, proves an applied governable patch</a></li>
+<li><a href="#live-devnet-evidence">Live accounts show legacy single-sign history; simulations show the current schema</a></li>
+<li><a href="#technical-details">Five equations expose where the chain verifies data and where trust remains</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="deployment-and-ui-gate"><p class="docs-eyebrow">DEPLOYED SCHEMA, DISABLED SUBMIT</p>
+<h2>Devnet accepts the six instructions while the production page still says upgrade required</h2>
+<p class="docs-prose">The current Civilization Program is 3MRG4UjxTK1rMq7TGM4bX1GrD8C36bQtt1RdTmJD7Jah on Devnet. A read-only simulation at confirmed slot 476,316,119 put all six instruction tags into one 759-byte transaction, returned err = null, consumed 78,586 compute units, and returned correctly sized accounts with all six expected magic prefixes. A separate direct execution simulation against a governable RuleBook at slot 476,321,321 failed with custom error 7027, MissingAdapterAuthority. Together those results verify the deployed binary's power-snapshot schema and governable signer gate without creating persistent audit accounts.</p>
+<p class="docs-prose">The live website at https://nicechunk.com/civilization/rules.html is more conservative than the deployed program. civilization/rules.js declares requiredSchema as power_snapshot_v1 but keeps chainSubmitEnabled false. Its submit functions therefore replace a ready plan with blocked_program_upgrade and display an English message saying the Devnet program still needs that upgrade. Drafting, local signatures, staging, PDA reads, plan building, and simulation can run; the page will not send publish, finalize, or execute transactions.</p>
+<p class="docs-prose">Deployment provenance is not byte-for-byte reproducible from the current checkout. The upgradeable ProgramData account is GnB5M3pKaP9YvqD7A2ima9V7NetLTUkG5C2f3Ysqfpxi, with authority 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud and last deployment slot 476,035,612 in transaction 4uJJvPaWV71ykNL3ewaXjjFLohwMDWQRYBfyzeXLb4JpJs5r6wvTNUZCZ16YgTNcVeKfRtb7HYDqEFNrRw1KHdNF. The 131,160-byte on-chain dump hashes to 41ddec947e8f8ac23381ca3747e0ef6904a01d5ffdb553bd9aa7a7e4d3eb4ae0, while target/deploy/nicechunk_civilization.so is 130,728 bytes and hashes to a593ee1ea301b593d6d29a5cddf60a54eae49274877198ea5a4f1dff2713d9b9. The checked-in deploy report is older still and records deploy_requested false. This guide therefore distinguishes working-tree source review from behavior observed on Devnet.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Program and authority</span>
+<strong>3MRG4... / 9XuoV...</strong>
+<p>The same 9XuoV... key is both the hardcoded power authority and current upgrade authority.</p></article>
+<article class="docs-fact"><span>Six-tag simulation</span>
+<strong>78,586 CU / no error</strong>
+<p>Confirmed-slot simulation only; it proves execution behavior, not persisted governance participation.</p></article>
+<article class="docs-fact"><span>Production submit</span>
+<strong>Explicitly disabled</strong>
+<p>The client can build and simulate plans but blocks wallet submission behind a stale upgrade message.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Deployed behavior is verified; deployed bytes are not reproduced</strong>
+<p>Do not describe the local Rust artifact as the exact Devnet binary. The successful simulation supports the six-instruction claims, while the different hashes and retained upgrade authority require an explicit provenance boundary.</p></aside></section>
+<section class="docs-content-section" id="pda-graph-and-layouts"><p class="docs-eyebrow">FIXED ADDRESSES AND FIXED BYTES</p>
+<h2>The account graph is deterministic, public, and permanently allocated</h2>
+<p class="docs-prose">Six Civilization-owned PDA families carry the lifecycle. PowerSnapshot is 128 bytes, CitizenPower 144, RuleBook 320, RuleSignature 136, RuleTally 128, and ExecutionReceipt 128. Every format uses version one and an eight-byte magic value. The RuleBook address is scoped only by ruleIdHash; a citizen has one power account per PowerSnapshot and one signature per RuleBook. Tally and Receipt each have one canonical address per RuleBook.</p>
+<p class="docs-prose">RuleBook commits the author, rule ID hash, readable text hash, new patch hash, snapshot hash, target program, target PDA, total and required power, threshold basis points, target status, risk byte, four tally powers, and lifecycle slots. It does not commit a challenge-window deadline or the previous target account hash. The production composer includes old_value_hash, challenge_window, threshold labels, and Natural Law language in its off-chain envelope, but those fields do not become additional RuleBook bytes.</p>
+<p class="docs-prose">The adapter authority is an address, not a stored Civilization account. Its seed is civilization-adapter plus RuleBook, but its derivation program is the target program. For a governable rule, Civilization requires that exact account to be a transaction signer; an external wallet cannot sign as a PDA, so a target program must invoke Civilization with invoke_signed.</p>
+<p class="docs-prose">No instruction closes PowerSnapshot, CitizenPower, RuleBook, Signature, Tally, or Receipt accounts. Successfully created accounts and their rent remain allocated. A reused rule ID hash, snapshot hash, citizen allocation, citizen signature, or receipt address is rejected rather than reset.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Rule and power bytes</span>
+<strong>320 / 128 / 144</strong>
+<p>RuleBook, PowerSnapshot, and CitizenPower use fixed version-one layouts.</p></article>
+<article class="docs-fact"><span>Vote and execution bytes</span>
+<strong>136 / 128 / 128</strong>
+<p>RuleSignature, RuleTally, and ExecutionReceipt are independently queryable PDAs.</p></article>
+<article class="docs-fact"><span>Lifecycle cleanup</span>
+<strong>No close path</strong>
+<p>Historical accounts persist with rent, including failed-history tallies and executed receipts.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Policy names are not all execution rules</strong>
+<p>risk_level is stored as an unconstrained byte. Challenge is a vote side but has no special veto. Only target_status = governable activates the adapter signer check; adapter-pending, readonly, and protected do not receive separate on-chain execution semantics.</p></aside></section>
+<section class="docs-content-section" id="central-power-attestation"><p class="docs-eyebrow">WHO DEFINES VOTING POWER</p>
+<h2>One key attests the total and every citizen allocation</h2>
+<p class="docs-prose">publish_power_snapshot and settle_citizen_power both require 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud. The first instruction stores a caller-supplied snapshot hash, total active power, window numbers, expiry, and creation time. The second stores a caller-supplied positive power for a named citizen. The citizen account does not sign settlement; the authority pays for and creates the allocation.</p>
+<p class="docs-prose">The program verifies that total power is positive, window_end_epoch is not below window_start_epoch, each citizen power is positive and no greater than the snapshot total, and the snapshot has not expired. It does not bind the window numbers to Solana's Clock epoch. The production page converts ISO dates into days since the Unix epoch, while the settlement CLI defaults to the numeric range 0 through 27. Both satisfy the same ordering check despite representing different conventions.</p>
+<p class="docs-prose">No instruction reads mining, building, marketplace, smelting, Guardian, PlayerProgress, or other gameplay receipts to calculate power. The settlement CLI accepts wallet:power entries or a JSON file, sums those inputs for total active power, hashes the off-chain preimage, and asks the fixed authority to create the accounts. That makes the resulting allocation publicly inspectable and authority-attested, not permissionlessly recomputed from game history.</p>
+<p class="docs-prose">CitizenPower is unique per snapshot and citizen, but the program does not maintain an allocated-total counter or scan other CitizenPower accounts. Each allocation may be at most T while their aggregate may exceed T. Finalize independently caps the sum in one supplied signature set at T, preventing an oversized certificate in that call but not preventing conflicting subsets backed by over-issued allocations.</p>
+<p class="docs-prose">Expiry is checked when a RuleBook consumes the PowerSnapshot, when the authority settles CitizenPower, and when a citizen signs. finalize_rule_tally and execute_rule_receipt do not recheck it. A valid signature created before expiry can therefore be counted and executed afterward, with no on-chain challenge deadline.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Power issuer</span>
+<strong>One fixed authority</strong>
+<p>It signs both snapshot publication and every citizen settlement and can also upgrade the program.</p></article>
+<article class="docs-fact"><span>Window validation</span>
+<strong>End &gt;= start only</strong>
+<p>The two u64 values are not compared with Solana Clock.epoch.</p></article>
+<article class="docs-fact"><span>Allocation invariant</span>
+<strong>Per-citizen bound only</strong>
+<p>There is no on-chain proof that all CitizenPower values sum to no more than total active power.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A CitizenPower PDA proves an attestation, not its economic derivation</strong>
+<p>A verifier can prove which authority declared a citizen's number, which snapshot hash it references, and whether signing happened before expiry. The current program cannot prove that the number follows a published activity formula or complete receipt set.</p></aside></section>
+<section class="docs-content-section" id="caller-selected-tally"><p class="docs-eyebrow">RECOUNT THE ACCOUNTS YOU RECEIVE</p>
+<h2>Finalize produces a caller-selected passing certificate, not a complete election result</h2>
+<p class="docs-prose">Any writable signer can pay to finalize. After the payer, RuleBook, Tally, and System Program, every remaining account is interpreted as one RuleSignature. The program validates Civilization ownership, version, RuleBook binding, vote side, and unique signer, then adds that signature's stored power. It has no account index, registry, expected signature count, or getProgramAccounts capability with which to discover signatures the caller did not provide.</p>
+<p class="docs-prose">The selected total cannot exceed the RuleBook's total active power. Agree must meet the rounded-up required power and strictly exceed selected reject power. Abstain and challenge are stored but do not affect that boolean. A caller can therefore omit reject, abstain, or challenge signatures and finalize as soon as an included agree subset passes. That finalized status prevents later signatures or a more complete recount.</p>
+<p class="docs-prose">If the selected set does not pass, the Tally is still packed and the RuleBook is returned to published with finalized_slot zero. A later caller can overwrite that canonical Tally with a different supplied set. This is useful for progressive collection before threshold, but it does not accumulate pages on chain and it does not preserve every intermediate recount.</p>
+<p class="docs-prose">Every counted Signature account must fit in the same Solana transaction. There is no paginated accumulator or Merkle commitment to a complete set. Duplicate detection stores signers in a Vec and linearly searches it for every account, producing O(n squared) public-key comparisons in the worst case in addition to transaction account and compute limits.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Signature discovery</span>
+<strong>Caller supplies all counted PDAs</strong>
+<p>On-chain code never enumerates every signature for the RuleBook.</p></article>
+<article class="docs-fact"><span>Passing condition</span>
+<strong>Yes &gt;= required and yes &gt; no</strong>
+<p>Only selected agree and reject weights affect the boolean.</p></article>
+<article class="docs-fact"><span>Scaling model</span>
+<strong>One transaction / O(n²) duplicate scan</strong>
+<p>There is no cumulative or paginated tally route.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Do not call RuleTally a complete vote count</strong>
+<p>It is cryptographic evidence that one supplied, non-duplicated subset satisfied the program's threshold under the stored weights. It is not evidence that every published Signature PDA was included or that omitted opposition was zero.</p></aside></section>
+<section class="docs-content-section" id="receipt-and-atomic-adapters"><p class="docs-eyebrow">RECEIPT VERSUS TARGET CHANGE</p>
+<h2>The target adapter, not the Receipt alone, proves an applied governable patch</h2>
+<p class="docs-prose">execute_rule_receipt validates a finalized RuleBook, the canonical threshold-met Tally, the canonical new Receipt PDA, and an executor payer. It records the RuleBook, executor, execution slot, and time, then marks the RuleBook executed. It does not invoke the target program or inspect the target PDA. A bare Receipt therefore proves only that Civilization executed its own lifecycle transition.</p>
+<p class="docs-prose">For target_status = governable, Civilization additionally requires the civilization-adapter PDA derived under the RuleBook's target program to be a signer. Smelting and Chunk adapters derive that PDA, use invoke_signed to call Civilization tag three, validate the resulting Receipt and executed RuleBook, and then write their recipe or rule table. Since the outer adapter, inner CPI, and target mutation share one Solana transaction, a failure after the CPI rolls the Receipt and RuleBook status back too.</p>
+<p class="docs-prose">The adapters bind target_program, target_pda, and patch_hash to the exact new payload bytes. They do not compare the target account's current data hash with an expected old hash committed on chain. The Rule Library reads an old hash before signing and again before submission, but that is client preflight that another transaction builder can omit. A valid finalized rule may therefore apply over a target state that changed after its proposal, subject only to the target adapter's structural checks.</p>
+<p class="docs-prose">The strongest verification path starts from the confirmed outer adapter transaction: verify the target instruction and payload, its inner Civilization tag-three CPI, the adapter signer PDA, the executed Receipt, and the target account's post-state. Reading the Receipt without the outer transaction or target state cannot show that a recipe table, resource-drop table, or surface-decoration table actually changed.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Governable execution</span>
+<strong>Target-program PDA signer required</strong>
+<p>A direct wallet call cannot manufacture the target's adapter signature.</p></article>
+<article class="docs-fact"><span>Receipt contents</span>
+<strong>Rule, executor, slot, time</strong>
+<p>It contains no target data hash or before-and-after state.</p></article>
+<article class="docs-fact"><span>Concurrency guard</span>
+<strong>No on-chain old-state CAS</strong>
+<p>The current hash binding authenticates the new payload only.</p></article></div>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Atomicity is the meaningful receipt-to-state link</strong>
+<p>When a conforming target adapter invokes Civilization and performs its target write in one transaction, success commits both and any error rolls both back. That is materially stronger than creating a Receipt first and applying a target change in a later transaction.</p></aside></section>
+<section class="docs-content-section" id="live-devnet-evidence"><p class="docs-eyebrow">DATED DEVNET AUDIT</p>
+<h2>Live accounts show legacy single-sign history; simulations show the current schema</h2>
+<p class="docs-prose">At confirmed slot 476,316,179 on 2026-07-15, the program owned 77 recognized persistent lifecycle accounts: 25 RuleBooks, 25 RuleSignatures, 17 RuleTallies, and 10 ExecutionReceipts, with zero PowerSnapshots and zero CitizenPowers. The RuleBooks split into eight published, seven finalized, and ten executed. Every recognized account decoded as version one and every address matched its canonical PDA derivation.</p>
+<p class="docs-prose">All 25 RuleBooks used target_status governable and threshold 5,000 basis points. Their authors and all 25 signature signers were the fixed 9XuoV... authority, and every signature side was agree. Because no PowerSnapshot or CitizenPower account persisted, these records are old-schema, one-signer test history retained across upgrades. They do not prove the current power settlement route was used or that independent citizens participated.</p>
+<p class="docs-prose">The six-instruction simulation fills that gap only at the behavior level: it showed the current deployed program can create all new account types and complete the lifecycle, but simulation intentionally persisted nothing. The repository tests add five Rust unit tests for Civilization state and helper boundaries and twelve Mocha tests for SDK encoding, derivation, decoding, and source structure. They are not solana-program-test execution and do not replace the live simulation.</p>
+<p class="docs-prose">Three confirmed outer adapter transactions demonstrate the atomic pattern on Devnet. Smelting execution 3wmSya3JohzAw422X2ATKH4enfh3ZiNry1UTDz9DfBoWB7hC2sVNuo14AmQBaKZo9CXmPc5qQ6oY2LKUbDgimJDc at slot 473,884,850 used unified Game bytes 03 04 and an inner Civilization tag three CPI. Resource-drop execution 29kMdZGuAJjiEufYgt24HqiY5JbFCTJzjwXNDpiLxD4r1xd5SMx27yb4YwAisbjQwxDC37EJUYMDkdkcfGhie3fE at slot 473,891,770 used versioned bytes 02 0a and the same inner tag. Surface-decoration execution 4DwE8H6TCaRP9QYfaUmYV4JNCt3QirPdEZs9vBT2S5dwJVf3cbwxuL5ZkJK9PqQsKmy5WLNCEhzn3vmrg4SoDtnC at slot 476,035,816 used Chunk tag 13 and an inner tag-three CPI. The first two workflows published and signed under an older account schema, so their target writes verify the adapter pattern, not a persistent six-stage power lifecycle.</p>
+<p class="docs-prose">Devnet evidence is mutable and the program remains upgradeable by the same key that attests power. Future accounts, a client-gate change, an upgrade, account cleanup instruction, or a new tally design can change these conclusions. Verification should always pin the slot, program data, transaction, and target post-state instead of treating this dated inventory as a permanent protocol promise.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Persistent account snapshot</span>
+<strong>77 total / 0 power accounts</strong>
+<p>25 RuleBooks, 25 signatures, 17 tallies, and 10 receipts at confirmed slot 476,316,179.</p></article>
+<article class="docs-fact"><span>Historic participation</span>
+<strong>One authority / all agree</strong>
+<p>The retained accounts are test history, not evidence of distributed citizen settlement.</p></article>
+<article class="docs-fact"><span>Confirmed target adapters</span>
+<strong>Smelting, drops, decorations</strong>
+<p>Each outer target instruction contains an inner Civilization execution-receipt CPI.</p></article></div>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Pin claims to a slot and evidence type</strong>
+<p>Persistent accounts prove retained state, simulation proves current instruction behavior without state, confirmed adapter transactions prove atomic outer-and-inner execution, and source review explains intent. None of those evidence types should be silently substituted for another.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">INSTRUCTION, ADDRESS, POWER, TALLY, AND ADAPTER EQUATIONS</p>
+<h2>Five equations expose where the chain verifies data and where trust remains</h2>
+<p>The lifecycle and PDA equations define the durable graph. The power and tally equations show the central attestation and caller-selected recount boundaries. The final equation explains why a receipt is useful only when a target adapter creates it and mutates the target atomically.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Six-instruction lifecycle and RuleBook state</h3>
+<div aria-label="I4(publish_power_snapshot) -&gt; I5(settle_citizen_power)* -&gt; I0(publish_rule_book) -&gt; I1(sign_rule)* -&gt; I2(finalize_rule_tally) -&gt; I3(execute_rule_receipt); RuleBook: published -&gt; finalized -&gt; executed" class="docs-formula-expression" role="math"><code>I4(publish_power_snapshot) -&gt; I5(settle_citizen_power)* -&gt; I0(publish_rule_book) -&gt; I1(sign_rule)* -&gt; I2(finalize_rule_tally) -&gt; I3(execute_rule_receipt); RuleBook: published -&gt; finalized -&gt; executed</code></div>
+<p class="docs-technical-explanation">The dispatcher assigns tags four and five to the power layer and tags zero through three to the rule layer. Account dependencies enforce the useful order. A non-passing finalize attempt can leave the RuleBook published for another recount, while a passing recount freezes it as finalized and a valid execution marks it executed.</p>
+<dl class="docs-formula-terms"><dt>I0..I5</dt>
+<dd>The one-byte instruction tags accepted by the Civilization Program.</dd>
+<dt>*</dt>
+<dd>Zero or more records at that stage; at least one positive-power signature is needed for a positive threshold to pass.</dd>
+<dt>published, finalized, executed</dt>
+<dd>The only three persisted RuleBook status values.</dd></dl></article>
+<article class="docs-formula"><h3>Deterministic account and adapter addresses</h3>
+<div aria-label="P = PDA_C([&quot;power-snapshot&quot;,H_s]); V_c = PDA_C([&quot;citizen-power&quot;,P,c]); R = PDA_C([&quot;rule-book&quot;,H_r]); S_c = PDA_C([&quot;rule-signature&quot;,R,c]); Q = PDA_C([&quot;rule-tally&quot;,R]); E = PDA_C([&quot;rule-execution&quot;,R]); A = PDA_T([&quot;civilization-adapter&quot;,R])" class="docs-formula-expression" role="math"><code>P = PDA_C(["power-snapshot",H_s]); V_c = PDA_C(["citizen-power",P,c]); R = PDA_C(["rule-book",H_r]); S_c = PDA_C(["rule-signature",R,c]); Q = PDA_C(["rule-tally",R]); E = PDA_C(["rule-execution",R]); A = PDA_T(["civilization-adapter",R])</code></div>
+<p class="docs-technical-explanation">PowerSnapshot, CitizenPower, RuleBook, Signature, Tally, and Receipt are owned by the Civilization Program C. The adapter authority is different: it is derived under the target program T, so only that target program can produce its PDA signature through invoke_signed.</p>
+<dl class="docs-formula-terms"><dt>H_s, H_r</dt>
+<dd>The committed 32-byte snapshot hash and rule ID hash.</dd>
+<dt>c</dt>
+<dd>A citizen public key that scopes one CitizenPower and one RuleSignature.</dd>
+<dt>C, T</dt>
+<dd>The Civilization Program and the RuleBook's target program.</dd></dl></article>
+<article class="docs-formula"><h3>Authority-attested citizen power and missing aggregate invariant</h3>
+<div aria-label="accept_settlement(c,p) iff signer = A_power AND 0 &lt; p &lt;= T AND (expires = 0 OR now &lt;= expires); not enforced: sum_c(p_c) &lt;= T or p_c = f(gameplay receipts)" class="docs-formula-expression" role="math"><code>accept_settlement(c,p) iff signer = A_power AND 0 &lt; p &lt;= T AND (expires = 0 OR now &lt;= expires); not enforced: sum_c(p_c) &lt;= T or p_c = f(gameplay receipts)</code></div>
+<p class="docs-technical-explanation">A fixed authority creates the snapshot and every per-citizen allocation. The program bounds each allocation against total active power and carries the snapshot expiry into CitizenPower, but it neither sums all allocations nor derives any value from gameplay accounts. One authority can therefore attest allocations whose aggregate exceeds the declared total, even though a single finalize call cannot count more than that total.</p>
+<dl class="docs-formula-terms"><dt>A_power</dt>
+<dd>9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud, the fixed Devnet power authority.</dd>
+<dt>T</dt>
+<dd>The total active power stored in both PowerSnapshot and RuleBook.</dd>
+<dt>expires</dt>
+<dd>A Unix timestamp; zero means no expiry in the on-chain checks.</dd></dl></article>
+<article class="docs-formula"><h3>Threshold math over a caller-selected signature set</h3>
+<div aria-label="R = ceil(T*b/10000); (Y,N,A,C) = sum_{s in S_caller} p_s * oneHot(side_s); require Y+N+A+C &lt;= T; pass(S_caller) iff Y &gt;= R AND Y &gt; N" class="docs-formula-expression" role="math"><code>R = ceil(T*b/10000); (Y,N,A,C) = sum_{s in S_caller} p_s * oneHot(side_s); require Y+N+A+C &lt;= T; pass(S_caller) iff Y &gt;= R AND Y &gt; N</code></div>
+<p class="docs-technical-explanation">Basis points round upward. S_caller is not an on-chain enumeration of every Signature PDA for the RuleBook; it is exactly the remaining account list supplied to finalize. Reject, abstain, or challenge signatures omitted by the caller contribute nothing, and challenge power has no veto term in the pass condition.</p>
+<dl class="docs-formula-terms"><dt>b, R</dt>
+<dd>The stored threshold in basis points and its rounded-up required power.</dd>
+<dt>Y, N, A, C</dt>
+<dd>Agree, reject, abstain, and challenge power counted from the supplied accounts.</dd>
+<dt>S_caller</dt>
+<dd>The signature subset chosen by the finalize transaction builder.</dd></dl></article>
+<article class="docs-formula"><h3>Atomic governable adapter transition</h3>
+<div aria-label="Tx_adapter = validate(R_finalized,T,target,H_patch) -&gt; CPI_C(I3, A signs) -&gt; validate(E) -&gt; write(target,newPayload); any error =&gt; Delta(E) = Delta(R.status) = Delta(target) = 0" class="docs-formula-expression" role="math"><code>Tx_adapter = validate(R_finalized,T,target,H_patch) -&gt; CPI_C(I3, A signs) -&gt; validate(E) -&gt; write(target,newPayload); any error =&gt; Delta(E) = Delta(R.status) = Delta(target) = 0</code></div>
+<p class="docs-technical-explanation">A conforming target adapter validates the finalized RuleBook, tally, target program, target PDA, and hash of the new payload; signs the Civilization receipt CPI with its target-derived adapter PDA; revalidates the executed state and Receipt; then writes the target. Solana atomicity rolls all program mutations back together. The current adapters do not enforce an expected old target hash, so this is not compare-and-swap.</p>
+<dl class="docs-formula-terms"><dt>H_patch</dt>
+<dd>The RuleBook patch hash, bound by an adapter to the exact new payload bytes.</dd>
+<dt>A</dt>
+<dd>The civilization-adapter PDA that only target program T can sign for.</dd>
+<dt>E</dt>
+<dd>The Civilization execution receipt; by itself it contains no target-state delta.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>RuleBook serialization commits hashes, target, power, policy bytes, and lifecycle slots</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_civilization/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        writer.bytes(&amp;RULE_BOOK_MAGIC)?;
+        writer.u16(CIVILIZATION_VERSION)?;
+        writer.u8(init.bump)?;
+        writer.u8(STATUS_PUBLISHED)?;
+        writer.pubkey(init.author)?;
+        writer.bytes(&amp;init.args.rule_id_hash)?;
+        writer.bytes(&amp;init.args.text_hash)?;
+        writer.bytes(&amp;init.args.patch_hash)?;
+        writer.bytes(&amp;init.args.snapshot_hash)?;
+        writer.pubkey(&amp;init.args.target_program)?;
+        writer.pubkey(&amp;init.args.target_pda)?;
+        writer.u64(init.args.total_active_power)?;
+        writer.u64(required_power)?;
+        writer.u16(init.args.threshold_bps)?;
+        writer.u8(init.args.target_status)?;
+        writer.u8(init.args.risk_level)?;
+        writer.u64(0)?;
+        writer.u64(0)?;
+        writer.u64(0)?;
+        writer.u64(0)?;
+        writer.u64(init.created_slot)?;
+        writer.u64(0)?;
+        writer.u64(0)?;
+        writer.i64(init.created_at)?;</code></pre>
+<p class="docs-technical-explanation">These fields occupy the fixed 320-byte RuleBook. The four zeroed powers are later replaced by finalize; finalized and executed slots begin at zero. A challenge window and expected old-state hash are not fields in this layout.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>A signature must match one settled CitizenPower account and its expiry</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_civilization/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    {
+        let rule_data = rule_book.try_borrow_data()?;
+        RuleBookAccount::validate(&amp;rule_data)?;
+        if RuleBookAccount::status(&amp;rule_data)? != STATUS_PUBLISHED {
+            return Err(NicechunkCivilizationError::RuleAlreadyFinalized.into());
+        }
+        if RuleBookAccount::snapshot_hash(&amp;rule_data)? != snapshot_hash {
+            return Err(NicechunkCivilizationError::SnapshotMismatch.into());
+        }
+        if snapshot_power &gt; RuleBookAccount::total_active_power(&amp;rule_data)? {
+            return Err(NicechunkCivilizationError::InvalidSignatureData.into());
+        }
+    }
+    {
+        let citizen_power_data = citizen_power.try_borrow_data()?;
+        CitizenPowerAccount::validate_for_signer(&amp;citizen_power_data, signer.key, &amp;snapshot_hash)?;
+        let snapshot = CitizenPowerAccount::snapshot(&amp;citizen_power_data)?;
+        validate_citizen_power_pda(program_id, citizen_power.key, &amp;snapshot, signer.key)?;
+        if CitizenPowerAccount::power(&amp;citizen_power_data) != snapshot_power {
+            return Err(NicechunkCivilizationError::CitizenPowerMismatch.into());
+        }
+        let expires_at = CitizenPowerAccount::expires_at(&amp;citizen_power_data);
+        if expires_at &gt; 0 &amp;&amp; Clock::get()?.unix_timestamp &gt; expires_at {
+            return Err(NicechunkCivilizationError::PowerSnapshotExpired.into());
+        }
+    }</code></pre>
+<p class="docs-technical-explanation">The signer cannot invent a different weight in the sign payload. This is strong binding to the authority-created CitizenPower bytes, but it does not prove how the authority calculated those bytes.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Finalize recounts only the Signature accounts supplied by its caller</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_civilization/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let mut yes_power = 0_u64;
+    let mut no_power = 0_u64;
+    let mut abstain_power = 0_u64;
+    let mut challenge_power = 0_u64;
+    let mut counted_power = 0_u64;
+    let mut seen_signers: Vec&lt;Pubkey&gt; = Vec::new();
+    for signature in account_info_iter {
+        require_key_eq(
+            signature.owner,
+            program_id,
+            NicechunkCivilizationError::InvalidSignatureData,
+        )?;
+        let data = signature.try_borrow_data()?;
+        RuleSignatureAccount::validate_for_rule(&amp;data, rule_book.key)?;
+        let signer = RuleSignatureAccount::signer(&amp;data)?;
+        if seen_signers.iter().any(|seen| seen == &amp;signer) {
+            return Err(NicechunkCivilizationError::DuplicateSignatureSigner.into());
+        }
+        seen_signers.push(signer);
+        let signature_power = RuleSignatureAccount::power(&amp;data);
+        counted_power =
+            checked_add_signature_power(counted_power, signature_power, total_active_power)?;
+        match RuleSignatureAccount::side(&amp;data) {
+            SIDE_AGREE =&gt; yes_power = checked_add_power(yes_power, signature_power)?,
+            SIDE_REJECT =&gt; no_power = checked_add_power(no_power, signature_power)?,
+            SIDE_ABSTAIN =&gt; abstain_power = checked_add_power(abstain_power, signature_power)?,
+            SIDE_CHALLENGE =&gt; {
+                challenge_power = checked_add_power(challenge_power, signature_power)?
+            }
+            _ =&gt; return Err(NicechunkCivilizationError::InvalidSignatureSide.into()),
+        }
+    }</code></pre>
+<p class="docs-technical-explanation">There is no program scan for missing signatures and no expected-signature count. Duplicate signers and a selected sum above total power fail, but the caller may omit valid opposing or non-agree accounts. The Vec-based duplicate scan also grows quadratically in comparisons.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Only governable targets require the target-derived adapter signer</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_civilization/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let (target_status, target_program) = {
+        let rule_data = rule_book.try_borrow_data()?;
+        RuleBookAccount::validate(&amp;rule_data)?;
+        let status = RuleBookAccount::status(&amp;rule_data)?;
+        if status == STATUS_EXECUTED {
+            return Err(NicechunkCivilizationError::RuleAlreadyExecuted.into());
+        }
+        if status != STATUS_FINALIZED {
+            return Err(NicechunkCivilizationError::RuleNotFinalized.into());
+        }
+        (
+            RuleBookAccount::target_status(&amp;rule_data)?,
+            RuleBookAccount::target_program(&amp;rule_data)?,
+        )
+    };
+    if target_status == TARGET_STATUS_GOVERNABLE {
+        let adapter_authority =
+            adapter_authority.ok_or(NicechunkCivilizationError::MissingAdapterAuthority)?;
+        validate_adapter_authority_pda(adapter_authority, &amp;target_program, rule_book.key)?;
+    }
+    {
+        let tally_data = tally.try_borrow_data()?;
+        RuleTallyAccount::validate_threshold_met(&amp;tally_data, rule_book.key)?;
+    }</code></pre>
+<p class="docs-technical-explanation">The gate verifies both the signer bit and the PDA derived under target_program. Adapter-pending, readonly, and protected are accepted RuleBook values but do not receive an equivalent on-chain execution prohibition or Natural Law check.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Smelting adapter creates the receipt before writing the exact patch</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_smelting/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    {
+        let rule_data = rule_book.try_borrow_data()?;
+        civilization_adapter::validate_rule_book_for_smelting_patch(
+            &amp;rule_data,
+            civilization_program.key,
+            program_id,
+            recipe_table.key,
+            payload,
+            civilization_adapter::CIVILIZATION_STATUS_FINALIZED,
+        )?;
+    }
+    {
+        let tally_data = tally.try_borrow_data()?;
+        civilization_adapter::validate_tally_threshold(&amp;tally_data, rule_book.key)?;
+    }
+
+    civilization_adapter::invoke_civilization_execute_receipt(
+        executor,
+        rule_book,
+        tally,
+        receipt,
+        system_program_account,
+        civilization_program,
+        adapter_authority,
+        program_id,
+    )?;
+
+    require_key_eq(
+        receipt.owner,
+        civilization_program.key,
+        NicechunkSmeltingError::InvalidCivilizationReceipt,
+    )?;
+    {
+        let rule_data = rule_book.try_borrow_data()?;
+        civilization_adapter::validate_rule_book_for_smelting_patch(
+            &amp;rule_data,
+            civilization_program.key,
+            program_id,
+            recipe_table.key,
+            payload,
+            civilization_adapter::CIVILIZATION_STATUS_EXECUTED,
+        )?;
+    }
+    {
+        let receipt_data = receipt.try_borrow_data()?;
+        civilization_adapter::validate_execution_receipt(&amp;receipt_data, rule_book.key)?;
+    }
+
+    let clock = Clock::get()?;
+    let recipe = RecipeRecord::unpack_civilization_patch_args(payload, clock.slot)?;
+    let mut data = recipe_table.try_borrow_mut_data()?;
+    RecipeTable::upsert_recipe(&amp;mut data, &amp;recipe, clock.slot)</code></pre>
+<p class="docs-technical-explanation">The outer Smelting instruction validates the finalized binding, invokes Civilization tag three with a PDA signature, revalidates the executed account graph, and only then writes the recipe. Any later error rolls the inner receipt and status change back with the recipe write.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>programs/nicechunk_civilization/src/lib.rs</code>
+<p>Implements all six instruction tags, power authority checks, snapshot and CitizenPower creation, signature binding and expiry, caller-supplied recount, selected-power cap, governable adapter signer gate, receipt creation, PDA validation, and the absence of close instructions.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_civilization/src/state.rs</code>
+<p>Defines every magic value, seed, fixed account length and offset, RuleBook target statuses and signature sides, packed lifecycle fields, rounded-up threshold formula, and yes-greater-than-no pass condition.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_civilization/src/errors.rs</code>
+<p>Assigns explicit custom errors to duplicate signers, missing or invalid adapter authority, invalid power authority, expired snapshot, CitizenPower mismatch, and other lifecycle failures.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_civilization/src/cluster_config.rs</code>
+<p>Pins the sole Civilization power authority to 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_civilization/Cargo.toml</code>
+<p>Defines the deployable Civilization crate and its Solana program dependencies.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-civilization.ts</code>
+<p>Derives all seven addresses, builds tags zero through five, decodes the six fixed layouts, exposes the fixed authority, and mirrors the exact threshold arithmetic.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_civilization.ts</code>
+<p>Tests SDK derivation, instruction encoding, account decoding, threshold edge cases, duplicate and total-power source guards, power-account binding, UI proof construction, and adapter-source structure without executing a Solana program-test bank.</p></article>
+<article class="docs-evidence-item"><code>civilization/rules.js</code>
+<p>Hardcodes the current program, authority, account scans, ISO-date-to-Unix-day window conversion, proposal hashes, old-state preflight, supplied finalize signature list, target adapter plans, simulation, and chainSubmitEnabled false power_snapshot_v1 gate.</p></article>
+<article class="docs-evidence-item"><code>civilization/rule-targets.js</code>
+<p>Catalogs current and proposed target statuses, records confirmed Smelting and resource-drop adapter transactions, and distinguishes implemented target adapters from client policy labels and future targets.</p></article>
+<article class="docs-evidence-item"><code>civilization/rules.html</code>
+<p>Provides the production Rule Library controls for proposal composition, signature collection, PDA inspection, chain-plan building, simulation, finalization, and execution.</p></article>
+<article class="docs-evidence-item"><code>public/civilization/locales/en.json</code>
+<p>Contains the current English user-facing statement that submission remains blocked pending a power_snapshot_v1 program upgrade.</p></article>
+<article class="docs-evidence-item"><code>scripts/civilization-settle-power.ts</code>
+<p>Accepts authority-supplied wallet and power values, sums them into total active power, hashes an off-chain preimage, creates missing snapshot and CitizenPower instructions, and demonstrates that settlement inputs are not derived on chain.</p></article>
+<article class="docs-evidence-item"><code>scripts/civilization-rulebook-e2e.ts</code>
+<p>Builds the six-stage route and duplicate-finalize check, but its direct governable receipt execution omits the required target adapter and is therefore outdated for the current program.</p></article>
+<article class="docs-evidence-item"><code>scripts/civilization-smelting-e2e.ts</code>
+<p>Constructs a Civilization-governed Smelting patch flow and records the outer target adapter execution pattern.</p></article>
+<article class="docs-evidence-item"><code>scripts/civilization-resource-drops-e2e.ts</code>
+<p>Constructs the resource-drop table adapter flow, including full-table payload hashing and versioned transaction transport through an Address Lookup Table.</p></article>
+<article class="docs-evidence-item"><code>scripts/deploy-civilization-program.mjs</code>
+<p>Builds and hashes the local SBF artifact, verifies the upgrade authority before an optional deployment, and writes the deploy report without proving parity to the current on-chain bytes.</p></article>
+<article class="docs-evidence-item"><code>.deploy/civilization-program-deploy.json</code>
+<p>Records the 130,728-byte local artifact hash, an older observed deployment slot and size, the shared payer and upgrade-authority address, and deploy_requested false.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/lib.rs</code>
+<p>Validates a finalized Civilization binding and tally, invokes the receipt CPI, revalidates executed state and Receipt, then applies the recipe-table write in the same outer instruction.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/civilization_adapter.rs</code>
+<p>Validates RuleBook target and patch bytes, tally and Receipt headers, derives the Smelting-owned adapter PDA, and signs the Civilization tag-three CPI with invoke_signed.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/state.rs</code>
+<p>Defines the exact recipe patch decoding and table mutation that occur after the Civilization receipt checks.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_smelting/src/cluster_config.rs</code>
+<p>Pins the Civilization Program address accepted by the Smelting adapter.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-smelting.ts</code>
+<p>Encodes the Smelting patch payload and builds the outer adapter account list used to combine target mutation with Civilization receipt execution.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Implements resource-drop tag ten and surface-decoration tag thirteen as generic CivilizationTableUpdate flows that execute the receipt before packing the target table.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/civilization_adapter.rs</code>
+<p>Mirrors the target, payload-hash, tally, Receipt, and target-derived invoke_signed checks for Chunk-owned rule tables.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines the resource-drop and surface-decoration table structures and payload validation applied around the atomic adapter route.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/cluster_config.rs</code>
+<p>Pins the Civilization Program address that the Chunk adapter accepts.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-chunk.ts</code>
+<p>Derives target table PDAs, encodes full table patches, and builds the Civilization-backed resource-drop and surface-decoration adapter instructions.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_game/src/lib.rs</code>
+<p>Dispatches unified Game namespace two to Chunk and namespace three to Smelting, explaining the outer instruction prefixes observed in confirmed adapter transactions.</p></article>
+<article class="docs-evidence-item"><code>scripts/sync-surface-decoration-rules.ts</code>
+<p>Uses an off-chain old-revision and prefix preflight before a Civilization adapter update, illustrating that this previous-state check is not part of the generic on-chain RuleBook.</p></article>
+<article class="docs-evidence-item"><code>scripts/sync-smelting-recipes.ts</code>
+<p>Builds and audits recipe-table synchronization inputs that can be applied through the Smelting rule adapter.</p></article>
+<article class="docs-evidence-item"><code>scripts/initialize-surface-decoration-table.ts</code>
+<p>Refuses to overwrite a divergent initialized surface table and directs later changes through a finalized Civilization rule.</p></article>
+<article class="docs-evidence-item"><code>src/data/resourceDropRules.js</code>
+<p>Supplies the current resource-drop rule payload source consumed by the Rule Library and resource-drop adapter tooling.</p></article>
+<article class="docs-evidence-item"><code>public/rules/smelting-rules.json</code>
+<p>Supplies the current client-visible Smelting rule data whose recipe-table mutations are separately authorized and stored on chain.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

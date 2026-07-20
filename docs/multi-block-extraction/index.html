@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="multi-block-extraction" data-docs-static-source="57b5e247a425138a67497d8ba6635aa4a0fc1bced5f0b92a4148bf7a6cc5b144">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/multi-block-extraction.json" />
+    <meta name="nicechunk:source-sha256" content="57b5e247a425138a67497d8ba6635aa4a0fc1bced5f0b92a4148bf7a6cc5b144" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/multi-block-extraction/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Audit NiceChunk tree tag 9, client-planned support collapse, per-coordinate mining checks, reward math, partial batches, and current verification gaps." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Multi-block Extraction: Tree Felling and Support Collapse | NiceChunk" />
+    <meta property="og:description" content="Audit NiceChunk tree tag 9, client-planned support collapse, per-coordinate mining checks, reward math, partial batches, and current verification gaps." />
+    <meta property="og:url" content="https://nicechunk.com/docs/multi-block-extraction/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/multi-block-extraction-overview-v1.webp" />
+    <meta property="og:image:alt" content="The canonical villager boy cuts a generated voxel tree whose upper trunk and canopy resolve as one coherent structure, while the villager girl mines a supporting block beneath a separate overhang that breaks into individually verified glowing voxels beside the game&#39;s blue water." />
+    <title>Multi-block Extraction: Tree Felling and Support Collapse | NiceChunk</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/multi-block-extraction/#article",
+  "url": "https://nicechunk.com/docs/multi-block-extraction/",
+  "name": "One tree is reconstructed on chain; one collapse graph is not",
+  "description": "Audit NiceChunk tree tag 9, client-planned support collapse, per-coordinate mining checks, reward math, partial batches, and current verification gaps.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "One tree is reconstructed on chain; one collapse graph is not",
+  "mainEntityOfPage": "https://nicechunk.com/docs/multi-block-extraction/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "The same visual gesture hides two different authority models",
+    "The program rebuilds one tree from the cut coordinate",
+    "One atomic tree transaction still has cut-height, duplicate, and foundation gaps",
+    "The browser iteratively removes unanchored six-face components",
+    "Every proposed collapse block is still a canonical mining request",
+    "The primary can commit even when every later collapse block fails",
+    "Deployment parity is dated, and the highest-risk tree cases remain untested"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#two-authority-models",
+      "name": "The same visual gesture hides two different authority models"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#tree-reconstruction",
+      "name": "The program rebuilds one tree from the cut coordinate"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#tree-settlement-findings",
+      "name": "One atomic tree transaction still has cut-height, duplicate, and foundation gaps"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#support-graph-planner",
+      "name": "The browser iteratively removes unanchored six-face components"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#per-coordinate-verification",
+      "name": "Every proposed collapse block is still a canonical mining request"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#partial-sequence",
+      "name": "The primary can commit even when every later collapse block fails"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/multi-block-extraction/#audit-and-coverage",
+      "name": "Deployment parity is dated, and the highest-risk tree cases remain untested"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/multi-block-extraction-overview-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Multi-block Extraction</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">FOUNDATION 19 · MULTI-BLOCK EXTRACTION</p>
+<h1>One tree is reconstructed on chain; one collapse graph is not</h1>
+<p class="docs-hero-summary">Tree felling and support collapse can both remove many rendered voxels after one tool action, but they do not carry the same proof. Tree tag 9 receives one trunk coordinate and reconstructs a generated tree inside the Chunk Program. Support collapse has no dedicated instruction: the browser proposes a six-face component, then submits the primary block and each proposed collapse coordinate through ordinary tags 8 and 5. Those coordinates receive canonical mining checks, while the support relationship itself remains a client claim.</p>
+<span class="docs-reading-time">18 min read</span></div>
+<figure class="docs-hero-visual"><img alt="The canonical villager boy cuts a generated voxel tree whose upper trunk and canopy resolve as one coherent structure, while the villager girl mines a supporting block beneath a separate overhang that breaks into individually verified glowing voxels beside the game&#39;s blue water." decoding="async" height="887" loading="eager" src="/docs/media/multi-block-extraction-overview-v1.webp" width="1774" /></figure></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Tree membership is program-reconstructed</strong>
+<p>Tag 9 validates a canonical trunk at the submitted coordinate, derives one generated tree at that x and z, and enumerates its non-air volume from the submitted cut height upward. The client does not supply the accepted tree-block list.</p></article>
+<article class="docs-key-point"><strong>Collapse topology is client-selected</strong>
+<p>The browser traces six-face components inside a bounded scan, but the chain receives only independent mining instructions. It does not prove adjacency, loss of support, distance from the first block, or membership in one structure.</p></article>
+<article class="docs-key-point"><strong>Atomicity stops at transaction boundaries</strong>
+<p>Tree records and strict rewards are attempted in one tag 9 transaction. Support collapse commits the primary tag 8 transaction first, then later pairs or single-coordinate retries can leave a confirmed subset that the client must reconcile.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#two-authority-models">The same visual gesture hides two different authority models</a></li>
+<li><a href="#tree-reconstruction">The program rebuilds one tree from the cut coordinate</a></li>
+<li><a href="#tree-settlement-findings">One atomic tree transaction still has cut-height, duplicate, and foundation gaps</a></li>
+<li><a href="#support-graph-planner">The browser iteratively removes unanchored six-face components</a></li>
+<li><a href="#per-coordinate-verification">Every proposed collapse block is still a canonical mining request</a></li>
+<li><a href="#partial-sequence">The primary can commit even when every later collapse block fails</a></li>
+<li><a href="#audit-and-coverage">Deployment parity is dated, and the highest-risk tree cases remain untested</a></li>
+<li><a href="#technical-details">Six equations expose what is reconstructed, proposed, rewarded, and retained</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="two-authority-models"><p class="docs-eyebrow">DO NOT MERGE THE CLAIMS</p>
+<h2>The same visual gesture hides two different authority models</h2>
+<p class="docs-prose">A tool swing can make a tree canopy or unsupported cluster disappear together, but multi-block is only a presentation category. Tree felling has a dedicated, un-namespaced Chunk Program instruction. Its 13 bytes contain tag 9, x, y, z, and the expected trunk block ID. The account list supplies player and Backpack context plus one to four writable ChunkBroken PDAs; it does not supply a coordinate array.</p>
+<p class="docs-prose">Support collapse has no dedicated program tag or persistent collapse record. The browser computes a proposed component and sends the clicked block first through reward-bearing tag 8. It then submits each proposed collapse coordinate through another tag 8 or ordinary tag 5. The chain can validate each coordinate as a generated-block mine, but no instruction can distinguish those later removals from separately requested ordinary mines.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Tree authority</span>
+<strong>Tag 9 reconstructs membership</strong>
+<p>One canonical trunk coordinate selects the generated tree and the program derives the affected set.</p></article>
+<article class="docs-fact"><span>Collapse authority</span>
+<strong>Client graph, tags 8 and 5</strong>
+<p>The program receives independent coordinates, not component edges, support anchors, or one collapse identity.</p></article>
+<article class="docs-fact"><span>Shared state output</span>
+<strong>ChunkBroken coordinates</strong>
+<p>Accepted removals are compact per-chunk records; reward-bearing instructions also write the validated Backpack and PlayerProgress.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Canonical block verification is not structural verification</strong>
+<p>A support-collapse coordinate can be a real, mineable canonical block and still have no proved relationship to the clicked support. Public descriptions must keep per-coordinate validity separate from topology validity.</p></aside></section>
+<section class="docs-content-section" id="tree-reconstruction"><p class="docs-eyebrow">TREE TAG 9</p>
+<h2>The program rebuilds one tree from the cut coordinate</h2>
+<p class="docs-prose">The client tree planner first requires a rendered normal or pine trunk. It walks at most 16 same-trunk cells downward and upward, then collects matching trunk and leaf IDs around that local column, sorts them, and caps its plan at 96 blocks. That plan controls local damage, animation, pending deltas, and the Backpack capacity estimate, but its coordinate list is not serialized into tag 9.</p>
+<p class="docs-prose">The program validates the player action and Progress/Backpack relationships, independently recalculates the clicked generated block, requires the expected ID to match, and requires that result to be a trunk. It derives the tree candidate at the submitted x and z, requires cut_y to fall inside that trunk, scans y from cut_y through surface plus nine and x/z within two cells, and maps every non-air result to the necessary ChunkBroken accounts. The fixed five-by-five envelope can touch at most four horizontal chunks.</p>
+<ol class="docs-steps"><li><strong>Validate one cut</strong>
+<p>Decode a 12-byte payload after tag 9, check canonical bounds, recalculate the clicked block, and require a normal or pine trunk.</p></li>
+<li><strong>Reconstruct one candidate</strong>
+<p>Derive the generated tree rooted at the submitted x and z rather than accepting the browser's planned blocks.</p></li>
+<li><strong>Enumerate and route blocks</strong>
+<p>Scan the bounded tree volume, derive each chunk and packed coordinate, and match every distinct chunk to one supplied writable PDA.</p></li></ol>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Overlap parity is not rechecked per emitted block</strong>
+<p>The general canonical block query chooses a winner when nearby generated tree volumes overlap. generated_tree_fell_blocks evaluates the selected cut tree directly and does not re-run that global winner comparison for every emitted coordinate, so an overlap-specific equality guarantee is not currently covered by a test.</p></aside></section>
+<section class="docs-content-section" id="tree-settlement-findings"><p class="docs-eyebrow">TREE REWARDS AND CURRENT DEFECTS</p>
+<h2>One atomic tree transaction still has cut-height, duplicate, and foundation gaps</h2>
+<p class="docs-prose">Within one successful tag 9 execution, every reconstructed coordinate is appended, every trunk earns a strict Backpack resource, every fifth enumerated leaf earns another strict resource, and Precision Gathering XP increases by the same reward count. Any failed strict append, ChunkBroken growth, account check, or later transaction instruction rolls back the whole Solana transaction. The tree path does not read ResourceDropTable or SurfaceDecorationTable, so it has no exploration-extra or face-decoration reward branch.</p>
+<p class="docs-prose">Atomicity does not correct the set disagreement. The local planner begins at its discovered trunk base, while tag 9 begins at the clicked cut_y. If the player strikes a higher trunk block, the local pending plan includes lower trunk cells that the program did not record. The returned tree result contains no confirmedBlocks list, so the support-collapse intersection logic cannot narrow that tree plan before local confirmation.</p>
+<p class="docs-prose">Duplicate protection is also incomplete. The instruction checks contains_packed only for the clicked coordinate, then directly appends every other reconstructed coordinate. After a high cut, a later cut on an unbroken lower trunk can revisit upper coordinates, append duplicate ChunkBroken records, and select those blocks for rewards again. Finally, tag 9 receives no FoundationChunk account and never calls the foundation-protection predicate used by tags 5 and 8.</p>
+<ul class="docs-bullets"><li>The client preflights Backpack capacity from its local reward estimate, while the program settles rewards from its independently reconstructed list; disagreement can turn into an atomic transaction failure.</li>
+<li>ChunkBroken append_packed enforces header validity and capacity but performs no duplicate search itself.</li>
+<li>A duplicate record consumes another three-byte slot and can repeat the corresponding strict tree reward under the lower-cut sequence.</li>
+<li>No FoundationChunk, ResourceDropTable, or SurfaceDecorationTable account appears in tag 9's fixed account prefix.</li>
+<li>The current client sends one tree transaction with a 1,400,000 compute-unit limit and has no tree-specific split or retry path.</li></ul>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Current tag 9 is not duplicate-safe or foundation-aware</strong>
+<p>These are active audit findings, not hypothetical properties already fixed elsewhere. A verifier should not treat tree reconstruction alone as proof that every emitted coordinate was previously unmined or outside a protected foundation.</p></aside></section>
+<section class="docs-content-section" id="support-graph-planner"><p class="docs-eyebrow">CLIENT SUPPORT MODEL</p>
+<h2>The browser iteratively removes unanchored six-face components</h2>
+<p class="docs-prose">The planner accepts solid, mineable, non-fluid blocks other than air and bedrock. Around the primary coordinate it opens a box extending seven cells in x and z, eight downward, and twenty upward. It starts only from face neighbors of coordinates already planned for removal, traces each component through the six axis-aligned neighbors, and treats minimum-world height, adjacent bedrock, or escape from the scan box as support.</p>
+<p class="docs-prose">When a component has no anchor, its cells join the planned-removed set. The planner repeats because removing one unsupported component can expose another. It stops after 48 collapse blocks. For a non-empty result, a coordinate-derived score orders reward candidates and keeps at least one or floor thirty percent, whichever is larger. All of these limits, edges, anchors, iterations, and scores exist in JavaScript only.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Neighborhood</span>
+<strong>6 face directions</strong>
+<p>Diagonal and corner contact do not join components in the current planner.</p></article>
+<article class="docs-fact"><span>Scan bounds</span>
+<strong>±7 x/z · -8/+20 y</strong>
+<p>Touching the boundary is treated as evidence of support rather than permission to continue scanning.</p></article>
+<article class="docs-fact"><span>Client proposal cap</span>
+<strong>48 collapse blocks</strong>
+<p>The cap is enforced before submission; no Chunk Program collapse state carries this number.</p></article></div>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>A modified client can propose an unrelated coordinate list</strong>
+<p>The standard adapter deduplicates and canonically resolves up to 48 proposed coordinates, but neither tag 5 nor tag 8 receives the original support, a graph edge, reach bound, or anchor result. Program acceptance therefore does not prove that the standard planner produced the list.</p></aside></section>
+<section class="docs-content-section" id="per-coordinate-verification"><p class="docs-eyebrow">WHAT THE CHAIN DOES CHECK</p>
+<h2>Every proposed collapse block is still a canonical mining request</h2>
+<p class="docs-prose">Before building transactions, the standard adapter truncates the proposal to 48 unique coordinates, excludes the primary key, recalculates their canonical block IDs through the client protocol mirror, and filters unmineable results. This is useful preflight, not authority. Each resulting tag 5 or tag 8 instruction supplies x, y, z and expectedBlockId, and the Chunk Program independently performs its own generated-block calculation.</p>
+<p class="docs-prose">Both tags validate the active player session, GlobalConfig relationship, target ChunkBroken PDA, target FoundationChunk PDA, canonical expected block, mineability, and prior broken state. Tag 8 additionally validates PlayerProgress, both rule-table PDAs, the Backpack Program and Backpack, appends the required base resource, attempts up to two secondary rewards lossily, and advances progress. These checks are strong per coordinate and silent about the relationship among coordinates.</p>
+<ul class="docs-bullets"><li>The primary clicked block always uses reward-bearing tag 8 and must succeed before collapse batches begin.</li>
+<li>Selected collapse reward candidates use tag 8; other confirmed collapse coordinates use non-reward tag 5.</li>
+<li>Foundation protection applies to every tag 5 and tag 8 coordinate through its own target chunk account.</li>
+<li>The program does not verify face adjacency, unsupported status, distance from the primary, common material, one component, client scan bounds, or a 48-block sequence cap.</li>
+<li>A direct caller can submit ordinary canonical mining instructions without calling the standard support planner; the chain has no collapse identity by which to reject that distinction.</li></ul>
+<aside class="docs-callout docs-callout--verified"><span class="docs-callout-label">What the code guarantees</span>
+<strong>Per-coordinate verification remains meaningful</strong>
+<p>A confirmed collapse coordinate is not an arbitrary client block ID. It passed the same canonical generated-block, duplicate, session, and foundation gates as its underlying tag 5 or tag 8 instruction. What remains unproved is why those individually valid mines belong together.</p></aside></section>
+<section class="docs-content-section" id="partial-sequence"><p class="docs-eyebrow">PAIR BATCHES AND RECONCILIATION</p>
+<h2>The primary can commit even when every later collapse block fails</h2>
+<p class="docs-prose">The adapter loads the authoritative Backpack, reserves the primary slot, chooses the reward-bearing collapse subset, and initializes the affected ChunkBroken accounts. It then signs and confirms the primary tag 8 transaction by itself. Only after that success does it partition collapse coordinates into batches of two, with each later transaction carrying one or two independent mining instructions.</p>
+<p class="docs-prose">When a pair fails, the helper retries each coordinate in its own transaction. One recovered single allows later batches to continue. If both singles fail, every later block is marked aborted and no more batches are submitted. The helper does not distinguish shared infrastructure failure from two unrelated coordinate rejections before making that decision.</p>
+<p class="docs-prose">Each individual Solana transaction is atomic, but the overall sequence is not. If the primary succeeds and every collapse transaction fails, the function still returns submitted true, the primary signature, confirmedBlocks containing the primary, and partialCollapse true. Successful earlier collapse transactions also remain committed. The local result reconciler intersects the pending proposal with confirmedBlocks so failed and aborted voxels are not finalized as part of that local action.</p>
+<ol class="docs-steps"><li><strong>Commit the primary</strong>
+<p>Send one reward-bearing tag 8 transaction and stop the whole call if it throws.</p></li>
+<li><strong>Submit pairs</strong>
+<p>Put at most two canonical mining instructions in each later transaction, preserving atomicity only within that pair.</p></li>
+<li><strong>Retry and possibly abort</strong>
+<p>Split a failed pair into singles; if neither recovers, mark every remaining proposal as batch-wide-failure.</p></li>
+<li><strong>Commit the intersection</strong>
+<p>Return all confirmed signatures and coordinates, then reduce pending blocks, air deltas, collapse blocks, and reward groups to that subset.</p></li></ol>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Partial success is a first-class result</strong>
+<p>submitted true means the primary transaction committed, not that the whole planned collapse committed. Consumers must inspect partialCollapse, confirmedBlocks, failedCollapseBlocks, and the signatures array.</p></aside></section>
+<section class="docs-content-section" id="audit-and-coverage"><p class="docs-eyebrow">FINALIZED SNAPSHOT AND TEST GAPS</p>
+<h2>Deployment parity is dated, and the highest-risk tree cases remain untested</h2>
+<p class="docs-prose">A finalized Devnet snapshot captured at 2026-07-15T08:10:04.724Z read the standalone Chunk Program at context slot 476,393,568. Its 214,816-byte deployed ELF hashed to 4e1b5ff815c30bfb3864ea8aab61cdbbdce6fbf4f146b21c44b8bf8be4ec41c4 and matched target/deploy/nicechunk_chunk.so. ProgramData reported last deployment at slot 476,079,799 and retained upgrade authority 9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud. This proves parity with that local artifact at that observed slot, not a reproducible build from the dirty worktree or future immutability.</p>
+<p class="docs-prose">A separate bounded finalized transaction query examined 52 retrieved transactions from slots 476,031,645 through 476,355,701. It found 15 outer tag 6 instructions, 26 outer tag 8 instructions, one outer tag 13, one outer tag 15, and zero outer tag 9 instructions; seven Building CPI transactions contained 22 inner tag 15 instructions. The query wall-clock time was not recorded, so it remains unknown rather than being replaced by the later account-capture time. Zero observed tag 9 instructions in this window is not proof that tag 9 has never been used.</p>
+<p class="docs-prose">The two focused Support Collapse Node files currently define six tests, and the audit rerun passed all six. They cover adjacency planning, unrelated leaves, pair partitioning, single-coordinate retry, double-failure abort, and partial local reconciliation. The public TypeScript Chunk SDK also tests tag 5 and tag 8 builders, but exposes no public tag 9 builder. No current test executes the tree planner, generated_tree_fell_blocks settlement semantics, a non-base cut, duplicate upper coordinates, or the absent FoundationChunk path.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Finalized Chunk ELF</span>
+<strong>214,816 bytes · local match</strong>
+<p>Observed at context slot 476,393,568 with the exact SHA-256 recorded in the audit artifact.</p></article>
+<article class="docs-fact"><span>Observed tag 9 usage</span>
+<strong>0 in a 52-transaction window</strong>
+<p>A bounded observation with anchored oldest and newest signatures, not an exhaustive program history.</p></article>
+<article class="docs-fact"><span>Focused support tests</span>
+<strong>6 of 6 passed</strong>
+<p>They validate current browser behavior and reconciliation, not an on-chain topology predicate.</p></article></div>
+<ul class="docs-bullets"><li>Add a direct client-tree-planner test for a base hit and a non-base hit.</li>
+<li>Add Rust instruction tests that prepopulate a non-clicked tree coordinate and assert duplicate rejection before any reward.</li>
+<li>Add a foundation-overlap test once tag 9 receives and enforces the required FoundationChunk accounts.</li>
+<li>Add a controlled Devnet tag 9 transaction with before-and-after ChunkBroken, Backpack, and PlayerProgress snapshots.</li>
+<li>Treat support topology as client policy until a program instruction commits and verifies the graph relationship itself.</li></ul>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Source, artifact, receipt, and topology are separate evidence</strong>
+<p>The artifact match supports claims about the captured deployment. The bounded receipt window supports only observed use. Passing client tests supports the planner implementation. None of those facts turns the support graph into a chain proof or closes the disclosed tag 9 defects.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">SETS, REWARDS, AND COMMIT BOUNDARIES</p>
+<h2>Six equations expose what is reconstructed, proposed, rewarded, and retained</h2>
+<p>The tree equations describe tag 9's generated set and strict reward count. The support equations describe the browser's graph rule, its conservative reward selection, and the exact confirmed-set intersection used after a partial sequence.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Tag 9 reconstructs a bounded generated-tree set</h3>
+<div aria-label="F_9(c) = {p | cutY &lt;= p_y &lt;= surface(c_x,c_z)+9 AND |p_x-c_x|&lt;=2 AND |p_z-c_z|&lt;=2 AND V(tree(c_x,c_z),p)!=air}; envelope(F_9)&lt;=5*5*9=225" class="docs-formula-expression" role="math"><code>F_9(c) = {p | cutY &lt;= p_y &lt;= surface(c_x,c_z)+9 AND |p_x-c_x|&lt;=2 AND |p_z-c_z|&lt;=2 AND V(tree(c_x,c_z),p)!=air}; envelope(F_9)&lt;=5*5*9=225</code></div>
+<p class="docs-technical-explanation">After the clicked coordinate c is independently recalculated as the expected trunk, the program derives the generated tree rooted at c_x and c_z and scans this fixed envelope. Only non-air results from that one tree volume enter F_9. The actual set is smaller than the 225-cell envelope and may span at most four 16-by-16 ChunkBroken accounts.</p>
+<dl class="docs-formula-terms"><dt>c</dt>
+<dd>The submitted integer cut coordinate, including cutY.</dd>
+<dt>V(tree,p)</dt>
+<dd>The Chunk Program's generated volume result for the selected tree at coordinate p.</dd>
+<dt>F_9</dt>
+<dd>The block list reconstructed by tag 9; it is not decoded from a client-supplied coordinate array.</dd></dl></article>
+<article class="docs-formula"><h3>Tree rewards count every trunk and each fifth enumerated leaf</h3>
+<div aria-label="R_9 = T + floor(L/5); XP_precision = R_9" class="docs-formula-expression" role="math"><code>R_9 = T + floor(L/5); XP_precision = R_9</code></div>
+<p class="docs-technical-explanation">T and L are counted in the program's y, z, x enumeration order over F_9. Each selected reward uses a strict Backpack append, and the current Precision Gathering increment is one XP per selected reward. ResourceDropTable and SurfaceDecorationTable do not participate in tag 9.</p>
+<dl class="docs-formula-terms"><dt>T</dt>
+<dd>The number of reconstructed normal or pine trunk blocks.</dd>
+<dt>L</dt>
+<dd>The number of reconstructed normal or pine leaf blocks.</dd>
+<dt>R_9</dt>
+<dd>The number of strict base-resource appends attempted by the tree instruction.</dd></dl></article>
+<article class="docs-formula"><h3>The current client and tag 9 start at different heights</h3>
+<div aria-label="minY(F_client)=baseY_local; minY(F_9)=cutY; cutY&gt;baseY_local =&gt; F_client-F_9 contains lower trunk coordinates" class="docs-formula-expression" role="math"><code>minY(F_client)=baseY_local; minY(F_9)=cutY; cutY&gt;baseY_local =&gt; F_client-F_9 contains lower trunk coordinates</code></div>
+<p class="docs-technical-explanation">The browser walks down from the hit to the local trunk base before planning its full visual removal. Tag 9 begins its scan at the submitted hit height. A non-base strike therefore has a predictable lower-trunk disagreement, and the current tree result does not return a confirmed coordinate list that could trim the local plan.</p>
+<dl class="docs-formula-terms"><dt>baseY_local</dt>
+<dd>The lowest same-trunk block found by the client's bounded downward scan.</dd>
+<dt>cutY</dt>
+<dd>The y coordinate encoded in the 13-byte tag 9 instruction.</dd>
+<dt>F_client-F_9</dt>
+<dd>Blocks the local plan can remove visually even though that tag 9 execution did not record them.</dd></dl></article>
+<article class="docs-formula"><h3>The support decision is a local six-face graph predicate</h3>
+<div aria-label="collapse(C) = connected_6(C) AND NOT(reachesScanBoundary(C) OR reachesMinY(C) OR touchesBedrock(C))" class="docs-formula-expression" role="math"><code>collapse(C) = connected_6(C) AND NOT(reachesScanBoundary(C) OR reachesMinY(C) OR touchesBedrock(C))</code></div>
+<p class="docs-technical-explanation">The planner treats each mineable solid voxel as a vertex and face contact as an edge. Reaching outside the bounded scan, the configured minimum world height, or a bedrock neighbor makes the component supported. This predicate is never encoded into a Chunk Program instruction, so it is not an on-chain invariant.</p>
+<dl class="docs-formula-terms"><dt>C</dt>
+<dd>A component discovered next to a block already planned for removal.</dd>
+<dt>connected_6</dt>
+<dd>Connectivity through positive and negative x, y, and z face neighbors only.</dd>
+<dt>reachesScanBoundary</dt>
+<dd>The trace encounters a neighbor outside the local radius and vertical reach, which the planner treats as support.</dd></dl></article>
+<article class="docs-formula"><h3>Collapse reward candidates are capped twice</h3>
+<div aria-label="q(N)=max(1,floor(3N/10)); r(N,S)&lt;=min(q(N),floor((S-1)/3)), for N&gt;0" class="docs-formula-expression" role="math"><code>q(N)=max(1,floor(3N/10)); r(N,S)&lt;=min(q(N),floor((S-1)/3)), for N&gt;0</code></div>
+<p class="docs-technical-explanation">The planner deterministically selects q candidates from N collapse blocks. Before submission, the chain adapter reserves one Backpack slot for the primary block and conservatively budgets three slots for every selected reward-bearing collapse instruction: its required base block plus as many as two lossy secondary drops. The final number r can therefore be smaller than q.</p>
+<dl class="docs-formula-terms"><dt>N</dt>
+<dd>The number of client-planned collapse blocks, excluding the primary block.</dd>
+<dt>S</dt>
+<dd>Available Backpack record slots observed before the sequence begins.</dd>
+<dt>r</dt>
+<dd>The collapse coordinates selected for reward-bearing tag 8 rather than non-reward tag 5.</dd></dl></article>
+<article class="docs-formula"><h3>Local commitment is reduced to the confirmed coordinate subset</h3>
+<div aria-label="K_commit = K_pending intersection ({primary} union K_confirmed_batches)" class="docs-formula-expression" role="math"><code>K_commit = K_pending intersection ({primary} union K_confirmed_batches)</code></div>
+<p class="docs-technical-explanation">The primary tag 8 transaction is sent first. The adapter reports only later blocks whose pair or retry transaction succeeded, and reconciliation intersects that returned set with the original pending proposal. Failed and aborted coordinates are removed from pending air deltas and reward groups; already-confirmed transactions cannot be rolled back as one larger unit.</p>
+<dl class="docs-formula-terms"><dt>K_pending</dt>
+<dd>Coordinate keys in the original browser mining proposal.</dd>
+<dt>K_confirmed_batches</dt>
+<dd>Collapse coordinate keys from successful pair or single-coordinate transactions.</dd>
+<dt>K_commit</dt>
+<dd>The subset retained when the local pending action is confirmed.</dd></dl></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The dispatcher gives trees a dedicated tag but not collapse</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    match tag {
+        5 =&gt; mine_block(program_id, accounts, payload),
+        6 =&gt; initialize_chunk_broken(program_id, accounts, payload),
+        7 =&gt; initialize_resource_drop_table(program_id, accounts, payload),
+        8 =&gt; mine_block_with_rewards(program_id, accounts, payload),
+        9 =&gt; fell_tree_with_rewards(program_id, accounts, payload),
+        10 =&gt; apply_civilization_resource_drop_receipt(program_id, accounts, payload),
+        11 =&gt; initialize_surface_decoration_table(program_id, accounts, payload),
+        12 =&gt; verify_surface_decoration(program_id, accounts, payload),
+        13 =&gt; apply_civilization_surface_decoration_receipt(program_id, accounts, payload),
+        15 =&gt; register_build_site_chunk(program_id, accounts, payload),
+        20 =&gt; batch_mine_with_rewards(program_id, accounts, payload),
+        21 =&gt; range_mine_with_rewards(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkChunkError::InvalidInstruction.into()),
+    }</code></pre>
+<p class="docs-technical-explanation">Tag 9 names one tree transition. There is no support-collapse tag: the current adapter composes collapse from the same tag 8 and tag 5 instructions used for individual generated-block mining.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Tree reconstruction begins at the submitted cut height</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/state.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    if cut_y &lt; tree.base_y || cut_y &gt;= tree.base_y.saturating_add(tree.trunk_height) {
+        return Err(NicechunkChunkError::GeneratedBlockMismatch);
+    }
+
+    let top_y = surface.saturating_add(TREE_MAX_BLOCK_HEIGHT_ABOVE_SURFACE);
+    let mut blocks = Vec::with_capacity(TREE_FELL_MAX_BLOCKS);
+    for y in cut_y..=top_y {
+        for z in
+            cut_z.saturating_sub(TREE_MAX_LEAF_RADIUS)..=cut_z.saturating_add(TREE_MAX_LEAF_RADIUS)
+        {
+            for x in cut_x.saturating_sub(TREE_MAX_LEAF_RADIUS)
+                ..=cut_x.saturating_add(TREE_MAX_LEAF_RADIUS)
+            {
+                let tree_block = generated_tree_volume_block(global_config, &amp;tree, x, y, z);
+                if tree_block == BLOCK_AIR {
+                    continue;
+                }</code></pre>
+<p class="docs-technical-explanation">The lower bound is cut_y, not the tree's base_y. The code then scans the selected tree's direct volume in a five-by-five horizontal envelope through surface plus nine.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Only the clicked tree coordinate receives a duplicate lookup</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_chunk/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">        if block.world_x == args.world_x
+            &amp;&amp; block.world_y == args.world_y
+            &amp;&amp; block.world_z == args.world_z
+        {
+            let data = account.try_borrow_data()?;
+            ChunkBrokenState::validate_header(&amp;data, global_config_view.min_build_y)?;
+            if ChunkBrokenState::contains_packed(&amp;data, packed)? {
+                return Err(NicechunkChunkError::BlockAlreadyMined.into());
+            }
+        }</code></pre>
+<p class="docs-technical-explanation">Every other reconstructed coordinate is appended without contains_packed. Because append_packed itself only checks capacity, a later lower cut can append upper coordinates already written by an earlier higher cut.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The client decides whether a support component is anchored</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/support-collapse-plan.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    blocks.push(block);
+    if (isSupportAnchoredBlock(block, options)) return { blocks: [], supported: true };
+
+    for (const [dx, dy, dz] of FACE_OFFSETS) {
+      const nx = block.worldX + dx;
+      const ny = block.worldY + dy;
+      const nz = block.worldZ + dz;
+      if (!isWithinBounds(nx, ny, nz, bounds)) {
+        return { blocks: [], supported: true };
+      }
+      const next = supportCollapseBlockAt(nx, ny, nz, plannedRemoved, bounds, options);
+      if (!next) {
+        if (isSupportAnchorCell(nx, ny, nz, plannedRemoved, options)) return { blocks: [], supported: true };
+        continue;
+      }</code></pre>
+<p class="docs-technical-explanation">This is local graph traversal. The resulting supported flag, queue, edges, bounds, and anchor reason are not fields in tags 5 or 8.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Reward-bearing and non-reward collapse coordinates use different ordinary tags</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      for (const collapseBlock of batch) {
+        const mineWithReward = selectedRewardKeySet.has(minedBlockKey(collapseBlock));
+        tx.add(mineWithReward
+          ? createMineBlockWithRewardsInstruction({
+              authority: session.keypair.publicKey,
+              block: collapseBlock,
+              owner: provider.publicKey,
+              backpack: equippedBackpack.publicKey,
+              expectedBlockId: collapseBlock.blockId,
+              context,
+            })
+          : createMineBlockInstruction({
+              authority: session.keypair.publicKey,
+              block: collapseBlock,
+              owner: provider.publicKey,
+              expectedBlockId: collapseBlock.blockId,
+              context,
+            }));
+      }</code></pre>
+<p class="docs-technical-explanation">The selected subset receives tag 8 through createMineBlockWithRewardsInstruction; every other proposed collapse coordinate receives tag 5. Neither builder carries a collapse root or adjacency proof.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>A failed pair is retried as singles before later work may abort</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/supportCollapseSubmission.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      let recoveredCount = 0;
+      for (const block of batch) {
+        try {
+          const result = await submitBatch([block]);
+          confirmed.push({ block, result, retried: true });
+          recoveredCount += 1;
+        } catch (error) {
+          failures.push({ block, error });
+        }
+      }
+
+      // Two independent failures normally indicate an expired session, RPC
+      // outage, or another batch-wide fault. Do not fan that out to 48 calls.
+      if (recoveredCount === 0) {
+        for (const remaining of batches.slice(batchIndex + 1).flat()) {
+          aborted.push({ block: remaining, error: batchError, reason: "batch-wide-failure" });
+        }
+        break;
+      }</code></pre>
+<p class="docs-technical-explanation">The helper does not classify the two single-coordinate errors before aborting later batches. Two independent already-mined or foundation-protection conflicts can therefore trigger the same sequence-wide stop as an RPC or session failure.</p></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Reconciliation filters every local collection to confirmed keys</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-mining-result.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const previousCount = Math.max(1, Math.trunc(Number(pending.minedBlockCount) || originalBlocks.length || 1));
+  const chainConfirmedBlocks = Array.isArray(chainResult?.confirmedBlocks) ? chainResult.confirmedBlocks : [];
+  let confirmedBlocks = originalBlocks;
+  if (chainConfirmedBlocks.length) {
+    const confirmedKeys = new Set(chainConfirmedBlocks.map(blockKey).filter(Boolean));
+    confirmedBlocks = originalBlocks.filter((block) =&gt; confirmedKeys.has(blockKey(block)));
+    if (!confirmedBlocks.length) return { changed: false, droppedCount: 0, confirmedCount: 0 };
+    const confirmedKeySet = new Set(confirmedBlocks.map(blockKey));
+    pending.blocks = confirmedBlocks.map((block) =&gt; ({ ...block }));
+    pending.pendingDeltas = (Array.isArray(pending.pendingDeltas) ? pending.pendingDeltas : [])
+      .filter((delta) =&gt; confirmedKeySet.has(blockKey(delta)))
+      .map((delta) =&gt; ({ ...delta }));
+    pending.collapseBlocks = (Array.isArray(pending.collapseBlocks) ? pending.collapseBlocks : [])
+      .filter((block) =&gt; confirmedKeySet.has(blockKey(block)))
+      .map((block) =&gt; ({ ...block }));
+    pending.minedBlockCount = confirmedBlocks.length;
+  }</code></pre>
+<p class="docs-technical-explanation">A partial support sequence does not leave every proposed air delta in the confirmed local action. The same confirmed-key set narrows blocks, pending deltas, collapse blocks, and later reward summaries.</p></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>docs/audits/multi-block-extraction-devnet-2026-07-15.json</code>
+<p>Persists the finalized account snapshot, deployed ProgramData and ELF hashes, local artifact comparison, bounded transaction window, active tags, source hashes, trust-boundary findings, and known coverage gaps used by this guide.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>Dispatches tags 5, 8, and 9; validates player actions; executes tree reconstruction settlement; applies ordinary mining checks; writes rewards and progress; and exposes the clicked-coordinate-only tree duplicate check.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/state.rs</code>
+<p>Defines MineBlockArgs, canonical tree generation, the cut_y-based tree-fell scan, tree envelope bounds, ChunkBroken packing and append behavior, reward XP constants, and foundation data views.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/errors.rs</code>
+<p>Enumerates generated mismatch, unmineable, already-mined, capacity, PDA, account, session, and foundation failures surfaced by the mining paths.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/cluster_config.rs</code>
+<p>Pins the current cluster-specific Chunk, Core, Player, Backpack, Building, and Civilization program identities used by source validation.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/Cargo.toml</code>
+<p>Defines the standalone Chunk crate, cluster features, and program dependencies used to build the audited artifact.</p></article>
+<article class="docs-evidence-item"><code>target/deploy/nicechunk_chunk.so</code>
+<p>Provides the 214,816-byte local Chunk artifact whose SHA-256 matched the finalized deployed ELF in the dated audit.</p></article>
+<article class="docs-evidence-item"><code>play/tree-mining-plan.js</code>
+<p>Plans local tree removal from a discovered trunk base, scans same-type trunk and leaves, caps the client list at 96, and selects every trunk plus every fifth leaf for its capacity estimate.</p></article>
+<article class="docs-evidence-item"><code>play/support-collapse-plan.js</code>
+<p>Implements the six-face component scan, local anchors, scan bounds, iterative removal, 48-block cap, and deterministic thirty-percent reward-candidate rule.</p></article>
+<article class="docs-evidence-item"><code>play/mining-controller.js</code>
+<p>Turns tree and support plans into pending multi-block deltas, reward summaries, mining kinds, and reversible local actions.</p></article>
+<article class="docs-evidence-item"><code>play/main.js</code>
+<p>Installs the tree and support planners into the current Play mining controller and supplies the world/block predicates they consume.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-adapter.js</code>
+<p>Routes tree pending actions to recordTreeFellOnChain, support pending actions to recordSupportCollapseOnChain, and passes client reward counts and coordinate lists to the chain module.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Processes submitted, rejected, and partial-collapse outcomes and applies the reconciled pending action through the automatic chain session.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-mining-result.js</code>
+<p>Intersects pending blocks with confirmedBlocks and filters pending deltas, collapse blocks, reward blocks, and reward groups after a partial sequence.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-submission-log.js</code>
+<p>Records multi-block proposal sizes, reward counts, confirmed-block counts, signatures, and partial-collapse outcome fields for diagnostics.</p></article>
+<article class="docs-evidence-item"><code>src/chain/supportCollapseSubmission.js</code>
+<p>Partitions collapse coordinates into pairs, retries a failed pair as singles, aborts later batches after two failed singles, and returns confirmed, failed, retried, and aborted subsets.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Builds tag 9, tag 8, and tag 5 instructions; preflights canonical coordinates; chooses conservative reward slots; submits the primary then collapse batches; and returns structured partial results.</p></article>
+<article class="docs-evidence-item"><code>src/world/canonicalResource.js</code>
+<p>Provides the client-side canonical block mirror used to resolve submitted primary and collapse coordinates before the independent program calculation.</p></article>
+<article class="docs-evidence-item"><code>src/world/blocks.js</code>
+<p>Maps canonical block IDs to resource identities used by mining pending records and confirmed reward summaries.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/play.js</code>
+<p>Exports the shared block IDs, solid flags, block definitions, mineability predicates, fluid predicates, and coordinate conversion used by both local planners.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/world/world-generator.js</code>
+<p>Defines the rendered canonical terrain and generated-tree behavior queried by Play, including the spatial tree volumes the client planner observes.</p></article>
+<article class="docs-evidence-item"><code>chunk.js/chunk/chunk-state.js</code>
+<p>Keeps pending, confirmed chain, and generated base layers separate so partial reconciliation can retain only accepted air deltas.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-chunk.ts</code>
+<p>Publicly builds and decodes canonical tag 5 and tag 8 mining state and mirrors generated blocks, while exposing no public tag 9 instruction builder.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/lib.rs</code>
+<p>Authenticates ChunkBroken-derived reward producers and implements the Backpack append transition invoked by reward-bearing mining and tree felling.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_backpack/src/state.rs</code>
+<p>Defines Backpack capacity, dense record storage, ownership relationships, and append errors that make tree base rewards strict.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_game/src/lib.rs</code>
+<p>Routes the unified Game Program namespaces used by the current Backpack target while current Play sends un-namespaced mining tags directly to the standalone Chunk Program.</p></article>
+<article class="docs-evidence-item"><code>target/deploy/nicechunk_game.so</code>
+<p>Provides the local unified Game artifact whose deployed parity was separately recorded because Chunk reward settlement invokes its Backpack namespace.</p></article>
+<article class="docs-evidence-item"><code>play/tests/support-collapse-plan.test.mjs</code>
+<p>Tests that support scanning begins from blocks touching the primary removal and does not collect an unrelated isolated leaf.</p></article>
+<article class="docs-evidence-item"><code>play/tests/support-collapse-submission.test.mjs</code>
+<p>Tests pair partitioning, single-coordinate retries, double-failure abort, and confirmed-subset reconciliation; all four cases passed in the focused audit rerun.</p></article>
+<article class="docs-evidence-item"><code>play/tests/mining-controller.test.mjs</code>
+<p>Checks pending multi-block reward ordering and controller behavior, without directly executing tag 9 or proving support topology on chain.</p></article>
+<article class="docs-evidence-item"><code>play/tests/play-chain-submission-log.test.mjs</code>
+<p>Checks normalized submission-log fields for multi-block rewards and partial outcomes used during diagnosis.</p></article>
+<article class="docs-evidence-item"><code>tests/nicechunk_player_chunk.ts</code>
+<p>Tests public SDK tag 5 and tag 8 payload bytes and account ordering; it contains no tag 9 builder or settlement test.</p></article>
+<article class="docs-evidence-item"><code>tests/worldgen_golden.ts</code>
+<p>Pins generated-tree summaries and canonical above-surface tree blocks, but does not exercise generated_tree_fell_blocks, cut-height settlement, or tree reward writes.</p></article>
+<article class="docs-evidence-item"><code>public/mainnet.json</code>
+<p>Supplies the public runtime cluster and program configuration from which the current browser selects the audited standalone Chunk and unified Game contexts.</p></article>
+<article class="docs-evidence-item"><code>package.json</code>
+<p>Defines the repository test and build entry points used to reproduce the focused JavaScript and TypeScript checks.</p></article>
+<article class="docs-evidence-item"><code>docs/media/multi-block-extraction-overview-v1.webp</code>
+<p>Provides the 1,774-by-887 documentation artwork whose byte length and SHA-256 are pinned in the dated audit.</p></article></div></section></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

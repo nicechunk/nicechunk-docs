@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="session-funding-and-expiry" data-docs-static-source="d1d61960cbf60ed55770771933d3e64a7b7219aa668c55151b00079ee3604419">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (() => {
+        const supported = ["en","es","fr","de","ja","ru","ko","zh-Hant","zh-Hans"];
+        const stored = String(localStorage.getItem("nicechunk.language") || "").trim();
+        const lower = stored.toLowerCase();
+        let language = supported.includes(stored) ? stored : supported.find((code) => code.toLowerCase() === lower.split("-")[0]);
+        if (["zh-tw", "zh-hk", "zh-mo", "zh-hant"].includes(lower)) language = "zh-Hant";
+        if (["zh", "zh-cn", "zh-sg", "zh-hans"].includes(lower)) language = "zh-Hans";
+        language ||= "en";
+        const localeBase = "/docs/locales";
+        const url = `${localeBase}/${encodeURIComponent(language)}.json`;
+        window.__nicechunkLocalePreload = {
+          language,
+          localeBase,
+          promise: fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }),
+        };
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101713" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="robots" content="index,follow" />
+    <meta name="generator" content="NiceChunk Docs Static Generator v1" />
+    <meta name="nicechunk:source-path" content="docs/content/en/session-funding-and-expiry.json" />
+    <meta name="nicechunk:source-sha256" content="d1d61960cbf60ed55770771933d3e64a7b7219aa668c55151b00079ee3604419" />
+    <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
+    <link rel="canonical" href="https://nicechunk.com/docs/session-funding-and-expiry/" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/src/site-header.css" />
+    <link rel="stylesheet" href="/docs/style.css" />
+    <meta name="description" content="Learn why a NiceChunk session funding target is not a balance, when the browser tops up a session authority, how browser timers differ from chain time, and what to verify after expiry, stale data, or an uncertain setup result." data-i18n-content="meta.description" />
+    <meta property="og:site_name" content="NiceChunk" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="NiceChunk Session Funding and Expiry: SOL, Time, and Recovery" />
+    <meta property="og:description" content="Learn why a NiceChunk session funding target is not a balance, when the browser tops up a session authority, how browser timers differ from chain time, and what to verify after expiry, stale data, or an uncertain setup result." />
+    <meta property="og:url" content="https://nicechunk.com/docs/session-funding-and-expiry/" />
+    <meta property="og:image" content="https://nicechunk.com/docs/media/session-funding-and-expiry-overview-v1.webp" />
+    <meta property="og:image:alt" content="Canonical NiceChunk villager boy turns an empty wooden target peg beside a closed dark owner chest while the canonical villager girl opens a smaller copper fee box; a stone record plinth, local hourglass, and public sundial remain physically separate in the same coastal waystation." />
+    <title>NiceChunk Session Funding and Expiry: SOL, Time, and Recovery</title>
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#article",
+  "url": "https://nicechunk.com/docs/session-funding-and-expiry/",
+  "name": "Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time",
+  "description": "Learn why a NiceChunk session funding target is not a balance, when the browser tops up a session authority, how browser timers differ from chain time, and what to verify after expiry, stale data, or an uncertain setup result.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "name": "NiceChunk",
+    "url": "https://nicechunk.com"
+  },
+  "@type": "TechArticle",
+  "headline": "Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time",
+  "mainEntityOfPage": "https://nicechunk.com/docs/session-funding-and-expiry/",
+  "isPartOf": {
+    "@type": "CollectionPage",
+    "@id": "https://nicechunk.com/docs/",
+    "name": "NiceChunk Field Guide"
+  },
+  "articleSection": [
+    "Start by naming four different money objects",
+    "The reviewed helper tops up toward a target only after balance falls below 0.1 SOL",
+    "Plugin Session separates the small signer purse; Local Game Wallet does not",
+    "Five highlighted browser windows schedule work; Solana Clock decides contract acceptance",
+    "A readable stored key is normally reused; a missing or invalid record creates a new authority",
+    "Setup has an atomic chain transaction followed by a non-atomic browser secret write",
+    "A stale or surprising SOL number needs a fixed verification order",
+    "Expiry, logout, lost secrets, and compromised owners require different responses"
+  ],
+  "hasPart": [
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#four-money-objects",
+      "name": "Start by naming four different money objects"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#top-up-trigger-and-target",
+      "name": "The reviewed helper tops up toward a target only after balance falls below 0.1 SOL"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#plugin-versus-local-wallet-funding",
+      "name": "Plugin Session separates the small signer purse; Local Game Wallet does not"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#five-browser-windows-and-chain-time",
+      "name": "Five highlighted browser windows schedule work; Solana Clock decides contract acceptance"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#reuse-refresh-or-new-authority",
+      "name": "A readable stored key is normally reused; a missing or invalid record creates a new authority"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#two-commit-uncertain-result",
+      "name": "Setup has an atomic chain transaction followed by a non-atomic browser secret write"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#verify-stale-or-wrong-balance",
+      "name": "A stale or surprising SOL number needs a fixed verification order"
+    },
+    {
+      "@type": "WebPageElement",
+      "@id": "https://nicechunk.com/docs/session-funding-and-expiry/#expiry-logout-loss-and-recovery",
+      "name": "Expiry, logout, lost secrets, and compromised owners require different responses"
+    }
+  ],
+  "image": [
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-overview-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-target-vs-balances-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-threshold-top-up-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-plugin-vs-local-wallet-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-time-boundaries-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-key-reuse-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-uncertain-result-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-stale-balance-check-v1.webp",
+    "https://nicechunk.com/docs/media/session-funding-and-expiry-expiry-recovery-v1.webp"
+  ]
+}</script>
+  </head>
+  <body>
+    <a class="skip-link" href="#docsContent" data-i18n="accessibility.skipContent">Skip to content</a>
+
+    <header class="site-header" id="siteHeader" data-site-header-root data-site-header-pending="true"></header>
+
+    <div class="docs-progress" aria-hidden="true"><span id="docsProgressBar"></span></div>
+
+    <main class="docs-main" id="docsContent" tabindex="-1">
+      <section class="docs-loading" id="docsLoading" role="status" aria-live="polite" hidden>
+        <span class="docs-loading-cube" aria-hidden="true"></span>
+        <strong data-i18n="status.loading">Loading field guide</strong>
+        <small data-i18n="status.loadingDetail">Fetching one document in your selected language.</small>
+      </section>
+      <section class="docs-error" id="docsError" role="alert" hidden>
+        <strong data-i18n="status.failed">This guide page could not be loaded.</strong>
+        <p data-i18n="status.failedDetail">Check the connection or return to the guide index.</p>
+        <a href="/docs/" data-i18n="actions.backToIndex">Back to guide index</a>
+      </section>
+      <div id="docsPage" data-docs-static-rendered="en">
+<article class="docs-article"><nav aria-label="Breadcrumb" class="docs-breadcrumb"><a href="/docs/">Field Guide</a>
+<span>/</span>
+<span>Session Funding and Expiry</span></nav>
+<section class="docs-hero"><div class="docs-hero-copy"><p class="docs-eyebrow">PLAYER, WALLET, AND CONTROL · STEP 12</p>
+<h1>Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time</h1>
+<p class="docs-hero-summary">NiceChunk's repository client uses four separate things: a refill amount saved by the browser, the connected owner's wallet, a gameplay-signing address, and a public PlayerSession record whose storage rent is separate. It also highlights five client timing policies—8 hours, 15 minutes, 5 minutes, 60 seconds, and 30 seconds—while Solana programs use chain time to decide setup and use. This player decision guide separates those objects and clocks, points permission details back to Step 2.11, and leaves the full fee, rent, close, and refund inventory to Step 2.13.</p>
+<span class="docs-reading-time">54 min read</span></div>
+<figure class="docs-hero-visual"><img alt="Canonical NiceChunk villager boy turns an empty wooden target peg beside a closed dark owner chest while the canonical villager girl opens a smaller copper fee box; a stone record plinth, local hourglass, and public sundial remain physically separate in the same coastal waystation." decoding="async" height="887" loading="eager" src="/docs/media/session-funding-and-expiry-overview-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">In the generated real-Chunk.js coastal scene, baked game materials keep the empty target frame, dark owner chest, copper authority box, stone record foundation, local hourglass, and public sundial apart. Their sizes, contents, sand level, and shadows are unlabeled teaching props—not evidence of a balance, transfer, PDA state, timestamp, expiry, or recovery result.</figcaption></figure></section>
+<section class="docs-guide-context"><span class="docs-guide-question-label">PLAYER QUESTION</span>
+<strong class="docs-guide-question">If the modular Play HUD says “Session: 0.1 SOL” or shows an expiry time, is that SOL number a real balance, which clock decides access, and what can an ordinary player safely check before approving or retrying?</strong>
+<dl class="docs-guide-context-list"><div class="docs-guide-context-item"><dt>Learning path</dt>
+<dd>Player, wallet, and control · Step 12 of 15</dd></div>
+<div class="docs-guide-context-item"><dt>Audience</dt>
+<dd>Players with no programming or blockchain background</dd></div>
+<div class="docs-guide-context-item"><dt>Decision-guide boundary</dt>
+<dd>Step 2.11 owns the permission mask, consumer scope, stored action counter, and key-sandbox explanation. This page answers funding, timing, retry, and key-lifecycle decisions. Step 2.13 will inventory exact fee payers, rent payers, close instructions, refunds, and recoverable balances across account types</dd></div>
+<div class="docs-guide-context-item"><dt>Repository source route reviewed</dt>
+<dd>The repository's production source route is /play/index.html → /play/main.js → play/* → play/play-chain-adapter.js → a resolved chain module. Repository files describe current source behavior but do not alone prove which asset a live browser loaded</dd></div>
+<div class="docs-guide-context-item"><dt>Retained live-byte boundary</dt>
+<dd>The 2026-07-19 UTC static production snapshot retained by the Player Sessions audit byte-pins one versioned chain candidate and records equivalent 28,800-second, 900-second, 100,000,000-lamport, and funding-prefix literals. It was a fixed HTTPS GET audit, not a wallet session, RPC balance read, dynamic-import observation, or transaction</dd></div>
+<div class="docs-guide-context-item"><dt>Network evidence boundary</dt>
+<dd>The retained confirmed Devnet snapshot records PlayerSession PDA rent and expiry classification, but it did not query session-authority balances, owner balances, browser targets, secrets, or Mainnet. This page therefore never turns its ten captured Session records into a claim about a player's current funds</dd></div>
+<div class="docs-guide-context-item"><dt>Reviewed</dt>
+<dd>19 July 2026 · literal repository excerpts plus the retained offline, Devnet, and static-production Player Sessions evidence</dd></div></dl>
+<dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Funding target</dt>
+<dd>A browser-stored number used to calculate a possible owner-to-session-authority top-up. It is not an account, escrow, spending cap, payment receipt, or promise that a transfer happened.</dd></div>
+<div class="docs-guide-term"><dt>Public address and private key</dt>
+<dd>A public address identifies an account that anyone may look up. A private key is the secret signing material that can authorize transactions for that address and must never be pasted into an unknown site.</dd></div>
+<div class="docs-guide-term"><dt>Keypair</dt>
+<dd>The code's name for one public address plus its private signing bytes. A separate plugin Session Keypair is still an ordinary Solana signer, not a key restricted to NiceChunk.</dd></div>
+<div class="docs-guide-term"><dt>Owner balance</dt>
+<dd>Spendable lamports at the connected owner's address. In plugin mode this address funds setup and a low session authority; in Local Game Wallet mode it is also the session-authority address.</dd></div>
+<div class="docs-guide-term"><dt>Session-authority balance</dt>
+<dd>Spendable lamports at the ordinary signer used for gameplay calls. Plugin mode normally uses a separate address; Local Game Wallet uses the owner address itself.</dd></div>
+<div class="docs-guide-term"><dt>PlayerSession rent</dt>
+<dd>Lamports held by the separate 184-byte PlayerSession PDA so its data allocation can remain. Those lamports are not the session authority's spendable fee balance.</dd></div>
+<div class="docs-guide-term"><dt>Lamport</dt>
+<dd>The smallest SOL unit. One SOL equals 1,000,000,000 lamports, so 0.1 SOL equals 100,000,000 lamports.</dd></div>
+<div class="docs-guide-term"><dt>Top-up</dt>
+<dd>A transfer of only the difference between a selected target and a lower current balance. In the reviewed client, the automatic branch is entered only when the authority balance is below 0.1 SOL.</dd></div>
+<div class="docs-guide-term"><dt>Plugin Session</dt>
+<dd>The arrangement where a long-lived external wallet remains owner and a separate browser-held Keypair normally becomes sessionAuthority.</dd></div>
+<div class="docs-guide-term"><dt>Local Game Wallet</dt>
+<dd>A persistent browser wallet whose one key fills both owner and sessionAuthority. Its full owner balance is therefore also the authority balance.</dd></div>
+<div class="docs-guide-term"><dt>Browser time</dt>
+<dd>Time calculated from Date.now() on one device. It drives client refresh and cache decisions but does not decide whether a contract accepts a Session.</dd></div>
+<div class="docs-guide-term"><dt>Chain time</dt>
+<dd>Clock.unix_timestamp read by a Solana program while an instruction executes. Setup and audited consumers compare expiresAt with this value.</dd></div>
+<div class="docs-guide-term"><dt>Expiry timestamp</dt>
+<dd>The Unix-seconds value called expiresAt in code. The browser proposes and may copy it, while a program compares the public record's value with chain time when an instruction executes.</dd></div>
+<div class="docs-guide-term"><dt>RPC</dt>
+<dd>The network service a browser or explorer asks for balances, accounts, transaction status, and chain context. A failed or stale RPC answer is not proof that the underlying account changed.</dd></div>
+<div class="docs-guide-term"><dt>Commitment, confirmed, and finalized</dt>
+<dd>Commitment says how much cluster agreement an RPC read requires. Confirmed is stronger than processed, but confirmed and finalized are different status labels; the reviewed helper waits for confirmed, not specifically finalized.</dd></div>
+<div class="docs-guide-term"><dt>Fee payer</dt>
+<dd>The account whose SOL pays a transaction fee. In reviewed plugin setup the owner is fee payer; supported later gameplay calls can instead use the session authority.</dd></div>
+<div class="docs-guide-term"><dt>Refresh skew</dt>
+<dd>The 15-minute client safety window. A copied expiry inside that window is treated as needing setup or refresh before it reaches zero.</dd></div>
+<div class="docs-guide-term"><dt>Ready cache</dt>
+<dd>A five-minute in-memory shortcut for the Local Game Wallet path. It avoids an RPC read; it does not extend the on-chain record.</dd></div>
+<div class="docs-guide-term"><dt>Status cache</dt>
+<dd>A separate 60-second in-memory snapshot returned by getGameplaySessionStatus unless a force read is requested.</dd></div>
+<div class="docs-guide-term"><dt>Balance cache</dt>
+<dd>The Play wallet HUD's 30-second cache for the connected wallet address. If refresh fails after a known value, the UI can keep that value and mark it stale.</dd></div>
+<div class="docs-guide-term"><dt>Cache lifetime or TTL</dt>
+<dd>How long the browser may reuse one saved in-memory result before asking again. A TTL schedules another read; it does not extend a Session on chain.</dd></div>
+<div class="docs-guide-term"><dt>Browser storage and Base58/Base64</dt>
+<dd>Browser storage keeps site data on the device. Base58 and Base64 turn bytes into text but do not encrypt or protect a private key.</dd></div>
+<div class="docs-guide-term"><dt>Commit</dt>
+<dd>A durable state change in one system. The setup transaction and the later browser secret write belong to different systems and are not one atomic commit.</dd></div>
+<div class="docs-guide-term"><dt>Atomic transaction</dt>
+<dd>A Solana transaction whose instructions either take effect together or roll back together. A later browser storage write is outside that atomic transaction.</dd></div>
+<div class="docs-guide-term"><dt>Unknown result</dt>
+<dd>A situation where a client did not obtain a reliable final answer after submission. It does not prove either failure or success, so addresses and signature status must be checked before retrying.</dd></div>
+<div class="docs-guide-term"><dt>Rotation</dt>
+<dd>Using a different session-authority key, which derives a different PlayerSession PDA. It does not close, revoke, or refund the old record.</dd></div>
+<div class="docs-guide-term"><dt>Recovery</dt>
+<dd>Regaining control or establishing a safe replacement after expiry, deletion, loss, or compromise. The correct response depends on which private key is still controlled.</dd></div>
+<div class="docs-guide-term"><dt>Trusted explorer</dt>
+<dd>A reputable read-only service used with the correct Solana network to inspect a public address or transaction signature. It never needs a private key or secret recovery phrase.</dd></div></dl></section>
+<section class="docs-key-points"><h2 class="docs-visually-hidden">Key points</h2>
+<div class="docs-key-point-grid"><article class="docs-key-point"><strong>Four money-shaped values are not one balance</strong>
+<p>The funding target is browser policy, the owner and session authority are spendable addresses, and the PlayerSession PDA holds separate rent. Always name the address or account before interpreting a SOL number.</p></article>
+<article class="docs-key-point"><strong>A higher target is not continuously enforced</strong>
+<p>The reviewed top-up helper returns immediately at or above 0.1 SOL. An authority holding 0.11 SOL is not automatically raised to a stored 0.50 SOL target by that branch.</p></article>
+<article class="docs-key-point"><strong>The two wallet modes have different exposure</strong>
+<p>Plugin mode normally keeps the configured gameplay funds at a separate authority address. That separation is not a cap or key sandbox. Local Game Wallet makes owner and sessionAuthority the same long-lived browser key, so there is no separate session purse to refill.</p></article>
+<article class="docs-key-point"><strong>Browser timers schedule checks; chain time decides acceptance</strong>
+<p>Eight hours, fifteen minutes, five minutes, sixty seconds, and thirty seconds belong to different client decisions. Contracts accept only when expiresAt remains greater than their Clock timestamp.</p></article>
+<article class="docs-key-point"><strong>Retry only after identifying the old authority and transaction result</strong>
+<p>In plugin-wallet mode, a stored valid key is normally reused; a missing or invalid plugin record causes generation of a new authority and PDA. Local Game Wallet does not generate a replacement session authority here. An uncertain result can already have funded the first address, so blind retry can strand another balance and rent allocation.</p></article>
+<article class="docs-key-point"><strong>Expiry is not deletion, refund, or wallet recovery</strong>
+<p>Expiry blocks audited Session consumers for that record. It does not erase a key, drain SOL, close the PDA, refund rent, or contain a compromised owner or Local Game Wallet key.</p></article>
+<article class="docs-key-point"><strong>Funding does not grant gameplay permission</strong>
+<p>SOL lets an address pay fees or required account funding; it does not set allowedActions or make a consumer accept the key. Step 2.11 explains the permission mask, consumer checks, and currently unenforced stored action counter.</p></article></div></section>
+<div class="docs-article-layout"><aside class="docs-toc"><strong>On this page</strong>
+<nav><ol><li><a href="#four-money-objects">Start by naming four different money objects</a></li>
+<li><a href="#top-up-trigger-and-target">The reviewed helper tops up toward a target only after balance falls below 0.1 SOL</a></li>
+<li><a href="#plugin-versus-local-wallet-funding">Plugin Session separates the small signer purse; Local Game Wallet does not</a></li>
+<li><a href="#five-browser-windows-and-chain-time">Five highlighted browser windows schedule work; Solana Clock decides contract acceptance</a></li>
+<li><a href="#reuse-refresh-or-new-authority">A readable stored key is normally reused; a missing or invalid record creates a new authority</a></li>
+<li><a href="#two-commit-uncertain-result">Setup has an atomic chain transaction followed by a non-atomic browser secret write</a></li>
+<li><a href="#verify-stale-or-wrong-balance">A stale or surprising SOL number needs a fixed verification order</a></li>
+<li><a href="#expiry-logout-loss-and-recovery">Expiry, logout, lost secrets, and compromised owners require different responses</a></li>
+<li><a href="#technical-details">Match every balance, timer, retry, and recovery claim to its actual source</a></li>
+<li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
+<div class="docs-article-content"><section class="docs-content-section" id="four-money-objects"><p class="docs-eyebrow">TARGET, TWO ADDRESSES, ONE PDA</p>
+<h2>Start by naming four different money objects</h2>
+<p class="docs-prose">A funding target is only a number saved in this browser. In the current modular Play source, the HUD text “Session: X SOL” is built from state.sessionLamports, which is that locally saved target; it is not an RPC balance for either the owner or the session authority. The funding panel clamps the selected value to at least 0.1 SOL, converts it to lamports, stores it under an owner-scoped key, and later labels a known value “Current session funding target.” Saving or displaying this number creates no transaction and proves no address received anything.</p>
+<p class="docs-prose">The owner balance and session-authority balance are ordinary address balances. In plugin mode they normally belong to different public keys: the owner approves setup and a possible transfer, while the session authority later pays fees for supported gameplay transactions. A wallet HUD reading the connected owner cannot be silently reused as evidence for the separate authority, and an authority status read cannot prove what remains in the owner wallet.</p>
+<p class="docs-prose">The PlayerSession PDA is a fourth account. The Player Program asks Solana Rent for the minimum needed by a 184-byte data account and uses the owner payer to create or top up that PDA allocation. The retained Devnet snapshot observed 2,171,520 lamports per captured PDA at its dated context, but did not query either spendable address. Treat that number as dated Devnet rent evidence, not a universal current balance.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Browser policy</span>
+<strong>configured target in lamports</strong>
+<p>No public address owns this number and saving it sends no SOL.</p></article>
+<article class="docs-fact"><span>Modular Play HUD</span>
+<strong>Session: X SOL = state.sessionLamports target</strong>
+<p>That visible X is local presentation state, not an owner or session-authority getBalance result.</p></article>
+<article class="docs-fact"><span>Connected wallet</span>
+<strong>owner address balance</strong>
+<p>The Play HUD requests getBalance for walletAddress at confirmed commitment.</p></article>
+<article class="docs-fact"><span>Gameplay signer</span>
+<strong>sessionAuthority address balance</strong>
+<p>Plugin status reads the stored Keypair's public address; it can differ from owner.</p></article>
+<article class="docs-fact"><span>Authorization record</span>
+<strong>PlayerSession PDA rent lamports</strong>
+<p>A separate program-owned data account rather than spendable authority funds.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy adjusts an unmarked wooden target frame beside a large closed dark chest while the canonical villager girl opens a smaller copper box and points toward a detached gray stone record plinth with its own foundation recess." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-target-vs-balances-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated scene uses the real Chunk.js coast and baked game materials to keep four metaphors apart: policy frame, owner chest, authority box, and record foundation. The empty frame changes no supply, and the containers reveal no numeric amount, so the image does not establish SOL balances, rent, ownership, an RPC read, or a completed transfer.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: Does “target 0.1 SOL” mean my session already owns 0.1 SOL?</strong>
+<p>No. In the reviewed modular Play source, “Session: X SOL” comes from state.sessionLamports, the browser-saved target. It is not the owner or authority RPC balance. Check the selected wallet mode and exact public address, then use a fresh public balance read before saying funds arrived.</p></aside></section>
+<section class="docs-content-section" id="top-up-trigger-and-target"><p class="docs-eyebrow">BELOW THE FLOOR ONLY</p>
+<h2>The reviewed helper tops up toward a target only after balance falls below 0.1 SOL</h2>
+<p class="docs-prose">The configured target is clamped to at least 100,000,000 lamports. The chain module first looks for an owner-specific browser value, then the default value, and finally falls back to the minimum when the selected number is missing, invalid, or too small. This selection still describes policy, not funds.</p>
+<p class="docs-prose">For a stored plugin Session, fundGameplaySessionIfNeeded immediately returns when the authority has at least the 0.1 SOL minimum. Only a lower balance reaches target selection. If that lower balance is also below the selected target, the owner is asked to transfer target minus balance. The result is a refill trigger, not continuous target maintenance.</p>
+<p class="docs-prose">For example, with target 0.50 SOL: an authority balance read at confirmed commitment of 0.06 SOL produces a 0.44 SOL requested difference, while a balance of 0.11 SOL produces no automatic top-up in this helper. In reviewed plugin setup, the owner is transaction fee payer and funds a newly allocated PlayerSession PDA. Supported later gameplay calls can instead use the session authority as fee payer and can spend its balance on fees or action-created accounts. Step 2.13 will inventory those fee and rent paths precisely.</p>
+<p class="docs-prose">Funding still grants no gameplay permission. A funded authority must also present a PlayerSession that passes the relevant consumer's owner, relationship, expiry, and allowed-action checks. Step 2.11 owns that permission mask and explains why the stored maxActions and actionCount fields are not a currently enforced spending or action ceiling.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Minimum trigger</span>
+<strong>100,000,000 lamports = 0.1 SOL</strong>
+<p>Repository client policy and retained static-production literal, not a contract field.</p></article>
+<article class="docs-fact"><span>Low balance</span>
+<strong>transfer = target − current balance</strong>
+<p>Only when current balance is below both the minimum-entry branch and selected target.</p></article>
+<article class="docs-fact"><span>At least minimum</span>
+<strong>automatic transfer = 0</strong>
+<p>A higher stored target is not filled by the reviewed top-up helper.</p></article>
+<article class="docs-fact"><span>After funding</span>
+<strong>later fee-payer or account-funding duties may reduce authority balance</strong>
+<p>The owner pays reviewed plugin setup fees and Session-PDA allocation; Step 2.13 separates every later payer and recovery path.</p></article>
+<article class="docs-fact"><span>Permission</span>
+<strong>not granted by SOL</strong>
+<p>Funding does not set allowedActions or bypass the consumer checks explained in Step 2.11.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy lifts a timber sluice above water entering one copper-lined basin while the canonical villager girl examines a separate fuller basin beneath an uphill dark reservoir and a second open trough in the same coastal refill station." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-threshold-top-up-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">This generated real-Chunk.js coast scene uses baked game materials and two water basins as an approximate threshold metaphor. Both water levels are illustrative, and the right-hand trough also appears wet; therefore the picture cannot prove which branch opened, any 0.1 SOL comparison, target difference, balance query, wallet approval, transfer, or confirmation.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: Why did a 0.50 SOL target not refill a session showing 0.11 SOL?</strong>
+<p>Because the first condition asks whether balance is below 0.1 SOL. Once balance is at least that threshold, the helper returns without comparing it with the higher target.</p></aside></section>
+<section class="docs-content-section" id="plugin-versus-local-wallet-funding"><p class="docs-eyebrow">TWO FUNDING SHAPES</p>
+<h2>Plugin Session separates the small signer purse; Local Game Wallet does not</h2>
+<p class="docs-prose">In plugin mode, owner and sessionAuthority normally differ. The client can transfer SOL from the owner to the separate authority and applies both signatures to setup. Later supported calls can use that authority as transaction fee payer. This arrangement keeps the configured gameplay funds at a separate address, but it is separation rather than isolation: PlayerSession does not cap the balance or technically restrict what the ordinary authority key can sign.</p>
+<p class="docs-prose">Local Game Wallet uses one persistent browser Keypair as owner and sessionAuthority. The chain module's Local-mode status object reports configuredFundingLamports and minimumFundingLamports as zero to mean that a separate-session top-up policy is not applicable. Those zeros do not mean the address balance is zero, do not overwrite a browser target displayed elsewhere, and do not turn that target into a balance. The same address balance fills both owner and authority roles, while PlayerSession PDA rent remains separate.</p>
+<p class="docs-prose">The Local Game Wallet private key is stored as Base58 text in browser storage. Plugin Session stores a different Base64-encoded private key under an owner-scoped Session key. Neither encoding is encryption. In plain language, begin every funding decision by asking whether the game is using two addresses or the same address twice; do not rely on a generic label such as “session wallet.”</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Plugin mode</span>
+<strong>owner usually differs from sessionAuthority</strong>
+<p>A distinct authority can receive a modest top-up and sign supported calls.</p></article>
+<article class="docs-fact"><span>Local Game Wallet</span>
+<strong>owner equals sessionAuthority</strong>
+<p>One persistent key controls the full address balance and fills both setup roles.</p></article>
+<article class="docs-fact"><span>Local mode status</span>
+<strong>configured minimum and target reported as 0</strong>
+<p>This means separate-session funding is not applicable in that status object, not that the wallet balance or every browser target is zero.</p></article>
+<article class="docs-fact"><span>PDA rent</span>
+<strong>separate in both modes</strong>
+<p>Equal owner and authority keys do not merge the program-owned Session PDA into the wallet.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy stands beside a large dark chest while holding a separate copper key above its own small copper box; the canonical villager girl holds one dark key bar against two recesses on a connected stone-and-timber fixture above a larger chest." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-plugin-vs-local-wallet-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated real-Chunk.js workshop and baked game materials contrast a separated plugin-style key and fee box with one combined Local Game Wallet fixture. Prop count and placement explain roles only: they do not prove key ownership, encrypted storage, wallet balance, funding exposure, signature scope, setup success, or any live mode selection.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: Is Local Game Wallet the safer “no session funds” option?</strong>
+<p>It removes the separate purse, not the risk. The one browser-held key controls the owner's full balance and can satisfy both Session setup roles, so its exposure is broader if that key is lost or copied.</p></aside></section>
+<section class="docs-content-section" id="five-browser-windows-and-chain-time"><p class="docs-eyebrow">SIX DIFFERENT TIME QUESTIONS</p>
+<h2>Five highlighted browser windows schedule work; Solana Clock decides contract acceptance</h2>
+<p class="docs-prose">The client requests expiresAt as browser now plus 28,800 seconds, or eight hours. It treats a copied plugin expiry as reusable only when more than 900 seconds remain. Those are browser calculations and can be wrong when the device clock, stored value, or account state is wrong. Setup independently rejects expiresAt at or before Clock.unix_timestamp.</p>
+<p class="docs-prose">Three highlighted caches answer narrower questions. The Local Game Wallet ready cache can bypass a network account read for five minutes and return a newly calculated now-plus-eight-hours value; it does not rewrite the record. The Session-status source API can return a cached snapshot for sixty seconds unless its force option is used, and the Play owner-balance HUD reuses a balance fetched at confirmed commitment for thirty seconds. None extends authorization.</p>
+<p class="docs-prose">These are the five Session and funding windows highlighted in this guide, not every timer in the client. The same source also contains a 12-second balance-request abort, a separate 60-second confirmation fallback for a branch without finite block-height information, and shorter polling intervals. A shared number of seconds does not give two timers the same job.</p>
+<p class="docs-prose">At actual use, audited Chunk, Building, and Backpack branches obtain Clock and reject when expiresAt is less than or equal to chain time. Therefore an optimistic browser countdown can coexist with a contract rejection, and an expired-looking browser copy can be stale while a refreshed chain record exists. The deciding test is the record read plus the consumer's chain-time gate, not one displayed countdown.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>8 hours</span>
+<strong>requested Session duration</strong>
+<p>Client default of 28,800 seconds, not a contract maximum.</p></article>
+<article class="docs-fact"><span>15 minutes</span>
+<strong>early refresh or reuse skew</strong>
+<p>A browser safety margin of 900 seconds.</p></article>
+<article class="docs-fact"><span>5 minutes</span>
+<strong>Local Game Wallet ready-cache TTL</strong>
+<p>Can skip an RPC Session read and return a synthetic expiry.</p></article>
+<article class="docs-fact"><span>60 seconds</span>
+<strong>Session status-cache TTL</strong>
+<p>A presentation/read cache, not authorization lifetime.</p></article>
+<article class="docs-fact"><span>30 seconds</span>
+<strong>Play owner-balance cache and refresh interval</strong>
+<p>A wallet HUD policy, not Session refresh or chain time.</p></article>
+<article class="docs-fact"><span>Instruction execution</span>
+<strong>Clock.unix_timestamp</strong>
+<p>Authoritative setup and consumer comparison inside the programs.</p></article>
+<article class="docs-fact"><span>Other client timers</span>
+<strong>outside this five-window teaching set</strong>
+<p>Request aborts and transaction polling do not become Session duration, refresh skew, or chain time.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy inspects a rack containing three differently sized hourglasses, a water-drip bowl, and a pendulum while the canonical villager girl stands apart in the public courtyard facing one large stone sundial tower." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-time-boundaries-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated scene places five local scheduling props inside the real Chunk.js coastal waystation and one separate public sundial outside, all rendered with baked game materials. Device size, sand, water, pendulum, and shadow positions encode no duration or status and cannot prove browser time, chain time, cache age, expiry, or contract acceptance.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: My countdown says time remains—why can the action still be rejected?</strong>
+<p>The countdown may use copied browser data or a cache. The contract compares the public record with chain Clock at execution and can also reject identity, permission, or action checks.</p></aside></section>
+<section class="docs-content-section" id="reuse-refresh-or-new-authority"><p class="docs-eyebrow">SAME KEY OR DIFFERENT PDA</p>
+<h2>A readable stored key is normally reused; a missing or invalid record creates a new authority</h2>
+<p class="docs-prose">Plugin mode first tries to open the browser record saved for the connected owner. The saved private bytes must rebuild the public address recorded beside them, and the copied expiry must be a usable number. When those checks succeed, even a near-expiry path keeps the same plugin Keypair and asks setup to use the same authority. The same owner and authority select the same deterministic PlayerSession address.</p>
+<p class="docs-prose">When that plugin record is missing, malformed, inaccessible, contains invalid private bytes, or rebuilds a different public address, the loader returns no reusable key. Plugin setup then generates a new Keypair. That different authority selects a different PlayerSession PDA and leaves any old authority balance and old PDA untouched. The implementation cannot rediscover private bytes that the browser can no longer read.</p>
+<p class="docs-prose">Local Game Wallet has a different boundary: it does not generate a separate replacement session authority in this flow. It reloads the persistent owner Keypair and selects the owner-owner Session PDA. On a cache miss, an account fetched at confirmed commitment is reused only when it also passes the client's browser-time 15-minute check; this is still not a consumer's chain-time verdict. If the Local Game Wallet key is unavailable or does not match the owner, the flow reports that wallet unavailable rather than silently creating a new session key. Rotation and refresh are different operations, and neither is revocation.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Stored plugin key decodes</span>
+<strong>reuse same Keypair</strong>
+<p>Near-expiry setup still uses stored.keypair, so PDA selection remains the same.</p></article>
+<article class="docs-fact"><span>Stored plugin key cannot be loaded</span>
+<strong>Keypair.generate()</strong>
+<p>Only the plugin path generates a new authority and therefore selects a different PDA.</p></article>
+<article class="docs-fact"><span>Local Game Wallet</span>
+<strong>authority remains owner</strong>
+<p>The flow has no separate session-key rotation branch and reports unavailable when the persistent key cannot be used.</p></article>
+<article class="docs-fact"><span>Old state</span>
+<strong>unchanged by new-key setup</strong>
+<p>No old Session account or balance is an input to the new PDA transaction.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy returns an intact copper key to the recess of a standing gray plinth while the canonical villager girl hammers a differently shaped copper key beside a second plinth; a cracked empty wooden cradle and fragment sit between them." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-key-reuse-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated real-Chunk.js locksmith yard uses baked game materials to stage intact-key reuse beside a separate replacement location while both stone plinths remain standing. The scene cannot verify browser storage, key parsing, PDA derivation, refresh or rotation success, and the new key does not visually close, drain, refund, or recover the old record.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: Does clicking again always give me a new session key?</strong>
+<p>No. Plugin mode normally reuses a valid stored key, including for refresh, and generates a new authority only when that plugin record cannot be loaded. Local Game Wallet never generates that separate replacement here: it continues with its matching owner key or reports the wallet unavailable.</p></aside></section>
+<section class="docs-content-section" id="two-commit-uncertain-result"><p class="docs-eyebrow">CHAIN FIRST, BROWSER COPY SECOND</p>
+<h2>Setup has an atomic chain transaction followed by a non-atomic browser secret write</h2>
+<p class="docs-prose">Fresh plugin setup builds one Solana transaction. Depending on existing state, that transaction can initialize a Profile, transfer the authority's target difference, and create or refresh PlayerSession. Solana treats those instructions atomically: if one executed instruction fails, this transaction does not keep only the transfer while rolling back the later Session instruction. Step 2.13 will separate the exact fee and rent charges inside and around that transaction.</p>
+<p class="docs-prose">The browser lifecycle has another boundary. The wallet helper signs, broadcasts, and returns after RPC reports the transaction at confirmed commitment. Confirmed is stronger than processed, but it is not the same status label as finalized. Only after the helper observes confirmed does setup call the separate browser-storage function. That later localStorage.setItem operation is outside the Solana transaction, so unavailable storage, quota failure, an exception, or a page close can still leave funds and a PDA without a durable browser copy of the private key.</p>
+<p class="docs-prose">Transport or RPC failure can also make the client result uncertain after bytes were submitted. An error message alone proves neither rejection nor success. If wallet activity or the error report exposes a transaction signature, an ordinary player can inspect that public signature with a trusted explorer on the selected Solana network. A trusted explorer needs no private key.</p>
+<p class="docs-prose">The reviewed normal modular Play UI does not guarantee that it will show the attempted session-authority address or canonical PDA, and it provides no PDA-derivation or session-balance sweep button. If the signature or required public identifiers are unavailable, the result remains unknown. Do not approve the same setup repeatedly in the hope that one attempt works; retain non-secret wallet activity and error details and use an official support path instead.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Inside the transaction</span>
+<strong>optional Profile + transfer + Session setup</strong>
+<p>These chain instructions succeed or roll back together.</p></article>
+<article class="docs-fact"><span>After confirmed helper return</span>
+<strong>storeGameplaySession</strong>
+<p>The separate browser write starts after the helper observes confirmed; this page does not relabel that observation finalized.</p></article>
+<article class="docs-fact"><span>Commitment boundary</span>
+<strong>confirmed is not the same label as finalized</strong>
+<p>The reviewed helper accepts confirmed or finalized status when asked for confirmed commitment.</p></article>
+<article class="docs-fact"><span>Error after submission</span>
+<strong>outcome may be unknown</strong>
+<p>Do not equate a missing client confirmation with a rejected transaction.</p></article>
+<article class="docs-fact"><span>Blind retry risk</span>
+<strong>another authority balance and PDA rent</strong>
+<p>Possible when the first secret was not stored and a new Keypair is generated.</p></article>
+<article class="docs-fact"><span>Normal modular UI boundary</span>
+<strong>signature and attempted authority are not guaranteed visible</strong>
+<p>No normal PDA-derivation or session SOL sweep control is exposed by the reviewed modular Play UI.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy holds a blank pale receipt tile beside a stone-and-iron press and solid record block while the canonical villager girl pushes a copper key into a crooked half-open wooden drawer and pauses a handcart carrying a closed copper box." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-uncertain-result-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated real-Chunk.js waystation uses baked game materials to place a public-record metaphor before a separate jammed storage drawer and held-back retry cart. Spatial order is not execution evidence: the scene cannot prove broadcast, confirmation, program success, localStorage success or failure, key loss, funding, or any real player's result.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: The page showed an error after approval—should I approve again?</strong>
+<p>Not yet. Use a trusted explorer only when wallet activity or an error report gives you a public transaction signature, and never enter a private key there. If the signature or attempted authority is not available, the result is still unknown because normal modular Play does not guarantee those identifiers or provide a PDA/sweep tool. Do not approve repeatedly; keep non-secret error details and use official support.</p></aside></section>
+<section class="docs-content-section" id="verify-stale-or-wrong-balance"><p class="docs-eyebrow">VERIFY ADDRESS, NETWORK, FRESHNESS, PURPOSE</p>
+<h2>A stale or surprising SOL number needs a fixed verification order</h2>
+<p class="docs-prose">First identify the number's purpose. A panel target came from browser storage; the account HUD reads the connected owner; plugin Session status reads the stored authority; PDA lamports belong to the data account. If the wallet mode is Local Game Wallet, owner and authority addresses match, but target and PDA rent still remain separate.</p>
+<p class="docs-prose">Second verify context: copy the full public address that is actually visible, confirm the selected cluster and RPC endpoint, and note whether the read uses confirmed commitment. When the interface offers a visible refresh, use it instead of trusting a 30-second HUD cache or 60-second Session status cache. The source API has a force option, but the reviewed normal modular Play UI does not expose a guaranteed player-facing force control. The HUD may deliberately preserve a prior known balance as stale when refresh fails, which is useful presentation but not a fresh chain fact.</p>
+<p class="docs-prose">Third use only the public evidence you actually have. If wallet activity or an error report exposes a signature, inspect it with a trusted explorer on the same network, then inspect a known authority address. Deriving and reading the canonical PlayerSession PDA requires the public owner and authority identifiers and tooling that normal modular Play does not guarantee. If those identifiers are missing, stop at unknown rather than filling the gap with a browser target or another approval. A balance proves lamports at one address, not a usable pass; a nonempty PDA proves an account exists, not that a consumer will accept it.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>1 · Purpose</span>
+<strong>target, owner, authority, or PDA</strong>
+<p>Name the object before comparing numbers.</p></article>
+<article class="docs-fact"><span>2 · Address</span>
+<strong>full Base58 public key</strong>
+<p>A shortened label can hide that owner and authority differ.</p></article>
+<article class="docs-fact"><span>3 · Context</span>
+<strong>cluster, RPC, commitment, freshness</strong>
+<p>A valid balance on the wrong network still answers the wrong question.</p></article>
+<article class="docs-fact"><span>4 · Causal evidence</span>
+<strong>use only available public identifiers</strong>
+<p>Signature, authority, PDA, and chain-time checks prove different facts; missing identifiers leave the outcome unknown.</p></article>
+<article class="docs-fact"><span>UI boundary</span>
+<strong>no guaranteed force or PDA tool</strong>
+<p>The source API can force a status read, but the reviewed normal modular UI does not expose every diagnostic operation.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villagers inspect an unmarked target frame, dark ring seal, blank receipt tile, dusty glass vessel, open copper box, wooden key tray, and gray key-recess plinth across one bench, with an untouched refill crate and misty signal tower beyond." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-stale-balance-check-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated real-Chunk.js inspection station and baked game materials arrange several evidence metaphors without connectors or labels. Their order encourages verification, but no ring, tile, water line, box content, key, recess, crate, or distant tower is an actual address, signature, cache value, balance, RPC response, Session field, error cause, or refill decision.</figcaption></figure>
+<aside class="docs-callout docs-callout--note"><span class="docs-callout-label">How to read this</span>
+<strong>Player question: Which number should I trust when two panels disagree?</strong>
+<p>Trust neither label by itself. Compare the full public addresses and network context that are actually available, use a visible refresh or a trusted explorer when possible, and classify each number by purpose. Normal modular Play does not guarantee a force/PDA diagnostic button; if required identifiers are absent, the honest result is unknown, not another approval.</p></aside></section>
+<section class="docs-content-section" id="expiry-logout-loss-and-recovery"><p class="docs-eyebrow">RECOVERY DEPENDS ON THE KEY</p>
+<h2>Expiry, logout, lost secrets, and compromised owners require different responses</h2>
+<p class="docs-prose">If only an independent plugin session key is exposed, stop using that key. Chain expiry stops the old record in the audited Session-aware consumers, but anyone holding the private key can still race to move remaining SOL. Those lamports may be movable only when a safe, usable key copy still exists; movement is not guaranteed, and the reviewed normal Play UI provides no session-balance sweep button. Never paste the private key into an unknown website, explorer, form, or support chat.</p>
+<p class="docs-prose">If the only private-key copy is lost or successfully deleted, the public address, balance, and PDA can remain while the normal browser flow can no longer sign for them. Reconnecting in plugin mode may generate a new authority and rent-funded PDA, but cannot recover the old private key or automatically transfer old SOL. The Player Program dispatch exposes create or refresh and no reviewed Session close, revoke, deactivate, or rent-refund handler. Step 2.13 will inventory which other account types do have exact close or recovery paths.</p>
+<p class="docs-prose">If the owner wallet or Local Game Wallet key is compromised, old-Session expiry is not a complete stop-loss because that key can approve future setup; Local Game Wallet can satisfy both roles itself. Stop approving new requests and follow the trusted wallet provider's incident procedure. Logout only attempts local prefix deletion, can fail silently, can reach other owner suffixes on the same origin, and changes no chain state. Any attempt to move assets can race an attacker, so this page does not promise recovery.</p>
+<div class="docs-fact-grid"><article class="docs-fact"><span>Independent Session key exposed</span>
+<strong>stop using it; old audited access ends at chain expiry</strong>
+<p>Anyone with the private key may still race to move remaining SOL, and expiry performs no sweep.</p></article>
+<article class="docs-fact"><span>Independent key lost</span>
+<strong>new key does not recover old funds</strong>
+<p>Address and PDA can remain without a usable secret.</p></article>
+<article class="docs-fact"><span>Owner or Local Game Wallet compromised</span>
+<strong>expiry is insufficient</strong>
+<p>The long-lived key can approve or satisfy future setup roles.</p></article>
+<article class="docs-fact"><span>Logout</span>
+<strong>best-effort browser cleanup only</strong>
+<p>No Session revoke, PDA close, rent refund, or authority-balance sweep.</p></article>
+<article class="docs-fact"><span>Safe recovery boundary</span>
+<strong>possible only with a safe usable key; never guaranteed</strong>
+<p>Current Play has no sweep button, and private keys must never be pasted into an unknown site or chat.</p></article></div>
+<figure class="docs-section-visual"><img alt="Canonical NiceChunk villager boy checks a pale receipt beside intact stone records and copper boxes while the canonical villager girl keeps a new copper key and closed backup book near a cracked cradle, swept empty cubbies, a closed gate with hourglass, and an exposed dark chest." decoding="async" height="887" loading="lazy" src="/docs/media/session-funding-and-expiry-expiry-recovery-v1.webp" width="1774" />
+<figcaption class="docs-visual-caption">The generated real-Chunk.js recovery yard uses baked game materials to keep gate, cubbies, old records, old boxes, cracked cradle, replacement key, backup book, and exposed owner chest visibly separate. These props do not prove expiry, rejection, logout, secure deletion, compromise, backup validity, replacement, refund, revocation, close support, or recovery of old funds.</figcaption></figure>
+<aside class="docs-callout docs-callout--boundary"><span class="docs-callout-label">Implementation boundary</span>
+<strong>Player question: What does pressing Logout actually recover?</strong>
+<p>Nothing on chain. Logout attempts browser cleanup and redirects; it does not revoke, close, refund, or sweep. If an independent authority key is exposed, stop using it. Remaining SOL may be movable only with a safe usable key copy, current Play has no sweep button, movement can race an attacker, and the private key must never be pasted into an unknown site.</p></aside></section>
+<section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">VERIFY EACH DECISION</p>
+<h2>Match every balance, timer, retry, and recovery claim to its actual source</h2>
+<p>Each formula is tagged to one chapter and translated into plain language. Every source excerpt is copied as one continuous literal range and includes a walkthrough. Repository source, dated static-production bytes, and retained Devnet observations remain separately labeled so a client default is never promoted into a permanent chain fact.</p></div>
+<div class="docs-formula-grid"><article class="docs-formula"><h3>Four separate money objects</h3>
+<div aria-label="Money context contains a browser target, an owner address balance, a session authority address balance, and separate rent lamports at the Player Session PDA." class="docs-formula-expression" role="math"><code>moneyContext = { browserTarget, ownerBalance(owner), authorityBalance(sessionAuthority), rentLamports(PlayerSessionPDA) }</code></div>
+<p class="docs-technical-explanation">The braces group questions, not funds. A value from one member cannot be used as evidence for another without the addresses and account type matching.</p>
+<dl class="docs-formula-terms"><dt>browserTarget</dt>
+<dd>A local policy value that creates no transaction.</dd>
+<dt>ownerBalance</dt>
+<dd>Spendable lamports at the owner public key.</dd>
+<dt>authorityBalance</dt>
+<dd>Spendable lamports at the gameplay signer public key.</dd>
+<dt>rentLamports</dt>
+<dd>Lamports held by the separate program-owned data account.</dd></dl></article>
+<article class="docs-formula"><h3>SOL and lamport conversion</h3>
+<div aria-label="One SOL equals one billion lamports, so one tenth of one SOL equals one hundred million lamports." class="docs-formula-expression" role="math"><code>lamports = SOL × 1,000,000,000; 0.1 SOL = 100,000,000 lamports</code></div>
+<p class="docs-technical-explanation">The conversion changes units only. It does not identify which account owns the resulting lamports or prove they were transferred.</p></article>
+<article class="docs-formula"><h3>Configured target selection</h3>
+<div aria-label="Use the owner target when present, otherwise the default target, and fall back to one hundred million lamports if the selected value is invalid or too small." class="docs-formula-expression" role="math"><code>selected = ownerTarget when present, otherwise defaultTarget; target = floor(selected) when finite and at least 100,000,000, otherwise 100,000,000</code></div>
+<p class="docs-technical-explanation">The browser selects one saved value rather than merging two values. It then accepts only a finite number at or above the minimum. This is browser policy, not an on-chain Session field.</p></article>
+<article class="docs-formula"><h3>Current top-up branch</h3>
+<div aria-label="Top up by the positive difference to target only when current balance is below one tenth of one SOL; otherwise transfer zero." class="docs-formula-expression" role="math"><code>topUp(balance,target) = balance &lt; 0.1 SOL ? max(0, target − balance) : 0</code></div>
+<p class="docs-technical-explanation">This operation order explains why a balance above the minimum is not automatically raised to a larger target.</p></article>
+<article class="docs-formula"><h3>Worked low-balance example</h3>
+<div aria-label="With a fifty hundredths SOL target and six hundredths SOL balance, the requested difference is forty-four hundredths SOL." class="docs-formula-expression" role="math"><code>target 0.50 SOL − balance 0.06 SOL = requested top-up 0.44 SOL</code></div>
+<p class="docs-technical-explanation">This arithmetic illustrates the source branch only. A request still needs owner approval, successful execution, and a fresh balance read before it becomes evidence of funds received.</p></article>
+<article class="docs-formula"><h3>Plugin wallet funding shape</h3>
+<div aria-label="In normal plugin mode the owner and session authority are different public keys, so the balances belong to two separate addresses." class="docs-formula-expression" role="math"><code>pluginMode: ownerAddress differs from authorityAddress; each address has its own balance</code></div>
+<p class="docs-technical-explanation">The two balances belong to different addresses; this does not claim statistical independence. A transfer can move lamports between them, but a Session record does not merge ownership or cap the authority key.</p></article>
+<article class="docs-formula"><h3>Local Game Wallet funding shape</h3>
+<div aria-label="In Local Game Wallet mode owner and authority are the same address and therefore share one balance, while the Player Session PDA rent remains separate." class="docs-formula-expression" role="math"><code>localMode: owner = sessionAuthority ⇒ ownerBalance = authorityBalance for the same address; PDA rent remains separate</code></div>
+<p class="docs-technical-explanation">Equality here is address identity, not a safety guarantee. The one browser key controls the full address balance and both setup roles.</p></article>
+<article class="docs-formula"><h3>Requested browser expiry</h3>
+<div aria-label="The browser requests an expiry equal to its current Unix seconds plus twenty-eight thousand eight hundred seconds, which is eight hours." class="docs-formula-expression" role="math"><code>requestedExpiresAt = floor(Date.now() / 1000) + 28,800</code></div>
+<p class="docs-technical-explanation">This is a client request. The Player Program accepts any supplied expiry that is strictly in the future at chain execution; it does not impose an eight-hour maximum.</p></article>
+<article class="docs-formula"><h3>Plugin reuse safety window</h3>
+<div aria-label="The stored browser expiry must be more than nine hundred seconds, or fifteen minutes, after browser now for the fast reuse branch." class="docs-formula-expression" role="math"><code>localReuseTimeOK = storedExpiresAt &gt; browserNow + 900 seconds</code></div>
+<p class="docs-technical-explanation">Passing this copied-time predicate does not validate the Session record's full contents or guarantee a later consumer accepts it.</p></article>
+<article class="docs-formula"><h3>Cache windows are not authorization</h3>
+<div aria-label="The ready cache lasts under five minutes, the Session status cache under sixty seconds, and the owner balance cache under thirty seconds." class="docs-formula-expression" role="math"><code>age(ready result) &lt; 300s; age(Session status) &lt; 60s; age(owner-balance result) &lt; 30s</code></div>
+<p class="docs-technical-explanation">Each inequality decides whether the browser may reuse local data. None changes expiresAt in the public account.</p></article>
+<article class="docs-formula"><h3>Authoritative chain-time rule</h3>
+<div aria-label="Setup or Session use passes its time test only when the stored expiry is strictly greater than the Solana Clock Unix timestamp." class="docs-formula-expression" role="math"><code>setupOrUseTimeOK = expiresAt &gt; Clock.unix_timestamp</code></div>
+<p class="docs-technical-explanation">Equality is already expired. Consumers can still reject other identity, ownership, or permission conditions even when this comparison passes.</p></article>
+<article class="docs-formula"><h3>Same-key PDA selection</h3>
+<div aria-label="The Player Session address is derived from the Player Program, literal session seed, owner, and authority, so the same ordered keys select the same address." class="docs-formula-expression" role="math"><code>P_session = PDA(PlayerProgram,["session",owner,authority]); same owner + same authority ⇒ same address</code></div>
+<p class="docs-technical-explanation">Selecting the same address does not guarantee refresh succeeds; stored relationships and current Profile checks still apply.</p></article>
+<article class="docs-formula"><h3>Replacement-key PDA selection</h3>
+<div aria-label="A different authority changes the canonical Player Session address, while the old Session record and old authority balance remain unchanged." class="docs-formula-expression" role="math"><code>authority_new ≠ authority_old ⇒ P_session,new ≠ P_session,old; old state unchanged</code></div>
+<p class="docs-technical-explanation">The new setup transaction has no automatic old-account close, SOL sweep, rent refund, or revocation side effect.</p></article>
+<article class="docs-formula"><h3>Atomic chain portion</h3>
+<div aria-label="The optional Profile initialization, optional authority funding transfer, and Session create or refresh are instructions in one atomic Solana transaction." class="docs-formula-expression" role="math"><code>chainCommit = atomic(optional Profile init + optional authority transfer + Session create/refresh)</code></div>
+<p class="docs-technical-explanation">If that transaction executes with an instruction error, its state changes roll back together. This does not make later browser storage atomic with it.</p></article>
+<article class="docs-formula"><h3>Two-system persistence boundary</h3>
+<div aria-label="After the helper observes confirmed status, the browser attempts to save the private key, and that browser write is not atomic with the chain transaction." class="docs-formula-expression" role="math"><code>helper observes confirmed → browser attempts localStorage.setItem(private key); the chain transaction is not atomic with the browser write</code></div>
+<p class="docs-technical-explanation">Confirmed is not relabeled finalized here. A browser-storage failure after the helper's confirmed observation can leave a funded authority and public PDA without a durable browser key copy.</p></article>
+<article class="docs-formula"><h3>Unknown result is not failure</h3>
+<div aria-label="A client error after submission can mean confirmed, rejected, blockhash expired, or still unknown, so the player must not retry blindly." class="docs-formula-expression" role="math"><code>after-submit client error: possible result = confirmed, rejected, blockhash-expired, or still unknown; do not retry blindly</code></div>
+<p class="docs-technical-explanation">This is a list of possible diagnostic states, not a probability claim. A public signature can narrow the list; when the normal UI provides no signature or authority identifier, the honest result remains unknown.</p></article>
+<article class="docs-formula"><h3>A balance statement needs four coordinates</h3>
+<div aria-label="A useful balance claim names the full public address, Solana cluster, commitment level, and observation time." class="docs-formula-expression" role="math"><code>balanceClaim = (fullAddress, cluster, commitment, observedAt)</code></div>
+<p class="docs-technical-explanation">Without those coordinates, two correct values can appear contradictory because they describe different keys, networks, or cache ages.</p></article>
+<article class="docs-formula"><h3>Evidence order after setup</h3>
+<div aria-label="When public identifiers are available, inspect the signature, known authority, and derived Session account in order; when identifiers are missing, keep the result unknown." class="docs-formula-expression" role="math"><code>when public identifiers exist: inspect signature → inspect known authority → inspect derived Session PDA; missing identifiers → result stays unknown</code></div>
+<p class="docs-technical-explanation">The order does not mean one successful step proves all later steps. Normal modular Play does not guarantee every identifier or a PDA tool, and a confirmed transfer can fund an authority whose Session is missing, expired, or rejected.</p></article>
+<article class="docs-formula"><h3>Independent Session-key expiry boundary</h3>
+<div aria-label="When an independent Session record reaches chain-time expiry, audited Session access stops but the ordinary private key and any remaining SOL continue to exist." class="docs-formula-expression" role="math"><code>independent authority expires on chain → audited Session access stops; key control and any remaining SOL do not move automatically</code></div>
+<p class="docs-technical-explanation">Remaining SOL may be movable only when a safe usable key copy still exists, but movement is not guaranteed and can race an attacker. Expiry does not transfer the balance anywhere.</p></article>
+<article class="docs-formula"><h3>Logout effect boundary</h3>
+<div aria-label="Logout attempts browser deletion and redirects, while creating no chain mutation." class="docs-formula-expression" role="math"><code>logoutEffect = bestEffortLocalDeletion + redirect; chainMutation = 0</code></div>
+<p class="docs-technical-explanation">The zero refers to the reviewed logout handler's chain transactions. Storage deletion can also fail and is not verified.</p></article>
+<article class="docs-formula"><h3>Owner compromise exceeds one expiry</h3>
+<div aria-label="If the owner secret is compromised, the attacker can authorize future setup, so expiration of one old Session is not complete containment." class="docs-formula-expression" role="math"><code>ownerSecretCompromised ⇒ attacker can authorize future setup; oldSessionExpiry ≠ complete containment</code></div>
+<p class="docs-technical-explanation">Local Game Wallet is the broadest version because the same compromised key fills owner and sessionAuthority roles.</p></article></div>
+<div class="docs-code-list"><article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Play panel saves a target and names its boundary</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    elements.sessionFundingForm?.addEventListener("submit", (event) =&gt; {
+      event.preventDefault();
+      const sol = Math.max(MINIMUM_SESSION_SOL, Number(elements.sessionFundingAmount?.value) || MINIMUM_SESSION_SOL);
+      state.sessionLamports = Math.trunc(sol * LAMPORTS_PER_SOL);
+      saveSessionLamports(state.walletAddress, state.sessionLamports);
+      saveSessionAcknowledged(state.walletAddress);
+      closeSessionPanel(true);
+      render();
+      appendChainEvent(`Session funding target set to ${formatSol(state.sessionLamports)} SOL for ${ownerLabel()}.`);
+      setStatus(`Session funding target set to ${formatSol(state.sessionLamports)} SOL. It is a top-up target, not a spending cap or authorization limit.`);
+    });</code></pre>
+<p class="docs-technical-explanation">Submitting this form clamps and stores a browser number, updates presentation, and explicitly calls it a target. This continuous range contains no transfer or RPC balance read.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Turn the selected SOL policy into an integer lamport target no lower than 0.1 SOL.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Save owner-scoped browser preferences and redraw the panel without constructing a transaction.</p></li>
+<li><strong>Lines 9–11</strong>
+<p>Tell the player that the value is a top-up target rather than a cap or authorization limit.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The modular Play Session HUD renders the local target</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    const sessionText = state.sessionLamports &gt; 0 ? `Session: ${formatSol(state.sessionLamports)} SOL` : "Session: not funded";
+    const rpcText = state.heliusApiKey
+      ? ui("main.profile.rpcHelius", "Helius RPC")
+      : ui("main.profile.rpcPublic", "Public RPC");
+    if (elements.accountName) elements.accountName.textContent = identity.name || profile.name || "Local Miner";
+    if (elements.accountLevel) elements.accountLevel.textContent = `Lv. ${levelFromProfile(profile)}`;
+    if (elements.accountTitle) elements.accountTitle.textContent = identity.title || chainModeLabel(state.chainMode);
+    renderWalletBalance();
+    if (elements.accountSessionBalance) elements.accountSessionBalance.textContent = sessionText;</code></pre>
+<p class="docs-technical-explanation">The visible Session text is formatted directly from state.sessionLamports, while the owner wallet balance is rendered by a separate function. This is literal evidence that “Session: X SOL” is the local target presentation rather than either RPC balance.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Build the visible Session label directly from the in-memory sessionLamports target or show not funded when it is zero.</p></li>
+<li><strong>Lines 2–7</strong>
+<p>Prepare unrelated RPC, name, level, and title presentation without changing the Session target value.</p></li>
+<li><strong>Lines 8–9</strong>
+<p>Render the owner wallet balance separately, then place the prebuilt target-derived Session text in its own HUD element.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The owner HUD asks getBalance for walletAddress</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "nicechunk-wallet-balance",
+        method: "getBalance",
+        params: [walletAddress, { commitment: "confirmed" }],
+      }),
+      signal: controller?.signal,
+      cache: "no-store",</code></pre>
+<p class="docs-technical-explanation">The Play balance request is tied to walletAddress and confirmed commitment. In plugin mode that connected owner address can differ from the stored session authority.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Build one JSON-RPC getBalance request for the connected wallet address at confirmed commitment.</p></li>
+<li><strong>Lines 6–8</strong>
+<p>Attach the request-abort signal and disable HTTP response caching; the separate in-memory UI cache still exists.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>PlayerSession allocation calculates separate rent</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let rent = Rent::get()?;
+    let lamports = rent.minimum_balance(PlayerSession::LEN);
+
+    if player_session.lamports() == 0 {
+        let create = system_instruction::create_account(
+            payer.key,
+            player_session.key,
+            lamports,
+            PlayerSession::LEN as u64,
+            program_id,
+        );</code></pre>
+<p class="docs-technical-explanation">The Player Program calculates rent for the fixed Session data length and creates the PDA with that lamport allocation. This is not a transfer to sessionAuthority.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Ask the chain Rent sysvar for the minimum balance of the PlayerSession allocation.</p></li>
+<li><strong>Lines 4–11</strong>
+<p>When the PDA has no lamports, build a payer-funded account creation for the program-owned data account.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The public setter clamps the target to the client minimum</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function setConfiguredGameplaySessionFundingSol(value, owner = null) {
+  const parsed = Number(value);
+  const lamports = Number.isFinite(parsed)
+    ? Math.max(minimumSessionFundingLamports, Math.ceil(parsed * lamportsPerSol))
+    : minimumSessionFundingLamports;
+  if (hasLocalStorage()) localStorage.setItem(sessionFundingStorageKey(owner), String(lamports));
+  return lamports / lamportsPerSol;
+}</code></pre>
+<p class="docs-technical-explanation">The setter normalizes a browser preference and stores it when localStorage exists. It neither reads nor changes the authority address balance.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Convert finite SOL input to rounded-up lamports and clamp it to the 0.1 SOL minimum.</p></li>
+<li><strong>Lines 6–7</strong>
+<p>Save the target under the selected suffix and return the normalized SOL display value.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Owner-specific target falls back to default then minimum</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function getConfiguredGameplaySessionFundingLamports(owner = null) {
+  if (!hasLocalStorage()) return minimumSessionFundingLamports;
+  const ownerValue = localStorage.getItem(sessionFundingStorageKey(owner));
+  const defaultValue = localStorage.getItem(sessionFundingStorageKey(null));
+  const parsed = Number(ownerValue ?? defaultValue);
+  return Number.isFinite(parsed) &amp;&amp; parsed &gt;= minimumSessionFundingLamports
+    ? Math.floor(parsed)
+    : minimumSessionFundingLamports;
+}</code></pre>
+<p class="docs-technical-explanation">The nullish operator selects the owner value when present and otherwise the default; the final branch rejects invalid or below-minimum values.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Use the minimum without storage, otherwise read owner-specific and default browser keys.</p></li>
+<li><strong>Lines 5–8</strong>
+<p>Select one value and accept it only when finite and at least the minimum.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The top-up helper checks the minimum before the target</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function fundGameplaySessionIfNeeded(provider, sessionAuthority, sessionBalance, conn) {
+  if (sessionBalance &gt;= minimumSessionFundingLamports) return;
+  const targetLamports = getConfiguredGameplaySessionFundingLamports(provider.publicKey);
+  if (sessionBalance &gt;= targetLamports) return;
+  const lamports = targetLamports - sessionBalance;
+  if (lamports &lt;= 0) return;
+  const tx = new Transaction();
+  tx.add(SystemProgram.transfer({
+    fromPubkey: provider.publicKey,
+    toPubkey: sessionAuthority,
+    lamports,
+  }));
+  await signAndSendWalletTransaction(provider, tx, conn);
+}</code></pre>
+<p class="docs-technical-explanation">Operation order is decisive: a balance at or above 0.1 SOL returns before a higher target is considered. A lower balance may request the positive difference from owner to authority.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Exit at the minimum threshold; only a lower balance loads and compares the configured target.</p></li>
+<li><strong>Lines 5–6</strong>
+<p>Calculate and validate a strictly positive difference.</p></li>
+<li><strong>Lines 7–13</strong>
+<p>Build the owner-to-authority System transfer and ask the wallet helper to submit it.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet status has one address and no separate target</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function createLocalGameWalletStatus(owner, balanceLamports = null, expiresAt = null) {
+  const ownerKey = owner?.toBase58?.() ?? String(owner ?? "");
+  const normalizedBalance = Number.isFinite(balanceLamports) ? Math.floor(balanceLamports) : null;
+  return {
+    walletAvailable: true,
+    owner: ownerKey,
+    acknowledged: true,
+    configuredFundingLamports: 0,
+    minimumFundingLamports: 0,
+    balanceLamports: normalizedBalance,
+    balanceSol: normalizedBalance === null ? null : normalizedBalance / lamportsPerSol,
+    publicKey: ownerKey,
+    sessionAuthority: ownerKey,
+    expiresAt,
+    usesGameplaySession: false,
+    walletMode: "localGameWallet",
+  };
+}</code></pre>
+<p class="docs-technical-explanation">The status object uses ownerKey for owner, publicKey, and sessionAuthority, while reporting zero for the separate-session funding policy fields. Zero target does not mean zero wallet balance.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Normalize the one Local Game Wallet address and an optional fresh balance.</p></li>
+<li><strong>Lines 4–10</strong>
+<p>Report no separate funding target while retaining the actual one-address balance.</p></li>
+<li><strong>Lines 11–17</strong>
+<p>Put the same key in public and authority roles and label the wallet mode explicitly.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet fills both setup roles with owner</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  tx.add(createOrRefreshPlayerSessionInstruction({
+    owner,
+    sessionAuthority: owner,
+    playerProfile,
+    playerSession,
+    expiresAt,
+  }));
+
+  await signAndSendKeypairTransaction(keypair, tx, conn);</code></pre>
+<p class="docs-technical-explanation">The same public key occupies owner and sessionAuthority, and the persistent Local Game Wallet Keypair signs the transaction directly.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Construct Session setup with owner repeated in the authority role.</p></li>
+<li><strong>Line 9</strong>
+<p>Sign and submit using that same long-lived browser Keypair.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Local Game Wallet secret is plain Base58 text</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/localGameWallet.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function storeLocalGameWalletKeypair(keypair, source = "created") {
+  const address = keypair.publicKey.toBase58();
+  const secretKey = bs58.encode(keypair.secretKey);
+  const createdAt = String(Date.now());
+  if (!hasLocalStorage()) throw new Error("Browser local storage is unavailable.");
+  localStorage.setItem(localGameWalletKeys.address, address);
+  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);</code></pre>
+<p class="docs-technical-explanation">Base58 changes representation but does not encrypt the full long-lived key. Its funding exposure therefore follows the one owner-and-authority address.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Derive the address, reversible Base58 secret text, and browser creation time.</p></li>
+<li><strong>Lines 5–7</strong>
+<p>Require localStorage and save both public address and private signing bytes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Repository policy declares duration, skew, and cache windows</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const sessionDurationSeconds = 8 * 60 * 60;
+const sessionRefreshSkewSeconds = 15 * 60;
+const lamportsPerSol = 1_000_000_000;
+const minimumSessionFundingLamports = 100_000_000;
+const sessionMinimumMiningLamports = 8_000_000;
+const sessionAllowedActions = (1 &lt;&lt; 1) | (1 &lt;&lt; 2);
+const sessionMaxActions = 10_000;
+const miningComputeUnitLimit = 1_400_000;
+const fallbackTransactionFeeLamports = 5_000;
+const transactionConfirmationPollMs = 500;
+const transactionBlockHeightPollMs = 1_000;
+const transactionConfirmationTimeoutMs = 60_000;
+const treeFellMaxChunkCount = 4;
+const treeFellLeafRadius = 2;
+const supportCollapseMaxOnChainBlocks = 48;
+const bulkMiningModeDebug = 1;
+const chunkDeltaCacheTtlMs = 60_000;
+const gameplaySessionStatusCacheTtlMs = 60_000;
+const gameplaySessionReadyCacheTtlMs = 5 * 60_000;</code></pre>
+<p class="docs-technical-explanation">The relevant declarations set eight-hour duration, fifteen-minute skew, sixty-second status cache, and five-minute ready cache. The nearby sixty-second confirmation fallback is a different policy and must not be confused with Session lifetime.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–4</strong>
+<p>Declare requested duration, refresh skew, SOL conversion, and funding minimum.</p></li>
+<li><strong>Lines 5–16</strong>
+<p>Declare unrelated action, fee, polling, and gameplay constants that share the same module.</p></li>
+<li><strong>Lines 17–19</strong>
+<p>Declare independent sixty-second Session status and five-minute readiness cache lifetimes.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Play declares a separate thirty-second owner-balance cache</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">const LAMPORTS_PER_SOL = 1_000_000_000;
+const MINIMUM_SESSION_SOL = 0.1;
+const BALANCE_CACHE_TTL_MS = 30_000;
+const BALANCE_REFRESH_INTERVAL_MS = 30_000;
+const BALANCE_REQUEST_TIMEOUT_MS = 12_000;
+let localWalletModulePromise = null;
+let localWalletModuleManifestPromise = null;
+const walletBalanceCache = new Map();</code></pre>
+<p class="docs-technical-explanation">The HUD's thirty-second cache and refresh interval are independent of the chain module's Session status and readiness caches. The twelve-second HTTP abort is yet another timer.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Declare UI unit conversion and the displayed minimum target.</p></li>
+<li><strong>Lines 3–5</strong>
+<p>Set the owner-balance cache, refresh interval, and request-abort policies.</p></li>
+<li><strong>Lines 6–8</strong>
+<p>Keep module-loading state and balance-cache data in separate in-memory values.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The Player Program compares requested expiry with chain Clock</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    let clock = Clock::get()?;
+    if expires_at &lt;= clock.unix_timestamp {
+        return Err(NicechunkPlayerError::InvalidInstruction.into());
+    }</code></pre>
+<p class="docs-technical-explanation">Setup accepts only a strictly future expiry at instruction execution. Browser Date.now and cache age are not used inside this contract decision.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Read Solana's Clock sysvar during the program instruction.</p></li>
+<li><strong>Lines 2–4</strong>
+<p>Reject an expiry equal to or earlier than the chain Unix timestamp.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Stored plugin records fail closed to no reusable key</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function loadStoredGameplaySession(owner) {
+  try {
+    if (!hasLocalStorage()) return null;
+    const raw = localStorage.getItem(sessionStorageKey(owner));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.secretKey || !Number.isFinite(parsed.expiresAt)) return null;
+    const secretKey = base64ToBytes(parsed.secretKey);
+    const keypair = Keypair.fromSecretKey(secretKey);
+    if (parsed.publicKey &amp;&amp; keypair.publicKey.toBase58() !== parsed.publicKey) return null;
+    return { keypair, expiresAt: Number(parsed.expiresAt) };
+  } catch {
+    return null;
+  }
+}</code></pre>
+<p class="docs-technical-explanation">Missing storage, malformed JSON, invalid fields, invalid secret bytes, or a mismatching public key all leave the caller with null rather than an accessible old Keypair.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–5</strong>
+<p>Require readable localStorage and an owner-scoped serialized record.</p></li>
+<li><strong>Lines 6–10</strong>
+<p>Decode JSON and secret bytes, then reject an optional saved-public-key mismatch.</p></li>
+<li><strong>Lines 11–14</strong>
+<p>Return the recovered key and expiry, or null for any thrown decoding or storage error.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The setup path reuses stored keypair or generates one replacement</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const keypair = stored?.keypair ?? Keypair.generate();
+  const expiresAt = nowSeconds + sessionDurationSeconds;
+  const [playerProfile] = derivePlayerProfilePda(owner);
+  const [playerSession] = derivePlayerSessionPda(owner, keypair.publicKey);
+  const tx = new Transaction();</code></pre>
+<p class="docs-technical-explanation">A decoded stored record keeps its exact authority even when the fast reuse branch was not taken. Only null storage causes Keypair.generate and therefore a different authority seed.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Prefer the recovered Keypair and generate only when no usable stored record exists.</p></li>
+<li><strong>Lines 2–5</strong>
+<p>Request a new browser expiry and derive Profile and Session addresses from owner and selected key.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Local Game Wallet always derives Session from owner twice</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">async function getOrCreateLocalGameWalletGameplaySession(provider) {
+  const owner = provider.publicKey;
+  const keypair = getLocalGameWalletKeypair();
+  if (!keypair?.publicKey?.equals?.(owner)) {
+    throw new Error("Local game wallet is unavailable.");
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const expiresAt = nowSeconds + sessionDurationSeconds;
+  if (isGameplaySessionReadyCached(owner, owner)) {
+    return { keypair, expiresAt, localGameWallet: true };
+  }
+
+  const conn = getNicechunkConnection();
+  const [playerProfile] = derivePlayerProfilePda(owner);
+  const [playerSession] = derivePlayerSessionPda(owner, owner);</code></pre>
+<p class="docs-technical-explanation">This branch requires the persistent Local Game Wallet key to match owner, queries readiness with owner in both positions, and derives the same-key PDA. It has no separate authority generator.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Load the persistent key and refuse to continue if its public key differs from the provider owner.</p></li>
+<li><strong>Lines 8–12</strong>
+<p>Compute browser time and allow the five-minute same-key ready shortcut.</p></li>
+<li><strong>Lines 14–16</strong>
+<p>On a cache miss, derive the Profile and owner-owner Session addresses for RPC checks.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Fresh plugin setup places funding and Session setup in one transaction</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  if (!profileAccount?.data?.length) {
+    tx.add(createInitializePlayerInstruction(owner, playerProfile, ""));
+  }
+  const targetLamports = sessionBalance &lt; minimumSessionFundingLamports
+    ? getConfiguredGameplaySessionFundingLamports(owner)
+    : sessionBalance;
+  if (sessionBalance &lt; targetLamports) {
+    tx.add(SystemProgram.transfer({
+      fromPubkey: owner,
+      toPubkey: keypair.publicKey,
+      lamports: targetLamports - sessionBalance,
+    }));
+  }
+  tx.add(createOrRefreshPlayerSessionInstruction({
+    owner,
+    sessionAuthority: keypair.publicKey,
+    playerProfile,
+    playerSession,
+    expiresAt,
+  }));</code></pre>
+<p class="docs-technical-explanation">The optional Profile initialization, optional target difference transfer, and create-or-refresh instruction are appended to the same transaction object before submission.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Add Profile initialization only when the fetched Profile has no data.</p></li>
+<li><strong>Lines 4–13</strong>
+<p>Select target by the minimum-entry rule and append an owner-to-new-authority transfer only for a positive shortfall.</p></li>
+<li><strong>Lines 14–20</strong>
+<p>Append Session setup for the exact selected authority and expiry to that same transaction.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Browser secret persistence happens after the wallet helper returns</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);
+  const session = { keypair, expiresAt };
+  storeGameplaySession(owner, session);
+  markGameplaySessionReady(owner, keypair.publicKey, targetLamports);</code></pre>
+<p class="docs-technical-explanation">The wallet helper first observes its requested confirmed commitment. Only then does the source call browser-storage persistence and mark the in-memory ready cache, making the private-key copy a second commit outside the transaction; confirmed is not relabeled finalized.</p>
+<ol class="docs-code-walkthrough"><li><strong>Line 1</strong>
+<p>Apply the extra authority signature, owner approval, broadcast, and helper observation at confirmed commitment before returning.</p></li>
+<li><strong>Lines 2–3</strong>
+<p>Assemble the local browser record and attempt to persist its private key after that confirmed observation.</p></li>
+<li><strong>Line 4</strong>
+<p>Mark readiness only after storeGameplaySession returns without throwing.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The wallet helper broadcasts before polling confirmed status</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  if (typeof provider.signTransaction === "function") {
+    const signed = await provider.signTransaction(transaction);
+    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), "wallet");
+    await confirmTransactionByHttpPolling(conn, {
+      signature,
+      blockhash: transaction.recentBlockhash,
+      lastValidBlockHeight: transaction.lastValidBlockHeight,
+    }, "confirmed");
+    return signature;
+  }</code></pre>
+<p class="docs-technical-explanation">In this provider branch the raw transaction is already submitted before status polling completes. The helper asks for confirmed, which can accept a confirmed or finalized status but does not require finalized specifically. A later error therefore needs reconciliation rather than an assumption that nothing landed.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Obtain the owner signature and broadcast serialized transaction bytes, receiving a signature string.</p></li>
+<li><strong>Lines 4–8</strong>
+<p>Poll that signature and blockhash lifetime while explicitly requesting confirmed commitment rather than finalized.</p></li>
+<li><strong>Line 9</strong>
+<p>Return the signature only after the helper's confirmed predicate succeeds; this wording does not upgrade it to finalized.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The normal modular error feed shows a reason, not every recovery identifier</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">    } catch (error) {
+      state.chainMode = "adapter-error";
+      const reason = readableError(error);
+      logSubmissionFailure(action, pending, {
+        stage: "exception",
+        reason,
+        error,
+      });
+      state.chainResults.set(pending.txId, { reason });
+      const rolledBack = action === "mine" ? controls.rollbackTx?.(pending.txId) : null;
+      if (!rolledBack) {
+        appendSubmissionState(
+          action,
+          pending,
+          `${pending.txId} chain adapter error: ${reason}.`,
+          "error",
+          { reason },
+        );
+      }
+      render();
+    }</code></pre>
+<p class="docs-technical-explanation">The player-facing event text contains the local pending ID and readable reason. A separate structured console report may contain more when the error carries it, but this visible branch does not guarantee a signature, attempted authority, derived PDA, or sweep control.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–8</strong>
+<p>Convert the thrown value into a readable reason and send richer details to the separate structured failure logger.</p></li>
+<li><strong>Lines 9–18</strong>
+<p>Store and display the reason around local rollback state without promising a transaction signature or authority address in the visible message.</p></li>
+<li><strong>Lines 19–20</strong>
+<p>Render the updated error state; this range exposes no PDA derivation or session-balance sweep action.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Session status can return a sixty-second cached snapshot</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const owner = provider.publicKey;
+  const ownerKey = owner.toBase58();
+  const cached = gameplaySessionStatusCache.get(ownerKey);
+  if (!force &amp;&amp; cached &amp;&amp; Date.now() - cached.loadedAt &lt; gameplaySessionStatusCacheTtlMs) {
+    return { ...cached.status };
+  }</code></pre>
+<p class="docs-technical-explanation">The status cache is owner-keyed and bypassed by force. Without force, a valid cached object can be returned without a new balance or Session read.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Normalize the connected owner and retrieve its in-memory Session-status entry.</p></li>
+<li><strong>Lines 4–6</strong>
+<p>Return a copy when force is false and the entry remains within its declared TTL.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>A failed HUD refresh can preserve the previous value as stale</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-chain-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">      .catch((error) =&gt; {
+        if (requestSerial === state.walletBalanceRequestSerial) {
+          state.walletBalanceStatus = hadBalance ? "stale" : "error";
+          renderWalletBalance();
+          console.warn("NiceChunk wallet balance refresh failed", error);
+        }
+        return { ok: false, reason: readableError(error) };
+      })</code></pre>
+<p class="docs-technical-explanation">When a previous balance exists, a refresh failure marks it stale instead of clearing it. The number can remain useful on screen but is not a fresh RPC observation.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Handle only the newest request and choose stale when an earlier known balance exists.</p></li>
+<li><strong>Lines 4–5</strong>
+<p>Redraw that state and record the refresh error in the console.</p></li>
+<li><strong>Lines 7–8</strong>
+<p>Return a structured failure without changing it into a successful fresh read.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Plugin Session status reads the stored authority address</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">src/chain/nicechunkChain.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  let balanceLamports = null;
+  try {
+    balanceLamports = await getNicechunkConnection().getBalance(stored.keypair.publicKey, "confirmed");
+  } catch (error) {
+    reportRpcError(error, "session-balance");
+    throw error;
+  }
+
+  const status = {
+    walletAvailable: true,
+    owner: ownerKey,
+    acknowledged: hasAcknowledgedGameplaySessionFunding(owner),
+    configuredFundingLamports,
+    minimumFundingLamports: minimumSessionFundingLamports,
+    balanceLamports,
+    balanceSol: balanceLamports / lamportsPerSol,
+    publicKey: stored.keypair.publicKey.toBase58(),
+    expiresAt: stored.expiresAt,
+    usesGameplaySession: true,
+    walletMode: "pluginWallet",
+  };</code></pre>
+<p class="docs-technical-explanation">This read targets stored.keypair.publicKey, then returns owner and authority-related fields together. The object must not be interpreted as one merged wallet.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–7</strong>
+<p>Read the stored authority's balance at confirmed commitment or surface the RPC failure.</p></li>
+<li><strong>Lines 9–14</strong>
+<p>Keep the owner identity and configured browser funding policy as separate status fields.</p></li>
+<li><strong>Lines 15–21</strong>
+<p>Attach the authority balance, copied expiry, public key, and explicit plugin mode.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>The reviewed Player dispatch has create or refresh but no Session kill tag</h3>
+<span class="docs-code-language">Rust</span>
+<code class="docs-code-source">programs/nicechunk_player/src/lib.rs</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="Rust">    match tag {
+        0 =&gt; initialize_player(program_id, accounts, payload),
+        1 =&gt; update_position(program_id, accounts, payload),
+        2 =&gt; set_equipment_slot(program_id, accounts, payload),
+        3 =&gt; set_backpack_style(program_id, accounts, payload),
+        4 =&gt; create_or_refresh_player_session(program_id, accounts, payload),
+        5 =&gt; set_equipped_backpack(program_id, accounts),
+        6 =&gt; add_forging_xp(program_id, accounts, payload),
+        7 =&gt; set_player_name(program_id, accounts, payload),
+        8 =&gt; upsert_player_appearance(program_id, accounts, payload),
+        9 =&gt; close_player_appearance(program_id, accounts),
+        10 =&gt; initialize_invite_index_page(program_id, accounts, payload),
+        11 =&gt; append_invite_registration(program_id, accounts, payload),
+        12 =&gt; set_equipment_slot_v2(program_id, accounts, payload),
+        13 =&gt; transfer_equipment_slot(program_id, accounts, payload),
+        14 =&gt; swap_equipment_slots(program_id, accounts, payload),
+        _ =&gt; Err(NicechunkPlayerError::InvalidInstruction.into()),
+    }</code></pre>
+<p class="docs-technical-explanation">Tag 4 creates or refreshes PlayerSession. Current tags 13 and 14 transfer or swap equipment slots; they do not close a Session. In this complete reviewed dispatch there is still no tag for closing, revoking, deactivating, or refunding PlayerSession, while tag 9 closes Appearance instead.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
+<p>Route player identity and equipment tags, with Session create-or-refresh at tag 4.</p></li>
+<li><strong>Lines 7–14</strong>
+<p>Route forging, name, Appearance, invite, and v2 equipment operations; Appearance close is not Session close.</p></li>
+<li><strong>Lines 15–16</strong>
+<p>Route the current equipment transfer and swap instructions, neither of which changes PlayerSession lifecycle.</p></li>
+<li><strong>Lines 17–18</strong>
+<p>Reject every undeclared tag rather than exposing an unlisted Session close, revoke, deactivate, or refund operation.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Logout scans every matching runtime prefix on this origin</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-auth-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">export function clearWalletSession(storage = globalThis.localStorage) {
+  for (const key of Object.values(walletSessionKeys)) remove(storage, key);
+  const keys = [];
+  try {
+    for (let index = 0; index &lt; storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key) keys.push(key);
+    }
+  } catch {
+    return;
+  }
+  for (const key of keys) {
+    if (runtimeCachePrefixes.some((prefix) =&gt; key.startsWith(prefix))) remove(storage, key);
+  }
+}</code></pre>
+<p class="docs-technical-explanation">Cleanup first attempts identity fields and then every matching prefix without restricting the owner suffix. Enumeration failure exits early, and this function sends no chain transaction.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–2</strong>
+<p>Attempt removal of the fixed wallet-identity browser keys.</p></li>
+<li><strong>Lines 3–11</strong>
+<p>Enumerate storage keys, but abandon the prefix pass when enumeration throws.</p></li>
+<li><strong>Lines 12–15</strong>
+<p>Attempt removal for every recognized runtime prefix across all suffixes on the origin.</p></li></ol></article>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Per-key cleanup errors are swallowed</h3>
+<span class="docs-code-language">JavaScript</span>
+<code class="docs-code-source">play/play-auth-session.js</code></div>
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function remove(storage, key) {
+  try {
+    storage?.removeItem?.(key);
+  } catch {
+    // Logout still redirects even when browser storage is unavailable.
+  }
+}</code></pre>
+<p class="docs-technical-explanation">The helper does not read back the key or report removal failure. Logout can continue even when a secret or target remains in browser storage.</p>
+<ol class="docs-code-walkthrough"><li><strong>Lines 1–3</strong>
+<p>Attempt one optional localStorage removal for the supplied key.</p></li>
+<li><strong>Lines 4–7</strong>
+<p>Catch and ignore an exception so redirect flow continues without a deletion guarantee.</p></li></ol></article></div></section>
+<section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
+<h2>Where these claims come from</h2>
+<p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
+<div class="docs-evidence-list"><article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Modular Play stores an owner-scoped funding target, renders `Session: X SOL` directly from state.sessionLamports, and separately requests the connected walletAddress balance at confirmed commitment.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Plugin Session status requests getBalance for stored.keypair.publicKey, so its authority balance can describe a different address from the Play owner HUD.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>PlayerSession allocation calculates Rent::minimum_balance for PlayerSession::LEN and uses the owner payer to create or fund the separate PDA.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-devnet-2026-07-18.json</code>
+<p>The retained confirmed Devnet snapshot records 2,171,520 lamports as the observed rent minimum for its 184-byte Session accounts and explicitly does not provide authority balances.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>The target getter uses ownerValue ?? defaultValue, applies the 100,000,000-lamport floor, and the funding helper checks that minimum before loading a higher target.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>The visible form clamps its stored SOL target to at least 0.1 and tells the player that this value is not a cap or authorization limit.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>PlayerSession setup separately validates allowed_actions, future chain-time expiry, signer roles, and account relationships, so transferring SOL cannot by itself grant a consumer permission.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-production-2026-07-18.json</code>
+<p>The retained 2026-07-19 UTC static production byte audit records a 100,000,000-lamport minimum, owner-then-default lookup, and its fixed-GET privacy boundary.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-derived-2026-07-18.json</code>
+<p>The deterministic Player Sessions audit separates the client funding policy from ordinary signing capability and from PlayerSession record fields.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Plugin setup uses a separate selected Keypair when available, while Local Game Wallet setup passes owner as sessionAuthority and reports one address in its status.</p></article>
+<article class="docs-evidence-item"><code>src/localGameWallet.js</code>
+<p>Local Game Wallet persists its long-lived secret bytes as a reversible Base58 string under separate browser storage keys rather than an encrypted Session vault.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>The Player Program requires owner and session_authority signer roles; one matching public key can occupy both roles in the Local Game Wallet transaction.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-devnet-2026-07-18.json</code>
+<p>The dated Devnet snapshot observed five owner-equals-authority and five distinct-authority Session records without reading or possessing any corresponding secrets.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Repository source declares the 28,800-second duration, 900-second skew, 60-second Session status cache, and five-minute Local Game Wallet readiness cache.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>Play independently declares a 30-second connected-wallet balance cache and refresh interval plus a 12-second RPC request abort.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>Session setup reads Clock and rejects expires_at less than or equal to clock.unix_timestamp, without using a browser cache timer.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_chunk/src/lib.rs</code>
+<p>The audited Chunk action context reads the Solana Clock and passes Clock.unix_timestamp into PlayerSession validation at actual instruction use.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>loadStoredGameplaySession returns a Keypair only after storage, JSON, secret, expiry, and optional public-key checks; setup otherwise selects Keypair.generate.</p></article>
+<article class="docs-evidence-item"><code>sdk/nicechunk-player.ts</code>
+<p>The SDK derives the canonical Session address from the ordered literal session seed, owner public key, and session-authority public key.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/state.rs</code>
+<p>PlayerSession refresh validates the stored owner, authority, Profile, and configuration relationships before rewriting selected fields on the same account.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-devnet-2026-07-18.json</code>
+<p>One retained owner had three canonical Session PDAs in the dated snapshot, showing coexistence but not proving simultaneous usability or why the keys were created.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>Fresh plugin setup appends optional Profile initialization, optional owner-to-authority funding, and Session setup to one Transaction before calling the wallet helper.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>The wallet helper broadcasts and explicitly polls at confirmed commitment before getOrCreateGameplaySession calls storeGameplaySession; its predicate can accept confirmed or finalized status but does not require finalized specifically.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-derived-2026-07-18.json</code>
+<p>The retained derived audit records browser-secret storage and chain Session state as separate lifecycle surfaces rather than one atomic record.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-production-2026-07-18.json</code>
+<p>The static live-byte audit records storage field names and setup defaults but sent no transaction and read no browser storage, so it cannot prove any player's setup outcome.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>The reviewed modular Play exception branch renders a pending ID and readable reason while richer fields go to a separate structured logger; the visible message does not guarantee a signature, authority address, PDA derivation, or sweep control.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-submission-log.js</code>
+<p>The structured failure report can extract a transaction signature only when an error, result, or pending record actually carries one, so the documentation must preserve an explicit signature-unavailable outcome.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>The connected-wallet HUD caches by RPC URL plus wallet address, marks a previously known balance stale after refresh failure, and uses confirmed getBalance requests.</p></article>
+<article class="docs-evidence-item"><code>src/chain/nicechunkChain.js</code>
+<p>getGameplaySessionStatus supports a source-level force option and otherwise may return a 60-second cached owner status; the reviewed normal modular Play UI does not thereby guarantee a player-facing force or PDA tool.</p></article>
+<article class="docs-evidence-item"><code>src/rpcConfig.js</code>
+<p>Runtime RPC configuration resolves the selected cluster and endpoint separately from any public address, making network context part of a balance claim.</p></article>
+<article class="docs-evidence-item"><code>scripts/capture-player-sessions-devnet.mjs</code>
+<p>The retained Devnet capture pins shared context and block time while explicitly separating Session account observation from unqueried authority balances and private keys.</p></article>
+<article class="docs-evidence-item"><code>play/play-chain-session.js</code>
+<p>The reviewed modular Play UI implements an owner-wallet balance refresh and readable failure presentation but does not expose a guaranteed player control for source-level Session force reads, PDA derivation, or authority-balance sweeping.</p></article>
+<article class="docs-evidence-item"><code>programs/nicechunk_player/src/lib.rs</code>
+<p>The complete reviewed Player dispatch currently reaches tag 14, including equipment transfer at 13 and swap at 14; tag 4 remains Session create-or-refresh and no tag closes, revokes, deactivates, or refunds PlayerSession.</p></article>
+<article class="docs-evidence-item"><code>play/play-auth-session.js</code>
+<p>Logout attempts identity removal and a prefix-wide runtime-key scan, can exit on enumeration failure, swallows per-key removal exceptions, and exposes no chain revoke or session-authority SOL sweep.</p></article>
+<article class="docs-evidence-item"><code>src/localGameWallet.js</code>
+<p>The persistent Local Game Wallet private key uses storage keys outside the plugin Session prefix, so plugin Session cleanup is not owner-key recovery.</p></article>
+<article class="docs-evidence-item"><code>docs/audits/player-sessions-devnet-2026-07-18.json</code>
+<p>All ten retained Session accounts were expired relative to their captured confirmed context time while the public accounts and their rent lamports still existed.</p></article></div></section>
+<nav aria-label="Player, wallet, and control learning path navigation" class="docs-path-navigation"><div class="docs-section-heading"><p class="docs-eyebrow">CONTINUE THE PLAYER AND WALLET PATH</p>
+<h2>Move from this player checklist into the exact fee, rent, close, and refund inventory</h2>
+<p>This guide answers the immediate player decisions: which number is a target, which address owns a balance, which clock decides expiry, and when a result must remain unknown. The next guide follows every relevant fee payer and rent payer, then demonstrates exact close, refund, stranded-balance, and recovery paths account by account.</p></div>
+<div class="docs-path-navigation-grid"><a class="docs-path-navigation-card" href="/docs/player-sessions/"><span class="docs-path-navigation-label">Previous guide</span>
+<strong>One Wallet Approval Can Create an Expiring NiceChunk Pass—but It Does Not Sandbox the Key</strong>
+<p>Review the deep signer, permission, consumer, browser-storage, action-counter, and revocation boundaries that this funding-and-time checklist assumes.</p></a>
+<a class="docs-path-navigation-card" href="/docs/transaction-fees-rent-and-recovery/"><span class="docs-path-navigation-label">Next guide</span>
+<strong>Transaction Fees, Account Rent, and Recovery: Who Pays and What Can Return</strong>
+<p>Inventory exact transaction fee payers, account-rent payers, close instructions, refunds, stranded balances, and recovery prerequisites without treating every lamport as the same kind of cost.</p></a></div></nav></div></div></article>
+      </div>
+    </main>
+
+    <footer class="docs-footer">
+      <p data-i18n="footer.statement">Built from the running rules and program code. Claims are scoped to what the implementation can prove.</p>
+      <div>
+        <a href="/fairness/" data-i18n="footer.fairness">Fairness</a>
+        <a href="/trust/" data-i18n="footer.trust">Trust</a>
+        <a href="/roadmap/" data-i18n="footer.roadmap">Roadbook</a>
+      </div>
+    </footer>
+
+    <script type="module" src="/docs/docs.js"></script>
+  </body>
+</html>

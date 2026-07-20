@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "kind": "nicechunk-multi-block-extraction-devnet-audit",
+  "capturedAt": "2026-07-15T08:10:04.724Z",
+  "cluster": "devnet",
+  "captureEnvironment": {
+    "repositoryHead": "662ea5a88dc155c42b09b5dc968b97b3a7f29818",
+    "worktreeDirty": true,
+    "node": "v22.22.2",
+    "npm": "10.9.7",
+    "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+    "solanaCli": "solana-cli 1.18.26 (src:c2b35002; feat:3241752014, client:Agave)"
+  },
+  "rpc": {
+    "endpoint": "https://explorer-api.devnet.solana.com",
+    "method": "getMultipleAccounts",
+    "commitment": "finalized",
+    "encoding": "base64",
+    "apiVersion": "4.2.0-beta.1",
+    "solanaCoreVersion": "4.2.0-beta.1",
+    "featureSet": 4119855713,
+    "genesisHash": "EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG",
+    "contextSlot": 476393568,
+    "contextBlockTimeUnix": 1784102990,
+    "contextBlockTime": "2026-07-15T08:09:50.000Z",
+    "accountOrder": [
+      "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA",
+      "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB",
+      "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f"
+    ]
+  },
+  "activeRuntime": {
+    "clientContext": "src/chain/nicechunkChain.js gameContext",
+    "chunkProgramId": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+    "backpackProgramId": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+    "globalConfig": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+    "ordinaryRecordTag": 5,
+    "rewardMiningTag": 8,
+    "treeFellingTag": 9,
+    "treeInstructionIsNamespaced": false,
+    "supportCollapseInstructionTag": null,
+    "supportCollapsePlanner": "play/support-collapse-plan.js",
+    "supportCollapseBatchSize": 2,
+    "supportCollapseMaximumCandidateBlocks": 48,
+    "transactionComputeUnitLimit": 1400000
+  },
+  "accounts": {
+    "chunkProgram": {
+      "address": "GnVKn442KDTDgCyjVG7SEtCQQLjaCiLvrEZDWSU13wbj",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1141440,
+      "executable": true,
+      "dataLength": 36,
+      "dataSha256": "02c7114500a43179f854cad62ab5f73e34b602c48021debbcb071e00e4d7375e",
+      "programDataAddress": "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA"
+    },
+    "chunkProgramData": {
+      "address": "2rtdDwWNGWwyi3MHDtwWshB9jEAtzVvMjQYp6viLkgMA",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1914535920,
+      "executable": false,
+      "dataLength": 274949,
+      "dataSha256": "f99d4da7a73ad4a22ab91513857a9fafead82f57c99072cb62910b5451b04da6",
+      "decoded": {
+        "upgradeableLoaderStateTag": 3,
+        "lastDeploySlot": "476079799",
+        "upgradeAuthorityOption": 1,
+        "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "elfOffset": 45,
+        "elfLength": 214816,
+        "elfSha256": "4e1b5ff815c30bfb3864ea8aab61cdbbdce6fbf4f146b21c44b8bf8be4ec41c4",
+        "elfAllocationLength": 274904,
+        "zeroPaddingLength": 60088,
+        "zeroPaddingAllZero": true
+      }
+    },
+    "gameProgram": {
+      "address": "6CurnvneezBuHwPUnrCiFg1QMWeUF67ufQxYebyr2UP7",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 1141440,
+      "executable": true,
+      "dataLength": 36,
+      "dataSha256": "fb2fa2fec08ce0ea758be24f98482deec6ee274bbfe1ef36c58eb640ff9881ba",
+      "programDataAddress": "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB"
+    },
+    "gameProgramData": {
+      "address": "ALmKdVKxdPt9oVFWw7FYt513WtWDZzUkkVyX32qhfkjB",
+      "owner": "BPFLoaderUpgradeab1e11111111111111111111111",
+      "lamports": 3091277040,
+      "executable": false,
+      "dataLength": 444021,
+      "dataSha256": "acdbbf8c59e9953485372d20a0e76be78c62adfd8d0f6f607ccc646aaa751987",
+      "decoded": {
+        "upgradeableLoaderStateTag": 3,
+        "lastDeploySlot": "475886954",
+        "upgradeAuthorityOption": 1,
+        "upgradeAuthority": "9XuoVVwqP2jipt3jpJVXCSS2N2jr9vDuV3d6K73FKVud",
+        "elfOffset": 45,
+        "elfLength": 396592,
+        "elfSha256": "3f401182d800cf2d30204d2ac4c2f326645bdd4e6d13c0c304b6d6f46f2eb5d3",
+        "elfAllocationLength": 443976,
+        "zeroPaddingLength": 47384,
+        "zeroPaddingAllZero": true
+      }
+    },
+    "globalConfig": {
+      "address": "46bTKGThh96ChxJEmcKz6GvudGi3d7YDiAFtVhKb2Y5f",
+      "owner": "9EhMCRYMJej1F21KzaA5Zao3khGGc5aJbDGbnxaogQHu",
+      "lamports": 2930160,
+      "executable": false,
+      "dataLength": 293,
+      "dataSha256": "ce91a041f2bffe884f847f5b73c6d1511a6f911adc8e42d5a9d248b6d8829b5c"
+    }
+  },
+  "treeFelling": {
+    "instructionTag": 9,
+    "instructionPayloadLength": 13,
+    "maximumChunkBrokenAccounts": 4,
+    "leafRadius": 2,
+    "maximumBlockHeightAboveSurface": 9,
+    "maximumEnvelopeBlocks": 225,
+    "clientMaximumPlannedBlocks": 96,
+    "rewardRule": "one reward for every included trunk and one reward for every fifth included leaf",
+    "precisionXpRule": "one Precision Gathering XP for every strict Backpack reward",
+    "usesResourceDropTable": false,
+    "usesSurfaceDecorationTable": false,
+    "checksFoundationChunk": false,
+    "returnsConfirmedBlockListToClient": false,
+    "duplicateCheckScope": "clicked coordinate only",
+    "atomicity": "one instruction and one transaction; any strict reward or later error rolls back the instruction"
+  },
+  "supportCollapse": {
+    "instructionTag": null,
+    "topologyAuthority": "client",
+    "connectivity": "six face neighbors",
+    "horizontalRadius": 7,
+    "downReach": 8,
+    "upReach": 20,
+    "maximumPlannedBlocks": 48,
+    "anchorConditions": [
+      "component reaches the scan boundary",
+      "component reaches minWorldY",
+      "component touches bedrock"
+    ],
+    "rewardCandidateRule": "max(1, floor(3 * collapseBlockCount / 10))",
+    "rewardCapacityRule": "at most floor((availableBackpackSlots - 1) / 3) collapse reward blocks",
+    "primaryInstructionTag": 8,
+    "selectedRewardInstructionTag": 8,
+    "nonRewardInstructionTag": 5,
+    "batchSize": 2,
+    "pairFailurePolicy": "retry each coordinate as a single-instruction transaction",
+    "doubleSingleFailurePolicy": "abort every remaining batch",
+    "atomicity": "each transaction is atomic; the multi-transaction sequence can confirm a strict subset",
+    "clientReconciliation": "intersect the pending block set with the confirmedBlocks returned by the chain adapter"
+  },
+  "transactionObservation": {
+    "queryCapturedAt": null,
+    "queryCapturedAtNote": "The wall-clock query time was not recorded; do not substitute the later account snapshot time.",
+    "endpoint": "https://explorer-api.devnet.solana.com",
+    "signatureMethod": "getSignaturesForAddress",
+    "signatureLimit": 100,
+    "commitment": "finalized",
+    "observedWindow": "newest 52 results from one finalized 100-signature query",
+    "transactionMethod": "getTransaction",
+    "transactionEncoding": "jsonParsed",
+    "maxSupportedTransactionVersion": 0,
+    "newest": {
+      "signature": "4PGikZEnZs26dZ92J8GZAQSAaRrdf3oSbrrLo1JLwNdjUWmq9RKwz49NNcghWKgaQ83q15K2Gckc9579JzquHeFk",
+      "slot": 476355701,
+      "blockTimeUnix": 1784089113,
+      "blockTime": "2026-07-15T04:18:33.000Z"
+    },
+    "oldest": {
+      "signature": "HqF2EdNX2g2S42uCEmrSbfduNuurNDUmsHagkJuXAy8GZW7NMwBic5fRqNPyWkzjC6wNDEHRQc5aZ1SWjCCUGzz",
+      "slot": 476031645,
+      "blockTimeUnix": 1783967904,
+      "blockTime": "2026-07-13T18:38:24.000Z"
+    },
+    "retrievedTransactions": 52,
+    "outerInstructions": {
+      "tag6": 15,
+      "tag8": 26,
+      "tag9": 0,
+      "tag13": 1,
+      "tag15": 1
+    },
+    "buildingCpiTransactions": 7,
+    "innerTag15Instructions": 22,
+    "addressOnlyTransactionsWithoutChunkInstruction": 2,
+    "interpretation": "The deployed artifact contains tag 9, but this bounded observation did not find a real tree-felling instruction and is not evidence that tag 9 has never been used."
+  },
+  "localComparison": {
+    "artifacts": {
+      "target/deploy/nicechunk_chunk.so": {
+        "length": 214816,
+        "sha256": "4e1b5ff815c30bfb3864ea8aab61cdbbdce6fbf4f146b21c44b8bf8be4ec41c4",
+        "matchesDeployedElf": true
+      },
+      "target/deploy/nicechunk_game.so": {
+        "length": 396592,
+        "sha256": "3f401182d800cf2d30204d2ac4c2f326645bdd4e6d13c0c304b6d6f46f2eb5d3",
+        "matchesDeployedElf": true
+      }
+    },
+    "sourceFiles": {
+      "public/mainnet.json": "88da1074d58815d5c032ac15d8763bb126106f104e27e19fc9698b9ab4401fe4",
+      "programs/nicechunk_chunk/src/cluster_config.rs": "5c24dd1f5925c23301eeaadd0092ddbe3b33c697865a2f374bcfd2fb1ebf55e3",
+      "programs/nicechunk_chunk/src/lib.rs": "21a6714f941e12c7ea529aa55076f6aa9a3ec14b51da6009df8ac233565caa17",
+      "programs/nicechunk_chunk/src/state.rs": "10d34c21659b6bbcc9df0dba4c41ecfd198267bde8a8bc3aa7a3d32e019ccefe",
+      "programs/nicechunk_backpack/src/lib.rs": "2f35f2bf9200f9b6d1787897511c2257a03fb256deb12ea45da217ca19c08e9f",
+      "programs/nicechunk_backpack/src/state.rs": "a7cb6fae1be0ebaab4510e5cd182f6b2ec36c269b17033242fa9261aff4c6888",
+      "play/tree-mining-plan.js": "7b4b0cbec0b637382b6b9be23b3929600dd879d97f244490a1c2b574e2b28f2e",
+      "play/support-collapse-plan.js": "329699bf6e1dce7b46597386140ebbae55d574861a4d8f63a73f4950645072ce",
+      "play/mining-controller.js": "255559e1811f4d5c8be985ecb7285c44cb0897896f02e45956b60ed43b356ad1",
+      "play/play-chain-adapter.js": "166723db4dfc1a15d14b5ae2796e5506d6322362551a98eb9c1637ac1a670be0",
+      "play/play-chain-session.js": "c69fdee1d9a105b74e53658dd0d3ea48a66798f145a4300fad6bf6c02744af44",
+      "play/play-chain-mining-result.js": "11c98ec90d37970ced5466948e3230e90f8a0f9ab2df771c3d56ae793ef8133c",
+      "play/main.js": "7277ddc58cd59a186431ad72c87aa609a957b126934e727a56a77731705125d8",
+      "src/chain/nicechunkChain.js": "1f084225cf10510c8060e24d99e2a812e5d7aa360fa83fb46959637df6df7982",
+      "src/chain/supportCollapseSubmission.js": "d61c7b081d8284103126b248ab2820a603deb89c90687c49cad53607f881db9d",
+      "src/world/canonicalResource.js": "d478d771bb66e42f46ebef61334ae2c4f975235face93af3a5646dcc808f68c8",
+      "sdk/nicechunk-chunk.ts": "1fad03371733ff1578675b8589c1486b289bca82898fa77e80559896496b10b5",
+      "play/tests/support-collapse-plan.test.mjs": "ea643c65e71da802c5487c3d8d9d573fbfd37fce2a9d4964047ed370bb8ccb44",
+      "play/tests/support-collapse-submission.test.mjs": "b53fbcccf82d878c15da519c744f8428b2049ef575f4688139b1aafc9440eed3",
+      "play/tests/mining-controller.test.mjs": "765a31d22e0ef2364973f89bd91d9b4f6a6e7dffce4f3a2141b22e5081d57bd3",
+      "tests/nicechunk_player_chunk.ts": "4cf4707a43fe75b74f3372686d98d16ebbd17d77d0c23f275d8cfb358cb614cc"
+    },
+    "heroImage": {
+      "path": "docs/media/multi-block-extraction-overview-v1.webp",
+      "width": 1774,
+      "height": 887,
+      "length": 281496,
+      "sha256": "d46ff2594dc2010b1d37af058bc79db931aa37d4726ba79f594896c157767ce5"
+    }
+  },
+  "knownCoverageGaps": [
+    "The public TypeScript Chunk SDK has no tag 9 instruction builder.",
+    "No current test directly exercises the client tree planner, generated_tree_fell_blocks, tag 9 settlement, a non-base cut, duplicate non-clicked coordinates, or the missing FoundationChunk check.",
+    "Support-collapse tests cover bounded adjacency planning, two-instruction partitioning, single-coordinate retry, sequence abort, and partial local reconciliation; they do not turn the client support graph into a program invariant.",
+    "The bounded transaction observation did not contain tag 9, so a real controlled tree-felling transaction with before-and-after ChunkBroken, Backpack, and PlayerProgress snapshots remains missing."
+  ],
+  "scopeNotes": [
+    "Tree felling and support collapse are multi-block experiences with different authority models. Tag 9 reconstructs one generated tree inside the Chunk Program; support topology is a client proposal submitted through ordinary tag 5 and reward-bearing tag 8 instructions.",
+    "Tree tag 9 begins its program-side scan at the submitted cut height. The current client planner begins at its locally discovered trunk base, so a non-base hit can produce different planned and accepted sets.",
+    "Tree tag 9 checks the clicked coordinate for an existing broken record but appends other reconstructed tree coordinates without a duplicate lookup. A later lower cut can revisit already-recorded upper coordinates.",
+    "Tree tag 9 receives no FoundationChunk, ResourceDropTable, or SurfaceDecorationTable account. It therefore does not apply the corresponding foundation-protection or secondary-drop paths.",
+    "Every strict tree reward is appended inside the one instruction. Any failed strict append or later error rolls back the whole transaction, while a successful instruction adds Precision Gathering XP once per reward.",
+    "Support collapse first commits the primary tag 8 transaction, then submits at most two canonical block verifications per later transaction. Each transaction is atomic, but the sequence is not.",
+    "The program checks each support-collapse coordinate against canonical terrain, prior broken state, mineability, session authority, and foundation protection. It does not receive or validate graph adjacency, support anchors, reach from the primary block, or one shared collapse identity.",
+    "A failed two-coordinate collapse batch is retried as two single-coordinate submissions. If neither single succeeds, the current helper aborts the remaining sequence regardless of whether the failures reflect a shared outage or two independent coordinate conflicts.",
+    "The current local Chunk and Game artifacts match the finalized deployed ELF prefixes at the captured slot. Both retain the recorded upgrade authority, and this parity does not establish a reproducible build from the dirty worktree or future immutability.",
+    "The recent transaction window is an observation with anchored signatures and slots, not an exhaustive history. Zero observed tag 9 instructions must not be interpreted as proof of non-use."
+  ]
+}

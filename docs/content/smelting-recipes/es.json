@@ -1,0 +1,491 @@
+{
+  "_meta": {
+    "language": "es",
+    "sourceLanguage": "en",
+    "translationStatus": "fallback-en",
+    "version": "docs-document-smelting-recipes-es-ea00f0df47d383d4",
+    "contentHash": "ea00f0df47d383d4"
+  },
+  "kind": "topic",
+  "slug": "smelting-recipes",
+  "shortTitle": "Smelting Recipe PDAs",
+  "seo": {
+    "title": "Smelting Recipe PDAs: Whole Slots, Yield Math, and Authority Boundaries",
+    "description": "Audit NiceChunk Smelting Recipe PDA layout, permissionless table creation, whole-record input matching, fuel removal, batch yield and metadata math, Backpack capacity, client-rule drift, and Chunk.js reconstruction."
+  },
+  "hero": {
+    "eyebrow": "SMELTING 13 · WHOLE RECORDS AND RECIPE AUTHORITY",
+    "title": "Smelting Recipe PDAs: Whole Slots, Yield Math, and Authority Boundaries",
+    "summary": "NiceChunk smelting consumes distinct Backpack records, checks them against the recipe table supplied to the instruction, removes every selected input and fuel record, and appends a bounded set of outputs through the trusted smelting-authority PDA. Recipe tables have compact fixed layouts and deterministic yield math, but the current execution path does not pin a configured table address or table ID. Because table initialization is permissionless and gives the payer authority, the deployed program must not be described as enforcing one canonical public recipe set. Chunk.js supplies efficient material models and heat animation, while local rule data supplies composition and previews; none of those client products are chain authority.",
+    "readingTime": "15 min read",
+    "visual": {
+      "src": "/docs/media/smelting-recipes-overview-v1.webp",
+      "alt": "In one game-anime coastal smelting mission, the canonical black-haired villager boy loads three baked sand cubes and a salt crystal into separate grounded brass input trays while the canonical orange-haired villager girl feeds coal into a lower fuel chute and lifts a cyan glass ingot from a cooling mold; an open Backpack, mine, baked terrain, plants, and flat blue sea complete the world.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "keyPoints": [
+    {
+      "title": "A derived table is not currently a canonical table",
+      "body": "Anyone may initialize an unused recipe-table PDA and becomes that table's first authority. Execution checks program ownership and table format, but does not re-derive the address, compare its stored table ID, or require a configured ID. A structurally valid user-controlled table can therefore reach the trusted smelting output append path."
+    },
+    {
+      "title": "Multiplier means more whole records, not more units inside a record",
+      "body": "Each selected Backpack index must be unique, and every recipe input template must match exactly multiplier times through ordered first-fit assignment. Quantity must be nonzero for a valid slot, but its numeric value does not affect recipe matching or partial consumption. Every submitted fuel index is also removed, even when the bundled JSON marks lava heat as consumable false."
+    },
+    {
+      "title": "The chain computes volume; Chunk.js reconstructs meaning and pixels",
+      "body": "Recipe yield, Smelting PlayerProgress, output count, Backpack capacity, and normalized metadata determine the stored result. Temperature labels, burn duration, composition, locally derived attributes, cached material meshes, and the animated furnace core remain client presentation rather than execution proof."
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "ADDRESS, RECORD, CAPACITY, AND YIELD EQUATIONS",
+    "title": "Five equations expose where records move and where trust is still supplied",
+    "summary": "The table equation shows a deterministic address and fixed byte budget without implying a whitelist. The matching equation counts unique Backpack records rather than quantity. Capacity and yield equations model the atomic state transition, while metadata scaling explains why the stored output may not equal the local preview."
+  },
+  "formulas": [
+    {
+      "title": "Recipe, authority, and progress PDAs with fixed table length",
+      "expression": "P_table(id) = findProgramAddress([UTF8(\"smelting-recipes\"), LE64(id)], smeltingProgramId); P_authority = findProgramAddress([UTF8(\"smelting-authority\")], smeltingProgramId); P_progress(g,o) = findProgramAddress([UTF8(\"player-progress\"), g, o], smeltingProgramId); R = 16 + 8*80 + 4*80 + 8 = 984 bytes; L = 96 + 10*R = 9936 bytes; authority_initial = payer",
+      "explanation": "Initialization validates the table derivation for the requested 64-bit ID, creates the 9,936-byte account, and stores the signing payer as authority. There is no privileged initializer. Execution validates the smelting-authority PDA, but it does not revalidate the supplied table PDA. PlayerProgress is derived from the caller-supplied global-config key g and owner o without pinning g to the canonical Core account.",
+      "terms": [
+        {
+          "symbol": "P_table(id)",
+          "meaning": "One RecipeTable PDA under the active standalone or unified-game Smelting Program."
+        },
+        {
+          "symbol": "R, L",
+          "meaning": "One fixed recipe record and the complete header-plus-ten-record account length."
+        },
+        {
+          "symbol": "authority_initial",
+          "meaning": "The payer public key stored at creation and authorized to upsert or transfer table authority."
+        },
+        {
+          "symbol": "P_authority",
+          "meaning": "The trusted producer PDA that signs each Smelting output append into the Backpack."
+        },
+        {
+          "symbol": "P_progress(g,o)",
+          "meaning": "The Smelting-program progress account derived from supplied global-config and owner public keys."
+        }
+      ]
+    },
+    {
+      "title": "Whole-record multiplier and ordered first-fit matching",
+      "expression": "m >= 1; |I| = inputCount*m; allDistinct(concat(I,F)); for each i in payload order, assign i to the first j where matched[j] < m and match(template[j],slot[i]); require matched[j] = m for every 0 <= j < inputCount; match = kind_e == kind_a AND ((kind = block AND blockId_e == blockId_a) OR (kind = item AND category_e == category_a AND code_e == code_a AND (id_e == 0 OR id_e == id_a))); require quantity_i > 0 for slot validity, but quantity_i does not affect matching",
+      "explanation": "I and F contain current Backpack indexes, not stack units. Each selected input record can satisfy only one template occurrence, every selected index must be unique across both arrays, and each recipe template must be matched m times. Assignment follows the input-index payload order and chooses the first active template with remaining capacity that matches, so order can matter when a wildcard item-ID template overlaps a later specific-ID template. Block matching ignores coordinates and other record fields after Packed-Y block-ID recovery. Item identity matching ignores the positive quantity value, flags, coordinates, PDA, volume, durability, grade, level, quality, and metadata; a zero expected item ID is a wildcard.",
+      "terms": [
+        {
+          "symbol": "m",
+          "meaning": "Unsigned batch multiplier carried by the execution payload."
+        },
+        {
+          "symbol": "I, F",
+          "meaning": "Selected input-index and fuel-index arrays in the dense Backpack account."
+        },
+        {
+          "symbol": "matched[j]",
+          "meaning": "Number of selected whole records assigned to recipe template j."
+        }
+      ]
+    },
+    {
+      "title": "Capacity-safe whole-slot transition",
+      "expression": "1 <= |I|, 1 <= |F|, |I|+|F| <= 99; n_after = n_before-|I|-|F|+o; require n_after <= c; removed = I union F; appendedRecords = o",
+      "explanation": "The program checks projected Backpack occupancy before mutation, then sends all input and fuel indexes to dense batch removal and appends exactly the recipe's outputCount records. Current UI selection is narrower: it permits at most eight input records and submits one fuel record. If removal, any strict append, or progress update fails, Solana transaction atomicity rolls the complete instruction back rather than leaving consumed inputs without outputs.",
+      "terms": [
+        {
+          "symbol": "n_before, n_after, c",
+          "meaning": "Occupied records before execution, projected occupied records after execution, and Backpack capacity."
+        },
+        {
+          "symbol": "o",
+          "meaning": "Recipe outputCount, constrained to one through four."
+        },
+        {
+          "symbol": "99",
+          "meaning": "Combined chain payload ceiling for selected input and fuel indexes; fuelCount must be nonzero."
+        }
+      ]
+    },
+    {
+      "title": "Per-output PDA volume, input ratio, skill factor, and batch result",
+      "expression": "V_in=sum(i in I)(storedVolume_i>0?storedVolume_i:1000000); V_recipe=sum(k in activeInputs)(templateVolume_k>0?templateVolume_k:1000000); level=max{k in {0,...,10}|xp_before>=threshold[k]}; skillBps=min(10000,7000+300*level); V_base_j=floor(max(1,V_pda_j)*m*max(1,V_in)/max(1,V_recipe*m)); V_j=max(1,min(4294967295,floor(floor(V_base_j*yieldBps/10000)*skillBps/10000))); chainRecordCount=o, not o*m; current UI displayCount=yieldCount*m",
+      "explanation": "Fuel volume is excluded. Zero stored or template volume uses the one-million-cubic-millimetre default. For each active output j, the program scales that output's own PDA template volume by batch multiplier and by the actual-versus-expected input-volume ratio, then applies recipe and skill factors with integer truncation. It does not calculate one aggregate pool or split that pool evenly. Skill uses XP read before execution, and outputCount remains fixed even when multiplier increases selected inputs. The UI's yieldCount-times-servings display is still not the current chain record count.",
+      "terms": [
+        {
+          "symbol": "V_in, V_recipe, V_pda_j, V_j",
+          "meaning": "Selected input volume, one batch's expected template-input volume, output j's PDA template volume, and the independently calculated volume stored in output record j."
+        },
+        {
+          "symbol": "yieldBps, skillBps",
+          "meaning": "Recipe and Smelting PlayerProgress factors, each divided by 10,000."
+        },
+        {
+          "symbol": "yieldCount",
+          "meaning": "Bundled UI field used for display; it is not serialized into RecipeRecord."
+        }
+      ]
+    },
+    {
+      "title": "Output durability and item-level normalization",
+      "expression": "D_max_j = clamp(roundHalfUp(D_template_j*V_j/1000000),1,u32max); currentBps_j = clamp(floor(max(1,D_current_template_j)*10000/max(1,D_template_j)),1,10000); D_current_j = clamp(roundHalfUp(D_max_j*currentBps_j/10000),1,D_max_j); effective_j = floor(D_current_j*qualityBps_j/10000); level_calc_j = min(100,1+min(80,isqrt(floor(effective_j/25)))+min(20,floor(V_j/500000))); level_out_j = min(100,max(level_template_j,level_calc_j))",
+      "explanation": "For each item output j, the program replaces template volume with that output's independently calculated V_j, scales maximum and current durability, clamps grade to one through ten and quality to one through 10,000, and raises item level to at least the volume-and-durability result. Quantity, category, item code, item ID, item PDA, flags, and metadata otherwise come from the supplied output template. The non-default item PDA is not required to equal the executing recipe table, so it is not cryptographic provenance.",
+      "terms": [
+        {
+          "symbol": "D_template, D_current_template",
+          "meaning": "Per-million-volume maximum durability and the template current-durability value used to derive currentBps."
+        },
+        {
+          "symbol": "qualityBps, effective",
+          "meaning": "Clamped quality and the quality-adjusted current durability used for level calculation."
+        },
+        {
+          "symbol": "roundHalfUp",
+          "meaning": "The implemented positive-integer rounding obtained by adding half the divisor before division."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "title": "Any signing payer may create an unused table and becomes its authority",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    if !payer.is_signer || !payer.is_writable {\n        return Err(NicechunkSmeltingError::InvalidPayer.into());\n    }\n    if !recipe_table.is_writable {\n        return Err(NicechunkSmeltingError::InvalidWritableAccount.into());\n    }\n    require_key_eq(\n        system_program_account.key,\n        &system_program::ID,\n        NicechunkSmeltingError::InvalidSystemProgram,\n    )?;\n    let bump = validate_recipe_table_pda(program_id, recipe_table.key, table_id)?;\n    if recipe_table.owner == program_id {\n        return Err(NicechunkSmeltingError::RecipeTableAlreadyInitialized.into());\n    }\n    if recipe_table.owner != &system_program::ID || recipe_table.data_len() != 0 {\n        return Err(NicechunkSmeltingError::InvalidSystemAccount.into());\n    }\n\n    create_recipe_table_pda(\n        payer,\n        recipe_table,\n        system_program_account,\n        program_id,\n        table_id,\n        bump,\n    )?;\n\n    let clock = Clock::get()?;\n    let mut data = recipe_table.try_borrow_mut_data()?;\n    RecipeTable::pack_empty(\n        &mut data,\n        &RecipeTableInitArgs {\n            bump,\n            table_id,\n            authority: payer.key,\n            created_slot: clock.slot,\n            created_at: clock.unix_timestamp,\n        },\n    )",
+      "explanation": "The initializer has no administrator, governance, allowlist, or configured-table account. PDA derivation prevents address substitution for this creation request, but every unused 64-bit table ID is available to its first payer."
+    },
+    {
+      "title": "Execution checks table ownership but does not revalidate its PDA or configured ID",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    require_key_eq(\n        recipe_table.owner,\n        program_id,\n        NicechunkSmeltingError::InvalidRecipeTableOwner,\n    )?;\n    require_key_eq(\n        backpack.owner,\n        &NICECHUNK_BACKPACK_PROGRAM_ID,\n        NicechunkSmeltingError::InvalidBackpackProgram,\n    )?;\n    require_key_eq(\n        backpack_program.key,\n        &NICECHUNK_BACKPACK_PROGRAM_ID,\n        NicechunkSmeltingError::InvalidBackpackProgram,\n    )?;\n    validate_smelting_authority(program_id, smelting_authority.key)?;\n    let clock = Clock::get()?;\n    let progress_bump = validate_player_progress_pda(\n        program_id,\n        player_progress.key,\n        global_config.key,\n        owner.key,\n    )?;\n    create_player_progress_if_needed(\n        owner,\n        player_progress,\n        global_config,\n        system_program_account,\n        program_id,\n        owner.key,\n        progress_bump,\n        &clock,\n    )?;\n\n    let recipe_table_data = recipe_table.try_borrow_data()?;\n    let recipe = RecipeTable::find_recipe(&recipe_table_data, recipe_id)?;\n    drop(recipe_table_data);",
+      "explanation": "RecipeTable::find_recipe checks the fixed length, magic, version, initialized byte, and stored count bound, decodes the fixed records, and returns only a matching enabled ID. This block never calls validate_recipe_table_pda and never compares the stored table ID with a configured ID. The supplied globalConfig key is also used as a progress seed without being pinned to the Core Program's canonical GlobalConfig PDA."
+    },
+    {
+      "title": "Each selected Backpack record matches one template occurrence",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/state.rs",
+      "code": "        if multiplier == 0 || indexes.len() != recipe.input_count as usize * multiplier as usize {\n            return Err(NicechunkSmeltingError::InputRecipeMismatch.into());\n        }\n        let capacity = data[BACKPACK_CAPACITY_OFFSET] as usize;\n        let item_count = data[BACKPACK_ITEM_COUNT_OFFSET] as usize;\n        let remove_count = indexes.len().saturating_add(fuel_indexes.len());\n        if item_count\n            .saturating_sub(remove_count)\n            .saturating_add(recipe.output_count as usize)\n            > capacity\n        {\n            return Err(NicechunkSmeltingError::BackpackCapacityExceeded.into());\n        }\n\n        let mut seen_indexes = [false; BACKPACK_MAX_CAPACITY];\n        let mut matched_inputs = [0_u16; RECIPE_MAX_INPUTS];\n        let mut input_volume_mm3 = 0_u64;\n        for index in indexes {\n            let selected = *index as usize;\n            if selected >= item_count || seen_indexes[selected] {\n                return Err(NicechunkSmeltingError::InvalidInputIndex.into());\n            }\n            seen_indexes[selected] = true;\n            let record = Self::slot_at(data, *index)?;\n            input_volume_mm3 = input_volume_mm3.saturating_add(slot_volume_mm3(&record) as u64);\n            let mut matched = false;\n            for recipe_index in 0..recipe.input_count as usize {\n                if matched_inputs[recipe_index] < multiplier\n                    && recipe_input_matches(&recipe.inputs[recipe_index], &record)\n                {\n                    matched_inputs[recipe_index] = matched_inputs[recipe_index].saturating_add(1);\n                    matched = true;\n                    break;\n                }\n            }\n            if !matched {\n                return Err(NicechunkSmeltingError::InputRecipeMismatch.into());\n            }\n        }\n        for matched in matched_inputs.iter().take(recipe.input_count as usize) {\n            if *matched != multiplier {\n                return Err(NicechunkSmeltingError::InputRecipeMismatch.into());\n            }\n        }\n        let mut max_fuel_tier = 0_u8;\n        for index in fuel_indexes {\n            let selected = *index as usize;\n            if selected >= item_count || seen_indexes[selected] {\n                return Err(NicechunkSmeltingError::InvalidInputIndex.into());\n            }\n            seen_indexes[selected] = true;\n            max_fuel_tier = max_fuel_tier.max(fuel_heat_tier(&Self::slot_at(data, *index)?));\n        }\n        if max_fuel_tier < recipe.min_heat_tier {\n            return Err(NicechunkSmeltingError::FuelHeatTooLow.into());\n        }\n        Ok(input_volume_mm3.max(1))",
+      "explanation": "Slot decoding has already read quantity and rejected zero, but the matching loop does not use its positive numeric value. Fuel contributes only the maximum recognized tier, not volume or burn duration. The later removal CPI receives both complete index arrays, so every selected low-tier companion fuel is removed along with the record that supplied the maximum tier."
+    },
+    {
+      "title": "The browser checks only that its derived table account has data",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const [recipeTable] = deriveSmeltingRecipeTablePdaForContext(recipeTableId, context);\n  const recipeTableAccount = await conn.getAccountInfo(recipeTable, \"confirmed\");\n  if (!recipeTableAccount?.data?.length) {\n    return { submitted: false, reason: \"smelting-table-uninitialized\", recipeTable: recipeTable.toBase58() };\n  }\n  const tx = new Transaction();\n  tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 340_000 }));\n  tx.add(createExecuteSmeltingInstruction({\n    owner: provider.publicKey,\n    recipeTable,\n    backpack,\n    recipeId,\n    inputIndexes: normalizedInputIndexes,\n    fuelIndexes: normalizedFuelIndexes,\n    batchMultiplier,\n    context,\n  }));",
+      "explanation": "The normal website derives the bundled table ID, which is safer than accepting an arbitrary address in this UI. It still does not decode the account or compare recipe templates, output identities, yield, heat tier, authority, or stored table ID with src/data/smeltingRules.js before asking the wallet to sign."
+    },
+    {
+      "title": "Chunk.js builds each registered material mesh once and bounds the cache",
+      "language": "JavaScript",
+      "source": "chunk.js/renderer/smelting-material-models.js",
+      "code": "export function createSmeltingMaterialPreviewMesh(options = {}) {\n  const materialId = normalizeMaterialId(options.materialId ?? options.id);\n  const definition = MODEL_DEFS[materialId];\n  if (!definition) return emptyMesh(materialId);\n  const cached = modelCache.get(materialId);\n  if (cached) return cached;\n  const vertices = [];\n  const indices = [];\n  definition.build(createBuilder(vertices, indices));\n  const colors = uniqueColors(vertices);\n  const mesh = {\n    id: `smelting_material_${materialId}`,\n    materialId,\n    name: definition.name,\n    category: \"smelting material\",\n    className: definition.className,\n    shape: definition.shape,\n    description: definition.description,\n    roughness: definition.roughness,\n    translucency: definition.translucency,\n    emissive: definition.emissive,\n    vertexFormat: \"chunk-object\",\n    vertices,\n    indices,\n    layers: [],\n    colors,\n    quadCount: indices.length / 6,\n    triangleCount: indices.length / 3,\n    vertexCount: vertices.length,\n    collision: false,\n  };\n  modelCache.set(materialId, mesh);\n  if (modelCache.size > MODEL_CACHE_LIMIT) modelCache.delete(modelCache.keys().next().value);\n  return mesh;\n}",
+      "explanation": "The material ID selects a low-poly Chunk.js definition and a cache limited to forty-eight entries. This reconstruction makes inventory and forge previews inexpensive, but no mesh, palette, roughness, translucency, emissive value, or triangle count is committed by the Smelting Program."
+    }
+  ],
+  "sections": [
+    {
+      "id": "table-address-and-authority",
+      "eyebrow": "DETERMINISTIC ADDRESS, OPEN CREATION",
+      "title": "A table PDA has a precise address, but current execution does not make that address canonical",
+      "paragraphs": [
+        "RecipeTable version 2 uses the literal smelting-recipes seed and a little-endian 64-bit table ID. Initialization verifies that derivation, charges the payer for the fixed account, records the ID and bump, and stores the payer as authority. No administrator or configured-table signer participates. The authority may later upsert a recipe, disable it by replacing the same record with enabled false, or transfer table authority. A separate Civilization receipt adapter can apply a finalized recipe patch to its targeted table.",
+        "The critical boundary appears during execution. execute_smelting requires only that the supplied table account is owned by the active Smelting Program, then RecipeTable::find_recipe validates its general format and searches for an enabled recipe ID. The function does not call validate_recipe_table_pda, does not compare the stored table ID or bump with the account address, and does not consult public/mainnet.json or another allowlist. The trusted smelting-authority PDA is still used to append the selected output template into the owner's Backpack.",
+        "Together, those facts mean a payer can initialize an unused valid table, become its authority, install structurally valid outputs, and execute them through the same trusted append route. Output item categories are not restricted to the material category, and an output item PDA need only be non-default rather than equal to the table. The present program therefore verifies Backpack records against the supplied table; it does not enforce a canonical recipe set or prove output provenance."
+      ],
+      "facts": [
+        {
+          "label": "Creation authority",
+          "value": "Any signing payer",
+          "detail": "The payer becomes the initial per-table authority after deriving an unused ID."
+        },
+        {
+          "label": "Execution table gate",
+          "value": "Program owner and valid bytes",
+          "detail": "No PDA re-derivation, configured-ID comparison, or whitelist lookup occurs."
+        },
+        {
+          "label": "Trusted producer reached",
+          "value": "smelting-authority",
+          "detail": "The Backpack Program accepts output records signed by this PDA under the Smelting Program."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Do not call the deployed recipe set canonically enforced",
+        "body": "A client allowlist can narrow its own submissions, but the program currently accepts any valid program-owned RecipeTable. Canonical enforcement would require an execution-time PDA or configured-table check, not documentation language."
+      }
+    },
+    {
+      "id": "fixed-layout-and-retirement",
+      "eyebrow": "TEN RECORDS, FIXED TEMPLATES",
+      "title": "Each table reserves ten large recipe records, and disabling one does not free its position",
+      "paragraphs": [
+        "The 96-byte header stores magic, version, bump, initialized state, table ID, authority, recipe count, creation and update slots, and creation time. Each 984-byte record then stores recipe ID, enabled flag, minimum heat tier, active input and output counts, yield basis points, eight full 80-byte input templates, four full 80-byte output templates, and an update slot. A complete table is always 9,936 bytes whether it contains one active recipe or ten.",
+        "Input count is constrained to one through eight and output count to one through four. Encoding fills unused fixed positions with copies, but only the active counts participate in matching or output. Recipe yield must be one through 10,000. Output item templates require nonzero item identity, PDA, volume, durability, grade, level, and quality fields, yet the format does not restrict a category to smelted materials or tie the item PDA to this table.",
+        "Upsert scans all ten records. Reusing a recipe ID replaces its existing position; a new ID uses only a record whose stored recipe ID is zero. Upserting that same ID with enabled false keeps the nonzero ID in its occupied position, but replaces the complete record, including its templates, and writes the current update slot. recipeCount is not reduced. This retained identity is useful for migration history, but a table filled with disabled records is still full and cannot accept another ID without a new table or format change."
+      ],
+      "facts": [
+        {
+          "label": "Table length",
+          "value": "9,936 bytes",
+          "detail": "A 96-byte header plus ten 984-byte recipe records."
+        },
+        {
+          "label": "Per-recipe limits",
+          "value": "8 inputs and 4 outputs",
+          "detail": "Inactive fixed template positions remain serialized but are ignored by their counts."
+        },
+        {
+          "label": "Disabled recipe",
+          "value": "Not executable, still occupied",
+          "detail": "find_recipe skips it, while upsert cannot treat its nonzero ID as an empty slot."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Names and chemistry do not live in RecipeRecord",
+        "body": "The chain record carries slot identities, heat tier, yield, and output templates. Human names, temperature in degrees, burn seconds, composition ranges, model shape, and forge-use labels come from client data."
+      }
+    },
+    {
+      "id": "whole-record-matching",
+      "eyebrow": "UNIQUE INDEXES, EXACT MULTIPLIER",
+      "title": "Smelting consumes complete Backpack records and does not deduct them by quantity",
+      "paragraphs": [
+        "Execution requires the owner wallet itself to sign and be writable. There is no PlayerSession alternative in the Smelting instruction. The supplied Backpack must be owned by the configured Backpack Program, its stored owner must equal the signer, and every selected index must address the current dense record prefix. Input and fuel indexes share one uniqueness bitmap, so one slot cannot serve both roles or appear twice.",
+        "The selected input count must equal recipe inputCount times multiplier. The program visits selected indexes in payload order and assigns each record to the first active template that both matches and still needs an occurrence. Every selected block record matches by kind and Packed-Y block ID. Every selected item matches by kind, category, and item code, plus item ID when the template does not use zero as a wildcard. This first-fit rule means order can matter if a wildcard item-ID template overlaps a later specific-ID template. Slot decoding requires BackpackSlotRecord.quantity to be nonzero, but matching does not compare its numeric value, so a quantity-ten record counts once and is destroyed as one whole slot. Smelting also performs no greater-than-or-equal comparison over volume, durability, grade, level, quality, or other material parameters.",
+        "Fuel is a separate hardcoded classifier. Current chain tiers recognize dry grass, dead bush, and thorn at tier one; wood-like blocks and material code 1001 at tier two; coal at tier three; and basalt or lava at tier four. Only the maximum submitted fuel tier is compared with minHeatTier. Burn duration and consumable flags are absent. remove_backpack_resources concatenates every input and fuel index, so a selected lava or basalt record is removed even though the bundled JSON declares lava_heat consumable false."
+      ],
+      "facts": [
+        {
+          "label": "Signer",
+          "value": "Owner wallet only",
+          "detail": "The current execute account list has no PlayerProfile or PlayerSession route."
+        },
+        {
+          "label": "Batch meaning",
+          "value": "Template repetition",
+          "detail": "Multiplier repeats every active template across distinct whole records."
+        },
+        {
+          "label": "Fuel consumption",
+          "value": "Every supplied fuel index",
+          "detail": "The highest tier authorizes heat, but all submitted fuel records enter the same removal batch."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A stack display is not partial-stack protocol support",
+        "body": "Quantity remains a field in the 80-byte record, but Smelting has no amount argument and no decrement operation. Select only records the player agrees to destroy completely."
+      }
+    },
+    {
+      "id": "yield-capacity-and-rollback",
+      "eyebrow": "VOLUME IN, BOUNDED RECORDS OUT",
+      "title": "Batching increases input volume, while output count remains fixed and failure remains atomic",
+      "paragraphs": [
+        "Before removal, the program computes itemCount minus every selected input and fuel record plus recipe outputCount. If that projected count exceeds Backpack capacity, execution stops. It then removes the dense records through the Backpack Program and appends each active output through the smelting-authority PDA. Backpack append is strict. A later append or progress failure aborts the transaction, so Solana rolls back earlier CPIs and the player does not retain a half-applied state.",
+        "Only selected input records contribute actual input volume; fuel does not. A positive stored volume is used directly and zero falls back to 1,000,000 cubic millimetres. For each active output, the program begins with that output's PDA template volume, scales it by multiplier and by the ratio of actual selected input volume to the expected active input-template volume, then applies the recipe yield and Smelting PlayerProgress skill factor. Level zero begins at 70 percent and each level adds three percentage points through level ten. Integer truncation and the positive u32 clamp happen independently for every output; no aggregate pool is divided evenly.",
+        "Multiplier does not multiply outputCount. It participates in each output's volume baseline while the larger selected input set supplies the actual volume ratio. Current synchronization writes exactly one output template for each bundled primary and merge material recipe, so one execution appends one output record even for a multi-serving batch. The UI nevertheless displays bundled yieldCount times servings, and several materials have yieldCount two. That number is presentation-only under current synced record construction and can disagree with the confirmed Backpack result.",
+        "For item outputs, the program replaces volume and recomputes durability and minimum item level while retaining template identity and quantity. Current synchronization uses the material recipe identity as item ID for each output rather than minting a unique instance ID. The program then adds one Smelting XP per selected input record, excluding fuel. Every one of these mutations belongs to the same atomic instruction."
+      ],
+      "facts": [
+        {
+          "label": "Capacity projection",
+          "value": "Remove first, add fixed outputs",
+          "detail": "The precheck counts records rather than quantities or kilograms."
+        },
+        {
+          "label": "Batch result",
+          "value": "More volume, same outputCount",
+          "detail": "Current primary and merge synchronization each install one output template; that record carries the independently calculated batch volume."
+        },
+        {
+          "label": "Failure behavior",
+          "value": "Atomic rollback",
+          "detail": "Removal, strict append, metadata normalization, and XP update either commit together or do not commit."
+        }
+      ],
+      "callout": {
+        "tone": "verified",
+        "title": "Refresh the Backpack for the authoritative result",
+        "body": "A pre-submit preview cannot prove output count, volume, durability, quality, level, or identity. Use the confirmed account bytes after the transaction, especially while client rules and live table records can drift."
+      }
+    },
+    {
+      "id": "client-routing-and-live-drift",
+      "eyebrow": "BUNDLED RULES VERSUS SUPPLIED TABLE",
+      "title": "The current website plans from local rules and does not compare them with the live table",
+      "paragraphs": [
+        "The smelting panel imports src/data/smeltingRules.js through a lightweight adapter. It groups local raw inputs, catalysts, heat tiers, yieldCount, composition, and material identities into recipe cards, caps selection at eight input records, derives a table ID and recipe ID from local material order, and asks for one fuel record. The chain payload itself allows inputCount times multiplier within a combined input-plus-fuel ceiling of ninety-nine, so the current UI is narrower than the Rust instruction.",
+        "executeSmeltingOnChain derives the local table ID and checks only that RPC returned nonempty account data. It does not verify account owner in that preliminary read, decode RecipeTable, compare table ID, authority, enabled status, inputs, outputs, yield, or heat, or warn that the local card differs. The wallet therefore signs an instruction whose actual behavior is determined by the supplied on-chain bytes, not the card copy.",
+        "Merge planning has another current routing gap. The local matcher can construct a merge candidate from repeated records of one smelted material, but smeltingRecipeChainIdentity always returns the primary material recipe ID and primary 220-series table. It does not branch on recipeKind, so the current primary cards cannot route execution to the installed 320 through 322 merge tables.",
+        "Dated mutable audit note: on 2026-07-15 at confirmed slot 476,303,030, Devnet account E8CtkK8VQHExofe83isN2KDQdUuSWjw7JhgpT9NVeCQG, the configured table 220 address, decoded recipe 1001 as heat tier two, one block-ID-zero input, 9,600 yield basis points, and output item code 101, item ID 501, with item PDA CEzcpJe9UTq5FmVzpTfgPffMbqdG97YJeFMJYwUSFhNF. The bundled charcoal card instead required two trunk and three dry-grass records, heat tier one, 5,500 yield basis points, and current item code 1001. The block-ID-zero template does not match those currently packed trunk and dry-grass inputs, so the bundled charcoal flow was broken against this snapshot; if that altered output were received, current Backpack reconstruction would assign the internal material ID material-101 and show the label Material 101. The account may change after publication; this proves drift at that date, not an immutable recipe value.",
+        "Progress and preview also split today. Execution derives PlayerProgress under the unified-game Smelting Program and the caller-supplied globalConfig key. The current UI fetches its visible skill progress under the separate Chunk Program, so its displayed skill yield can diverge from execution. Locally derived material attributes use selected slots and a client seed; the confirmed output metadata comes from the on-chain template and Rust normalization, so a refresh may replace preview values."
+      ],
+      "facts": [
+        {
+          "label": "Local selection cap",
+          "value": "8 input records",
+          "detail": "The chain supports a larger multiplied selection so long as inputs plus fuel do not exceed ninety-nine."
+        },
+        {
+          "label": "Live comparison",
+          "value": "Existence only",
+          "detail": "The current submit path does not decode or compare the derived RecipeTable account."
+        },
+        {
+          "label": "Progress accounts",
+          "value": "UI Chunk PDA versus execution Smelting PDA",
+          "detail": "Different program IDs derive different accounts even with the same owner and global-config bytes."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "The card is a planner, not a chain receipt",
+        "body": "Before presenting a recipe as public or verified, decode the exact table account and compare every execution-relevant field. The current website does not perform that comparison."
+      }
+    },
+    {
+      "id": "chunkjs-reconstruction",
+      "eyebrow": "CACHED MATERIALS, LOW-COST HEAT",
+      "title": "Chunk.js renders the workshop efficiently without turning visual data into authority",
+      "paragraphs": [
+        "Smelted material records store compact identity and metadata, not geometry. Chunk.js maps a recognized material ID to a procedural low-poly builder, emits the shared chunk-object vertex format, collects its palette and finish, and caches both preview meshes and surface profiles with a forty-eight-entry bound. The cyan glass ingot, charcoal pieces, cloth folds, blooms, plates, composites, and dyes are therefore reconstructed client assets rather than bytes embedded in each Backpack record.",
+        "The furnace core is a small WebGL2 path, not a general scene. It draws one fullscreen triangle strip with a shader, disables antialiasing, depth, stencil, and buffer preservation, and caps pixel ratio. The play panel updates that visual on a throttled interval while a transaction is pending. Heat tier, progress, pulse, embers, and color communicate state economically, but the animation is not a timer enforced by the program.",
+        "The bundled temperatureC and burnSeconds values, chemistry composition ranges, derived attributes, roughness, translucency, emissive color, model description, and forge-use category never enter execute_smelting. The program recognizes fuel through hardcoded block or item identities, reads only minHeatTier and yieldBps from the supplied recipe, and writes normalized slot metadata. Keep UI copy explicit about this boundary so an attractive material preview is not mistaken for verified chemistry or provenance."
+      ],
+      "facts": [
+        {
+          "label": "Material cache",
+          "value": "Up to 48 entries per cache",
+          "detail": "Repeated previews reuse generated geometry and surface profiles instead of rebuilding them per slot."
+        },
+        {
+          "label": "Core draw",
+          "value": "One WebGL2 triangle strip",
+          "detail": "A capped canvas and disabled depth work keep the heat effect small."
+        },
+        {
+          "label": "Chain authority",
+          "value": "Recipe bytes and Backpack records",
+          "detail": "Visual temperature, duration, composition, animation, and mesh fields remain local."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Performance and verification solve different problems",
+        "body": "Caching and a compact shader lower client cost. They do not repair table authorization, validate recipe drift, or prove that a locally previewed attribute was committed on chain."
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "Dispatches table creation, authority-controlled upsert, execution, authority transfer, and Civilization receipt patches; shows permissionless payer authority, owner-only execution, missing execution-time table PDA pinning, caller-selected global-config progress seeds, removal and trusted output CPIs, output math, and metadata normalization."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/state.rs",
+      "claim": "Defines the 9,936-byte version-2 table, ten 984-byte recipe records, input and output limits, disabled-record occupancy, whole-record matching, quantity omission, capacity projection, hardcoded fuel tiers, Packed-Y matching, progress thresholds, and strict recipe validation."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/errors.rs",
+      "claim": "Enumerates distinct failures for recipe ownership and bytes, authority, missing recipes, input indexes, input mismatch, fuel heat, Backpack capacity, progress accounts, and CPI boundaries used by the described failure paths."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/civilization_adapter.rs",
+      "claim": "Validates finalized and executed Civilization rule-book and receipt state for a patch targeted at one recipe table, providing the alternate governance-mediated upsert route."
+    },
+    {
+      "path": "programs/nicechunk_smelting/src/cluster_config.rs",
+      "claim": "Binds the current Smelting Program build to its expected Backpack and Civilization program IDs."
+    },
+    {
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "Routes the unified Game Program's Smelting namespace to the same Smelting processor, explaining the active shared program ID without changing RecipeTable semantics."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "Authenticates the smelting-authority PDA before appending the supplied 80-byte slot and exposes owner-signed dense batch removal used by the Smelting CPI."
+    },
+    {
+      "path": "programs/nicechunk_backpack/src/state.rs",
+      "claim": "Defines strict item append, item-slot decoding and metadata bounds, BackpackFull behavior, and high-to-low dense batch deletion that make execution whole-record and transaction rollback relevant."
+    },
+    {
+      "path": "sdk/nicechunk-smelting.ts",
+      "claim": "Mirrors table and authority seeds, fixed lengths, recipe limits, execution payload multiplier, owner signer, Smelting-program PlayerProgress derivation, and fixed input and output template encoding."
+    },
+    {
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Defines current Devnet program contexts, derives configured recipe tables, checks only nonempty table data before submission, builds owner-signed execution, derives Smelting progress under the unified game program, and separately fetches visible progress under the Chunk Program."
+    },
+    {
+      "path": "src/data/smeltingRules.js",
+      "claim": "Provides bundled heat temperatures, fuel duration and consumable flags, local recipes, yieldCount, composition, identity mapping, property previews, exact local ratio matching, and 220/320-series table conventions that are not themselves decoded from chain state."
+    },
+    {
+      "path": "play/smelting-rules-lite.js",
+      "claim": "Adapts Backpack slots to local rule keys, plans whole selected records, constructs merge candidates, and currently maps every recipe through primary recipe and table identity without honoring recipeKind."
+    },
+    {
+      "path": "play/play-smelting.js",
+      "claim": "Caps input selection at eight, chooses one fuel slot, displays yieldCount times servings, derives local preview properties, submits bundled identities, refreshes confirmed Backpack state, and throttles the furnace visual."
+    },
+    {
+      "path": "play/play-chain-player.js",
+      "claim": "Loads the generic fetched PlayerProgress into visible skill XP, including the smelting field used by local skill effects."
+    },
+    {
+      "path": "play/play-chain-backpack.js",
+      "claim": "Reconstructs known material item codes, falls back to material-code labels for unknown outputs, and derives rich preview attributes locally rather than decoding a complete authoritative property profile from the slot."
+    },
+    {
+      "path": "play/play-skill-effects.js",
+      "claim": "Turns the UI's visible smelting level into the 7,000-plus-300-per-level local output preview."
+    },
+    {
+      "path": "scripts/sync-smelting-recipes.ts",
+      "claim": "Expands each bundled requirement amount into individual whole slot templates, writes one output record for every current primary and merge recipe, retains disabled migration records, derives output metadata locally, and distributes recipes across fixed-capacity tables."
+    },
+    {
+      "path": "public/mainnet.json",
+      "claim": "Declares the current website's Devnet Smelting Program, rule-set URL, configured table IDs and addresses, including the table-220 address used for the explicitly dated RPC audit."
+    },
+    {
+      "path": "chunk.js/renderer/smelting-material-models.js",
+      "claim": "Builds registered material meshes and shared visual surface profiles from code, returns the chunk-object format, and bounds mesh and profile caches to forty-eight entries."
+    },
+    {
+      "path": "chunk.js/renderer/smelting-core.js",
+      "claim": "Implements the low-cost WebGL2 furnace core with one fullscreen strip, capped pixel ratio, disabled depth and antialiasing, shader-driven heat and progress, and explicit resource disposal."
+    }
+  ],
+  "related": [
+    {
+      "slug": "backpack-inventory",
+      "href": "/docs/backpack-inventory/",
+      "status": "ready",
+      "title": "Backpack PDAs",
+      "summary": "Understand the dense 80-byte records, shifting indexes, trusted producer routes, and Chunk.js reconstruction that Smelting reads and mutates."
+    },
+    {
+      "slug": "material-lifecycle",
+      "href": "/docs/material-lifecycle/",
+      "status": "ready",
+      "title": "Material Lifecycle",
+      "summary": "Follow cotton and dry grass from face-bound world generation through Backpack rewards, cloth inputs, volume yield, and forge-ready material state."
+    },
+    {
+      "slug": "forging-system",
+      "href": "/docs/forging-system/",
+      "status": "ready",
+      "title": "Material-Aware Forging",
+      "summary": "Continue from smelted records into editable geometry, material requirements, inherited properties, NCF1 commitment, and verified whole-slot consumption."
+    }
+  ]
+}
