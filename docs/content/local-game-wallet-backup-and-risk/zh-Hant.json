@@ -3,8 +3,8 @@
     "language": "zh-Hant",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-local-game-wallet-backup-and-risk-zh-Hant-52894bfe622474a6",
-    "contentHash": "52894bfe622474a6"
+    "version": "docs-document-local-game-wallet-backup-and-risk-zh-Hant-ab5998c66dd59d84",
+    "contentHash": "ab5998c66dd59d84"
   },
   "kind": "topic",
   "slug": "local-game-wallet-backup-and-risk",
@@ -525,23 +525,23 @@
       "title": "Import routing rejects ambiguous seeds before Keypair construction",
       "language": "JavaScript",
       "source": "src/localGameWallet.js",
-      "code": "function keypairFromSecretInput(value) {\n  const raw = String(value || \"\").trim();\n  if (!raw) throw importError(localGameWalletImportErrorCodes.missing, \"Missing private key.\");\n\n  const material = startsWithJsonToken(raw)\n    ? parseJsonSecretMaterial(raw)\n    : parseBase58SecretMaterial(raw);\n\n  if (material.kind === \"seed\") return Keypair.fromSeed(material.bytes);\n  try {\n    return Keypair.fromSecretKey(material.bytes);\n  } catch (cause) {\n    throw importError(\n      localGameWalletImportErrorCodes.invalidSecret,\n      \"The supplied 64-byte value is not a valid Solana secret key.\",\n      cause,\n    );\n  }\n}",
-      "explanation": "The entry point trims only outer whitespace, routes JSON-looking input to strict structured parsing, and routes other text to Base58 validation. Its helpers require byte integers, reject bare 32-byte values as ambiguous with public addresses, allow a seed only through an explicitly typed NiceChunk seed record, and map malformed input to stable local error codes. A complete 64-byte value still passes through Solana's internal secret/public consistency check before storage.",
+      "code": "function keypairFromSecretInput(value) {\n  const input = String(value || \"\");\n  if (input.length > localGameWalletImportMaxCharacters) {\n    throw importError(\n      localGameWalletImportErrorCodes.inputTooLarge,\n      `Private-key input exceeds ${localGameWalletImportMaxCharacters} characters.`,\n    );\n  }\n  const raw = input.trim();\n  if (!raw) throw importError(localGameWalletImportErrorCodes.missing, \"Missing private key.\");\n\n  const material = startsWithJsonToken(raw)\n    ? parseJsonSecretMaterial(raw)\n    : parseBase58SecretMaterial(raw);\n\n  if (material.kind === \"seed\") return Keypair.fromSeed(material.bytes);\n  try {\n    return Keypair.fromSecretKey(material.bytes);\n  } catch (cause) {\n    throw importError(\n      localGameWalletImportErrorCodes.invalidSecret,\n      \"The supplied 64-byte value is not a valid Solana secret key.\",\n      cause,\n    );\n  }\n}",
+      "explanation": "The entry point rejects oversized input before parsing, trims only outer whitespace, routes JSON-looking input to strict structured parsing, and routes other text to Base58 validation. Its helpers require byte integers, reject bare 32-byte values as ambiguous with public addresses, allow a seed only through an explicitly typed NiceChunk seed record, and map malformed input to stable local error codes. A complete 64-byte value still passes through Solana's internal secret/public consistency check before storage.",
       "walkthrough": [
         {
-          "lines": "1-3",
-          "meaning": "Normalize only outer whitespace and reject an empty value with a stable import error code."
+          "lines": "1-10",
+          "meaning": "Bound the raw character count, normalize only outer whitespace, and reject an empty value with a stable import error code."
         },
         {
-          "lines": "5-7",
+          "lines": "12-14",
           "meaning": "Route JSON arrays or one quoted Base58 value to structured parsing and plain text to Base58 parsing. Neither branch silently removes or substitutes unsupported characters; a different valid key must be caught by comparing the derived address with the backup address."
         },
         {
-          "lines": "9-9",
+          "lines": "16-16",
           "meaning": "Construct from a 32-byte seed only when the helper marked an explicitly typed seed record; bare 32-byte values never reach this line."
         },
         {
-          "lines": "10-19",
+          "lines": "17-26",
           "meaning": "Construct the complete 64-byte Keypair, preserve Solana's internal consistency validation, and convert a failure into a non-secret-bearing import error."
         }
       ]

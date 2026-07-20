@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-material-lifecycle-zh-Hans-dfd85d9d0b4d0b26",
-    "contentHash": "dfd85d9d0b4d0b26"
+    "version": "docs-document-material-lifecycle-zh-Hans-d38dcf2ad592e6f8",
+    "contentHash": "d38dcf2ad592e6f8"
   },
   "kind": "topic",
   "slug": "material-lifecycle",
@@ -85,8 +85,8 @@
     },
     {
       "title": "Cotton-cloth inputs and per-output integer volume",
-      "expression": "N_cotton=4m; N_dryGrass=m; N_fuel>=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(10000,7000+300L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))",
-      "explanation": "Batch multiplier m repeats each of recipe 1025's five input rows, while every input and fuel index must remain unique. Fuel volume is not part of V_in. The program first scales this output's one-million-cubic-millimetre PDA template by the ratio between selected and recipe-template input volume, then applies the 6,500-basis-point recipe yield and the 7,000-to-10,000 skill factor with integer division. It does not divide one aggregate result evenly among outputs.",
+      "expression": "N_cotton=4m; N_dryGrass=m; N_fuel>=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(6000,1000+500L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))",
+      "explanation": "Batch multiplier m repeats each of recipe 1025's five input rows, while every input and fuel index must remain unique. Fuel volume is not part of V_in. The program first scales this output's one-million-cubic-millimetre PDA template by the ratio between selected and recipe-template input volume, then applies the 6,500-basis-point recipe yield and the 1,000-to-6,000 skill factor with integer division. It does not divide one aggregate result evenly among outputs.",
       "terms": [
         {
           "symbol": "m",
@@ -254,7 +254,7 @@
       "title": "Recipe execution removes the selected slots and writes the resulting cloth volume",
       "paragraphs": [
         "Before mutating the backpack, the Smelting Program validates its owner, capacity, every unique input and fuel index, exact multiplicities, heat tier, and the room available after removal and output insertion. It sums the recipe-input volumes, excluding fuel, then removes every selected input and fuel record through the Backpack Program.",
-        "For each active output, the program starts from that output's PDA template volume, scales it by batch multiplier and by the ratio of actual selected input volume to expected recipe-template input volume, then applies recipe yield and the current Smelting skill factor with integer arithmetic. For one default-volume cotton-cloth batch, the one-million template becomes 455,000 cubic millimetres at level zero or 650,000 at level ten. The current one-output recipe writes one cloth slot carrying that calculated batch volume."
+        "For each active output, the program starts from that output's PDA template volume, scales it by batch multiplier and by the ratio of actual selected input volume to expected recipe-template input volume, then applies recipe yield and the current Smelting skill factor with integer arithmetic. For one default-volume cotton-cloth batch, the one-million template becomes 65,000 cubic millimetres at level zero or 390,000 at level ten. The current one-output recipe writes one cloth slot carrying that calculated batch volume."
       ],
       "facts": [
         {
@@ -264,8 +264,8 @@
         },
         {
           "label": "Skill output factor",
-          "value": "7,000 to 10,000 bps",
-          "detail": "Level zero starts at 70%; levels one through ten add 3 percentage points each."
+          "value": "1,000 to 6,000 bps",
+          "detail": "Level zero starts at 10%; levels one through ten add 5 percentage points each."
         },
         {
           "label": "Mutation scope",

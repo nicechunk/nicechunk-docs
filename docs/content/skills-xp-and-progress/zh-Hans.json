@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "translated",
-    "version": "docs-document-skills-xp-and-progress-zh-Hans-38b8eb06c5218617",
-    "contentHash": "38b8eb06c5218617"
+    "version": "docs-document-skills-xp-and-progress-zh-Hans-602c68d9f9b1293e",
+    "contentHash": "602c68d9f9b1293e"
   },
   "slug": "skills-xp-and-progress",
   "kind": "topic",
@@ -1036,8 +1036,8 @@
       "title": "Game/Smelting 拥有自己的匹配等级表与按输入计算的 XP 常量",
       "language": "Rust",
       "source": "programs/nicechunk_smelting/src/state.rs",
-      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 7_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 300;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
-      "explanation": "熔炼产出比例从 7,000 个基点开始，每个合约等级增加 300 个基点。它的 XP 表与浏览器曲线一致，奖励单位是每个选中输入 1 XP。",
+      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 1_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 500;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
+      "explanation": "熔炼产出比例从 1,000 个基点开始，每个合约等级增加 500 个基点，并在等级十达到 6,000 个基点。它的 XP 表与浏览器曲线一致，奖励单位是每个选中输入 1 XP。",
       "walkthrough": [
         {
           "lines": "第 4–7 行",

@@ -3,8 +3,8 @@
     "language": "de",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-smelting-recipes-de-ea00f0df47d383d4",
-    "contentHash": "ea00f0df47d383d4"
+    "version": "docs-document-smelting-recipes-de-55750ec32ed1ebfe",
+    "contentHash": "55750ec32ed1ebfe"
   },
   "kind": "topic",
   "slug": "smelting-recipes",
@@ -112,7 +112,7 @@
     },
     {
       "title": "Per-output PDA volume, input ratio, skill factor, and batch result",
-      "expression": "V_in=sum(i in I)(storedVolume_i>0?storedVolume_i:1000000); V_recipe=sum(k in activeInputs)(templateVolume_k>0?templateVolume_k:1000000); level=max{k in {0,...,10}|xp_before>=threshold[k]}; skillBps=min(10000,7000+300*level); V_base_j=floor(max(1,V_pda_j)*m*max(1,V_in)/max(1,V_recipe*m)); V_j=max(1,min(4294967295,floor(floor(V_base_j*yieldBps/10000)*skillBps/10000))); chainRecordCount=o, not o*m; current UI displayCount=yieldCount*m",
+      "expression": "V_in=sum(i in I)(storedVolume_i>0?storedVolume_i:1000000); V_recipe=sum(k in activeInputs)(templateVolume_k>0?templateVolume_k:1000000); level=max{k in {0,...,10}|xp_before>=threshold[k]}; skillBps=min(6000,1000+500*level); V_base_j=floor(max(1,V_pda_j)*m*max(1,V_in)/max(1,V_recipe*m)); V_j=max(1,min(4294967295,floor(floor(V_base_j*yieldBps/10000)*skillBps/10000))); chainRecordCount=o, not o*m; current UI displayCount=yieldCount*m",
       "explanation": "Fuel volume is excluded. Zero stored or template volume uses the one-million-cubic-millimetre default. For each active output j, the program scales that output's own PDA template volume by batch multiplier and by the actual-versus-expected input-volume ratio, then applies recipe and skill factors with integer truncation. It does not calculate one aggregate pool or split that pool evenly. Skill uses XP read before execution, and outputCount remains fixed even when multiplier increases selected inputs. The UI's yieldCount-times-servings display is still not the current chain record count.",
       "terms": [
         {
@@ -289,7 +289,7 @@
       "title": "Batching increases input volume, while output count remains fixed and failure remains atomic",
       "paragraphs": [
         "Before removal, the program computes itemCount minus every selected input and fuel record plus recipe outputCount. If that projected count exceeds Backpack capacity, execution stops. It then removes the dense records through the Backpack Program and appends each active output through the smelting-authority PDA. Backpack append is strict. A later append or progress failure aborts the transaction, so Solana rolls back earlier CPIs and the player does not retain a half-applied state.",
-        "Only selected input records contribute actual input volume; fuel does not. A positive stored volume is used directly and zero falls back to 1,000,000 cubic millimetres. For each active output, the program begins with that output's PDA template volume, scales it by multiplier and by the ratio of actual selected input volume to the expected active input-template volume, then applies the recipe yield and Smelting PlayerProgress skill factor. Level zero begins at 70 percent and each level adds three percentage points through level ten. Integer truncation and the positive u32 clamp happen independently for every output; no aggregate pool is divided evenly.",
+        "Only selected input records contribute actual input volume; fuel does not. A positive stored volume is used directly and zero falls back to 1,000,000 cubic millimetres. For each active output, the program begins with that output's PDA template volume, scales it by multiplier and by the ratio of actual selected input volume to the expected active input-template volume, then applies the recipe yield and Smelting PlayerProgress skill factor. Level zero begins at 10 percent and each level adds five percentage points through level ten, reaching 60 percent. Integer truncation and the positive u32 clamp happen independently for every output; no aggregate pool is divided evenly.",
         "Multiplier does not multiply outputCount. It participates in each output's volume baseline while the larger selected input set supplies the actual volume ratio. Current synchronization writes exactly one output template for each bundled primary and merge material recipe, so one execution appends one output record even for a multi-serving batch. The UI nevertheless displays bundled yieldCount times servings, and several materials have yieldCount two. That number is presentation-only under current synced record construction and can disagree with the confirmed Backpack result.",
         "For item outputs, the program replaces volume and recomputes durability and minimum item level while retaining template identity and quantity. Current synchronization uses the material recipe identity as item ID for each output rather than minting a unique instance ID. The program then adds one Smelting XP per selected input record, excluding fuel. Every one of these mutations belongs to the same atomic instruction."
       ],
@@ -446,7 +446,7 @@
     },
     {
       "path": "play/play-skill-effects.js",
-      "claim": "Turns the UI's visible smelting level into the 7,000-plus-300-per-level local output preview."
+      "claim": "Turns the UI's visible smelting level into the 1,000-plus-500-per-level local output preview, capped at 6,000 basis points."
     },
     {
       "path": "scripts/sync-smelting-recipes.ts",

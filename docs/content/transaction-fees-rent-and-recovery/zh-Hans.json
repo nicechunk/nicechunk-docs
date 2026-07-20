@@ -1,0 +1,1392 @@
+{
+  "_meta": {
+    "language": "zh-Hans",
+    "sourceLanguage": "en",
+    "translationStatus": "translated",
+    "version": "docs-document-transaction-fees-rent-and-recovery-zh-Hans-2b5ae5cba38b9d73",
+    "contentHash": "2b5ae5cba38b9d73"
+  },
+  "slug": "transaction-fees-rent-and-recovery",
+  "kind": "topic",
+  "shortTitle": "交易手续费、账户租金与恢复",
+  "seo": {
+    "title": "NiceChunk 交易手续费、账户租金与恢复",
+    "description": "了解谁支付 NiceChunk 的 Solana 手续费与账户租金、哪些程序账户能够返还 lamport、哪些资金仍会锁定，以及恢复需要哪些密钥。"
+  },
+  "hero": {
+    "eyebrow": "玩家、钱包与控制权 · 第 13 步",
+    "title": "交易手续费、账户租金与恢复：谁来支付，哪些资金可以返还",
+    "summary": "Solana 交易手续费、向游戏签名地址转账，以及存入程序所有数据账户的 lamport，是三种不同的资金支出。本指南沿着当前 NiceChunk 客户端和程序源码逐个检查账户：明确谁支付交易手续费、谁承担账户存储资金，说明已经实现的三条关闭路径、目前仍保留租金的记录，以及开始任何恢复操作前必须具备的确切私钥与账户状态。",
+    "readingTime": "阅读约需 62 分钟",
+    "visual": {
+      "src": "/docs/media/transaction-fees-rent-and-recovery-overview-v1.webp",
+      "alt": "NiceChunk 标准村民男孩站在木制交易门前，一块长方形铜块悬在石制费用碗中；标准村民女孩把另外的铜块放入敞开的石制账户地基。真实 Chunk.js 海岸工地里，owner 箱、保留资金的库房、沙漏与关闭的返还隔间彼此分开。",
+      "caption": "这幅真实 Chunk.js 海岸场景使用标准村民与游戏烘焙材质，把少量处理成本的关口、普通 owner 箱、账户注资方块、持续占用的存储、经过的时间，以及可能由程序控制的返还隔间清楚分开。所有道具都只是讲解比喻，不能证明真实手续费、余额、付款方、账户 owner、关闭指令、退款、交易状态或当前链上状态。",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "玩家问题",
+    "question": "当 NiceChunk 需要使用 SOL 时，哪个地址支付网络手续费，哪个账户保留存储所需的 lamport？在取消操作、退出登录、Session 到期、浏览器重置或密钥丢失后，我实际上还能恢复什么？",
+    "items": [
+      {
+        "label": "学习路径",
+        "value": "玩家、钱包与控制权 · 共 15 步中的第 13 步"
+      },
+      {
+        "label": "适合读者",
+        "value": "没有编程或区块链基础的普通玩家"
+      },
+      {
+        "label": "审查范围",
+        "value": "当前仓库中的客户端、Player、Chunk、Building、Core、Guardian、Civilization，以及统一 Game 程序内的 Backpack、Market 与 Smelting 命名空间"
+      },
+      {
+        "label": "源码配置路径",
+        "value": "public/mainnet.json 当前声明的是 Devnet 集群，并把 Backpack、Market 与 Smelting 路由到统一 Game 程序。配置文件只标明预期使用的地址；它本身不能证明实际部署字节，也不能证明某位玩家的交易。"
+      },
+      {
+        "label": "关闭路径的审计边界",
+        "value": "在已审查的 Rust 程序树中，只有三处代码会直接清空账户 lamport：由国库授权的 PlayerAppearance 关闭、活跃 Market Listing 的取消，以及待处理 Building 上传的取消。审计也检查了指令分发表和账户创建路径，因此“没有关闭路径”的结论只适用于当前源码版本。"
+      },
+      {
+        "label": "账户租金的说明边界",
+        "value": "账户字节长度由源码常量决定。确切的免租最低 lamport 数由所选 Solana RPC 在运行时返回，不能把它宣传成永久不变的协议价格。"
+      },
+      {
+        "label": "失败结果的说明边界",
+        "value": "本地拒绝、预检拒绝、已被集群接受但执行失败，以及结果未知的超时，是四种不同结果。对于已经被接受的交易，只有签名状态和交易元数据才能确定其最终结果与实际处理手续费。"
+      },
+      {
+        "label": "审查日期",
+        "value": "2026 年 7 月 20 日 · 仓库源码字面审计"
+      }
+    ],
+    "terms": [
+      {
+        "term": "交易手续费",
+        "meaning": "处理一笔已提交的 Solana 交易所收取的 SOL。交易消息会指定一个手续费付款方。"
+      },
+      {
+        "term": "手续费付款方",
+        "meaning": "用自己的普通地址支付交易处理手续费的签名者。这个角色不会自动说明是谁为程序创建的账户提供存储资金。"
+      },
+      {
+        "term": "指令付款方",
+        "meaning": "作为可写签名者传给程序，并为创建账户或补足账户租金提供 lamport 的地址。它可能与交易手续费付款方是同一个地址，但这是另一项需要单独确认的事实。"
+      },
+      {
+        "term": "免租最低余额",
+        "meaning": "在当前运行环境中，为使指定字节长度的数据账户保持免租状态，Solana 报告的最低 lamport 余额。"
+      },
+      {
+        "term": "账户存储资金",
+        "meaning": "保存在程序所有数据账户中的普通 lamport，其数量达到或超过当前免租最低值。本指南用这个说法把这笔资金与交易处理手续费区分开，并不承诺它一定能够退还。"
+      },
+      {
+        "term": "程序派生地址（PDA）",
+        "meaning": "程序通过已知种子控制的确定性地址。玩家使用普通钱包签名，不能直接花费程序所有 PDA 中的 lamport。"
+      },
+      {
+        "term": "关闭指令",
+        "meaning": "一段程序逻辑：先验证权限，再把账户中的 lamport 转给允许的接收方，并使旧数据账户无法继续使用。程序必须真正实现相应关闭路径；仅仅拥有相关游戏数据的钱包权限还不够。"
+      },
+      {
+        "term": "返还资金",
+        "meaning": "通过已验证关闭路径转出的 lamport。返还的是账户当前的 lamport 余额，不一定与最初支付的金额完全相同；执行关闭交易本身仍可能产生网络手续费。"
+      },
+      {
+        "term": "仍留在账户中的租金",
+        "meaning": "由于当前指令表中没有适用的关闭路径，而继续留在程序所有账户中的 lamport。"
+      },
+      {
+        "term": "普通签名地址余额",
+        "meaning": "owner 或 Session authority 普通地址中可以花费的 SOL。它与 Session、Listing、BuildSite 或其他 PDA 内保存的 lamport 不是同一笔余额。"
+      },
+      {
+        "term": "原子执行",
+        "meaning": "一笔已被集群接受的交易中，所有程序状态变更要么一起成功，要么一起回滚。交易处理手续费不属于被回滚的游戏状态。"
+      },
+      {
+        "term": "预检（Preflight）",
+        "meaning": "客户端在广播前请求的模拟。预检报错不能证明交易已经被链上接受并执行。"
+      },
+      {
+        "term": "已接受但执行失败",
+        "meaning": "一笔已有真实签名、被集群执行后状态中包含错误的交易。程序写入和转账会回滚，但处理手续费可能仍会被收取。"
+      },
+      {
+        "term": "结果未知",
+        "meaning": "浏览器未能确定最终状态的超时、过期或传输故障。它既不能证明操作成功，也不能证明资金已经返还。"
+      },
+      {
+        "term": "Session 授权地址",
+        "meaning": "用于受支持游戏交易的普通 Solana 签名者。在插件钱包模式中，它通常是一把由浏览器保存的独立密钥；在 Local Game Wallet 模式中，它就是 owner 密钥本身。"
+      },
+      {
+        "term": "恢复前提",
+        "meaning": "恢复能够进行之前必须仍然具备的条件，例如正确的私钥、处于活跃状态的 Listing、正在上传的 manifest，或全部必需的 PDA 地址。"
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "一笔交易可以包含两种付款方角色",
+      "body": "外层交易会指定手续费付款方；程序指令会另外指定谁为新建或扩大的账户提供资金。两种角色都必须检查。"
+    },
+    {
+      "title": "PDA 租金不是第二个钱包余额",
+      "body": "程序所有账户中的 lamport 用于维持其字节空间。相关玩家不能通过普通钱包转账移动这笔资金。"
+    },
+    {
+      "title": "账户租金必须在运行时查询",
+      "body": "字节长度来自源码，而确切的最低 lamport 数来自所选集群与 RPC。新手引导中的 0.000005 SOL 只是手续费近似值。"
+    },
+    {
+      "title": "执行失败会回滚游戏状态，但不一定返还手续费",
+      "body": "已被集群接受且带有 status.err 的交易不会保留部分账户创建或部分转账结果，但 Solana 处理手续费仍可能已经收取。"
+    },
+    {
+      "title": "审查范围内只有三条 NiceChunk 路径会清空账户 lamport",
+      "body": "分别是：取消活跃 Listing 并返还给卖家；取消待处理 Building 上传并返还给当前有效的 Session authority；以及把 PlayerAppearance 关闭资金返还给配置的国库。"
+    },
+    {
+      "title": "已售出的 Listing 仍保留账户 lamport",
+      "body": "购买操作会把 Listing 标记为已售出并转移物品，但当前 Market 指令不会关闭该 Listing。"
+    },
+    {
+      "title": "退出登录和到期都不会执行恢复",
+      "body": "浏览器清理不会发送交易，因此不能撤销 Session、关闭 PDA、移动旧临时密钥的余额，也不能找回丢失的 owner 私钥。"
+    },
+    {
+      "title": "能否恢复取决于仍在手中的密钥与当前账户状态",
+      "body": "owner 密钥可以重新派生确定性地址并创建新 Session；但只有旧临时私钥能够为其普通 SOL 余额签名，也只有程序已经实现的关闭路径才能释放 PDA 中的 lamport。"
+    }
+  ],
+  "sections": [
+    {
+      "id": "fee-payer-versus-storage-payer",
+      "eyebrow": "两种付款方角色，三种 SOL 流动",
+      "title": "先确认交易手续费付款方，再确认账户存储付款方",
+      "paragraphs": [
+        "一条 Solana 交易消息只有一个手续费付款方。NiceChunk 的钱包辅助函数明确把 provider.publicKey 设为付款方，密钥对辅助函数则使用 signer.publicKey。在插件 Session 设置中，已连接的 owner 支付手续费，临时 Session 密钥共同签名，owner 还可能把可花费的普通 SOL 转给这把临时密钥。那笔转账既不是处理手续费，也不是 PDA 租金。",
+        "在程序内部，还会另外传入一个可写签名者，作为 create_account 或补足租金时的付款方。Player 设置指令把 owner 作为 PlayerProfile 与 PlayerSession 的存储付款方。Mining 和 Building 调用由 Session 密钥签名并支付手续费，这些程序也会使用可写的 Session authority，为新的 progress、ChunkBroken、BuildSite、manifest 或 shard 字节提供资金。Local Game Wallet 中 owner 与 Session authority 是同一把密钥，因此两个标签会指向同一地址，但它们仍是两个不同概念。",
+        "在创建 Backpack、执行 Smelting、创建或取消 Market Listing，以及购买物品时，owner 钱包流程会让已连接的 owner 支付交易手续费。当指令创建 Backpack、Smelting progress 记录、Listing 或缺失的关联代币账户时，同一个 owner 也会承担存储资金。使用 NCK 购买前，Market 买家还可能为卖家或国库创建缺失的关联代币账户。这些代币账户的空间由 Associated Token 与 Token 程序管理，不能通过关闭 NiceChunk Listing 来退款。",
+        "客户端函数 transactionSolSpendFromMeta 会计算付款方余额减少的正值，并在该减少值与 meta.fee 中取较大者。这个总额可能同时包含网络手续费、转账、PDA 注资和代币账户创建成本。feeLamports 字段才是范围更窄的交易处理手续费观察值。"
+      ],
+      "facts": [
+        {
+          "label": "插件 Session 设置",
+          "value": "owner 同时支付手续费与存储资金；临时 authority 共同签名",
+          "detail": "同一笔设置交易可能会初始化 Profile、为普通 Session 签名地址补充 SOL，并创建或刷新 PlayerSession。"
+        },
+        {
+          "label": "Mining 与 Building",
+          "value": "Session authority 同时是手续费付款方与指令付款方",
+          "detail": "临时密钥地址中的可花费 SOL 可能同时用于处理手续费，以及账户创建或扩容。"
+        },
+        {
+          "label": "Backpack、Smelting 与 Market 钱包流程",
+          "value": "已连接的 owner 支付手续费",
+          "detail": "当这些已审查指令创建 Backpack、progress 记录、Listing 或缺失的代币账户时，owner 同时也是程序内的付款方。"
+        },
+        {
+          "label": "不要混为一谈",
+          "value": "手续费 + 转账 + 账户 lamport",
+          "detail": "它们都可能在同一笔交易中降低一个地址的余额，但依然是性质不同的资金事件。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "玩家问题：为什么我的 SOL 减少额大于页面显示的手续费？",
+        "body": "先在交易元数据中读取 meta.fee，再检查指令是否包含 owner 向 Session 的转账、PDA 创建或扩容，以及关联代币账户创建。付款方余额变化表示各项流出的合计，并不等同于网络手续费。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-fee-payer-versus-storage-payer-v1.webp",
+        "alt": "NiceChunk 标准村民男孩把一小块长方形铜块投入铁制费用火盆，标准村民女孩则把装有另一批铜块的推车推向大型石制记录地基；同一座真实 Chunk.js 海岸工地里，深色 owner 箱与较小的铜箱彼此分开。",
+        "caption": "画面把少量处理成本的比喻，与更大的账户地基和两个普通地址容器分开。道具的大小和内容只用于讲解，不能证明谁签了名、谁付款、移动了多少 SOL、是否发生转账，或是否真的创建了任何账户。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "rent-lamports-and-runtime-minimum",
+      "eyebrow": "字节长度固定，最低 lamport 数需要查询",
+      "title": "账户租金是保存在程序所有地址中的普通 lamport",
+      "paragraphs": [
+        "NiceChunk 程序创建或扩大 PDA 时，会向 Solana Rent 查询 minimum_balance(account length)。浏览器的新手引导代码也会针对所选 RPC 与字节长度，独立调用 getMinimumBalanceForRentExemption。因此，184 bytes 这类源码常量在当前账户版本中是稳定的，而确切的 SOL 示例只代表某个运行环境在某一时刻的结果。",
+        "免租账户不是隐藏的玩家钱包。账户中的 lamport 属于由程序控制的数据账户。最初为它提供资金的 owner 或 Session 密钥，不能通过普通 System Program 转账花费这些 lamport。要返还资金，账户所属程序必须提供并接受关闭指令。",
+        "扩容时可能只需补足差额。PlayerEquipment 与 ChunkBroken 会根据账户当前 lamport 和新的字节长度计算补款，再重新分配空间。原子交易失败时不会留下已经成功扩大的账户；但扩容成功后，增加的 lamport 会留在账户中，直到存在适用的关闭路径。",
+        "新手引导常量 NETWORK_FEE_SOL = 0.000005 只是界面展示策略，不是永久有效的 Solana 手续费报价。确切处理费用要在交易被接受后查看交易元数据；确切账户租金要么在创建前运行时查询，要么在创建后读取账户当前 lamport。"
+      ],
+      "facts": [
+        {
+          "label": "PlayerProfile",
+          "value": "773 字节",
+          "detail": "由 owner 注资，地址可由 owner 确定性派生，且没有 Player 关闭指令。"
+        },
+        {
+          "label": "PlayerSession",
+          "value": "184 字节",
+          "detail": "设置时由 owner 注资；到期不会释放其中的 lamport。"
+        },
+        {
+          "label": "PlayerEquipment 与 PlayerAppearance",
+          "value": "7,040 与 9,612 字节",
+          "detail": "Equipment 没有关闭路径；Appearance 只能由已配置的国库关闭。"
+        },
+        {
+          "label": "UsernameIndex 与 InviteIndex",
+          "value": "256 与 2,688 字节",
+          "detail": "已审查的 Player 指令分发表提供创建与追加路径，但没有释放或关闭路径。"
+        },
+        {
+          "label": "Backpack 与 Listing",
+          "value": "8,048 与 216 字节",
+          "detail": "Backpack 没有关闭路径；只有取消活跃 Listing 才会返还 Listing 中的 lamport。"
+        },
+        {
+          "label": "ChunkBroken",
+          "value": "16 字节头部 + 每个容量槽位 3 字节",
+          "detail": "初始容量为 64，每次增加 64，最高达到 2,048；每次需要补足租金时都由 Session 付款方提供资金。"
+        },
+        {
+          "label": "BuildSite、manifest 与 shard",
+          "value": "160 字节、160 字节，以及 64 字节 + 载荷",
+          "detail": "只有处于上传状态的 manifest 与已创建的 shard 账户拥有已审查的取消关闭路径；BuildSite 会继续保留。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "绝不能把一个租金数字宣传成永久 NiceChunk 价格",
+        "body": "发布任何示例时，都要同时注明账户字节长度、所选集群、RPC 方法、承诺级别与观察时间。真实交易前必须重新查询。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-rent-lamports-and-runtime-minimum-v1.webp",
+        "alt": "在真实 Chunk.js 海岸工地里，NiceChunk 标准村民男孩拿着没有刻度的木制测量框，身旁是三座逐渐变大的石制记录外壳；标准村民女孩把逐渐增多的长方形铜块分别放入不同地基托盘。",
+        "caption": "不同大小的外壳与铜块堆说明账户长度和所需存储资金会变化；完成后的石槽则把铜块留在账户比喻内部。画面没有编码任何租金数值、集群响应、账户余额或可花费钱包，也不能证明任何 PDA 确实存在。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "transaction-outcomes-and-failure-fees",
+      "eyebrow": "拒绝、失败与结果未知并不相同",
+      "title": "先区分四种结果，再判断是否收取或返还了手续费",
+      "paragraphs": [
+        "本地验证可能在交易形成前就停止，玩家也可以在签名前拒绝钱包提示。这两种情况都不会在链上执行。NiceChunk 发送原始交易时使用 skipPreflight: false，因此预检模拟报错同样不能证明交易已被链上接受，也不能证明产生了链上手续费。",
+        "集群接受一笔已签名交易后，交易状态仍可能包含错误。Solana 的原子性会回滚该交易中的程序账户写入、转账、账户创建与空间重分配；但网络已经完成处理工作，因此手续费可能仍会收取。NiceChunk 的轮询辅助函数会把签名保存在 TransactionStatusError 中，而不是把结果改写成本地错误。",
+        "超时、blockheight 过期、浏览器崩溃或传输错误，都可能让结果处于未知状态。只看浏览器消息无法确认成功、失败或退款。若已有签名，应先保存它，在正确集群查询状态，检查 meta.err 与 meta.fee，并读取受影响账户后再重试。",
+        "对设置或上传流程盲目重试尤其危险。即使浏览器没有收到确认，第一笔交易也可能已经为 Session 签名地址注资或分配账户。此时使用新密钥或新 revision，可能再留下一份普通地址余额或第二组账户 lamport。"
+      ],
+      "facts": [
+        {
+          "label": "本地或钱包拒绝",
+          "value": "没有链上执行",
+          "detail": "没有已签名并提交的交易，就不可能发生程序状态变更。"
+        },
+        {
+          "label": "预检拒绝",
+          "value": "不能证明交易已被接受执行",
+          "detail": "不要仅凭浏览器报错推断已经产生链上手续费。"
+        },
+        {
+          "label": "已接受但出现 status.err",
+          "value": "游戏状态原子回滚；手续费可能仍会收取",
+          "detail": "使用保留下来的签名与交易元数据核实。"
+        },
+        {
+          "label": "超时或传输失败",
+          "value": "核实前结果未知",
+          "detail": "不要只因为界面超时，就重试注资或创建操作。"
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "安全的重试顺序",
+        "body": "记录集群、钱包地址、Session 地址、目标 PDA 地址与签名。先查询签名状态和交易元数据，再逐个读取目标账户。只有这些观察结果明确显示缺少哪项状态后，才进行重试。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-transaction-outcomes-and-failure-fees-v1.webp",
+        "alt": "NiceChunk 标准村民男孩站在敞开的石制压机、小火盆与两只未改变的记录箱旁；标准村民女孩查看一块空白收据牌，远处是朦胧的信号塔。同一海岸庭院中，未拆封包裹、关闭的检查门和等待中的手推车分别位于不同区域。",
+        "caption": "未拆封包裹、关闭的检查门、复位的压机、未改变的箱子、空白牌与等待中的推车共同表达四种结果，但不宣称实际发生了哪一种。小火盆不是手续费去向，任何道具也都不会报告真实提交、签名、收费、回滚、确认级别、超时或 RPC 状态。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "persistent-player-and-inventory-accounts",
+      "eyebrow": "创建账户不代表玩家可以关闭账户",
+      "title": "Profile、Session、Equipment、索引与 Backpack 会持续保存在各自程序下",
+      "paragraphs": [
+        "PlayerProfile 是由 owner 派生的 773 字节 PDA。owner 为创建提供资金，浏览器缓存丢失后仍能重新派生地址。Player 程序没有相应关闭标签，因此保留 owner 密钥只能恢复写入权限，不能恢复租金返还路径。丢失 owner 密钥后，公开数据仍可读取、地址仍可确定性派生，但无法再授权普通 Profile 更新。",
+        "PlayerSession 是由 owner 与 Session authority 共同派生的独立 184 字节 PDA。设置过程需要两者签名，并由 owner 付款。到期只会让会检查 Session 的使用方拒绝后续操作；它不会关闭 PDA、返还租金、撤销普通密钥或转走该密钥地址中的 SOL。新临时密钥会派生另一个 PDA，也无法为旧密钥地址余额签名。",
+        "PlayerEquipment 为 7,040 字节，可使用 owner 资金创建或重新分配空间。PlayerAppearance 为 9,612 字节，下一章会说明它只能由国库关闭。UsernameIndex 为 256 字节，每页 InviteIndex 为 2,688 字节。当前 Player 指令分发表没有 Equipment、Session、Profile、UsernameIndex 或 InviteIndex 的关闭路径；更改名称也不会释放之前的索引空间。",
+        "Backpack 是由 owner 与 backpack ID 派生的 8,048 字节 PDA，并由 owner 注资；统一 Backpack 指令表没有关闭路径。浏览器的普通恢复流程会先检查本地缓存，再从 PlayerProfile 读取已装备 Backpack 的指针。如果 owner 与 Profile 仍可用，这能找回已装备的 Backpack；但它不会枚举 ID 未知且未装备的 Backpack。"
+      ],
+      "facts": [
+        {
+          "label": "Profile 恢复",
+          "value": "用 owner 公钥重新派生地址",
+          "detail": "写入仍需要 owner 私钥；没有关闭路径。"
+        },
+        {
+          "label": "Session 恢复",
+          "value": "旧临时私钥控制旧地址中的普通 SOL",
+          "detail": "owner 可以创建替代 Session，但不能归集旧签名地址的余额，也不能关闭旧 Session PDA。"
+        },
+        {
+          "label": "Equipment 恢复",
+          "value": "owner 关系与确定性 PDA",
+          "detail": "数据可以重新找到，但其中保存的租金不能由玩家提取。"
+        },
+        {
+          "label": "名称与邀请记录",
+          "value": "可以追加或创建，但不会释放旧空间",
+          "detail": "已分配页面与旧索引仍由 Player Program 控制。"
+        },
+        {
+          "label": "Backpack 恢复",
+          "value": "已知 ID/地址，或 Profile 中已装备指针",
+          "detail": "普通回退流程不会重建未知且未装备的 ID。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "重新找到数据，不等于取回 lamport",
+        "body": "确定性种子与 Profile 指针可以帮助客户端重新找到记录，但不会凭空创建关闭指令，也不会赋予钱包花费程序所有账户中 lamport 的权限。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-persistent-player-and-inventory-accounts-v1.webp",
+        "alt": "在真实 Chunk.js 海岸档案区里，NiceChunk 标准村民男孩在中央石制记录柜旁拿着深色 owner 钥匙；标准村民女孩打开另一只固定在地基上的物品柜，里面有两个 Backpack。Equipment 柜、沙漏基座、狭窄索引柱与空木格仍彼此分开。",
+        "caption": "钥匙、长期保存的记录柜、固定的 Backpack 柜与空本地木格说明“重新找到数据”和“数据持续存在”是两个不同问题。打开柜子只是数据恢复的比喻，并非关闭账户；画面也不能证明 PDA、owner 签名、已存指针、字节长度、余额、退款或关闭权限。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "market-and-appearance-close-paths",
+      "eyebrow": "两种关闭路径，两套不同的接收方规则",
+      "title": "活跃 Listing 可以把 lamport 返还卖家；Appearance 只能返还给国库",
+      "paragraphs": [
+        "创建 216 字节的 Market Listing 时，卖家既是签名者，也是浏览器流程中的手续费付款方与 Listing 存储付款方。物品会从原托管位置移出并存入 Listing。取消操作要求同一卖家、活跃 Listing、有效的目标 Backpack 路径、Listing 地址与 Market authority。程序会恢复物品、清空 Listing，并把 Listing 当前全部 lamport 转给卖家。",
+        "购买使用另一套生命周期。买家支付购买交易的手续费；使用 NCK 时，还可能为卖家或国库创建缺失的关联代币账户。Market 会把物品移入买家的 Backpack，并把 Listing 标记为已售出，但不会关闭 Listing。由于取消操作首先要求 Listing 仍处于活跃状态，已售出记录不能使用活跃取消的返还路径，因此在当前源码版本中其租金仍会保留。",
+        "PlayerAppearance 与直觉中的“谁付款谁取回”规则相反。玩家钱包在 upsert 时为其 9,612 字节空间提供资金，但已存策略与关闭指令把回收权限保留给 NICECHUNK_TREASURY_AUTHORITY。签名者与接收方都必须是该国库；玩家 owner 无法通过已审查的 Player Program 把这些 lamport 转给自己。",
+        "关闭操作返还的是账户当前 lamport，而不是另行记录的原始存款收据。取消或国库关闭本身也是一笔有手续费付款方的交易，因此接收方钱包的净变化不一定等于先前估算的租金数字。"
+      ],
+      "facts": [
+        {
+          "label": "活跃 Listing",
+          "value": "卖家取消后取回物品与 Listing lamport",
+          "detail": "要求活跃状态、卖家签名、有效 Listing PDA 与有效 Backpack 目标账户。"
+        },
+        {
+          "label": "已售出 Listing",
+          "value": "标记为已售出，但未关闭",
+          "detail": "这个 216 字节账户及其中的 lamport 仍保留在 Market 命名空间下。"
+        },
+        {
+          "label": "PlayerAppearance",
+          "value": "只能由国库关闭并返还给同一国库",
+          "detail": "为账户提供资金，并不会赋予玩家回收指令。"
+        },
+        {
+          "label": "关闭交易",
+          "value": "网络手续费仍需单独计算",
+          "detail": "返还账户余额并不代表净成本一定为零。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "不要把每笔存储付款都称为可退款",
+        "body": "在已审查的玩家操作路径中，只有取消活跃 Listing 会把 Listing lamport 返还给该玩家。Appearance 只会返还国库，已售出 Listing 则没有启用清理路径。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-market-and-appearance-close-paths-v1.webp",
+        "alt": "NiceChunk 标准村民男孩把锻造工具从敞开的市场箱取回自己的 Backpack，旁边另放着一盘长方形铜块；标准村民女孩拿着小型 owner 钥匙站在带栅栏的石制国库门外，巨大的铜锁与地基方块仍留在门内。",
+        "caption": "市场摊位表达卖家取回物品的比喻，带栅栏的档案库则让玩家钥匙与国库尺寸的锁明显不同。两边都不能证明真实 Listing 状态、国库权限、Backpack 容量、lamport 数量、关闭签名、已售出 Listing 清理或已完成退款。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "building-upload-cancellation",
+      "eyebrow": "只有待处理上传层可以回收",
+      "title": "取消 Building 上传会关闭上传中的 shard 与 manifest，但不会关闭 BuildSite 或活跃建筑",
+      "paragraphs": [
+        "创建 BuildSite 会分配一个持续存在的 160 字节账户，并让有效 Session authority 作为指令付款方。开始上传会创建 160 字节 manifest；写入每个 shard 时，会创建 64 字节头部加该 shard 载荷。浏览器会在运行时估算缺失账户的租金；在插件模式中，它会先把所需总额与 1,000,000 lamport 缓冲从 owner 转给 Session authority，再由 Session 密钥支付创建交易。",
+        "取消操作只接受 BuildSite 的待处理 revision，并要求其 manifest 状态为 UPLOADING。程序会通过当前 Session 还原 owner，核对该 owner 与 BuildSite、manifest 的关系，要求提供完整的预期 shard 账户列表，依次关闭已经存在的 shard，最后关闭 manifest。持续存在的 BuildSite 只会更新并移除待处理 revision，本身不会关闭。",
+        "每个已关闭 shard 与 manifest 都会把当前 lamport 转给本次提供的有效 Session authority，而不是直接转给 owner 钱包。同一 owner 的新有效 Session 可以授权取消旧的待处理上传，因为 Building 比较的是还原后的 owner 关系，而不是是否等于原临时密钥。因此，返还的 lamport 会进入执行取消操作的新 Session 地址。",
+        "最终确定会把 manifest 改为活跃状态，并让该 revision 成为 BuildSite 的活跃建筑。取消指令会拒绝非上传状态的 manifest，指令分发表也没有 active manifest、active shard 或 BuildSite 的关闭路径。当前浏览器只会在待处理上传与准备续传的载荷不一致时自动调用取消；它没有向玩家提供通用账户归集功能。"
+      ],
+      "facts": [
+        {
+          "label": "BuildSite",
+          "value": "160 字节，持续存在",
+          "detail": "由 Session 付款方创建，上传取消操作不会关闭它。"
+        },
+        {
+          "label": "待处理 manifest",
+          "value": "160 字节，上传期间可以关闭",
+          "detail": "owner、foundation、revision、状态与 shard 数量必须全部通过验证。"
+        },
+        {
+          "label": "已创建的 shard",
+          "value": "64 字节头部 + 有上限的载荷",
+          "detail": "必须提供全部预期地址；已经存在且由程序所有的 shard 会被关闭。"
+        },
+        {
+          "label": "接收方",
+          "value": "当前有效的 Session authority",
+          "detail": "程序不会把取消后返还的资金直接转给 owner。"
+        },
+        {
+          "label": "活跃建筑",
+          "value": "没有已审查的关闭路径",
+          "detail": "活跃 manifest 与 shard 会继续保留其中的 lamport。"
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "恢复待处理上传的前提",
+        "body": "需要控制 owner 密钥，建立当前有效的 Session，知道 foundation ID 与待处理 revision，派生 manifest 和每个预期 shard 地址，并确认状态仍在上传。返还的 lamport 会进入执行取消操作所用的 Session authority。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-building-upload-cancellation-v1.webp",
+        "alt": "NiceChunk 标准村民女孩在未完成的木制脚手架和数只 shard 箱旁搬运长方形铜制地基块；标准村民男孩拿着两把不同钥匙，站在待处理工程与一座已完成的石木小屋之间，小屋旁的储物架已经装满并关闭。",
+        "caption": "未完成的脚手架、零散 shard 箱、两把钥匙、铜箱、已完成小屋与装满的储物架，用来区分待处理恢复和最终确定后的持续保存。它们不能证明 revision 状态、owner 恢复、Session 有效性、shard 完整性、接收地址、返还 lamport 或取消交易。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "world-production-and-governance-accounts",
+      "eyebrow": "世界记录与治理记录同样需要明确的关闭逻辑",
+      "title": "Mining、Core、Guardian、Civilization 与 Smelting 账户目前都会保留租金",
+      "paragraphs": [
+        "Chunk 采矿使用可写 Session authority 作为付款方。如果缺少账户，程序会为还原出的 owner 创建 128 字节 Chunk PlayerProgress PDA；每个受影响的 ChunkBroken PDA 初始为 208 字节，容量每增加 64 条记录，空间就增加 192 字节。每次扩容都会先把账户补到运行时最低余额，再重新分配空间。Chunk 指令表没有 progress、ChunkBroken、规则表或 foundation 索引的关闭路径。",
+        "当前浏览器中的 Smelting 是 owner 钱包流程。程序可以在 Smelting 或统一 Game 程序下创建独立的 128 字节 PlayerProgress PDA，并初始化 9,936 字节 RecipeTable。Smelting 指令表与统一命名空间分发器都没有关闭指令。即使 progress 种子名称相同，只要 program ID 不同，就会派生不同账户。",
+        "Core 只接受 GlobalConfig 初始化，并创建 293 字节 PDA。Guardian 通过国库或登记付款方创建 160 字节 Registry 与 288 字节 Region 记录；更新指令不包含会返还 lamport 的移除操作。Region 状态布局虽然包含 removed 值，但已审查的指令分发表没有关闭或质押退款指令，因此不能把一个状态常量宣传成回收路径。",
+        "Civilization 使用各指令指定的付款方创建 PowerSnapshot、CitizenPower、RuleBook、RuleSignature、RuleTally 与 ExecutionReceipt 账户，大小依次为 128、144、320、136、128 与 128 字节。publish、sign、tally、execute、snapshot 与 settle 都是生命周期转换，不是关闭操作。已审查的 Civilization 分发标签都不会清空这些 PDA 中的 lamport。",
+        "在已审查的 Rust 程序树中，直接通过 try_borrow_mut_lamports 清空账户的代码，只有 Market、Appearance 与 Building 章节说明的三种关闭实现。这只是对当前源码版本的陈述，并不保证未来升级永远不会增加或修改恢复逻辑。"
+      ],
+      "facts": [
+        {
+          "label": "Chunk PlayerProgress",
+          "value": "128 字节，由 Session 注资",
+          "detail": "Session 到期后，属于该程序的 progress 仍然保留。"
+        },
+        {
+          "label": "ChunkBroken",
+          "value": "初始 208 字节；容量 2,048 时最高 6,160 字节",
+          "detail": "Session 为创建和每次租金补款提供资金；没有关闭路径。"
+        },
+        {
+          "label": "Smelting",
+          "value": "128 字节 progress 与 9,936 字节 RecipeTable",
+          "detail": "根据具体指令，由 owner 或配置的 authority 支付创建资金；没有关闭标签。"
+        },
+        {
+          "label": "Core",
+          "value": "293 字节 GlobalConfig",
+          "detail": "只有一条初始化指令，没有关闭路径。"
+        },
+        {
+          "label": "Guardian",
+          "value": "160 字节 Registry 与 288 字节 Region",
+          "detail": "登记与更新操作都没有账户关闭或质押退款路径。"
+        },
+        {
+          "label": "Civilization",
+          "value": "六类持续存在的 PDA",
+          "detail": "状态最终确定或执行都不会释放这些账户中的 lamport。"
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "完成、到期、移除、售出或已执行状态都不等于关闭",
+        "body": "状态字段只会改变数据。只有程序代码验证接收方并真正清空账户时，lamport 才会返还。在承诺资金能够恢复前，必须检查当前指令表与关闭实现。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-world-production-and-governance-accounts-v1.webp",
+        "alt": "在真实 Chunk.js 海岸台地上，NiceChunk 标准村民男孩查看采石场凹槽，旁边是两座独立石制记录台；标准村民女孩在受保护地基框旁操作熔炉。根基纪念碑、Guardian 塔与市政大厅分别立在不同地基上。",
+        "caption": "采石记录、熔炼记录、受保护地基、纪念碑、高塔与市政大厅，代表在已审查生命周期中保持完整的不同程序所有账户族。画面不是链上证据，不能证明 program ID、字节长度、付款方、配方结果、Guardian 状态、治理结果、余额或未来关闭政策。",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "logout-expiry-key-loss-and-recovery",
+      "eyebrow": "可能找回密钥，也可能只找回记录，或两者都找不回",
+      "title": "退出登录只改变浏览器状态；能否恢复取决于哪些私钥仍然存在",
+      "paragraphs": [
+        "模块化 Play 的 disconnect 会清除钱包身份与运行时前缀，包括已保存的插件 Session 私钥，然后跳转页面；它不会发送 Solana 指令。登录页的 Disconnect Wallet 只清除钱包绑定，而 Local Game Wallet provider 的 disconnect 方法不执行任何操作。Local Game Wallet 私钥使用另一组浏览器键，不会被插件 Session 前缀清理移除。",
+        "插件 Session 私钥以 Base64 文本保存在 localStorage；Local Game Wallet 私钥则是未加密的 Base58 文本。这两种编码都不是加密。如果插件私钥仍在且 owner 钱包可用，设置流程通常会复用同一 Keypair 并刷新其 PlayerSession。如果唯一副本被删除，owner 可以建立新 Session，却无法为旧临时地址的普通转账签名。",
+        "浏览器缓存丢失不会抹去确定性公开账户。拥有 owner 公钥后，客户端可以重新派生 Profile、Equipment、Appearance、已知 authority 对应的 Session 候选地址，以及各程序自己的 progress。已装备 Backpack 可以通过 Profile 找回。未知 ID、交易签名、待处理 revision 与未装备 Backpack，则可能需要独立记录或超出普通浏览器回退范围的 RPC 枚举。",
+        "丢失 Local Game Wallet 的 owner 私钥更严重，因为这把密钥同时承担 owner 与 Session authority。公开地址和链上记录仍可读取，但 NiceChunk 无法从中推导私钥。只有确切有效的私钥备份能够恢复签名控制；地址、用户名、Profile 或客服消息都不能。",
+        "如果密钥已经泄露，应立即停止使用。独立的插件 Session 密钥在余额被转走前仍能签署普通 Solana 转账；NiceChunk Session 到期只会阻止配合检查的 NiceChunk 使用方。如果 owner 密钥泄露，所有由 owner 授权的资产与替代 Session 都面临风险。绝不要把任何私钥粘贴到区块浏览器、表单、客服聊天或陌生恢复网站。"
+      ],
+      "facts": [
+        {
+          "label": "owner 密钥仍在，但浏览器缓存丢失",
+          "value": "可以重新找到确定性记录",
+          "detail": "仍可写入 Profile 并创建替代 Session；原本不存在的关闭路径不会因此出现。"
+        },
+        {
+          "label": "插件 Session 私钥仍在",
+          "value": "普通 authority 地址中的 SOL 可能可以转移",
+          "detail": "有效 owner 关系可以刷新 Session 授权；请使用可信签名环境。"
+        },
+        {
+          "label": "插件 Session 私钥丢失",
+          "value": "仅凭 owner 无法为旧 authority 的 SOL 签名",
+          "detail": "创建替代 Session；旧 Session PDA 租金同样没有关闭路径。"
+        },
+        {
+          "label": "Local Game Wallet 私钥丢失",
+          "value": "不能从地址重建私钥",
+          "detail": "只有现有的有效备份才能恢复签名控制。"
+        },
+        {
+          "label": "活跃 Listing",
+          "value": "卖家密钥与目标 Backpack 路径",
+          "detail": "只有状态仍活跃时，取消操作才能返还物品与 Listing lamport。"
+        },
+        {
+          "label": "待处理 Building 上传",
+          "value": "owner、当前有效 Session 与全部上传地址",
+          "detail": "取消操作会把 manifest 与 shard 的 lamport 返还给该 Session authority。"
+        },
+        {
+          "label": "已到期、已售出、已最终确定或无关闭路径的账户",
+          "value": "不会自动退款",
+          "detail": "状态标签、退出登录或新密钥都不能代替关闭指令。"
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "普通玩家恢复检查清单",
+        "body": "确认正确集群与 program ID；列出每个公开地址和已知签名；在不暴露私钥的前提下确认哪些密钥仍能使用；读取账户当前 owner、状态与 lamport；只选择程序已经实现的关闭或转账路径；条件允许时先模拟；只签名一次；重试前再核实状态、meta.fee、接收方与账户状态。"
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-logout-expiry-key-loss-and-recovery-v1.webp",
+        "alt": "NiceChunk 标准村民男孩站在已清空的木格、关闭的门与沙漏旁，旧公开石台仍留在门外；标准村民女孩在另一张工作台前拿着新铜钥匙，身边有关闭的 owner 箱、备份书、旧钥匙、新 Session 石台与仍上锁的旧铜箱。",
+        "caption": "空木格、关闭的门、持续存在的公开石台、两把不同钥匙、新石台与仍上锁的旧箱，把退出登录、到期、替换与旧密钥控制清楚分开。任何道具都不能证明私钥仍在、备份有效、Session 已设置、余额可访问、账户状态、退款资格或恢复交易。",
+        "width": 1774,
+        "height": 887
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "核实付款方、账户、状态与接收方",
+    "title": "使用公式与源码原文片段审计每一项 SOL 说法",
+    "summary": "每条公式都对应一个章节。下面每段代码都以连续范围复制自当前仓库，并配有通俗说明。源码行为是当前版本的证据，但不能证明某一笔线上交易确实执行过。"
+  },
+  "formulas": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "拆分同一付款方的总流出",
+      "expression": "payerOutflow = processingFee + ordinaryTransfers + newAccountLamports + rentTopUps + otherInstructionOutflows",
+      "ariaLabel": "付款方总流出等于处理手续费、普通转账、新账户 lamport、租金补款与其他指令流出之和。",
+      "explanation": "这是一份核算清单，并不表示每笔交易都会包含所有项目。余额变化可能大于 meta.fee，因为交易还可能转移或存入 lamport。",
+      "terms": [
+        {
+          "symbol": "processingFee",
+          "meaning": "交易元数据中的手续费。"
+        },
+        {
+          "symbol": "ordinaryTransfers",
+          "meaning": "转到另一个普通地址的可花费 SOL，例如转给 Session authority。"
+        },
+        {
+          "symbol": "newAccountLamports",
+          "meaning": "存入新分配程序账户或代币账户的 lamport。"
+        },
+        {
+          "symbol": "rentTopUps",
+          "meaning": "现有账户扩容前需要补充的 lamport。"
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "查询当前免租最低余额",
+      "expression": "rentMinimum(bytes, cluster, context) = RPC.getMinimumBalanceForRentExemption(bytes)",
+      "ariaLabel": "给定账户字节长度、集群与上下文的最低租金余额，通过 getMinimumBalanceForRentExemption 查询。",
+      "explanation": "账户长度来自程序版本。lamport 查询结果只属于所选运行时上下文，发布时应同时注明时间。",
+      "terms": [
+        {
+          "symbol": "bytes",
+          "meaning": "账户已经分配的数据长度。"
+        },
+        {
+          "symbol": "cluster",
+          "meaning": "所选 Solana 网络。"
+        },
+        {
+          "symbol": "context",
+          "meaning": "RPC 承诺级别与观察上下文。"
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "扩容只补足缺少的差额",
+      "expression": "rentTopUp = max(0, rentMinimum(newBytes) - currentAccountLamports)",
+      "ariaLabel": "租金补款取零与“新免租最低余额减去账户当前 lamport”两者中的较大值。",
+      "explanation": "PlayerEquipment 与 ChunkBroken 会在重新分配空间前按此方式计算。补入的 lamport 会留在程序所有账户中。",
+      "terms": [
+        {
+          "symbol": "newBytes",
+          "meaning": "扩容后的目标分配长度。"
+        },
+        {
+          "symbol": "currentAccountLamports",
+          "meaning": "扩容前的账户余额。"
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "原子失败边界",
+      "expression": "acceptedStatusErr => gameWrites = 0, programTransfers = 0, accountCreates = 0, processingFee may remain",
+      "ariaLabel": "已接受交易出现状态错误时，游戏写入、程序转账与账户创建会回滚，但处理手续费可能仍会收取。",
+      "explanation": "这里的零表示该失败交易最终没有提交这些效果，并不是说交易前账户余额为零。",
+      "terms": [
+        {
+          "symbol": "acceptedStatusErr",
+          "meaning": "已提交且集群状态中包含执行错误的签名。"
+        },
+        {
+          "symbol": "may remain",
+          "meaning": "应读取 meta.fee，不要假设手续费为零或某个固定常量。"
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "地址可以确定性派生，不代表存在退款路径",
+      "expression": "dataRecovery = knownSeeds + correctProgramId + readableChain; lamportRecovery = applicableClose + validAuthority + validState + recipient",
+      "ariaLabel": "恢复数据需要已知种子、program ID 与可读取的链上状态；恢复 lamport 还需要适用的关闭指令、有效权限、有效状态与接收方。",
+      "explanation": "两边回答的是不同问题。重新派生 Profile 或 Backpack 地址，并不会让钱包可以花费其 PDA 中的 lamport。",
+      "terms": [
+        {
+          "symbol": "knownSeeds",
+          "meaning": "owner、ID、revision、坐标或其他派生输入。"
+        },
+        {
+          "symbol": "applicableClose",
+          "meaning": "能够接受这一确切账户类型与状态的关闭指令。"
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Market 取消返还",
+      "expression": "sellerReturn = currentListingLamports; sellerNetChange = sellerReturn - cancelProcessingFee + otherTransactionEffects",
+      "ariaLabel": "卖家收到的返还等于 Listing 当前 lamport；卖家净变化还要计入取消手续费与其他交易效果。",
+      "explanation": "Market 不保存原始租金收据。程序恢复物品后，会清空 Listing 当前的 lamport。",
+      "terms": [
+        {
+          "symbol": "currentListingLamports",
+          "meaning": "取消时 Listing 的账户余额。"
+        },
+        {
+          "symbol": "otherTransactionEffects",
+          "meaning": "同一笔交易中的其他扣款或入账。"
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "待处理上传取消返还",
+      "expression": "sessionReturn = uploadingManifestLamports + sum(existingUploadingShardLamports)",
+      "ariaLabel": "Session 收到的返还等于上传中 manifest 的 lamport，加上所有已存在上传 shard 的 lamport 总和。",
+      "explanation": "其中不包括 BuildSite 与活跃 revision 账户的 lamport，因为这次取消不会关闭它们。",
+      "terms": [
+        {
+          "symbol": "sessionReturn",
+          "meaning": "记入当前有效 Session authority 的 lamport。"
+        },
+        {
+          "symbol": "existingUploadingShardLamports",
+          "meaning": "预期 shard 列表中已经由 Building 程序所有的账户余额。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "ChunkBroken 空间增长",
+      "expression": "chunkBrokenBytes(capacity) = 16 + 3 × capacity, where capacity ∈ {64, 128, ..., 2048}",
+      "ariaLabel": "ChunkBroken 字节数等于 16 加容量的 3 倍；容量从 64 开始，每次增加 64，最高到 2,048。",
+      "explanation": "初始长度为 208 字节，最大长度为 6,160 字节。每次成功扩容都可能需要 Session authority 支付租金补款。",
+      "terms": [
+        {
+          "symbol": "16",
+          "meaning": "ChunkBroken 固定头部字节。"
+        },
+        {
+          "symbol": "3",
+          "meaning": "每条压缩破坏方块记录占用的字节数。"
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "普通密钥地址余额恢复规则",
+      "expression": "canMoveSignerSOL(address) = usablePrivateKey(address) AND acceptedTransfer",
+      "ariaLabel": "从普通签名地址转出 SOL，需要该地址可用的私钥与一笔被接受的转账。",
+      "explanation": "owner 关系、Session PDA、用户名、公开地址或客服请求，都不能代替普通 System Program 转账所需的私钥。",
+      "terms": [
+        {
+          "symbol": "usablePrivateKey",
+          "meaning": "能够安全加载且确实与该地址匹配的签名材料。"
+        },
+        {
+          "symbol": "acceptedTransfer",
+          "meaning": "已经签名并在链上成功执行的转账。"
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "钱包与密钥对辅助函数指定不同的手续费付款方",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function signAndSendWalletTransaction(provider, transaction, conn = getNicechunkConnection(), extraSigners = []) {\n  transaction.feePayer = provider.publicKey;\n\n  if (typeof conn.prepareTransaction === \"function\") {\n    await conn.prepareTransaction(transaction, { commitment: \"confirmed\" });\n  } else {\n    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n    transaction.recentBlockhash = blockhash;\n    transaction.lastValidBlockHeight = lastValidBlockHeight;\n  }\n\n  for (const signer of extraSigners) transaction.partialSign(signer);\n\n  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }\n\n  if (typeof provider.signAndSendTransaction !== \"function\") {\n    throw new Error(\"Wallet does not support transaction signing.\");\n  }\n  const result = await provider.signAndSendTransaction(transaction);\n  const signature = typeof result === \"string\" ? result : result?.signature;\n  if (!signature) throw new Error(\"Wallet did not return a transaction signature.\");\n  await confirmTransactionByHttpPolling(conn, {\n    signature,\n    blockhash: transaction.recentBlockhash,\n    lastValidBlockHeight: transaction.lastValidBlockHeight,\n  }, \"confirmed\");\n  return signature;\n}\n\nasync function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {\n  transaction.feePayer = signer.publicKey;\n  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n  transaction.recentBlockhash = blockhash;\n  transaction.lastValidBlockHeight = lastValidBlockHeight;\n  transaction.sign(signer);\n  const signature = await sendRawTransactionWithLogs(conn, transaction.serialize(), \"keypair\");\n  await confirmTransactionByHttpPolling(conn, { signature, blockhash, lastValidBlockHeight }, \"confirmed\");\n  return signature;\n}",
+      "explanation": "外层辅助函数会让钱包 provider 或传入的 Keypair 成为手续费付款方。额外签名者可以共同签名，但不会因此成为手续费付款方。",
+      "walkthrough": [
+        {
+          "lines": "第 1–12 行",
+          "meaning": "在准备 blockhash 和添加额外部分签名之前，先把钱包公钥设为手续费付款方。"
+        },
+        {
+          "lines": "第 13–36 行",
+          "meaning": "钱包完成签名与发送，并等待 confirmed 承诺级别。"
+        },
+        {
+          "lines": "第 38–46 行",
+          "meaning": "密钥对路径则把传入的 signer 设为手续费付款方，并直接签名。"
+        }
+      ]
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "首次设置插件 Session 时，一笔交易可以同时包含转账、存储创建与两个签名者",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const keypair = stored?.keypair ?? Keypair.generate();\n  const expiresAt = nowSeconds + sessionDurationSeconds;\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, keypair.publicKey);\n  const tx = new Transaction();\n  const [profileAccount, sessionAccount] = await conn.getMultipleAccountsInfo(\n    [playerProfile, keypair.publicKey],\n    \"confirmed\",\n  );\n  const sessionBalance = accountLamports(sessionAccount);\n\n  if (!profileAccount?.data?.length) {\n    tx.add(createInitializePlayerInstruction(owner, playerProfile, \"\"));\n  }\n  const targetLamports = sessionBalance < minimumSessionFundingLamports\n    ? getConfiguredGameplaySessionFundingLamports(owner)\n    : sessionBalance;\n  if (sessionBalance < targetLamports) {\n    tx.add(SystemProgram.transfer({\n      fromPubkey: owner,\n      toPubkey: keypair.publicKey,\n      lamports: targetLamports - sessionBalance,\n    }));\n  }\n  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: keypair.publicKey,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));\n\n  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);",
+      "explanation": "一笔由 owner 支付手续费的交易，可能同时初始化 Profile、为普通临时地址补充 SOL，并创建或刷新它的 Session PDA。该密钥对是额外签名者。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "复用或生成 Session 密钥，派生相关账户，并读取 Profile 是否存在及普通 authority 地址余额。"
+        },
+        {
+          "lines": "第 12–24 行",
+          "meaning": "按需添加 Profile 初始化，以及一笔从 owner 到 authority 的 System Program 转账。"
+        },
+        {
+          "lines": "第 25–33 行",
+          "meaning": "加入 Session 设置，然后由钱包作为手续费付款方、Session 密钥作为共同签名者发送交易。"
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "新手引导客户端向所选 RPC 查询账户租金",
+      "language": "JavaScript",
+      "source": "play/play-onboarding.js",
+      "code": "  const promise = fetch(rpcUrl, {\n    method: \"POST\",\n    headers: { \"content-type\": \"application/json\" },\n    body: JSON.stringify({\n      jsonrpc: \"2.0\",\n      id: 1,\n      method: \"getMinimumBalanceForRentExemption\",\n      params: [bytes, { commitment: \"processed\" }],\n    }),",
+      "explanation": "客户端把字节长度发送给已配置 RPC，而不是根据源码常量推导一个永久不变的 SOL 数字。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "发送 JSON-RPC POST 请求。"
+        },
+        {
+          "lines": "第 4–9 行",
+          "meaning": "以 processed 承诺级别查询该字节长度的免租最低余额。"
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "创建 PlayerSession 时查询 Solana Rent，并使用 owner 付款方",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let rent = Rent::get()?;\n    let lamports = rent.minimum_balance(PlayerSession::LEN);\n\n    if player_session.lamports() == 0 {\n        let create = system_instruction::create_account(\n            payer.key,\n            player_session.key,\n            lamports,\n            PlayerSession::LEN as u64,\n            program_id,\n        );\n        invoke_signed(\n            &create,\n            &[\n                payer.clone(),\n                player_session.clone(),\n                system_program_account.clone(),\n            ],\n            &[&[\n                PLAYER_SESSION_SEED,\n                payer.key.as_ref(),\n                session_authority.as_ref(),\n                &[bump],\n            ]],\n        )?;\n        return Ok(());\n    }",
+      "explanation": "程序查询固定 184 字节布局所需的租金，并使用 payer.key 把相应金额存入 Session PDA。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "读取当前 Rent sysvar，并计算 PlayerSession::LEN 所需的最低余额。"
+        },
+        {
+          "lines": "第 4–10 行",
+          "meaning": "构建账户创建指令，并以指令付款方作为资金来源。"
+        },
+        {
+          "lines": "第 11–25 行",
+          "meaning": "使用 owner 与 Session authority 派生种子为 PDA 签名。"
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "提交交易时启用预检",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function sendRawTransactionWithLogs(conn, serializedTransaction, context) {\n  try {\n    return await conn.sendRawTransaction(serializedTransaction, { skipPreflight: false });\n  } catch (error) {\n    await attachSendTransactionLogs(error, conn, context);\n    throw error;\n  }\n}",
+      "explanation": "这条路径在启用预检的情况下提交交易。发送报错本身不能证明交易已经被集群接受执行。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "启用预检并提交已签名字节。"
+        },
+        {
+          "lines": "第 4–7 行",
+          "meaning": "附加可用的诊断日志，并保留失败结果。"
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "confirmed 轮询把 status.err 视为已签名交易执行失败",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  while (true) {\n    const statusResponse = await conn.getSignatureStatuses([signature]);\n    const status = statusResponse?.value?.[0] ?? null;\n    if (status?.err) throw createTransactionStatusError(signature, status.err);\n    if (hasReachedSignatureCommitment(status, commitment)) {\n      return {\n        context: statusResponse.context,\n        value: { err: null },\n      };\n    }",
+      "explanation": "辅助函数检查已提交的签名，并明确区分达到成功承诺级别与状态中包含执行错误这两种情况。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "轮询签名；执行失败时抛出保留该签名的状态错误。"
+        },
+        {
+          "lines": "第 5–10 行",
+          "meaning": "只有在没有错误且达到请求的承诺级别后，才返回成功。"
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "客户端把实际 meta.fee 与付款方总余额减少分开呈现",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function transactionSolSpendFromMeta(transaction, payerKey, signature) {\n  const meta = transaction?.meta;\n  const preBalances = meta?.preBalances;\n  const postBalances = meta?.postBalances;\n  if (!Array.isArray(preBalances) || !Array.isArray(postBalances)) return null;\n  const accountKeys = transactionAccountKeys(transaction);\n  let payerIndex = accountKeys.findIndex((key) => key === payerKey);\n  if (payerIndex < 0) payerIndex = 0;\n  const pre = Number(preBalances[payerIndex]);\n  const post = Number(postBalances[payerIndex]);\n  const balanceDelta = Number.isFinite(pre) && Number.isFinite(post) ? Math.max(0, pre - post) : 0;\n  const fee = Number(meta?.fee);\n  const lamports = Math.max(balanceDelta, Number.isFinite(fee) ? fee : 0);\n  if (!Number.isFinite(lamports) || lamports <= 0) return null;\n  return {\n    signature,\n    payer: payerKey,\n    lamports: Math.floor(lamports),\n    feeLamports: Number.isFinite(fee) ? Math.floor(fee) : null,\n  };\n}",
+      "explanation": "lamports 是范围较宽的付款方余额减少值；交易元数据可用时，feeLamports 才是实际处理手续费字段。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "在交易余额数组中找到付款方。"
+        },
+        {
+          "lines": "第 9–13 行",
+          "meaning": "计算付款方余额减少的正值，并单独读取 meta.fee。"
+        },
+        {
+          "lines": "第 14–20 行",
+          "meaning": "同时返回范围较宽的支出数字与范围较窄的手续费字段。"
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "Player 指令分发表只有一条 Appearance 关闭路径，没有其他账户关闭路径",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        15 => consume_equipment_durability(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
+      "explanation": "当前完整指令分发表在 tag 9 定义了 Appearance close，但没有 Profile、Session、Equipment、UsernameIndex 或 InviteIndex close。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "这里依次列出 Profile、Session、名称与 Appearance 的创建或更新操作。"
+        },
+        {
+          "lines": "第 11 行",
+          "meaning": "Player 程序唯一的 close 标签只针对 PlayerAppearance。"
+        },
+        {
+          "lines": "第 12–19 行",
+          "meaning": "后续 Invite 与 Equipment 操作一直列到 tag 15，也没有另一条 close。"
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "Backpack 指令分发表没有 Backpack 关闭路径",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_backpack(program_id, accounts, payload),\n        1 => append_mined_resource(program_id, accounts, payload),\n        2 => remove_resource(program_id, accounts, payload),\n        3 => append_market_resource(program_id, accounts, payload),\n        4 => remove_resources(program_id, accounts, payload),\n        5 => append_smelting_item(program_id, accounts, payload),\n        6 => append_mined_resources_batch(program_id, accounts, payload),\n        7 => Err(NicechunkBackpackError::UnverifiedForgeInstructionDisabled.into()),\n        8 => forge_equipment_with_material_verification(program_id, accounts, payload),\n        9 => issue_blueprint(program_id, accounts, payload),\n        10 => transfer_backpack_item_to_equipment(program_id, accounts, payload),\n        11 => transfer_equipment_item_to_backpack(program_id, accounts, payload),\n        _ => Err(NicechunkBackpackError::InvalidInstruction.into()),\n    }",
+      "explanation": "统一 Game 程序会把一个命名空间路由到这份指令分发表。它可以初始化并修改 Backpack 托管状态，但没有账户关闭操作。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "这里列出初始化，以及库存追加或移除操作。"
+        },
+        {
+          "lines": "第 9–14 行",
+          "meaning": "Forging、blueprint 与托管转移补全了指令表，但仍没有 close 标签。"
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "取消活跃 Listing 会清空账户并把资金返还卖家",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    {\n        let mut data = listing.try_borrow_mut_data()?;\n        data[state::ListingAccount::STATE_OFFSET] = state::LISTING_STATE_CANCELED;\n        data.fill(0);\n    }\n\n    let listing_lamports = listing.lamports();\n    **seller.try_borrow_mut_lamports()? = seller\n        .lamports()\n        .checked_add(listing_lamports)\n        .ok_or(NicechunkMarketError::InvalidListingData)?;\n    **listing.try_borrow_mut_lamports()? = 0;\n\n    Ok(())",
+      "explanation": "在前面完成活跃状态、卖家身份验证与物品恢复后，这段代码会清除 Listing 数据，并把账户当前全部 lamport 转给卖家。",
+      "walkthrough": [
+        {
+          "lines": "第 1–5 行",
+          "meaning": "把 Listing 标记为已取消并清除数据。"
+        },
+        {
+          "lines": "第 7–12 行",
+          "meaning": "把 Listing 当前全部 lamport 记入卖家地址，再把 Listing lamport 设为零。"
+        },
+        {
+          "lines": "第 14 行",
+          "meaning": "只有前面的检查与写入全部成功后，才完成取消操作。"
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "购买会把 Listing 标记为已售出，但不会关闭它",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    let buyer_backpack = next_account_info(account_info_iter)?;\n    let backpack_program = next_account_info(account_info_iter)?;\n    let market_authority = next_account_info(account_info_iter)?;\n    append_market_slot_to_backpack(\n        program_id,\n        market_authority,\n        buyer,\n        buyer_backpack,\n        backpack_program,\n        &source_slot,\n    )?;\n\n    let clock = Clock::get()?;\n    let mut data = listing.try_borrow_mut_data()?;\n    ListingAccount::mark_sold(&mut data, buyer.key, clock.slot, clock.unix_timestamp)",
+      "explanation": "物品进入买家的 Backpack，Listing 数据记录已售出状态。这段代码没有清空 lamport，也没有关闭账户。",
+      "walkthrough": [
+        {
+          "lines": "第 1–11 行",
+          "meaning": "验证剩余账户，并把已存物品追加到买家的 Backpack。"
+        },
+        {
+          "lines": "第 13–15 行",
+          "meaning": "把买家与售出时间写入仍然存在的 Listing。"
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Appearance close 只接受国库，并把 lamport 转给国库",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !treasury_authority.is_signer || !treasury_authority.is_writable || !recipient.is_writable {\n        return Err(NicechunkPlayerError::InvalidTreasuryAuthority.into());\n    }\n    require_key_eq(\n        treasury_authority.key,\n        &NICECHUNK_TREASURY_AUTHORITY,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        recipient.key,\n        treasury_authority.key,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        appearance.owner,\n        program_id,\n        NicechunkPlayerError::InvalidAppearanceOwner,\n    )?;\n\n    {\n        let data = appearance.try_borrow_data()?;\n        PlayerAppearance::validate_treasury_authority(&data, treasury_authority.key)?;\n        let owner = PlayerAppearance::owner(&data)?;\n        let (expected_appearance, _) =\n            Pubkey::find_program_address(&[PLAYER_APPEARANCE_SEED, owner.as_ref()], program_id);\n        require_key_eq(\n            appearance.key,\n            &expected_appearance,\n            NicechunkPlayerError::InvalidAppearancePda,\n        )?;\n    }\n    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;",
+      "explanation": "签名 authority 与接收方都必须是配置的国库。玩家的 owner 密钥不能作为回收资金的接收方。",
+      "walkthrough": [
+        {
+          "lines": "第 1–19 行",
+          "meaning": "要求可写国库签名者、国库接收方与其相等，并验证 Appearance 由 Player 程序所有。"
+        },
+        {
+          "lines": "第 21–33 行",
+          "meaning": "验证已存国库策略与由 owner 派生的 Appearance PDA。"
+        },
+        {
+          "lines": "第 34–43 行",
+          "meaning": "清除数据，把当前全部 lamport 转给国库，并清空 Appearance。"
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "取消待处理上传只会把 shard 与 manifest 关闭给 Session authority",
+      "language": "Rust",
+      "source": "programs/nicechunk_building/src/lib.rs",
+      "code": "    {\n        let mut data = build_site.try_borrow_mut_data()?;\n        BuildSiteState::cancel_building(\n            &mut data,\n            &context.owner,\n            global_config.key,\n            revision,\n            context.clock.slot,\n        )?;\n    }\n    for account in shard_accounts {\n        if account.owner == program_id {\n            close_program_account(account, session_authority)?;\n        }\n    }\n    close_program_account(manifest, session_authority)\n}\n\nfn close_program_account(account: &AccountInfo, recipient: &AccountInfo) -> ProgramResult {\n    let account_lamports = account.lamports();\n    let recipient_lamports = recipient.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient_lamports\n        .checked_add(account_lamports)\n        .ok_or(NicechunkBuildingError::InvalidSystemAccount)?;\n    **account.try_borrow_mut_lamports()? = 0;\n    account.try_borrow_mut_data()?.fill(0);\n    Ok(())\n}",
+      "explanation": "BuildSite 会被更新，每个已经存在且由程序所有的 shard 会被清空，manifest 也会被清空。这条指令传入的接收方是 session_authority。",
+      "walkthrough": [
+        {
+          "lines": "第 1–10 行",
+          "meaning": "只清除持续存在 BuildSite 上的待处理 revision。"
+        },
+        {
+          "lines": "第 11–16 行",
+          "meaning": "先把已存在的 shard 关闭给当前 Session authority，再关闭 manifest。"
+        },
+        {
+          "lines": "第 19–28 行",
+          "meaning": "关闭辅助函数把账户全部 lamport 加到接收方，然后把账户 lamport 设为零并清除数据。"
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "浏览器预先为缺失上传账户与缓冲额提供资金",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function fundBuildingUploadSession(provider, sessionAuthority, accountLengths, conn) {\n  if (provider.publicKey.equals(sessionAuthority)) return;\n  const lengths = (accountLengths ?? []).map((value) => Math.max(0, Math.trunc(Number(value) || 0))).filter(Boolean);\n  const uniqueLengths = [...new Set(lengths)];\n  const rentValues = await Promise.all(uniqueLengths.map((length) => conn.getMinimumBalanceForRentExemption(length)));\n  const rentByLength = new Map(uniqueLengths.map((length, index) => [length, rentValues[index]]));\n  const required = lengths.reduce((sum, length) => sum + (rentByLength.get(length) || 0), 0) + 1_000_000;\n  const balance = await conn.getBalance(sessionAuthority, \"confirmed\");\n  if (balance >= required) return;\n  const transaction = new Transaction().add(SystemProgram.transfer({\n    fromPubkey: provider.publicKey,\n    toPubkey: sessionAuthority,\n    lamports: required - balance,\n  }));\n  await signAndSendWalletTransaction(provider, transaction, conn);\n}",
+      "explanation": "插件模式会估算缺失账户长度所需租金，并把 Session authority 补到该总额再加一百万 lamport。缓冲额是 Session 地址中的普通 SOL，不是 PDA 租金。",
+      "walkthrough": [
+        {
+          "lines": "第 1–6 行",
+          "meaning": "owner 与 Session 是同一地址时跳过；否则每种不同账户长度只查询一次租金。"
+        },
+        {
+          "lines": "第 7–9 行",
+          "meaning": "汇总每个账户的需求，加上缓冲额，再与 Session 普通地址余额比较。"
+        },
+        {
+          "lines": "第 10–16 行",
+          "meaning": "通过一笔由 owner 支付手续费的交易，只从 owner 转入缺少的金额。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Chunk 使用 Session 付款方创建 PlayerProgress",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let rent = Rent::get()?;\n    let lamports = rent.minimum_balance(PLAYER_PROGRESS_LEN);\n    if player_progress.lamports() == 0 {\n        let create = system_create_account(\n            payer.key,\n            player_progress.key,\n            lamports,\n            PLAYER_PROGRESS_LEN as u64,\n            program_id,\n        );\n        invoke_signed(\n            &create,\n            &[\n                payer.clone(),\n                player_progress.clone(),\n                system_program_account.clone(),\n            ],\n            &[seeds],\n        )?;\n    } else {",
+      "explanation": "采矿流程把 Session authority 作为付款方传入此辅助函数，辅助函数按运行时最低余额创建 128 字节 progress 账户。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "计算 PLAYER_PROGRESS_LEN 当前所需租金。"
+        },
+        {
+          "lines": "第 3–10 行",
+          "meaning": "使用 payer.key 作为 lamport 来源创建 PDA。"
+        },
+        {
+          "lines": "第 11–19 行",
+          "meaning": "使用 payer、progress、System Program 账户与 PDA 种子调用辅助函数。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "统一 Game 程序按命名空间路由三类活跃账户",
+      "language": "Rust",
+      "source": "programs/nicechunk_game/src/lib.rs",
+      "code": "    let (tag, payload) = instruction_data\n        .split_first()\n        .ok_or(NicechunkGameError::InvalidInstruction)?;\n\n    match *tag {\n        NS_BACKPACK => nicechunk_backpack::process_instruction(program_id, accounts, payload),\n        NS_CHUNK => nicechunk_chunk::process_instruction(program_id, accounts, payload),\n        NS_SMELTING => nicechunk_smelting::process_instruction(program_id, accounts, payload),\n        NS_MARKET => nicechunk_market::process_instruction(program_id, accounts, payload),\n        _ => Err(NicechunkGameError::InvalidInstruction.into()),\n    }",
+      "explanation": "当前配置让 Backpack、Market 与 Smelting 使用这个 Game 程序。命名空间分发器不会额外添加关闭行为；最终仍由各模块自己的指令分发表决定。",
+      "walkthrough": [
+        {
+          "lines": "第 1–3 行",
+          "meaning": "把第一个字节读取为命名空间标签。"
+        },
+        {
+          "lines": "第 5–10 行",
+          "meaning": "把处理交给对应模块，或拒绝未知命名空间。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Core 只开放初始化",
+      "language": "Rust",
+      "source": "programs/nicechunk_core/src/lib.rs",
+      "code": "pub fn process_instruction(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    instruction_data: &[u8],\n) -> ProgramResult {\n    if instruction_data != [0] {\n        return Err(NicechunkError::InvalidInstruction.into());\n    }\n\n    initialize_global_config(program_id, accounts)\n}",
+      "explanation": "当前版本的 Core 只接受 tag 0 的 GlobalConfig 初始化，没有更新或关闭分发项。",
+      "walkthrough": [
+        {
+          "lines": "第 1–8 行",
+          "meaning": "除仅包含一个零字节的指令数据外，拒绝其他所有输入。"
+        },
+        {
+          "lines": "第 10 行",
+          "meaning": "把 GlobalConfig 初始化作为唯一操作执行。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Guardian 分发表包含注册与更新操作，但没有关闭路径",
+      "language": "Rust",
+      "source": "programs/nicechunk_guardian/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_registry(program_id, accounts),\n        1 => register_genesis_guardian(program_id, accounts, payload),\n        2 => register_guardian(program_id, accounts, payload),\n        5 => update_guardian_endpoint(program_id, accounts, payload),\n        6 => update_guardian_blueprint(program_id, accounts, payload),\n        8 => update_guardian_operator(program_id, accounts, payload),\n        _ => Err(NicechunkGuardianError::InvalidInstruction.into()),\n    }",
+      "explanation": "Registry 与 Region 记录可以创建或更新，但当前没有任何 tag 会关闭它们或返还其账户中的 lamport。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "初始化 Registry，并注册创世或后续 Region。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "更新 endpoint、blueprint 或 operator，并拒绝其他所有 tag。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Civilization 生命周期转换不包含关闭操作",
+      "language": "Rust",
+      "source": "programs/nicechunk_civilization/src/lib.rs",
+      "code": "    match tag {\n        0 => publish_rule_book(program_id, accounts, payload),\n        1 => sign_rule(program_id, accounts, payload),\n        2 => finalize_rule_tally(program_id, accounts),\n        3 => execute_rule_receipt(program_id, accounts),\n        4 => publish_power_snapshot(program_id, accounts, payload),\n        5 => settle_citizen_power(program_id, accounts, payload),\n        _ => Err(NicechunkCivilizationError::InvalidInstruction.into()),\n    }",
+      "explanation": "发布、签名、终结、执行与结算都会让各自的程序账户继续保持分配状态。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "创建规则、签名、计票或回执状态转换。"
+        },
+        {
+          "lines": "第 5–8 行",
+          "meaning": "创建权力记录，或拒绝无法识别的操作；其中没有关闭路径。"
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Smelting 分发表包含配方与执行操作，但没有关闭路径",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_recipe_table(program_id, accounts, payload),\n        1 => upsert_recipe(program_id, accounts, payload),\n        2 => execute_smelting(program_id, accounts, payload),\n        3 => set_recipe_table_authority(program_id, accounts),\n        4 => apply_civilization_recipe_receipt(program_id, accounts, payload),\n        _ => Err(NicechunkSmeltingError::InvalidInstruction.into()),\n    }",
+      "explanation": "RecipeTable 与 Smelting 进度可以初始化或修改，但二者都没有 close tag。",
+      "walkthrough": [
+        {
+          "lines": "第 1–4 行",
+          "meaning": "初始化或更新配方，并执行玩家的 Smelting 操作。"
+        },
+        {
+          "lines": "第 5–7 行",
+          "meaning": "更改 authority 或应用 Civilization 回执，并拒绝其他所有 tag。"
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "模块化退出登录只清理浏览器前缀，不调用链上程序",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "export function clearWalletSession(storage = globalThis.localStorage) {\n  for (const key of Object.values(walletSessionKeys)) remove(storage, key);\n  const keys = [];\n  try {\n    for (let index = 0; index < storage.length; index += 1) {\n      const key = storage.key(index);\n      if (key) keys.push(key);\n    }\n  } catch {\n    return;\n  }\n  for (const key of keys) {\n    if (runtimeCachePrefixes.some((prefix) => key.startsWith(prefix))) remove(storage, key);\n  }\n}",
+      "explanation": "这个函数会删除本地身份与运行时缓存键。它不构造交易、不调用 RPC，也不调用任何程序关闭指令。",
+      "walkthrough": [
+        {
+          "lines": "第 1–2 行",
+          "meaning": "移除已保存的钱包身份值。"
+        },
+        {
+          "lines": "第 3–11 行",
+          "meaning": "枚举浏览器存储；如果枚举失败则提前返回。"
+        },
+        {
+          "lines": "第 12–14 行",
+          "meaning": "移除匹配插件 Session 与相关运行时前缀的键。"
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "Local Game Wallet 断开连接不会删除私钥",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "export function getLocalGameWalletProvider() {\n  const keypair = loadLocalGameWalletKeypair();\n  if (!keypair) return null;\n  return {\n    isNiceChunkLocalGameWallet: true,\n    isConnected: true,\n    publicKey: keypair.publicKey,\n    async connect() {\n      return { publicKey: keypair.publicKey };\n    },\n    async disconnect() {\n      return undefined;\n    },\n    async signTransaction(transaction) {\n      transaction.partialSign(keypair);\n      return transaction;\n    },",
+      "explanation": "Local Game Wallet Provider 始终由同一组已加载的 keypair 支撑，disconnect 会直接返回而不移除它。",
+      "walkthrough": [
+        {
+          "lines": "第 1–7 行",
+          "meaning": "加载持久保存的密钥，并公开其公共地址。"
+        },
+        {
+          "lines": "第 8–13 行",
+          "meaning": "connect 返回地址，而 disconnect 不执行任何删除。"
+        },
+        {
+          "lines": "第 14–17 行",
+          "meaning": "同一组 keypair 仍然能够为交易签名。"
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "钱包发送流程把 provider.publicKey 指定为手续费付款方；游戏 keypair 发送流程则指定 signer.publicKey。"
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "PlayerSession 设置把 owner 标记为可写签名者，把 Session authority 标记为签名者，从而区分账户存储付款方与共同签名者。"
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "public/mainnet.json",
+      "claim": "当前源码配置声明了 Devnet，以及正在使用的 Player、Chunk、Building 与统一 Game 程序路由。"
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "play/play-onboarding.js",
+      "claim": "浏览器按字节长度调用 getMinimumBalanceForRentExemption，并把 0.000005 SOL 的网络手续费作为界面展示常量。"
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "定义 Profile、Session、Equipment、Appearance、UsernameIndex 与 InviteIndex 当前的确切长度。"
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "定义 128 字节的 PlayerProgress，以及 ChunkBroken 的头部、记录、初始容量、扩容与最大容量常量。"
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "提交时启用预检，确认流程轮询签名状态，状态错误会保留签名，交易元数据则同时公开付款方余额减少值与 meta.fee。"
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Player 程序会创建或扩展 Profile、Session、Equipment、Appearance、UsernameIndex 与 InviteIndex 账户，但分发表只开放 Appearance close。"
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "Profile、Appearance、Equipment 与 Session 地址根据文档所列的 owner 与 authority 种子派生。"
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "owner 为 Backpack 创建提供资金，而 Backpack 指令表中没有 close。"
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "正常的 Backpack 恢复会先检查本地缓存，再从 PlayerProfile 读取已装备 Backpack 的指针。"
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "卖家为 Listing 创建提供资金；取消活跃 Listing 会恢复物品并把 Listing 中的 lamport 全部转给卖家，而购买只把账户标记为已售出，并不会关闭它。"
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Market 买家是钱包手续费付款方；购买 NCK 时，买家还可能为缺失的卖家或国库关联代币账户提供创建资金。"
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "PlayerAppearance close 要求配置的国库同时充当签名者与接收方，并且只能把 Appearance 账户资金转给该国库。"
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Appearance 状态策略明确规定：钱包承担账户租金资金，而协议国库拥有回收权限。"
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "programs/nicechunk_building/src/building.rs",
+      "claim": "定义 160 字节的 BuildSite、160 字节的 manifest、64 字节的 shard 头部、uploading 与 active 状态，以及受限制的载荷大小。"
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "programs/nicechunk_building/src/lib.rs",
+      "claim": "Session authority 为 Building 账户提供资金；取消操作会验证处于 uploading 状态的待处理 revision、更新 BuildSite，并把已有 shard 与 manifest 关闭给当前 Session authority。"
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "浏览器查询上传账户所需租金，另加一百万 lamport 的 Session 缓冲额，并且只在待处理载荷不匹配的恢复分支中调用取消操作。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Session authority 为缺失的 Chunk PlayerProgress、ChunkBroken 创建及之后的 ChunkBroken 租金补足提供资金；分发表中没有 close。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "统一 Game 分发器包含 Backpack、Chunk、Smelting 与 Market 命名空间，但没有增加独立的关闭路径；当前源码配置让 Backpack、Smelting 与 Market 使用该程序，而 Chunk 使用自己的专用程序。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_core/src/lib.rs",
+      "claim": "Core 只接受 GlobalConfig 初始化，不开放关闭指令。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_guardian/src/lib.rs",
+      "claim": "Guardian 分发表可以创建或更新 Registry 与 Region 状态，但没有账户关闭或返还质押资金的指令。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_guardian/src/state.rs",
+      "claim": "定义 160 字节的 Registry 与 288 字节的 Region 布局，其中包括 removed 状态值；这个状态值本身并不是关闭实现。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_civilization/src/lib.rs",
+      "claim": "Civilization 会分配规则与权力两类 PDA，并分发 publish、sign、tally、execute、snapshot 与 settle 操作，但没有 close。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_civilization/src/state.rs",
+      "claim": "定义 PowerSnapshot、CitizenPower、RuleBook、RuleSignature、RuleTally 与 ExecutionReceipt 的确切长度。"
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "Smelting 会创建 RecipeTable 与程序范围内的 PlayerProgress 账户，但不开放 close tag。"
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "play/play-auth-session.js",
+      "claim": "模块化退出登录会删除本地钱包身份与 Session 相关浏览器前缀，但不会提交链上交易。"
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "login/login.js",
+      "claim": "登录页的 Disconnect Wallet 会在尽力调用 Provider 断开后清除钱包绑定，但不会清理 Session，也不会执行链上关闭操作。"
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "src/localGameWallet.js",
+      "claim": "Local Game Wallet 会在不同存储键下保存未加密的 Base58 私钥，而其 Provider 的 disconnect 方法不会执行任何操作。"
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "插件 Session 私钥是浏览器中的 Base64 记录；仍然存在的密钥会被复用，密钥缺失则会产生不同的 authority 与 Session PDA。"
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Session 到期验证会拒绝过期操作，但不会关闭 Session 账户，也不会移动 authority 普通地址中的 SOL。"
+    }
+  ],
+  "related": [
+    {
+      "slug": "session-funding-and-expiry",
+      "href": "/docs/session-funding-and-expiry/",
+      "title": "注资目标不是实际余额",
+      "summary": "在阅读这份逐账户清单前，先回顾浏览器注资策略、owner 与 Session 余额、客户端时间窗口、链上时间及安全重试判断。"
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "Session 限制的是协作程序，不是密钥本身",
+      "summary": "准确了解普通 Session 签名者可以签署什么、哪些程序会验证其 PDA，以及到期为什么不等于撤销。"
+    },
+    {
+      "slug": "marketplace-listings",
+      "href": "/docs/marketplace-listings/",
+      "title": "追踪 Listing 的托管与结算",
+      "summary": "检查物品托管、卖家与买家验证、SOL 与 NCK 结算，以及取消和购买之间的区别。"
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "玩家、钱包与控制权学习路径导航",
+    "heading": {
+      "eyebrow": "回顾已经发布的玩家与钱包路径",
+      "title": "返回理解这份账户清单所需的注资与到期判断",
+      "summary": "本指南通过区分手续费、账户 lamport、关闭路径、仍留在账户中的租金与密钥恢复，完成当前已发布的玩家与钱包系列。应用这份清单前，请先通过上一篇指南回顾目标余额、浏览器计时、Session 刷新与结果未知时的检查方法。"
+    },
+    "items": [
+      {
+        "label": "上一篇指南",
+        "slug": "session-funding-and-expiry",
+        "title": "Session 注资与到期：目标不是余额，浏览器时间也不是链上时间",
+        "summary": "回顾这份手续费与租金清单所依赖的四类资金数值、浏览器策略窗口、链上时间、Session 复用，以及结果未知时的检查清单。"
+      }
+    ]
+  }
+}

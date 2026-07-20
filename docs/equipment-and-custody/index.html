@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="equipment-and-custody" data-docs-static-source="b457e37f68bed88f249e7e323fb7e42d9381c2983f190575dae58888d1b83c87">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="equipment-and-custody" data-docs-static-source="f285daff82837975a205b9cbf076f504fb6699a515feb6111fdfecfbfb3166d6">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/equipment-and-custody.json" />
-    <meta name="nicechunk:source-sha256" content="b457e37f68bed88f249e7e323fb7e42d9381c2983f190575dae58888d1b83c87" />
+    <meta name="nicechunk:source-sha256" content="f285daff82837975a205b9cbf076f504fb6699a515feb6111fdfecfbfb3166d6" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/equipment-and-custody/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -1074,6 +1074,11 @@ export function equipmentFromGuardianEvent(event = {}) {
       expectedBlockId: canonicalBlock.blockId,
       context,
     }));
+    addEquipmentDurabilityInstructions(tx, {
+      authority: session.keypair.publicKey,
+      owner: provider.publicKey,
+      damage: options.durabilityDamage,
+    });
     const playerPositionSaved = maybeAddPlayerPositionUpdateInstruction(tx, {
       provider,
       session,
@@ -1100,12 +1105,12 @@ export function equipmentFromGuardianEvent(event = {}) {
     throw error;
   }
 }</code></pre>
-<p class="docs-technical-explanation">The complete helper is shown because an unused-parameter claim requires its whole body. toolSlot appears only in the signature; the mining instruction uses session authority, block, owner, Backpack, expected block ID, and context, so it neither enforces a Profile slot nor changes chain tool durability.</p>
+<p class="docs-technical-explanation">The complete helper is shown because an unused-parameter claim requires its whole body. toolSlot still appears only in the signature. Mining now appends durability instructions from the separately supplied options.durabilityDamage entries, so the legacy hotbar index is not the on-chain equipment selector and cannot by itself prove which equipment slot lost durability.</p>
 <ol class="docs-code-walkthrough"><li><strong>Lines 1–13</strong>
 <p>Accept toolSlot, but validate only sync state, wallet, and canonical block.</p></li>
-<li><strong>Lines 14–42</strong>
-<p>Load a Backpack and build the mine instruction without reading toolSlot.</p></li>
-<li><strong>Lines 43–67</strong>
+<li><strong>Lines 14–47</strong>
+<p>Load a Backpack, build the mine instruction, and append separately supplied durability damage without reading toolSlot.</p></li>
+<li><strong>Lines 48–72</strong>
 <p>Submit and report the transaction without using toolSlot.</p></li></ol></article>
 <article class="docs-code-snippet"><div class="docs-code-heading"><h3>Ordinary Backpack removal shifts the dense array without clearing Profile</h3>
 <span class="docs-code-language">Rust</span>

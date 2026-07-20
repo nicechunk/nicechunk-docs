@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="displayed-stats-vs-enforced-effects" data-docs-static-source="9bbf4065f370e1ebe1124a967aa2d4b09c647312bbc04b59d8de7845b1e437c0">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="displayed-stats-vs-enforced-effects" data-docs-static-source="cdafdeb47835604d0306a6184db7bb330d55daa49f4c4ad0ac4e76ee311dbd07">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/displayed-stats-vs-enforced-effects.json" />
-    <meta name="nicechunk:source-sha256" content="9bbf4065f370e1ebe1124a967aa2d4b09c647312bbc04b59d8de7845b1e437c0" />
+    <meta name="nicechunk:source-sha256" content="cdafdeb47835604d0306a6184db7bb330d55daa49f4c4ad0ac4e76ee311dbd07" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/displayed-stats-vs-enforced-effects/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -479,7 +479,7 @@
 <dt>ChainXP</dt>
 <dd>The chain XP object supplied to the browser state; its program domain must still be identified.</dd></dl></article>
 <article class="docs-formula"><h3>The six visible Profile cards</h3>
-<div aria-label="The six Profile cards derive Gathering, Carry, Smelting, Speed, Strength, and Crafting from six browser skill levels." class="docs-formula-expression" role="math"><code>Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(100,70+3M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)</code></div>
+<div aria-label="The six Profile cards derive Gathering, Carry, Smelting, Speed, Strength, and Crafting from six browser skill levels." class="docs-formula-expression" role="math"><code>Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(60,10+5M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)</code></div>
 <p class="docs-technical-explanation">P, B, M, W, S, and C are effective browser levels for Precision Gathering, Burden, Smelting, Swiftness, Strength, and Craftsmanship. These formulas do not decode the six base Profile attributes.</p>
 <dl class="docs-formula-terms"><dt>P, B, M</dt>
 <dd>Precision Gathering, Burden, and Smelting levels.</dd>
@@ -589,7 +589,7 @@ pub const DEFAULT_DEFENSE: u16 = 0;</code></pre>
     const stats = [
       { id: "gathering", label: ui("main.profile.statGathering", "Gathering"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },
       { id: "carry", label: ui("main.profile.statCarry", "Carry"), value: `${30 + levels.burden * 10} kg` },
-      { id: "smelting", label: ui("main.profile.statSmelting", "Smelting"), value: `${Math.min(100, 70 + levels.smelting * 3)}%` },
+      { id: "smelting", label: ui("main.profile.statSmelting", "Smelting"), value: `${Math.min(60, 10 + levels.smelting * 5)}%` },
       { id: "speed", label: ui("main.profile.statSpeed", "Speed"), value: `${100 + levels.swiftness * 3}%` },
       { id: "strength", label: ui("main.profile.statStrength", "Strength"), value: `${8 + levels.strength * 4} kg` },
       { id: "crafting", label: ui("main.profile.statCrafting", "Crafting"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },

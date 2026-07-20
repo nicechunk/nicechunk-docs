@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "translated",
-    "version": "docs-document-displayed-stats-vs-enforced-effects-zh-Hans-ebf65041d6a56314",
-    "contentHash": "ebf65041d6a56314"
+    "version": "docs-document-displayed-stats-vs-enforced-effects-zh-Hans-d638555b0ffb27f0",
+    "contentHash": "d638555b0ffb27f0"
   },
   "slug": "displayed-stats-vs-enforced-effects",
   "kind": "topic",
@@ -635,7 +635,7 @@
     },
     {
       "title": "六张可见的 Profile 卡片",
-      "expression": "Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(100,70+3M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)",
+      "expression": "Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(60,10+5M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)",
       "ariaLabel": "六张 Profile 卡片会根据六项浏览器技能等级，派生采集、负重、熔炼、速度、力量与制作数值。",
       "explanation": "P、B、M、W、S、C 分别是精准采集、负重、熔炼、敏捷、力量与工艺的有效浏览器等级。这些公式不会解码六项基础 Profile 属性。",
       "terms": [
@@ -823,7 +823,7 @@
       "title": "六张 Profile 卡片来自技能公式",
       "language": "JavaScript",
       "source": "play/play-profile-ui.js",
-      "code": "    const levels = effectiveSkillLevels(skillState);\n    const stats = [\n      { id: \"gathering\", label: ui(\"main.profile.statGathering\", \"Gathering\"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },\n      { id: \"carry\", label: ui(\"main.profile.statCarry\", \"Carry\"), value: `${30 + levels.burden * 10} kg` },\n      { id: \"smelting\", label: ui(\"main.profile.statSmelting\", \"Smelting\"), value: `${Math.min(100, 70 + levels.smelting * 3)}%` },\n      { id: \"speed\", label: ui(\"main.profile.statSpeed\", \"Speed\"), value: `${100 + levels.swiftness * 3}%` },\n      { id: \"strength\", label: ui(\"main.profile.statStrength\", \"Strength\"), value: `${8 + levels.strength * 4} kg` },\n      { id: \"crafting\", label: ui(\"main.profile.statCrafting\", \"Crafting\"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },\n    ];",
+      "code": "    const levels = effectiveSkillLevels(skillState);\n    const stats = [\n      { id: \"gathering\", label: ui(\"main.profile.statGathering\", \"Gathering\"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },\n      { id: \"carry\", label: ui(\"main.profile.statCarry\", \"Carry\"), value: `${30 + levels.burden * 10} kg` },\n      { id: \"smelting\", label: ui(\"main.profile.statSmelting\", \"Smelting\"), value: `${Math.min(60, 10 + levels.smelting * 5)}%` },\n      { id: \"speed\", label: ui(\"main.profile.statSpeed\", \"Speed\"), value: `${100 + levels.swiftness * 3}%` },\n      { id: \"strength\", label: ui(\"main.profile.statStrength\", \"Strength\"), value: `${8 + levels.strength * 4} kg` },\n      { id: \"crafting\", label: ui(\"main.profile.statCrafting\", \"Crafting\"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },\n    ];",
       "explanation": "每张可见卡片都由浏览器技能等级派生。名称相似的“力量”和“熔炼”卡片，并不是直接解码 PlayerProfile 基础属性。",
       "walkthrough": [
         {

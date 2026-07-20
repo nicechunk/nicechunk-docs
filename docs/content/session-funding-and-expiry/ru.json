@@ -3,8 +3,8 @@
     "language": "ru",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-session-funding-and-expiry-ru-94a4c8aa9290b36a",
-    "contentHash": "94a4c8aa9290b36a"
+    "version": "docs-document-session-funding-and-expiry-ru-ce708119124d3a57",
+    "contentHash": "ce708119124d3a57"
   },
   "slug": "session-funding-and-expiry",
   "kind": "topic",
@@ -1254,8 +1254,8 @@
       "title": "The reviewed Player dispatch has create or refresh but no Session kill tag",
       "language": "Rust",
       "source": "programs/nicechunk_player/src/lib.rs",
-      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
-      "explanation": "Tag 4 creates or refreshes PlayerSession. Current tags 13 and 14 transfer or swap equipment slots; they do not close a Session. In this complete reviewed dispatch there is still no tag for closing, revoking, deactivating, or refunding PlayerSession, while tag 9 closes Appearance instead.",
+      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        15 => consume_equipment_durability(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
+      "explanation": "Tag 4 creates or refreshes PlayerSession. Tags 13 and 14 transfer or swap equipment slots, and tag 15 consumes equipment durability; none closes a Session. In this complete reviewed dispatch there is still no tag for closing, revoking, deactivating, or refunding PlayerSession, while tag 9 closes Appearance instead.",
       "walkthrough": [
         {
           "lines": "Lines 1–6",
@@ -1266,11 +1266,11 @@
           "meaning": "Route forging, name, Appearance, invite, and v2 equipment operations; Appearance close is not Session close."
         },
         {
-          "lines": "Lines 15–16",
-          "meaning": "Route the current equipment transfer and swap instructions, neither of which changes PlayerSession lifecycle."
+          "lines": "Lines 15–17",
+          "meaning": "Route equipment transfer, swap, and durability consumption; none changes PlayerSession lifecycle."
         },
         {
-          "lines": "Lines 17–18",
+          "lines": "Lines 18–19",
           "meaning": "Reject every undeclared tag rather than exposing an unlisted Session close, revoke, deactivate, or refund operation."
         }
       ]

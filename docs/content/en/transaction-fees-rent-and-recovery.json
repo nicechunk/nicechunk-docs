@@ -1,0 +1,1385 @@
+{
+  "slug": "transaction-fees-rent-and-recovery",
+  "kind": "topic",
+  "shortTitle": "Transaction Fees, Rent, and Recovery",
+  "seo": {
+    "title": "NiceChunk Transaction Fees, Account Rent, and Recovery",
+    "description": "See who pays NiceChunk Solana fees and account rent, which program accounts can return lamports, what stays locked, and which keys recovery requires."
+  },
+  "hero": {
+    "eyebrow": "PLAYER, WALLET, AND CONTROL · STEP 13",
+    "title": "Transaction Fees, Account Rent, and Recovery: Who Pays and What Can Return",
+    "summary": "A Solana transaction fee, a transfer to a gameplay signer, and lamports placed inside a program-owned data account are three different costs. This guide follows the current NiceChunk client and program source account by account: it identifies the transaction fee payer, the storage payer, the three implemented close paths, the records that currently retain their rent, and the exact private keys and account state needed before any recovery is possible.",
+    "readingTime": "62 min read",
+    "visual": {
+      "src": "/docs/media/transaction-fees-rent-and-recovery-overview-v1.webp",
+      "alt": "Canonical NiceChunk villager boy stands at a timber transaction gate with one rectangular copper piece suspended in a stone fee bowl while the canonical villager girl places separate copper blocks into an open stone account foundation; an owner chest, retained vaults, hourglass, and closed return compartment remain apart in a real Chunk.js coastal yard.",
+      "caption": "The real Chunk.js coastal scene uses canonical villagers and baked game materials to separate a small processing-cost gate, an ordinary owner chest, account-funding blocks, retained storage, elapsed time, and a possible program-controlled return compartment. No prop proves a fee, balance, payer, account owner, close instruction, refund, transaction status, or current chain state.",
+      "width": 1774,
+      "height": 887
+    }
+  },
+  "guideContext": {
+    "questionLabel": "PLAYER QUESTION",
+    "question": "When NiceChunk asks for SOL, which address pays the network, which account keeps the storage lamports, and what can I actually recover after a cancel, logout, expired Session, browser reset, or lost key?",
+    "items": [
+      {
+        "label": "Learning path",
+        "value": "Player, wallet, and control · Step 13 of 15"
+      },
+      {
+        "label": "Audience",
+        "value": "Players with no programming or blockchain background"
+      },
+      {
+        "label": "Scope",
+        "value": "Current repository client, Player, Chunk, Building, Core, Guardian, Civilization, and the unified Game namespaces for Backpack, Market, and Smelting"
+      },
+      {
+        "label": "Configured source route",
+        "value": "public/mainnet.json currently declares the Devnet cluster and routes Backpack, Market, and Smelting through the unified Game program. A configuration file identifies intended addresses; it does not by itself prove deployment bytes or a player's transaction"
+      },
+      {
+        "label": "Close-path audit boundary",
+        "value": "The reviewed Rust program tree contains direct account-lamport drains only for treasury-authorized PlayerAppearance close, active Market Listing cancellation, and pending Building upload cancellation. Dispatch maps and account creation paths were also reviewed so absence is stated only for this source revision"
+      },
+      {
+        "label": "Rent boundary",
+        "value": "Account byte lengths are source constants. Exact rent-exempt lamports are runtime results from the selected Solana RPC and must not be presented as permanent protocol prices"
+      },
+      {
+        "label": "Failure boundary",
+        "value": "Local rejection, preflight rejection, accepted execution failure, and an unknown timeout are separate outcomes. Only a signature status and transaction metadata can settle an accepted transaction's result and actual processing fee"
+      },
+      {
+        "label": "Reviewed",
+        "value": "20 July 2026 · literal repository source audit"
+      }
+    ],
+    "terms": [
+      {
+        "term": "Transaction fee",
+        "meaning": "SOL charged for processing a submitted Solana transaction. The transaction message names one fee payer."
+      },
+      {
+        "term": "Fee payer",
+        "meaning": "The signer whose ordinary address pays the transaction processing fee. This role does not automatically identify who funds a program-created account."
+      },
+      {
+        "term": "Instruction payer",
+        "meaning": "The writable signer passed to a program as the source of lamports for account creation or a rent top-up. It may be the same address as the transaction fee payer, but that is a separate fact."
+      },
+      {
+        "term": "Rent-exempt minimum",
+        "meaning": "The minimum lamport balance Solana reports for keeping a data account of a given byte length exempt from ongoing rent collection under the current runtime."
+      },
+      {
+        "term": "Storage deposit",
+        "meaning": "Plain lamports held inside a program-owned data account at or above its current rent-exempt minimum. This guide uses the phrase to distinguish those lamports from a processing fee, not to promise a refund."
+      },
+      {
+        "term": "Program-derived address or PDA",
+        "meaning": "A deterministic address controlled by a program through known seeds. A player's normal wallet signature cannot spend lamports from a program-owned PDA."
+      },
+      {
+        "term": "Close instruction",
+        "meaning": "Program logic that validates authority, transfers an account's lamports to an allowed recipient, and makes the old data account unusable. A close path must exist in the program; wallet ownership of related game data is not enough."
+      },
+      {
+        "term": "Refund",
+        "meaning": "Lamports transferred by a validated close path. It is the account's current lamport balance, not necessarily the exact amount originally paid, and the close transaction can still cost a network fee."
+      },
+      {
+        "term": "Retained rent",
+        "meaning": "Lamports that remain in a program-owned account because the current instruction map has no applicable close path."
+      },
+      {
+        "term": "Ordinary signer balance",
+        "meaning": "Spendable SOL at an owner or Session authority address. It is not the same balance as lamports held inside a Session, Listing, BuildSite, or other PDA."
+      },
+      {
+        "term": "Atomic execution",
+        "meaning": "All program state changes in one accepted transaction succeed together or roll back together. The processing fee is outside the rolled-back game state."
+      },
+      {
+        "term": "Preflight",
+        "meaning": "Client-requested simulation before broadcast. A preflight error does not demonstrate that a transaction was accepted and executed on chain."
+      },
+      {
+        "term": "Accepted execution failure",
+        "meaning": "A transaction with a real signature whose status contains an error after cluster execution. Program writes and transfers roll back, while processing fees may remain charged."
+      },
+      {
+        "term": "Unknown result",
+        "meaning": "A timeout, expiry, or transport failure where the browser did not establish final status. It is neither proof of success nor proof of refund."
+      },
+      {
+        "term": "Session authority",
+        "meaning": "The ordinary Solana signer used for supported gameplay transactions. In plugin mode it is normally a separate browser-held key; in Local Game Wallet mode it is the owner key itself."
+      },
+      {
+        "term": "Recovery prerequisite",
+        "meaning": "A fact that must still be available before recovery can work, such as the correct private key, an active Listing, an uploading manifest, or all required PDA addresses."
+      }
+    ]
+  },
+  "keyPoints": [
+    {
+      "title": "One transaction can have two payer roles",
+      "body": "The outer transaction names a fee payer. A program instruction separately names the signer that funds a new or enlarged account. Always inspect both."
+    },
+    {
+      "title": "PDA rent is not a second wallet balance",
+      "body": "Lamports inside a program-owned account keep its bytes allocated. The related player cannot move them with an ordinary wallet transfer."
+    },
+    {
+      "title": "Rent must be queried at runtime",
+      "body": "Byte length comes from source, while the exact lamport minimum comes from the selected cluster and RPC. The onboarding value of 0.000005 SOL is only a fee approximation."
+    },
+    {
+      "title": "Execution failure rolls back game state, not necessarily fees",
+      "body": "An accepted transaction with status.err keeps no partial account creation or transfer, but Solana processing fees may remain charged."
+    },
+    {
+      "title": "Only three reviewed NiceChunk paths drain account lamports",
+      "body": "They are active Listing cancellation to the seller, pending Building upload cancellation to a valid current Session authority, and PlayerAppearance close to the configured treasury."
+    },
+    {
+      "title": "Sold Listings retain their account lamports",
+      "body": "Purchase marks a Listing sold and transfers the item, but the current Market instruction does not close that Listing."
+    },
+    {
+      "title": "Logout and expiry perform no recovery",
+      "body": "Browser cleanup sends no transaction. It cannot revoke a Session, close a PDA, move an old temporary-key balance, or restore a lost owner secret."
+    },
+    {
+      "title": "Recovery follows the remaining key and current account state",
+      "body": "An owner key can rebuild deterministic addresses and create a new Session, but only the old temporary private key can sign for its ordinary SOL balance, and only an implemented close path can release PDA lamports."
+    }
+  ],
+  "sections": [
+    {
+      "id": "fee-payer-versus-storage-payer",
+      "eyebrow": "TWO PAYER ROLES, THREE KINDS OF SOL MOVEMENT",
+      "title": "Name the transaction fee payer before naming the account-storage payer",
+      "paragraphs": [
+        "A Solana transaction message has one fee payer. NiceChunk's wallet helper explicitly assigns provider.publicKey, while its keypair helper assigns signer.publicKey. In plugin Session setup, the connected owner is the fee payer, the temporary Session key co-signs, and the owner may also transfer ordinary spendable SOL to that key. That transfer is neither a processing fee nor PDA rent.",
+        "Inside a program, a writable signer is separately passed as payer for create_account or a rent top-up. The Player setup instruction passes the owner as the PlayerProfile and PlayerSession storage payer. Mining and Building calls are signed and fee-paid by the Session key, and those programs also use that writable Session authority to fund new progress, ChunkBroken, BuildSite, manifest, or shard bytes. Local Game Wallet makes owner and Session authority the same key, so the two labels point to one address there without becoming one conceptual role.",
+        "Owner-wallet flows use the connected owner as fee payer when creating a Backpack, executing Smelting, creating or canceling a Market Listing, or buying. That owner is also the storage payer when the instruction creates a Backpack, Smelting progress record, Listing, or missing associated token account. A Market buyer may fund missing seller or treasury associated token accounts before an NCK purchase. Those token-account allocations are governed by the associated-token and Token programs; they are not refundable through a NiceChunk Listing close.",
+        "The client function named transactionSolSpendFromMeta measures the payer's positive balance decrease and takes the greater of that decrease and meta.fee. That total can include network fee, transfers, PDA funding, and token-account creation. The feeLamports field is the narrower processing-fee observation."
+      ],
+      "facts": [
+        {
+          "label": "Plugin Session setup",
+          "value": "owner fee payer and storage payer; temporary authority co-signs",
+          "detail": "The same setup transaction may initialize Profile, top up the ordinary Session signer, and create or refresh PlayerSession."
+        },
+        {
+          "label": "Mining and Building",
+          "value": "Session authority fee payer and instruction payer",
+          "detail": "The temporary key can lose spendable SOL to both processing fees and account creation or growth."
+        },
+        {
+          "label": "Backpack, Smelting, and Market wallet flows",
+          "value": "connected owner fee payer",
+          "detail": "The owner is also the program payer where these reviewed instructions create a Backpack, progress record, Listing, or missing token account."
+        },
+        {
+          "label": "Do not merge",
+          "value": "fee + transfer + account lamports",
+          "detail": "All can lower one address in one transaction while remaining different economic events."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Player question: Why did my SOL decrease by more than the displayed fee?",
+        "body": "First read transaction metadata for meta.fee. Then inspect instructions for an owner-to-Session transfer, PDA creation or growth, and associated token-account creation. A payer balance delta is the combined outflow, not a synonym for the network fee."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-fee-payer-versus-storage-payer-v1.webp",
+        "alt": "Canonical NiceChunk villager boy feeds one small rectangular copper piece into an iron fee brazier while the canonical villager girl pushes a separate cart of copper blocks toward a large stone record foundation; a dark owner chest and smaller copper box stand apart in the same real Chunk.js coastal yard.",
+        "caption": "The scene separates a small processing-cost metaphor from a much larger account foundation and two ordinary-address containers. Their sizes and contents are illustrative only and do not prove who signed, who paid, how much SOL moved, whether a transfer occurred, or whether any account was created.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "rent-lamports-and-runtime-minimum",
+      "eyebrow": "BYTES ARE FIXED; THE LAMPORT MINIMUM IS QUERIED",
+      "title": "Account rent is ordinary lamports held at a program-owned address",
+      "paragraphs": [
+        "NiceChunk programs ask Solana Rent for minimum_balance(account length) when they create or enlarge a PDA. The browser onboarding code independently calls getMinimumBalanceForRentExemption for the selected RPC and byte length. That means a source constant such as 184 bytes is stable for this account version, while an exact SOL example is only a point-in-time result for a particular runtime.",
+        "A rent-exempt account is not a hidden player wallet. Its lamports belong to the account controlled by its program. The owner or Session key that originally funded it cannot spend those lamports with a normal System Program transfer. Return requires the owning program to expose and accept a close instruction.",
+        "A resize can require only the missing difference. PlayerEquipment and ChunkBroken use current account lamports and the new byte length to calculate a top-up before reallocating. A failed atomic transaction does not leave a successfully enlarged account behind, but a successfully enlarged account keeps the additional lamports until an applicable close path exists.",
+        "The onboarding constant NETWORK_FEE_SOL = 0.000005 is presentation policy, not a permanent Solana fee quote. Exact processing cost comes from transaction metadata after an accepted transaction; exact rent comes from a runtime rent query before creation or from the account's current lamports afterward."
+      ],
+      "facts": [
+        {
+          "label": "PlayerProfile",
+          "value": "773 bytes",
+          "detail": "Owner-funded, deterministic by owner, and no Player close instruction."
+        },
+        {
+          "label": "PlayerSession",
+          "value": "184 bytes",
+          "detail": "Owner-funded during setup; expiry does not release its lamports."
+        },
+        {
+          "label": "PlayerEquipment and PlayerAppearance",
+          "value": "7,040 and 9,612 bytes",
+          "detail": "Equipment has no close; Appearance can be closed only by the configured treasury."
+        },
+        {
+          "label": "UsernameIndex and InviteIndex",
+          "value": "256 and 2,688 bytes",
+          "detail": "The reviewed Player dispatch provides creation and append paths but no release or close."
+        },
+        {
+          "label": "Backpack and Listing",
+          "value": "8,048 and 216 bytes",
+          "detail": "Backpack has no close; only an active Listing cancellation returns Listing lamports."
+        },
+        {
+          "label": "ChunkBroken",
+          "value": "16-byte header + 3 bytes per capacity slot",
+          "detail": "It starts at capacity 64, grows by 64 up to 2,048, and the Session payer funds each required rent top-up."
+        },
+        {
+          "label": "BuildSite, manifest, and shard",
+          "value": "160 bytes, 160 bytes, and 64 bytes + payload",
+          "detail": "Only uploading manifest and created shard accounts have the reviewed cancellation close path; BuildSite remains."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Never publish one rent number as a permanent NiceChunk price",
+        "body": "Publish the account byte length, selected cluster, RPC method, commitment, and observation time with any example. Query again before a real transaction."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-rent-lamports-and-runtime-minimum-v1.webp",
+        "alt": "Canonical NiceChunk villager boy holds an unmarked wooden measuring frame beside three increasingly large stone record shells while the canonical villager girl sorts increasingly large stacks of rectangular copper blocks into separate foundation trays in a real Chunk.js coastal work yard.",
+        "caption": "Different shell sizes and copper stacks illustrate that account length and required storage funding vary, while the finished stone recess keeps its blocks inside the account metaphor. The scene encodes no rent value, cluster response, account balance, spendable wallet, or proof that any PDA exists.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "transaction-outcomes-and-failure-fees",
+      "eyebrow": "REJECTION, FAILURE, AND UNKNOWN ARE DIFFERENT",
+      "title": "Use four outcome classes before saying a fee was charged or refunded",
+      "paragraphs": [
+        "Local validation can stop before a transaction exists, and a player can reject a wallet prompt before signing. Those paths do not execute on chain. NiceChunk sends raw transactions with skipPreflight: false, so a preflight simulation error also does not demonstrate an accepted on-chain transaction or an on-chain fee.",
+        "After the cluster accepts a signed transaction, its status can contain an error. Solana atomicity rolls back the program's account writes, transfers, account creation, and reallocations from that transaction. The processing work was still performed, so the network fee may remain charged. NiceChunk's polling helper preserves the signature inside TransactionStatusError instead of converting the result into a local-only failure.",
+        "A timeout, expired blockheight, browser crash, or transport error can leave the outcome unknown. The browser message alone cannot establish success, failure, or refund. Preserve the signature when one exists, query its status on the correct cluster, inspect meta.err and meta.fee, and read the affected accounts before retrying.",
+        "Blind retry is especially risky for setup or upload flows. The first transaction may already have funded a Session signer or allocated an account even if the browser did not receive confirmation. A new key or revision can then strand a second ordinary balance or second set of account lamports."
+      ],
+      "facts": [
+        {
+          "label": "Local or wallet rejection",
+          "value": "no chain execution",
+          "detail": "No program state change is possible without a signed, submitted transaction."
+        },
+        {
+          "label": "Preflight rejection",
+          "value": "no accepted execution demonstrated",
+          "detail": "Do not infer an on-chain fee solely from the browser error."
+        },
+        {
+          "label": "Accepted status.err",
+          "value": "atomic game-state rollback; fee may remain",
+          "detail": "Use the preserved signature and transaction metadata."
+        },
+        {
+          "label": "Timeout or transport failure",
+          "value": "unknown until checked",
+          "detail": "Do not retry a fund or create operation only because the UI timed out."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Safe retry order",
+        "body": "Record cluster, wallet address, Session address, target PDA addresses, and signature. Query signature status and transaction metadata, then read each target account. Retry only after those observations show which state is absent."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-transaction-outcomes-and-failure-fees-v1.webp",
+        "alt": "Canonical NiceChunk villager boy stands beside an open stone press, a tiny ember basin, and two unchanged record crates while the canonical villager girl studies a blank receipt tile toward a distant hazy signal tower; an untouched parcel, closed inspection gate, and waiting handcart occupy separate parts of the same coastal court.",
+        "caption": "The untouched parcel, closed inspection gate, returned press, unchanged crates, blank tile, and waiting cart provide four outcome metaphors without declaring which one occurred. The tiny ember is not a fee destination, and no prop reports a real submission, signature, charge, rollback, confirmation level, timeout, or RPC status.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "persistent-player-and-inventory-accounts",
+      "eyebrow": "CREATION DOES NOT IMPLY PLAYER-CONTROLLED CLOSURE",
+      "title": "Profile, Session, Equipment, indexes, and Backpack persist under their programs",
+      "paragraphs": [
+        "PlayerProfile is a 773-byte PDA derived from the owner. The owner funds creation and can reconstruct the address after browser cache loss. There is no Player close tag, so retaining the owner key restores write authority but not a rent-refund path. Losing the owner key leaves public data readable and deterministic, but it removes the ability to authorize ordinary Profile updates.",
+        "PlayerSession is a separate 184-byte PDA derived from both owner and Session authority. Setup requires both signatures and uses the owner as payer. Expiry only causes Session-aware consumers to reject later actions; it does not close the PDA, return rent, revoke the ordinary key, or transfer that key's SOL. A new temporary key produces a different PDA and cannot sign for the old key's balance.",
+        "PlayerEquipment is 7,040 bytes and may be created or reallocated with owner funds. PlayerAppearance is 9,612 bytes and is covered by the next chapter's treasury-only close. UsernameIndex is 256 bytes and each InviteIndex page is 2,688 bytes. The current Player dispatch has no Equipment, Session, Profile, UsernameIndex, or InviteIndex close path; changing a name does not release the prior index allocation.",
+        "Backpack is an 8,048-byte PDA derived from owner plus backpack ID. The owner funds it, and the unified Backpack instruction map exposes no close. Normal browser recovery first checks its local cache, then reads the equipped Backpack pointer from PlayerProfile. That recovers an equipped Backpack when the owner and Profile remain available; it does not enumerate an unknown unequipped backpack ID."
+      ],
+      "facts": [
+        {
+          "label": "Profile recovery",
+          "value": "owner public key rederives address",
+          "detail": "Owner private key is still required for writes; no close exists."
+        },
+        {
+          "label": "Session recovery",
+          "value": "old temporary secret controls old ordinary SOL",
+          "detail": "Owner can create a replacement Session but cannot sweep an old signer address or close the old Session PDA."
+        },
+        {
+          "label": "Equipment recovery",
+          "value": "owner relationship and deterministic PDA",
+          "detail": "Data can be found again; its stored rent is not player-withdrawable."
+        },
+        {
+          "label": "Name and invite records",
+          "value": "append or create without release",
+          "detail": "Allocated pages and prior indexes remain under Player Program control."
+        },
+        {
+          "label": "Backpack recovery",
+          "value": "known ID/address or equipped Profile pointer",
+          "detail": "The normal fallback does not reconstruct an unknown unequipped ID."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Finding data again is not the same as recovering lamports",
+        "body": "Deterministic seeds and Profile pointers help a client rediscover records. They do not create a close instruction or give the wallet authority to spend a program-owned account's lamports."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-persistent-player-and-inventory-accounts-v1.webp",
+        "alt": "Canonical NiceChunk villager boy holds a dark owner key beside a central stone record cabinet while the canonical villager girl opens a separate anchored inventory locker containing two backpacks; an equipment cabinet, hourglass plinth, narrow index posts, and empty wooden cubbies remain distinct in a real Chunk.js coastal archive.",
+        "caption": "The key, durable record cabinets, anchored Backpack locker, and empty local cubbies illustrate rediscovery and persistence as different questions. Opening the locker is a data-recovery metaphor, not an account close, and the scene proves no PDA, owner signature, stored pointer, byte length, balance, refund, or close authority.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "market-and-appearance-close-paths",
+      "eyebrow": "TWO CLOSES, TWO DIFFERENT RECIPIENT RULES",
+      "title": "An active Listing can return lamports to its seller; Appearance can return them only to treasury",
+      "paragraphs": [
+        "Creating a 216-byte Market Listing uses the seller as signer, fee payer in the browser flow, and Listing storage payer. The item is removed from its source custody and stored in the Listing. Cancel requires the same seller, an active Listing, a valid destination Backpack path, the Listing address, and the Market authority. The program restores the item, zeros the Listing, and transfers all current Listing lamports to the seller.",
+        "Buying has a different lifecycle. The buyer pays the purchase transaction fee and, for NCK, may create missing seller or treasury associated token accounts. Market moves the item into the buyer's Backpack and marks the Listing sold. It does not close the Listing. Because cancel first validates an active Listing, the sold record cannot use the active-cancel refund path and its rent remains retained in this source revision.",
+        "PlayerAppearance reverses the intuitive payer rule. The player's wallet funds its 9,612-byte allocation during upsert, but the stored policy and close instruction reserve reclaim authority for NICECHUNK_TREASURY_AUTHORITY. The signer and recipient must both be that treasury. The player owner cannot redirect those lamports to itself through the reviewed Player Program.",
+        "A close returns an account's current lamports, not a separately tracked receipt for the original deposit. The cancellation or treasury close is itself a transaction with a fee payer, so the recipient's net wallet change need not equal an earlier estimated rent number."
+      ],
+      "facts": [
+        {
+          "label": "Active Listing",
+          "value": "seller cancel returns item and Listing lamports",
+          "detail": "Requires active state, seller signature, valid Listing PDA, and valid Backpack destination accounts."
+        },
+        {
+          "label": "Sold Listing",
+          "value": "marked sold, not closed",
+          "detail": "The 216-byte account and its lamports remain under the Market namespace."
+        },
+        {
+          "label": "PlayerAppearance",
+          "value": "treasury-only close to the same treasury",
+          "detail": "Funding the account does not grant the player a reclaim instruction."
+        },
+        {
+          "label": "Close transaction",
+          "value": "network fee remains separate",
+          "detail": "A returned account balance is not a promise of zero net cost."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "Do not call every storage payment refundable",
+        "body": "In the reviewed player-facing paths, only an active Listing cancellation sends Listing lamports back to that player. Appearance goes only to treasury, and sold Listings have no enabled cleanup."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-market-and-appearance-close-paths-v1.webp",
+        "alt": "Canonical NiceChunk villager boy returns a forged tool from an opened market crate to his backpack beside a separate tray of rectangular copper blocks, while the canonical villager girl holds a small owner key outside a barred stone treasury gate whose oversized copper lock and foundation blocks remain inside.",
+        "caption": "The market stall stages a seller-return metaphor, while the barred archive makes the player key visibly different from the treasury-sized lock. Neither side proves a real Listing state, treasury authority, Backpack capacity, lamport amount, close signature, sold-listing cleanup, or completed refund.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "building-upload-cancellation",
+      "eyebrow": "ONLY THE PENDING UPLOAD LAYER CAN BE RECLAIMED",
+      "title": "Building cancellation closes uploading shards and manifest, not the BuildSite or active building",
+      "paragraphs": [
+        "Creating a BuildSite allocates a persistent 160-byte account and uses the valid Session authority as instruction payer. Beginning an upload creates a 160-byte manifest; writing each shard creates 64 header bytes plus that shard's payload. The browser estimates missing-account rent at runtime and, in plugin mode, transfers the required total plus a 1,000,000-lamport buffer from owner to Session authority before the Session key pays creation transactions.",
+        "Cancellation accepts only the BuildSite's pending revision whose manifest status is UPLOADING. It validates the current Session into an owner, checks that owner against BuildSite and manifest, requires the complete expected shard-account list, closes each shard that already exists, and then closes the manifest. The persistent BuildSite is updated to remove its pending revision but is not closed.",
+        "Every closed shard and the manifest transfer their current lamports to the currently supplied valid Session authority, not directly to the owner wallet. A new valid Session for the same owner can authorize cancellation of an older pending upload because Building compares the recovered owner relationship, not equality with the original temporary key. The returned lamports therefore land at the new Session address used for cancellation.",
+        "Finalization changes the manifest to active and makes the revision the BuildSite's active building. The cancel instruction rejects non-uploading manifests, and the dispatch exposes no active-manifest, active-shard, or BuildSite close. The current browser invokes cancellation automatically when a pending upload does not match the payload being resumed; it does not expose a general player-facing account sweep."
+      ],
+      "facts": [
+        {
+          "label": "BuildSite",
+          "value": "160 bytes, persistent",
+          "detail": "Created by Session payer and never closed by upload cancellation."
+        },
+        {
+          "label": "Pending manifest",
+          "value": "160 bytes, closeable while uploading",
+          "detail": "Owner, foundation, revision, status, and shard count must all validate."
+        },
+        {
+          "label": "Created shards",
+          "value": "64-byte header + bounded payload",
+          "detail": "All expected addresses must be supplied; existing program-owned shards are closed."
+        },
+        {
+          "label": "Recipient",
+          "value": "current valid Session authority",
+          "detail": "The program does not transfer cancellation proceeds directly to owner."
+        },
+        {
+          "label": "Active building",
+          "value": "no reviewed close path",
+          "detail": "Active manifest and shards retain their lamports."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Pending upload recovery prerequisites",
+        "body": "Control the owner key, establish a currently valid Session, know the foundation ID and pending revision, derive the manifest and every expected shard address, confirm status is uploading, and expect returned lamports at the Session authority used to cancel."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-building-upload-cancellation-v1.webp",
+        "alt": "Canonical NiceChunk villager girl handles rectangular copper foundation blocks beside an unfinished timber scaffold and several shard crates while the canonical villager boy holds two separate keys between that pending work and a finished stone-and-timber cottage with a full closed storage rack.",
+        "caption": "The unfinished scaffold, loose shard crates, two keys, copper box, completed cottage, and full rack distinguish pending recovery from finalized persistence. Their arrangement does not prove revision status, owner recovery, Session validity, shard completeness, recipient address, returned lamports, or a cancellation transaction.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "world-production-and-governance-accounts",
+      "eyebrow": "WORLD RECORDS AND GOVERNANCE RECORDS ALSO NEED EXPLICIT CLOSE LOGIC",
+      "title": "Mining, Core, Guardian, Civilization, and Smelting accounts currently retain their rent",
+      "paragraphs": [
+        "Chunk mining uses the writable Session authority as payer. A missing 128-byte Chunk PlayerProgress PDA is created for the recovered owner, and each affected ChunkBroken PDA starts at 208 bytes, then grows in 192-byte steps as its capacity rises by 64 records. Each growth tops up the account to the runtime minimum before reallocating. The Chunk instruction map has no close path for progress, ChunkBroken, rule tables, or foundation indexes.",
+        "Smelting is an owner-wallet flow in the current browser. Its program can create a separate 128-byte PlayerProgress PDA under the Smelting or unified Game program and can initialize a 9,936-byte RecipeTable. Neither the Smelting instruction map nor the unified namespace dispatcher provides a close instruction. A similarly named progress seed under a different program ID derives a different account.",
+        "Core accepts only GlobalConfig initialization and creates a 293-byte PDA. Guardian creates a 160-byte Registry and 288-byte Region records through treasury or registration payers. Its update instructions do not include removal with lamport return. The Region status layout contains a removed value, but the reviewed instruction dispatch exposes no close or stake-refund instruction, so a status constant must not be advertised as a reclaim path.",
+        "Civilization creates PowerSnapshot, CitizenPower, RuleBook, RuleSignature, RuleTally, and ExecutionReceipt accounts with the payer named by each instruction. Their sizes are 128, 144, 320, 136, 128, and 128 bytes. Publish, sign, tally, execute, snapshot, and settle are lifecycle transitions, not closes. None of the reviewed Civilization dispatch tags drains those PDA lamports.",
+        "Across the reviewed Rust tree, the only direct try_borrow_mut_lamports account drains are the three close implementations explained in the Market, Appearance, and Building chapters. This is a source-revision statement, not a guarantee that future upgrades can never add or change recovery logic."
+      ],
+      "facts": [
+        {
+          "label": "Chunk PlayerProgress",
+          "value": "128 bytes, Session-funded",
+          "detail": "Program-scoped progress remains after Session expiry."
+        },
+        {
+          "label": "ChunkBroken",
+          "value": "208 bytes initially; up to 6,160 bytes at capacity 2,048",
+          "detail": "Session funds creation and each rent top-up; no close exists."
+        },
+        {
+          "label": "Smelting",
+          "value": "128-byte progress and 9,936-byte RecipeTable",
+          "detail": "Owner or configured authority pays creation according to the instruction; no close tag exists."
+        },
+        {
+          "label": "Core",
+          "value": "293-byte GlobalConfig",
+          "detail": "One initialization instruction and no close."
+        },
+        {
+          "label": "Guardian",
+          "value": "160-byte Registry and 288-byte Region",
+          "detail": "Registration and updates expose no account close or stake-refund path."
+        },
+        {
+          "label": "Civilization",
+          "value": "six persistent PDA families",
+          "detail": "State finalization or execution does not release their account lamports."
+        }
+      ],
+      "callout": {
+        "tone": "boundary",
+        "title": "A finished, expired, removed, sold, or executed status is not a close",
+        "body": "Status fields change data. Lamports return only when program code validates a recipient and actually drains the account. Search the current instruction map and close implementation before promising recovery."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-world-production-and-governance-accounts-v1.webp",
+        "alt": "Canonical NiceChunk villager boy inspects a quarry recess beside two separate stone record plinths while the canonical villager girl works at a smelter beside protected foundation frames; a root monument, Guardian tower, and civic hall stand on distinct foundations across one real Chunk.js coastal terrace.",
+        "caption": "The quarry records, smelter record, protected foundations, monument, tower, and civic hall represent separate program-owned account families that remain intact in the reviewed lifecycle. The scene is not chain evidence and proves no program ID, byte length, payer, recipe result, Guardian state, governance outcome, balance, or future close policy.",
+        "width": 1774,
+        "height": 887
+      }
+    },
+    {
+      "id": "logout-expiry-key-loss-and-recovery",
+      "eyebrow": "RECOVER THE KEY, THE RECORD, OR NEITHER",
+      "title": "Logout changes browser state; recovery depends on which private key still exists",
+      "paragraphs": [
+        "Modular Play disconnect clears wallet identity and runtime prefixes, including the stored plugin Session secret, then redirects. It sends no Solana instruction. The login page's Disconnect Wallet action clears only its wallet binding, and the Local Game Wallet provider's disconnect method is a no-op. The Local Game Wallet secret uses separate browser keys and is not removed by plugin Session-prefix cleanup.",
+        "The plugin Session secret is Base64 text in localStorage; the Local Game Wallet secret is unencrypted Base58 text. Those encodings are not encryption. If the plugin secret survives and the owner wallet remains available, setup normally reuses the same Keypair and refreshes its PlayerSession. If that only copy is deleted, the owner may establish a new Session but cannot sign an ordinary transfer from the old temporary address.",
+        "Browser cache loss does not erase deterministic public accounts. With the owner public key, a client can rederive Profile, Equipment, Appearance, Session candidates when the authority is known, and program-scoped progress. The equipped Backpack can be recovered through Profile. Unknown IDs, transaction signatures, pending revisions, and unequipped Backpacks may require independent records or RPC enumeration beyond the normal browser fallback.",
+        "Loss of the Local Game Wallet owner secret is more severe because that key is both owner and Session authority. The public address and chain records remain readable, but NiceChunk cannot derive the private key from them. A backup of the exact valid secret can restore signing control; the address, username, Profile, or support message cannot.",
+        "For compromise, stop using the exposed key. An independent plugin Session key can still sign ordinary Solana transfers until its funds move or the attacker moves them; NiceChunk Session expiry only blocks cooperating NiceChunk consumers. If the owner key is compromised, all owner-authorized assets and replacement Sessions are at risk. Never paste any private key into an explorer, form, support chat, or unknown recovery site."
+      ],
+      "facts": [
+        {
+          "label": "Owner key retained; browser cache lost",
+          "value": "deterministic records can be rediscovered",
+          "detail": "Profile writes and a replacement Session remain possible; absent close paths stay absent."
+        },
+        {
+          "label": "Plugin Session secret retained",
+          "value": "ordinary authority SOL may be transferable",
+          "detail": "A valid owner relationship can refresh Session authorization; use a trusted signing environment."
+        },
+        {
+          "label": "Plugin Session secret lost",
+          "value": "old authority SOL cannot be signed by owner alone",
+          "detail": "Create a replacement Session; old Session PDA rent also has no close path."
+        },
+        {
+          "label": "Local Game Wallet secret lost",
+          "value": "no private-key reconstruction from address",
+          "detail": "Only an existing valid backup restores signing control."
+        },
+        {
+          "label": "Active Listing",
+          "value": "seller key plus destination Backpack path",
+          "detail": "Cancel can return item and Listing lamports only while state remains active."
+        },
+        {
+          "label": "Pending Building upload",
+          "value": "owner plus valid current Session and all upload addresses",
+          "detail": "Cancel returns manifest and shard lamports to that Session authority."
+        },
+        {
+          "label": "Expired, sold, finalized, or no-close account",
+          "value": "no automatic refund",
+          "detail": "A state label, logout, or new key does not substitute for a close instruction."
+        }
+      ],
+      "callout": {
+        "tone": "note",
+        "title": "Recovery checklist for an ordinary player",
+        "body": "Identify the correct cluster and program IDs; list every public address and known signature; determine which private keys still work without exposing them; read current account owner, state, and lamports; select only an implemented close or transfer path; simulate where practical; sign once; then verify status, meta.fee, recipients, and account state before retrying."
+      },
+      "visual": {
+        "src": "/docs/media/transaction-fees-rent-and-recovery-logout-expiry-key-loss-and-recovery-v1.webp",
+        "alt": "Canonical NiceChunk villager boy stands beside swept-empty wooden cubbies, a closed gate, and an hourglass while old public stone plinths remain beyond them; the canonical villager girl holds a new copper key at a separate bench with a closed owner chest, backup book, old key, new Session plinth, and locked old copper box.",
+        "caption": "Empty cubbies, a closed gate, persistent public plinths, two distinct keys, a new plinth, and the still-locked old box separate logout, expiry, replacement, and old-key control. No prop proves private-key possession, backup validity, Session setup, balance access, account state, refund eligibility, or any recovery transaction.",
+        "width": 1774,
+        "height": 887
+      }
+    }
+  ],
+  "technicalHeading": {
+    "eyebrow": "VERIFY THE PAYER, ACCOUNT, STATE, AND RECIPIENT",
+    "title": "Use formulas and literal source ranges to audit every SOL claim",
+    "summary": "Each formula belongs to one chapter. Every code excerpt below is copied as a continuous range from the current repository and followed by a plain-language walkthrough. Source behavior is evidence for this revision, not proof that a particular live transaction executed."
+  },
+  "formulas": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "Separate one payer's total outflow",
+      "expression": "payerOutflow = processingFee + ordinaryTransfers + newAccountLamports + rentTopUps + otherInstructionOutflows",
+      "ariaLabel": "Payer outflow equals processing fee plus ordinary transfers plus new account lamports plus rent top-ups plus other instruction outflows.",
+      "explanation": "This is an accounting checklist, not a promise that every term appears. A balance delta can be larger than meta.fee because the transaction also moved or deposited lamports.",
+      "terms": [
+        {
+          "symbol": "processingFee",
+          "meaning": "The transaction metadata fee."
+        },
+        {
+          "symbol": "ordinaryTransfers",
+          "meaning": "Spendable SOL moved to another ordinary address, such as a Session authority."
+        },
+        {
+          "symbol": "newAccountLamports",
+          "meaning": "Lamports placed in newly allocated program or token accounts."
+        },
+        {
+          "symbol": "rentTopUps",
+          "meaning": "Additional lamports required before an existing account can grow."
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "Query the current rent minimum",
+      "expression": "rentMinimum(bytes, cluster, context) = RPC.getMinimumBalanceForRentExemption(bytes)",
+      "ariaLabel": "Rent minimum for an account byte length, cluster, and context is queried from get Minimum Balance For Rent Exemption.",
+      "explanation": "The account length comes from the program version. The lamport result belongs to the selected runtime context and should be timestamped when published.",
+      "terms": [
+        {
+          "symbol": "bytes",
+          "meaning": "The account's allocated data length."
+        },
+        {
+          "symbol": "cluster",
+          "meaning": "The selected Solana network."
+        },
+        {
+          "symbol": "context",
+          "meaning": "The RPC commitment and observation context."
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "A resize funds only the missing difference",
+      "expression": "rentTopUp = max(0, rentMinimum(newBytes) - currentAccountLamports)",
+      "ariaLabel": "Rent top-up is the greater of zero and the new rent minimum minus current account lamports.",
+      "explanation": "PlayerEquipment and ChunkBroken implement this shape before reallocating. The resulting lamports stay in the program-owned account.",
+      "terms": [
+        {
+          "symbol": "newBytes",
+          "meaning": "The intended allocation after growth."
+        },
+        {
+          "symbol": "currentAccountLamports",
+          "meaning": "The account's balance before the resize."
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "Atomic failure boundary",
+      "expression": "acceptedStatusErr => gameWrites = 0, programTransfers = 0, accountCreates = 0, processingFee may remain",
+      "ariaLabel": "For an accepted transaction status error, game writes, program transfers, and account creations roll back, while processing fee may remain.",
+      "explanation": "The zeroes describe committed effects from that failed transaction, not balances that existed before it.",
+      "terms": [
+        {
+          "symbol": "acceptedStatusErr",
+          "meaning": "A submitted signature whose cluster status contains an execution error."
+        },
+        {
+          "symbol": "may remain",
+          "meaning": "Read meta.fee instead of assuming either zero or a fixed constant."
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "A deterministic address does not imply a refund path",
+      "expression": "dataRecovery = knownSeeds + correctProgramId + readableChain; lamportRecovery = applicableClose + validAuthority + validState + recipient",
+      "ariaLabel": "Data recovery uses known seeds, program ID, and readable chain state, while lamport recovery additionally requires an applicable close, valid authority, valid state, and recipient.",
+      "explanation": "The two sides answer different questions. Re-deriving a Profile or Backpack address does not let the wallet spend its PDA lamports.",
+      "terms": [
+        {
+          "symbol": "knownSeeds",
+          "meaning": "Owner, IDs, revisions, coordinates, or other derivation inputs."
+        },
+        {
+          "symbol": "applicableClose",
+          "meaning": "A close instruction that accepts this exact account type and state."
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Market cancellation return",
+      "expression": "sellerReturn = currentListingLamports; sellerNetChange = sellerReturn - cancelProcessingFee + otherTransactionEffects",
+      "ariaLabel": "Seller return equals current Listing lamports, while seller net change also accounts for cancellation fee and other effects.",
+      "explanation": "Market does not store an original-rent receipt. It drains the Listing's current lamports after restoring the item.",
+      "terms": [
+        {
+          "symbol": "currentListingLamports",
+          "meaning": "The Listing account balance at cancellation."
+        },
+        {
+          "symbol": "otherTransactionEffects",
+          "meaning": "Any other debits or credits in the same transaction."
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "Pending upload cancellation return",
+      "expression": "sessionReturn = uploadingManifestLamports + sum(existingUploadingShardLamports)",
+      "ariaLabel": "Session return equals uploading manifest lamports plus the sum of existing uploading shard lamports.",
+      "explanation": "BuildSite lamports and active-revision account lamports are excluded because this cancellation does not close them.",
+      "terms": [
+        {
+          "symbol": "sessionReturn",
+          "meaning": "Lamports credited to the current valid Session authority."
+        },
+        {
+          "symbol": "existingUploadingShardLamports",
+          "meaning": "Balances of expected shard accounts that are already owned by Building."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "ChunkBroken allocation growth",
+      "expression": "chunkBrokenBytes(capacity) = 16 + 3 × capacity, where capacity ∈ {64, 128, ..., 2048}",
+      "ariaLabel": "Chunk Broken bytes equal sixteen plus three times capacity, with capacity from sixty-four through two thousand forty-eight in increments of sixty-four.",
+      "explanation": "Initial length is 208 bytes and maximum length is 6,160 bytes. Each successful growth can require a rent top-up paid by the Session authority.",
+      "terms": [
+        {
+          "symbol": "16",
+          "meaning": "Fixed ChunkBroken header bytes."
+        },
+        {
+          "symbol": "3",
+          "meaning": "Bytes per packed broken-block record."
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "Ordinary key-balance recovery rule",
+      "expression": "canMoveSignerSOL(address) = usablePrivateKey(address) AND acceptedTransfer",
+      "ariaLabel": "Moving SOL from an ordinary signer address requires its usable private key and an accepted transfer.",
+      "explanation": "An owner relationship, Session PDA, username, public address, or support request cannot replace the private key for an ordinary System Program transfer.",
+      "terms": [
+        {
+          "symbol": "usablePrivateKey",
+          "meaning": "Signing material that can be loaded safely and actually matches the address."
+        },
+        {
+          "symbol": "acceptedTransfer",
+          "meaning": "A signed transfer that reaches successful chain execution."
+        }
+      ]
+    }
+  ],
+  "codeSnippets": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "Wallet and keypair helpers assign different fee payers",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function signAndSendWalletTransaction(provider, transaction, conn = getNicechunkConnection(), extraSigners = []) {\n  transaction.feePayer = provider.publicKey;\n\n  if (typeof conn.prepareTransaction === \"function\") {\n    await conn.prepareTransaction(transaction, { commitment: \"confirmed\" });\n  } else {\n    const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n    transaction.recentBlockhash = blockhash;\n    transaction.lastValidBlockHeight = lastValidBlockHeight;\n  }\n\n  for (const signer of extraSigners) transaction.partialSign(signer);\n\n  if (typeof provider.signTransaction === \"function\") {\n    const signed = await provider.signTransaction(transaction);\n    const signature = await sendRawTransactionWithLogs(conn, signed.serialize(), \"wallet\");\n    await confirmTransactionByHttpPolling(conn, {\n      signature,\n      blockhash: transaction.recentBlockhash,\n      lastValidBlockHeight: transaction.lastValidBlockHeight,\n    }, \"confirmed\");\n    return signature;\n  }\n\n  if (typeof provider.signAndSendTransaction !== \"function\") {\n    throw new Error(\"Wallet does not support transaction signing.\");\n  }\n  const result = await provider.signAndSendTransaction(transaction);\n  const signature = typeof result === \"string\" ? result : result?.signature;\n  if (!signature) throw new Error(\"Wallet did not return a transaction signature.\");\n  await confirmTransactionByHttpPolling(conn, {\n    signature,\n    blockhash: transaction.recentBlockhash,\n    lastValidBlockHeight: transaction.lastValidBlockHeight,\n  }, \"confirmed\");\n  return signature;\n}\n\nasync function signAndSendKeypairTransaction(signer, transaction, conn = getNicechunkConnection()) {\n  transaction.feePayer = signer.publicKey;\n  const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash(\"confirmed\");\n  transaction.recentBlockhash = blockhash;\n  transaction.lastValidBlockHeight = lastValidBlockHeight;\n  transaction.sign(signer);\n  const signature = await sendRawTransactionWithLogs(conn, transaction.serialize(), \"keypair\");\n  await confirmTransactionByHttpPolling(conn, { signature, blockhash, lastValidBlockHeight }, \"confirmed\");\n  return signature;\n}",
+      "explanation": "The outer helper makes the wallet provider or supplied Keypair the fee payer. An extra signer can co-sign without becoming fee payer.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–12",
+          "meaning": "The wallet public key is assigned as fee payer before blockhash preparation and any extra partial signatures."
+        },
+        {
+          "lines": "Lines 13–36",
+          "meaning": "The wallet signs, sends, and waits for confirmed commitment."
+        },
+        {
+          "lines": "Lines 38–46",
+          "meaning": "The keypair path instead assigns the supplied signer as fee payer and signs directly."
+        }
+      ]
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "title": "Fresh plugin Session setup can combine transfer, storage creation, and two signers",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  const keypair = stored?.keypair ?? Keypair.generate();\n  const expiresAt = nowSeconds + sessionDurationSeconds;\n  const [playerProfile] = derivePlayerProfilePda(owner);\n  const [playerSession] = derivePlayerSessionPda(owner, keypair.publicKey);\n  const tx = new Transaction();\n  const [profileAccount, sessionAccount] = await conn.getMultipleAccountsInfo(\n    [playerProfile, keypair.publicKey],\n    \"confirmed\",\n  );\n  const sessionBalance = accountLamports(sessionAccount);\n\n  if (!profileAccount?.data?.length) {\n    tx.add(createInitializePlayerInstruction(owner, playerProfile, \"\"));\n  }\n  const targetLamports = sessionBalance < minimumSessionFundingLamports\n    ? getConfiguredGameplaySessionFundingLamports(owner)\n    : sessionBalance;\n  if (sessionBalance < targetLamports) {\n    tx.add(SystemProgram.transfer({\n      fromPubkey: owner,\n      toPubkey: keypair.publicKey,\n      lamports: targetLamports - sessionBalance,\n    }));\n  }\n  tx.add(createOrRefreshPlayerSessionInstruction({\n    owner,\n    sessionAuthority: keypair.publicKey,\n    playerProfile,\n    playerSession,\n    expiresAt,\n  }));\n\n  await signAndSendWalletTransaction(provider, tx, conn, [keypair]);",
+      "explanation": "One owner-fee-paid transaction may initialize Profile, top up the ordinary temporary address, and create or refresh its Session PDA. The keypair is an extra signer.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–10",
+          "meaning": "Reuse or generate the Session key, derive its accounts, and read Profile existence plus ordinary authority balance."
+        },
+        {
+          "lines": "Lines 12–24",
+          "meaning": "Optionally add Profile initialization and an owner-to-authority System Program transfer."
+        },
+        {
+          "lines": "Lines 25–33",
+          "meaning": "Add Session setup and send with the wallet as fee payer plus the Session key as co-signer."
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "The onboarding client asks the selected RPC for rent",
+      "language": "JavaScript",
+      "source": "play/play-onboarding.js",
+      "code": "  const promise = fetch(rpcUrl, {\n    method: \"POST\",\n    headers: { \"content-type\": \"application/json\" },\n    body: JSON.stringify({\n      jsonrpc: \"2.0\",\n      id: 1,\n      method: \"getMinimumBalanceForRentExemption\",\n      params: [bytes, { commitment: \"processed\" }],\n    }),",
+      "explanation": "The client sends the byte length to the configured RPC rather than deriving a permanent SOL number from source constants.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–3",
+          "meaning": "Send a JSON-RPC POST request."
+        },
+        {
+          "lines": "Lines 4–9",
+          "meaning": "Request the rent-exempt minimum for this byte length at processed commitment."
+        }
+      ]
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "title": "PlayerSession creation asks Solana Rent and uses the owner payer",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    let rent = Rent::get()?;\n    let lamports = rent.minimum_balance(PlayerSession::LEN);\n\n    if player_session.lamports() == 0 {\n        let create = system_instruction::create_account(\n            payer.key,\n            player_session.key,\n            lamports,\n            PlayerSession::LEN as u64,\n            program_id,\n        );\n        invoke_signed(\n            &create,\n            &[\n                payer.clone(),\n                player_session.clone(),\n                system_program_account.clone(),\n            ],\n            &[&[\n                PLAYER_SESSION_SEED,\n                payer.key.as_ref(),\n                session_authority.as_ref(),\n                &[bump],\n            ]],\n        )?;\n        return Ok(());\n    }",
+      "explanation": "The program queries rent for the fixed 184-byte layout and places that amount in the Session PDA using payer.key.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–2",
+          "meaning": "Read the current Rent sysvar and calculate the minimum for PlayerSession::LEN."
+        },
+        {
+          "lines": "Lines 4–10",
+          "meaning": "Build account creation using the instruction payer as funding source."
+        },
+        {
+          "lines": "Lines 11–25",
+          "meaning": "Sign for the PDA with owner and Session-authority derivation seeds."
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "Submission requests preflight",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function sendRawTransactionWithLogs(conn, serializedTransaction, context) {\n  try {\n    return await conn.sendRawTransaction(serializedTransaction, { skipPreflight: false });\n  } catch (error) {\n    await attachSendTransactionLogs(error, conn, context);\n    throw error;\n  }\n}",
+      "explanation": "A send error on this path is accompanied by preflight-enabled submission. It does not by itself demonstrate accepted execution.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–3",
+          "meaning": "Submit the signed bytes with preflight enabled."
+        },
+        {
+          "lines": "Lines 4–7",
+          "meaning": "Attach available diagnostic logs and preserve the failure."
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "Confirmed polling treats status.err as a signed transaction failure",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "  while (true) {\n    const statusResponse = await conn.getSignatureStatuses([signature]);\n    const status = statusResponse?.value?.[0] ?? null;\n    if (status?.err) throw createTransactionStatusError(signature, status.err);\n    if (hasReachedSignatureCommitment(status, commitment)) {\n      return {\n        context: statusResponse.context,\n        value: { err: null },\n      };\n    }",
+      "explanation": "The helper checks the submitted signature and keeps successful commitment distinct from a status that contains an execution error.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Poll the signature and throw a status error that retains the signature when execution failed."
+        },
+        {
+          "lines": "Lines 5–10",
+          "meaning": "Return success only after the requested commitment is reached without an error."
+        }
+      ]
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "title": "The client exposes actual meta.fee separately from total payer decrease",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "function transactionSolSpendFromMeta(transaction, payerKey, signature) {\n  const meta = transaction?.meta;\n  const preBalances = meta?.preBalances;\n  const postBalances = meta?.postBalances;\n  if (!Array.isArray(preBalances) || !Array.isArray(postBalances)) return null;\n  const accountKeys = transactionAccountKeys(transaction);\n  let payerIndex = accountKeys.findIndex((key) => key === payerKey);\n  if (payerIndex < 0) payerIndex = 0;\n  const pre = Number(preBalances[payerIndex]);\n  const post = Number(postBalances[payerIndex]);\n  const balanceDelta = Number.isFinite(pre) && Number.isFinite(post) ? Math.max(0, pre - post) : 0;\n  const fee = Number(meta?.fee);\n  const lamports = Math.max(balanceDelta, Number.isFinite(fee) ? fee : 0);\n  if (!Number.isFinite(lamports) || lamports <= 0) return null;\n  return {\n    signature,\n    payer: payerKey,\n    lamports: Math.floor(lamports),\n    feeLamports: Number.isFinite(fee) ? Math.floor(fee) : null,\n  };\n}",
+      "explanation": "lamports is a broad payer-decrease measure; feeLamports is the actual processing-fee field when transaction metadata is available.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Find the payer inside the transaction balance arrays."
+        },
+        {
+          "lines": "Lines 9–13",
+          "meaning": "Calculate positive payer decrease and read meta.fee separately."
+        },
+        {
+          "lines": "Lines 14–20",
+          "meaning": "Return both the broad spend number and the narrower fee field."
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "Player dispatch exposes one Appearance close and no other account close",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        15 => consume_equipment_durability(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
+      "explanation": "The complete current dispatch names Appearance close at tag 9 but no Profile, Session, Equipment, UsernameIndex, or InviteIndex close.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–10",
+          "meaning": "Profile, Session, name, and Appearance creation or update actions are enumerated."
+        },
+        {
+          "lines": "Line 11",
+          "meaning": "The sole Player close tag is specifically PlayerAppearance."
+        },
+        {
+          "lines": "Lines 12–19",
+          "meaning": "Invite and Equipment actions continue through tag 15 without another close."
+        }
+      ]
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "title": "Backpack dispatch contains no Backpack close",
+      "language": "Rust",
+      "source": "programs/nicechunk_backpack/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_backpack(program_id, accounts, payload),\n        1 => append_mined_resource(program_id, accounts, payload),\n        2 => remove_resource(program_id, accounts, payload),\n        3 => append_market_resource(program_id, accounts, payload),\n        4 => remove_resources(program_id, accounts, payload),\n        5 => append_smelting_item(program_id, accounts, payload),\n        6 => append_mined_resources_batch(program_id, accounts, payload),\n        7 => Err(NicechunkBackpackError::UnverifiedForgeInstructionDisabled.into()),\n        8 => forge_equipment_with_material_verification(program_id, accounts, payload),\n        9 => issue_blueprint(program_id, accounts, payload),\n        10 => transfer_backpack_item_to_equipment(program_id, accounts, payload),\n        11 => transfer_equipment_item_to_backpack(program_id, accounts, payload),\n        _ => Err(NicechunkBackpackError::InvalidInstruction.into()),\n    }",
+      "explanation": "The unified Game program routes a namespace to this dispatch. It initializes and mutates Backpack custody but exposes no account close.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Initialization and inventory append or removal actions are listed."
+        },
+        {
+          "lines": "Lines 9–14",
+          "meaning": "Forging, blueprint, and custody transfers complete the map without a close tag."
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Active Listing cancellation zeros the account and pays the seller",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    {\n        let mut data = listing.try_borrow_mut_data()?;\n        data[state::ListingAccount::STATE_OFFSET] = state::LISTING_STATE_CANCELED;\n        data.fill(0);\n    }\n\n    let listing_lamports = listing.lamports();\n    **seller.try_borrow_mut_lamports()? = seller\n        .lamports()\n        .checked_add(listing_lamports)\n        .ok_or(NicechunkMarketError::InvalidListingData)?;\n    **listing.try_borrow_mut_lamports()? = 0;\n\n    Ok(())",
+      "explanation": "After earlier active-seller validation and item restoration, this range clears Listing data and transfers its entire current lamport balance to the seller.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–5",
+          "meaning": "Mark the Listing canceled and clear its data."
+        },
+        {
+          "lines": "Lines 7–12",
+          "meaning": "Credit all current Listing lamports to seller and set Listing lamports to zero."
+        },
+        {
+          "lines": "Line 14",
+          "meaning": "Complete the cancellation only after all prior checks and writes succeed."
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Purchase marks the Listing sold without closing it",
+      "language": "Rust",
+      "source": "programs/nicechunk_market/src/lib.rs",
+      "code": "    let buyer_backpack = next_account_info(account_info_iter)?;\n    let backpack_program = next_account_info(account_info_iter)?;\n    let market_authority = next_account_info(account_info_iter)?;\n    append_market_slot_to_backpack(\n        program_id,\n        market_authority,\n        buyer,\n        buyer_backpack,\n        backpack_program,\n        &source_slot,\n    )?;\n\n    let clock = Clock::get()?;\n    let mut data = listing.try_borrow_mut_data()?;\n    ListingAccount::mark_sold(&mut data, buyer.key, clock.slot, clock.unix_timestamp)",
+      "explanation": "The item goes to the buyer's Backpack and the Listing data records a sold state. No lamport drain or account close appears.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–11",
+          "meaning": "Validate the remaining accounts and append the stored item to the buyer Backpack."
+        },
+        {
+          "lines": "Lines 13–15",
+          "meaning": "Write buyer and sale time into the still-existing Listing."
+        }
+      ]
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "title": "Appearance close accepts only treasury and sends treasury the lamports",
+      "language": "Rust",
+      "source": "programs/nicechunk_player/src/lib.rs",
+      "code": "    if !treasury_authority.is_signer || !treasury_authority.is_writable || !recipient.is_writable {\n        return Err(NicechunkPlayerError::InvalidTreasuryAuthority.into());\n    }\n    require_key_eq(\n        treasury_authority.key,\n        &NICECHUNK_TREASURY_AUTHORITY,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        recipient.key,\n        treasury_authority.key,\n        NicechunkPlayerError::InvalidTreasuryAuthority,\n    )?;\n    require_key_eq(\n        appearance.owner,\n        program_id,\n        NicechunkPlayerError::InvalidAppearanceOwner,\n    )?;\n\n    {\n        let data = appearance.try_borrow_data()?;\n        PlayerAppearance::validate_treasury_authority(&data, treasury_authority.key)?;\n        let owner = PlayerAppearance::owner(&data)?;\n        let (expected_appearance, _) =\n            Pubkey::find_program_address(&[PLAYER_APPEARANCE_SEED, owner.as_ref()], program_id);\n        require_key_eq(\n            appearance.key,\n            &expected_appearance,\n            NicechunkPlayerError::InvalidAppearancePda,\n        )?;\n    }\n    {\n        let mut data = appearance.try_borrow_mut_data()?;\n        data.fill(0);\n    }\n    let reclaimed_lamports = appearance.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient\n        .lamports()\n        .checked_add(reclaimed_lamports)\n        .ok_or(NicechunkPlayerError::InvalidAppearanceData)?;\n    **appearance.try_borrow_mut_lamports()? = 0;",
+      "explanation": "Both signing authority and recipient must be the configured treasury. The player's owner key is not accepted as the reclaim recipient.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–19",
+          "meaning": "Require writable treasury signer, treasury recipient equality, and Player ownership of Appearance."
+        },
+        {
+          "lines": "Lines 21–33",
+          "meaning": "Validate stored treasury policy and the owner-derived Appearance PDA."
+        },
+        {
+          "lines": "Lines 34–43",
+          "meaning": "Clear data, transfer all current lamports to treasury, and drain Appearance."
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "Pending upload cancellation closes only shards and manifest to Session authority",
+      "language": "Rust",
+      "source": "programs/nicechunk_building/src/lib.rs",
+      "code": "    {\n        let mut data = build_site.try_borrow_mut_data()?;\n        BuildSiteState::cancel_building(\n            &mut data,\n            &context.owner,\n            global_config.key,\n            revision,\n            context.clock.slot,\n        )?;\n    }\n    for account in shard_accounts {\n        if account.owner == program_id {\n            close_program_account(account, session_authority)?;\n        }\n    }\n    close_program_account(manifest, session_authority)\n}\n\nfn close_program_account(account: &AccountInfo, recipient: &AccountInfo) -> ProgramResult {\n    let account_lamports = account.lamports();\n    let recipient_lamports = recipient.lamports();\n    **recipient.try_borrow_mut_lamports()? = recipient_lamports\n        .checked_add(account_lamports)\n        .ok_or(NicechunkBuildingError::InvalidSystemAccount)?;\n    **account.try_borrow_mut_lamports()? = 0;\n    account.try_borrow_mut_data()?.fill(0);\n    Ok(())\n}",
+      "explanation": "The BuildSite is updated, each existing program-owned shard is drained, and the manifest is drained. The recipient passed by this instruction is session_authority.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–10",
+          "meaning": "Clear only the pending revision on the persistent BuildSite."
+        },
+        {
+          "lines": "Lines 11–16",
+          "meaning": "Close existing shards and then the manifest to the current Session authority."
+        },
+        {
+          "lines": "Lines 19–28",
+          "meaning": "The close helper adds all account lamports to the recipient, zeros lamports, and clears data."
+        }
+      ]
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "title": "The browser pre-funds missing upload accounts plus a buffer",
+      "language": "JavaScript",
+      "source": "src/chain/nicechunkChain.js",
+      "code": "async function fundBuildingUploadSession(provider, sessionAuthority, accountLengths, conn) {\n  if (provider.publicKey.equals(sessionAuthority)) return;\n  const lengths = (accountLengths ?? []).map((value) => Math.max(0, Math.trunc(Number(value) || 0))).filter(Boolean);\n  const uniqueLengths = [...new Set(lengths)];\n  const rentValues = await Promise.all(uniqueLengths.map((length) => conn.getMinimumBalanceForRentExemption(length)));\n  const rentByLength = new Map(uniqueLengths.map((length, index) => [length, rentValues[index]]));\n  const required = lengths.reduce((sum, length) => sum + (rentByLength.get(length) || 0), 0) + 1_000_000;\n  const balance = await conn.getBalance(sessionAuthority, \"confirmed\");\n  if (balance >= required) return;\n  const transaction = new Transaction().add(SystemProgram.transfer({\n    fromPubkey: provider.publicKey,\n    toPubkey: sessionAuthority,\n    lamports: required - balance,\n  }));\n  await signAndSendWalletTransaction(provider, transaction, conn);\n}",
+      "explanation": "Plugin mode estimates rent for missing account lengths and tops the Session authority up to that total plus one million lamports. The buffer is ordinary Session SOL, not PDA rent.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–6",
+          "meaning": "Skip when owner and Session are one address, then query rent once per unique account length."
+        },
+        {
+          "lines": "Lines 7–9",
+          "meaning": "Sum each account requirement, add the buffer, and compare the ordinary Session balance."
+        },
+        {
+          "lines": "Lines 10–16",
+          "meaning": "Transfer only the missing amount from owner with an owner-fee-paid transaction."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Chunk creates PlayerProgress with the Session payer",
+      "language": "Rust",
+      "source": "programs/nicechunk_chunk/src/lib.rs",
+      "code": "    let rent = Rent::get()?;\n    let lamports = rent.minimum_balance(PLAYER_PROGRESS_LEN);\n    if player_progress.lamports() == 0 {\n        let create = system_create_account(\n            payer.key,\n            player_progress.key,\n            lamports,\n            PLAYER_PROGRESS_LEN as u64,\n            program_id,\n        );\n        invoke_signed(\n            &create,\n            &[\n                payer.clone(),\n                player_progress.clone(),\n                system_program_account.clone(),\n            ],\n            &[seeds],\n        )?;\n    } else {",
+      "explanation": "The mining flow passes Session authority as payer into this helper, which creates the 128-byte progress account at the runtime minimum.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–2",
+          "meaning": "Calculate current rent for PLAYER_PROGRESS_LEN."
+        },
+        {
+          "lines": "Lines 3–10",
+          "meaning": "Create the PDA using payer.key as lamport source."
+        },
+        {
+          "lines": "Lines 11–19",
+          "meaning": "Invoke with payer, progress, and System Program accounts plus PDA seeds."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "The unified Game program routes three active account families by namespace",
+      "language": "Rust",
+      "source": "programs/nicechunk_game/src/lib.rs",
+      "code": "    let (tag, payload) = instruction_data\n        .split_first()\n        .ok_or(NicechunkGameError::InvalidInstruction)?;\n\n    match *tag {\n        NS_BACKPACK => nicechunk_backpack::process_instruction(program_id, accounts, payload),\n        NS_CHUNK => nicechunk_chunk::process_instruction(program_id, accounts, payload),\n        NS_SMELTING => nicechunk_smelting::process_instruction(program_id, accounts, payload),\n        NS_MARKET => nicechunk_market::process_instruction(program_id, accounts, payload),\n        _ => Err(NicechunkGameError::InvalidInstruction.into()),\n    }",
+      "explanation": "Current configuration uses this Game program for Backpack, Market, and Smelting. The namespace dispatcher adds no separate close behavior; each module's own dispatch remains decisive.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–3",
+          "meaning": "Read the first byte as a namespace tag."
+        },
+        {
+          "lines": "Lines 5–10",
+          "meaning": "Delegate to one module or reject an unknown namespace."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Core exposes initialization only",
+      "language": "Rust",
+      "source": "programs/nicechunk_core/src/lib.rs",
+      "code": "pub fn process_instruction(\n    program_id: &Pubkey,\n    accounts: &[AccountInfo],\n    instruction_data: &[u8],\n) -> ProgramResult {\n    if instruction_data != [0] {\n        return Err(NicechunkError::InvalidInstruction.into());\n    }\n\n    initialize_global_config(program_id, accounts)\n}",
+      "explanation": "Core accepts only tag 0 GlobalConfig initialization in this revision. There is no update or close dispatch.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–8",
+          "meaning": "Reject every instruction payload other than one byte containing zero."
+        },
+        {
+          "lines": "Line 10",
+          "meaning": "Run GlobalConfig initialization as the only action."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Guardian dispatch has registration and updates but no close",
+      "language": "Rust",
+      "source": "programs/nicechunk_guardian/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_registry(program_id, accounts),\n        1 => register_genesis_guardian(program_id, accounts, payload),\n        2 => register_guardian(program_id, accounts, payload),\n        5 => update_guardian_endpoint(program_id, accounts, payload),\n        6 => update_guardian_blueprint(program_id, accounts, payload),\n        8 => update_guardian_operator(program_id, accounts, payload),\n        _ => Err(NicechunkGuardianError::InvalidInstruction.into()),\n    }",
+      "explanation": "Registry and Region records can be created or updated, but no current tag closes them or returns their account lamports.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Initialize registry and register genesis or later Regions."
+        },
+        {
+          "lines": "Lines 5–8",
+          "meaning": "Update endpoint, blueprint, or operator and reject every other tag."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Civilization lifecycle transitions do not include close",
+      "language": "Rust",
+      "source": "programs/nicechunk_civilization/src/lib.rs",
+      "code": "    match tag {\n        0 => publish_rule_book(program_id, accounts, payload),\n        1 => sign_rule(program_id, accounts, payload),\n        2 => finalize_rule_tally(program_id, accounts),\n        3 => execute_rule_receipt(program_id, accounts),\n        4 => publish_power_snapshot(program_id, accounts, payload),\n        5 => settle_citizen_power(program_id, accounts, payload),\n        _ => Err(NicechunkCivilizationError::InvalidInstruction.into()),\n    }",
+      "explanation": "Publishing, signing, finalizing, executing, and settling all leave their program accounts allocated.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Create a rule, signature, tally, or receipt transition."
+        },
+        {
+          "lines": "Lines 5–8",
+          "meaning": "Create power records or reject an unrecognized action; no close appears."
+        }
+      ]
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "title": "Smelting dispatch has recipes and execution but no close",
+      "language": "Rust",
+      "source": "programs/nicechunk_smelting/src/lib.rs",
+      "code": "    match tag {\n        0 => initialize_recipe_table(program_id, accounts, payload),\n        1 => upsert_recipe(program_id, accounts, payload),\n        2 => execute_smelting(program_id, accounts, payload),\n        3 => set_recipe_table_authority(program_id, accounts),\n        4 => apply_civilization_recipe_receipt(program_id, accounts, payload),\n        _ => Err(NicechunkSmeltingError::InvalidInstruction.into()),\n    }",
+      "explanation": "RecipeTable and Smelting progress can be initialized or changed, but neither has a close tag.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–4",
+          "meaning": "Initialize or update recipes and execute a player Smelting action."
+        },
+        {
+          "lines": "Lines 5–7",
+          "meaning": "Change authority or apply a Civilization receipt, with all other tags rejected."
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "Modular logout clears browser prefixes without a chain call",
+      "language": "JavaScript",
+      "source": "play/play-auth-session.js",
+      "code": "export function clearWalletSession(storage = globalThis.localStorage) {\n  for (const key of Object.values(walletSessionKeys)) remove(storage, key);\n  const keys = [];\n  try {\n    for (let index = 0; index < storage.length; index += 1) {\n      const key = storage.key(index);\n      if (key) keys.push(key);\n    }\n  } catch {\n    return;\n  }\n  for (const key of keys) {\n    if (runtimeCachePrefixes.some((prefix) => key.startsWith(prefix))) remove(storage, key);\n  }\n}",
+      "explanation": "This function deletes local identity and runtime-cache keys. It constructs no transaction, calls no RPC, and invokes no program close.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–2",
+          "meaning": "Remove saved wallet identity values."
+        },
+        {
+          "lines": "Lines 3–11",
+          "meaning": "Enumerate browser storage, returning early if enumeration fails."
+        },
+        {
+          "lines": "Lines 12–14",
+          "meaning": "Remove keys matching plugin Session and related runtime prefixes."
+        }
+      ]
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "title": "Local Game Wallet disconnect does not delete its secret",
+      "language": "JavaScript",
+      "source": "src/localGameWallet.js",
+      "code": "export function getLocalGameWalletProvider() {\n  const keypair = loadLocalGameWalletKeypair();\n  if (!keypair) return null;\n  return {\n    isNiceChunkLocalGameWallet: true,\n    isConnected: true,\n    publicKey: keypair.publicKey,\n    async connect() {\n      return { publicKey: keypair.publicKey };\n    },\n    async disconnect() {\n      return undefined;\n    },\n    async signTransaction(transaction) {\n      transaction.partialSign(keypair);\n      return transaction;\n    },",
+      "explanation": "The Local Game Wallet provider stays backed by the same loaded keypair, and disconnect returns without removing it.",
+      "walkthrough": [
+        {
+          "lines": "Lines 1–7",
+          "meaning": "Load the persistent key and expose its public address."
+        },
+        {
+          "lines": "Lines 8–13",
+          "meaning": "Connect returns the address, while disconnect performs no deletion."
+        },
+        {
+          "lines": "Lines 14–17",
+          "meaning": "The same keypair remains able to sign transactions."
+        }
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Wallet sends assign provider.publicKey as fee payer; gameplay keypair sends assign signer.publicKey."
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "PlayerSession setup marks owner writable signer and Session authority signer, separating the storage payer from the co-signer."
+    },
+    {
+      "sectionId": "fee-payer-versus-storage-payer",
+      "path": "public/mainnet.json",
+      "claim": "Current source configuration declares Devnet and the active Player, Chunk, Building, and unified Game program routes."
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "play/play-onboarding.js",
+      "claim": "The browser requests getMinimumBalanceForRentExemption by byte length and keeps the 0.000005 SOL network-fee value as a presentation constant."
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Defines the exact current lengths for Profile, Session, Equipment, Appearance, UsernameIndex, and InviteIndex."
+    },
+    {
+      "sectionId": "rent-lamports-and-runtime-minimum",
+      "path": "programs/nicechunk_chunk/src/state.rs",
+      "claim": "Defines 128-byte PlayerProgress and ChunkBroken header, record, initial capacity, growth, and maximum capacity constants."
+    },
+    {
+      "sectionId": "transaction-outcomes-and-failure-fees",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Submission enables preflight, confirmation polls signature status, status errors retain signatures, and transaction metadata exposes both payer decrease and meta.fee."
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "Player creates or grows Profile, Session, Equipment, Appearance, UsernameIndex, and InviteIndex accounts while dispatch exposes only Appearance close."
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "sdk/nicechunk-player.ts",
+      "claim": "Profile, Appearance, Equipment, and Session addresses are derived from their documented owner and authority seeds."
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "programs/nicechunk_backpack/src/lib.rs",
+      "claim": "The owner funds Backpack creation and the Backpack instruction map contains no close."
+    },
+    {
+      "sectionId": "persistent-player-and-inventory-accounts",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Normal Backpack recovery first tests local cache and then reads the equipped Backpack pointer from PlayerProfile."
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_market/src/lib.rs",
+      "claim": "Seller funds Listing creation, active cancellation restores the item and drains Listing lamports to seller, while purchase marks the account sold without closing it."
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "The Market buyer is wallet fee payer and can fund missing seller or treasury associated token accounts during an NCK purchase."
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_player/src/lib.rs",
+      "claim": "PlayerAppearance close requires the configured treasury as signer and recipient and drains the Appearance account only to that treasury."
+    },
+    {
+      "sectionId": "market-and-appearance-close-paths",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "The Appearance state policy explicitly says the wallet funds rent while the protocol treasury owns reclaim authority."
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "programs/nicechunk_building/src/building.rs",
+      "claim": "Defines 160-byte BuildSite, 160-byte manifest, 64-byte shard header, uploading and active states, and bounded payload sizes."
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "programs/nicechunk_building/src/lib.rs",
+      "claim": "Session authority funds Building accounts; cancellation validates an uploading pending revision, updates BuildSite, and closes existing shards plus manifest to the current Session authority."
+    },
+    {
+      "sectionId": "building-upload-cancellation",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "The browser queries upload-account rent, adds a one-million-lamport Session buffer, and invokes cancellation only in its pending-payload mismatch recovery branch."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_chunk/src/lib.rs",
+      "claim": "Session authority funds missing Chunk PlayerProgress, ChunkBroken creation, and later ChunkBroken rent top-ups; dispatch has no close."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_game/src/lib.rs",
+      "claim": "The unified Game dispatcher contains Backpack, Chunk, Smelting, and Market namespaces without adding a separate close path; current source configuration selects it for Backpack, Smelting, and Market while Chunk uses its dedicated program."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_core/src/lib.rs",
+      "claim": "Core accepts only GlobalConfig initialization and exposes no close instruction."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_guardian/src/lib.rs",
+      "claim": "Guardian dispatch creates or updates Registry and Region state without an account close or stake-return instruction."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_guardian/src/state.rs",
+      "claim": "Defines 160-byte Registry and 288-byte Region layouts, including a removed status value that is not itself a close implementation."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_civilization/src/lib.rs",
+      "claim": "Civilization allocates its rule and power PDA families and dispatches publish, sign, tally, execute, snapshot, and settle without close."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_civilization/src/state.rs",
+      "claim": "Defines the exact lengths of PowerSnapshot, CitizenPower, RuleBook, RuleSignature, RuleTally, and ExecutionReceipt."
+    },
+    {
+      "sectionId": "world-production-and-governance-accounts",
+      "path": "programs/nicechunk_smelting/src/lib.rs",
+      "claim": "Smelting creates RecipeTable and program-scoped PlayerProgress accounts but exposes no close tag."
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "play/play-auth-session.js",
+      "claim": "Modular logout deletes local wallet identity and Session-related browser prefixes without submitting a chain transaction."
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "login/login.js",
+      "claim": "Login-page Disconnect Wallet clears its wallet binding after a best-effort provider disconnect and does not perform Session cleanup or a chain close."
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "src/localGameWallet.js",
+      "claim": "Local Game Wallet stores an unencrypted Base58 secret under separate keys and its provider disconnect method is a no-op."
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "src/chain/nicechunkChain.js",
+      "claim": "Plugin Session secrets are Base64 browser records; a surviving key is reused, while a missing key leads to a different authority and Session PDA."
+    },
+    {
+      "sectionId": "logout-expiry-key-loss-and-recovery",
+      "path": "programs/nicechunk_player/src/state.rs",
+      "claim": "Session expiry validation rejects expired actions but does not close the Session account or move the authority's ordinary SOL."
+    }
+  ],
+  "related": [
+    {
+      "slug": "session-funding-and-expiry",
+      "href": "/docs/session-funding-and-expiry/",
+      "title": "A Funding Target Is Not a Balance",
+      "summary": "Review browser funding policy, owner and Session balances, client timing windows, chain time, and safe retry decisions before this account-by-account inventory."
+    },
+    {
+      "slug": "player-sessions",
+      "href": "/docs/player-sessions/",
+      "title": "A Session Limits Cooperating Consumers, Not the Key",
+      "summary": "See exactly what the ordinary Session signer can sign, which programs validate its PDA, and why expiry is not revocation."
+    },
+    {
+      "slug": "marketplace-listings",
+      "href": "/docs/marketplace-listings/",
+      "title": "Follow Listing Custody and Settlement",
+      "summary": "Inspect item custody, seller and buyer checks, SOL and NCK settlement, and the difference between cancellation and purchase."
+    }
+  ],
+  "pathNavigation": {
+    "ariaLabel": "Player, wallet, and control learning path navigation",
+    "heading": {
+      "eyebrow": "REVIEW THE PUBLISHED PLAYER AND WALLET PATH",
+      "title": "Return to the funding and expiry decisions behind this account inventory",
+      "summary": "This guide completes the currently published player-and-wallet sequence by separating fees, account lamports, close paths, retained rent, and key recovery. Use the previous guide to review target balances, browser timing, Session refresh, and unknown-result checks before applying this inventory."
+    },
+    "items": [
+      {
+        "label": "Previous guide",
+        "slug": "session-funding-and-expiry",
+        "title": "Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time",
+        "summary": "Review the four money-shaped values, browser policy windows, chain time, Session reuse, and unknown-result checklist that this fee and rent inventory assumes."
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="skills-xp-and-progress" data-docs-static-source="da88494ba505afdad14303a80375a03d255334475ef6f66b4b75acbb61d43db2">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="skills-xp-and-progress" data-docs-static-source="5b575bc6c4417564653f94fe9455695a00a55d9482ae77d2d3efff1c8e4a2e91">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/skills-xp-and-progress.json" />
-    <meta name="nicechunk:source-sha256" content="da88494ba505afdad14303a80375a03d255334475ef6f66b4b75acbb61d43db2" />
+    <meta name="nicechunk:source-sha256" content="5b575bc6c4417564653f94fe9455695a00a55d9482ae77d2d3efff1c8e4a2e91" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/skills-xp-and-progress/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -1031,14 +1031,14 @@ pub const EXPLORATION_TOTAL_XP_BY_LEVEL: [u64; 11] = [
 pub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;
 pub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;
 pub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;
-pub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 7_000;
-pub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 300;
+pub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 1_000;
+pub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 500;
 pub const SMELTING_XP_PER_INPUT: u64 = 1;
 pub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;
 pub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [
     0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,
 ];</code></pre>
-<p class="docs-technical-explanation">Smelting's output percentage grows from 7,000 basis points by 300 per contract level. Its XP table matches the browser curve, and the award unit is one XP per selected input.</p>
+<p class="docs-technical-explanation">Smelting's output percentage starts at 1,000 basis points and gains 500 per contract level, reaching 6,000 at level ten. Its XP table matches the browser curve, and the award unit is one XP per selected input.</p>
 <ol class="docs-code-walkthrough"><li><strong>Lines 4–7</strong>
 <p>Define the output basis-point parameters and one-XP input award.</p></li>
 <li><strong>Lines 9–11</strong>

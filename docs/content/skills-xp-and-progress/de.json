@@ -3,8 +3,8 @@
     "language": "de",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-skills-xp-and-progress-de-e632cf609103cd8f",
-    "contentHash": "e632cf609103cd8f"
+    "version": "docs-document-skills-xp-and-progress-de-7c515f2264a40707",
+    "contentHash": "7c515f2264a40707"
   },
   "slug": "skills-xp-and-progress",
   "kind": "topic",
@@ -1036,8 +1036,8 @@
       "title": "Game/Smelting owns its matching level table and per-input XP constant",
       "language": "Rust",
       "source": "programs/nicechunk_smelting/src/state.rs",
-      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 7_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 300;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
-      "explanation": "Smelting's output percentage grows from 7,000 basis points by 300 per contract level. Its XP table matches the browser curve, and the award unit is one XP per selected input.",
+      "code": "pub const BACKPACK_SLOT_KIND_ITEM: u8 = 2;\npub const BACKPACK_ITEM_CATEGORY_MATERIAL: u8 = 1;\npub const DEFAULT_RESOURCE_VOLUME_MM3: u32 = 1_000_000;\npub const RECIPE_YIELD_BPS_DENOMINATOR: u16 = 10_000;\npub const SMELTING_SKILL_BASE_OUTPUT_BPS: u16 = 1_000;\npub const SMELTING_SKILL_OUTPUT_BPS_PER_LEVEL: u16 = 500;\npub const SMELTING_XP_PER_INPUT: u64 = 1;\npub const DURABILITY_BPS_DENOMINATOR: u64 = 10_000;\npub const SMELTING_TOTAL_XP_BY_LEVEL: [u64; 11] = [\n    0, 1_200, 4_738, 11_398, 21_831, 36_608, 56_246, 81_223, 111_984, 148_950, 192_519,\n];",
+      "explanation": "Smelting's output percentage starts at 1,000 basis points and gains 500 per contract level, reaching 6,000 at level ten. Its XP table matches the browser curve, and the award unit is one XP per selected input.",
       "walkthrough": [
         {
           "lines": "Lines 4–7",

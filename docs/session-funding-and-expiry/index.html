@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="session-funding-and-expiry" data-docs-static-source="d1d61960cbf60ed55770771933d3e64a7b7219aa668c55151b00079ee3604419">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="session-funding-and-expiry" data-docs-static-source="465bda06135571c5a9c5c91cc942a7e1a7948bb953d5aca63751e00dae122177">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/session-funding-and-expiry.json" />
-    <meta name="nicechunk:source-sha256" content="d1d61960cbf60ed55770771933d3e64a7b7219aa668c55151b00079ee3604419" />
+    <meta name="nicechunk:source-sha256" content="465bda06135571c5a9c5c91cc942a7e1a7948bb953d5aca63751e00dae122177" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/session-funding-and-expiry/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -1027,16 +1027,17 @@ const walletBalanceCache = new Map();</code></pre>
         12 =&gt; set_equipment_slot_v2(program_id, accounts, payload),
         13 =&gt; transfer_equipment_slot(program_id, accounts, payload),
         14 =&gt; swap_equipment_slots(program_id, accounts, payload),
+        15 =&gt; consume_equipment_durability(program_id, accounts, payload),
         _ =&gt; Err(NicechunkPlayerError::InvalidInstruction.into()),
     }</code></pre>
-<p class="docs-technical-explanation">Tag 4 creates or refreshes PlayerSession. Current tags 13 and 14 transfer or swap equipment slots; they do not close a Session. In this complete reviewed dispatch there is still no tag for closing, revoking, deactivating, or refunding PlayerSession, while tag 9 closes Appearance instead.</p>
+<p class="docs-technical-explanation">Tag 4 creates or refreshes PlayerSession. Tags 13 and 14 transfer or swap equipment slots, and tag 15 consumes equipment durability; none closes a Session. In this complete reviewed dispatch there is still no tag for closing, revoking, deactivating, or refunding PlayerSession, while tag 9 closes Appearance instead.</p>
 <ol class="docs-code-walkthrough"><li><strong>Lines 1–6</strong>
 <p>Route player identity and equipment tags, with Session create-or-refresh at tag 4.</p></li>
 <li><strong>Lines 7–14</strong>
 <p>Route forging, name, Appearance, invite, and v2 equipment operations; Appearance close is not Session close.</p></li>
-<li><strong>Lines 15–16</strong>
-<p>Route the current equipment transfer and swap instructions, neither of which changes PlayerSession lifecycle.</p></li>
-<li><strong>Lines 17–18</strong>
+<li><strong>Lines 15–17</strong>
+<p>Route equipment transfer, swap, and durability consumption; none changes PlayerSession lifecycle.</p></li>
+<li><strong>Lines 18–19</strong>
 <p>Reject every undeclared tag rather than exposing an unlisted Session close, revoke, deactivate, or refund operation.</p></li></ol></article>
 <article class="docs-code-snippet"><div class="docs-code-heading"><h3>Logout scans every matching runtime prefix on this origin</h3>
 <span class="docs-code-language">JavaScript</span>

@@ -3,8 +3,8 @@
     "language": "en",
     "sourceLanguage": "en",
     "translationStatus": "source-en",
-    "version": "docs-document-catalog-en-7e4fbab487435982",
-    "contentHash": "7e4fbab487435982"
+    "version": "docs-document-catalog-en-9e2b4f6cbad8dcb6",
+    "contentHash": "9e2b4f6cbad8dcb6"
   },
   "kind": "catalog",
   "slug": "catalog",
@@ -239,6 +239,15 @@
           "readingTime": "54 min",
           "title": "Session Funding and Expiry: A Target Is Not a Balance, and Browser Time Is Not Chain Time",
           "summary": "Separate the browser's 0.1 SOL target from owner, session-authority, and PlayerSession-rent balances, then compare browser policy windows with Solana Clock before deciding whether to top up, reuse, refresh, replace, or recover a key."
+        },
+        {
+          "slug": "transaction-fees-rent-and-recovery",
+          "href": "/docs/transaction-fees-rent-and-recovery/",
+          "status": "ready",
+          "step": "2.13",
+          "readingTime": "62 min",
+          "title": "Transaction Fees, Account Rent, and Recovery: Who Pays and What Can Return",
+          "summary": "Inventory exact transaction fee payers, account-rent payers, close instructions, refunds, stranded balances, and recovery prerequisites without treating every lamport as the same kind of cost."
         }
       ]
     },

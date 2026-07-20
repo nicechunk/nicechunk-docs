@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="material-lifecycle" data-docs-static-source="102d00cfbd646f64a8e519507e85157ba3ea171bd55410d44408c37c5953b036">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="material-lifecycle" data-docs-static-source="598d7da9024a6b0c6ccf4dd91397f5fd8641631be288e32150c690a274d1d77a">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/material-lifecycle.json" />
-    <meta name="nicechunk:source-sha256" content="102d00cfbd646f64a8e519507e85157ba3ea171bd55410d44408c37c5953b036" />
+    <meta name="nicechunk:source-sha256" content="598d7da9024a6b0c6ccf4dd91397f5fd8641631be288e32150c690a274d1d77a" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/material-lifecycle/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -216,13 +216,13 @@
 <section class="docs-content-section" id="consumed-output"><p class="docs-eyebrow">AUTHORITATIVE MATERIAL TRANSITION</p>
 <h2>Recipe execution removes the selected slots and writes the resulting cloth volume</h2>
 <p class="docs-prose">Before mutating the backpack, the Smelting Program validates its owner, capacity, every unique input and fuel index, exact multiplicities, heat tier, and the room available after removal and output insertion. It sums the recipe-input volumes, excluding fuel, then removes every selected input and fuel record through the Backpack Program.</p>
-<p class="docs-prose">For each active output, the program starts from that output's PDA template volume, scales it by batch multiplier and by the ratio of actual selected input volume to expected recipe-template input volume, then applies recipe yield and the current Smelting skill factor with integer arithmetic. For one default-volume cotton-cloth batch, the one-million template becomes 455,000 cubic millimetres at level zero or 650,000 at level ten. The current one-output recipe writes one cloth slot carrying that calculated batch volume.</p>
+<p class="docs-prose">For each active output, the program starts from that output's PDA template volume, scales it by batch multiplier and by the ratio of actual selected input volume to expected recipe-template input volume, then applies recipe yield and the current Smelting skill factor with integer arithmetic. For one default-volume cotton-cloth batch, the one-million template becomes 65,000 cubic millimetres at level zero or 390,000 at level ten. The current one-output recipe writes one cloth slot carrying that calculated batch volume.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Fiber recipe yield</span>
 <strong>6,500 bps</strong>
 <p>Applied to the scaled per-output PDA template before the skill factor, using integer division.</p></article>
 <article class="docs-fact"><span>Skill output factor</span>
-<strong>7,000 to 10,000 bps</strong>
-<p>Level zero starts at 70%; levels one through ten add 3 percentage points each.</p></article>
+<strong>1,000 to 6,000 bps</strong>
+<p>Level zero starts at 10%; levels one through ten add 5 percentage points each.</p></article>
 <article class="docs-fact"><span>Mutation scope</span>
 <strong>Inputs + fuel out · cloth in</strong>
 <p>All records change inside one atomic transaction.</p></article></div>
@@ -268,8 +268,8 @@
 <dt>A_decoration, A_extra</dt>
 <dd>The secondary records that actually fit and are therefore appended.</dd></dl></article>
 <article class="docs-formula"><h3>Cotton-cloth inputs and per-output integer volume</h3>
-<div aria-label="N_cotton=4m; N_dryGrass=m; N_fuel&gt;=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(10000,7000+300L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))" class="docs-formula-expression" role="math"><code>N_cotton=4m; N_dryGrass=m; N_fuel&gt;=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(10000,7000+300L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))</code></div>
-<p class="docs-technical-explanation">Batch multiplier m repeats each of recipe 1025's five input rows, while every input and fuel index must remain unique. Fuel volume is not part of V_in. The program first scales this output's one-million-cubic-millimetre PDA template by the ratio between selected and recipe-template input volume, then applies the 6,500-basis-point recipe yield and the 7,000-to-10,000 skill factor with integer division. It does not divide one aggregate result evenly among outputs.</p>
+<div aria-label="N_cotton=4m; N_dryGrass=m; N_fuel&gt;=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(6000,1000+500L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))" class="docs-formula-expression" role="math"><code>N_cotton=4m; N_dryGrass=m; N_fuel&gt;=1; inputIndexes intersect fuelIndexes = empty; b_skill=min(6000,1000+500L); V_expected=max(1,m*V_recipe); V_scaled=floor(max(1,V_template)*m*max(1,V_in)/V_expected); V_cloth=max(1,min(2^32-1,floor(floor(V_scaled*6500/10000)*b_skill/10000)))</code></div>
+<p class="docs-technical-explanation">Batch multiplier m repeats each of recipe 1025's five input rows, while every input and fuel index must remain unique. Fuel volume is not part of V_in. The program first scales this output's one-million-cubic-millimetre PDA template by the ratio between selected and recipe-template input volume, then applies the 6,500-basis-point recipe yield and the 1,000-to-6,000 skill factor with integer division. It does not divide one aggregate result evenly among outputs.</p>
 <dl class="docs-formula-terms"><dt>m</dt>
 <dd>Recipe batch multiplier; one batch selects four cotton blocks and one dry-grass block.</dd>
 <dt>L</dt>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="backpack-inventory" data-docs-static-source="6a76ef9da321105c021f93bb8bfcd6ccc066170c3040681bf32a5b1a172dcf8b">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="backpack-inventory" data-docs-static-source="5bf73cf1b8b73d8f573bcd489165ad2b9e6164036a503a65cb87d8fc8b6c58cb">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/backpack-inventory.json" />
-    <meta name="nicechunk:source-sha256" content="6a76ef9da321105c021f93bb8bfcd6ccc066170c3040681bf32a5b1a172dcf8b" />
+    <meta name="nicechunk:source-sha256" content="5bf73cf1b8b73d8f573bcd489165ad2b9e6164036a503a65cb87d8fc8b6c58cb" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/backpack-inventory/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -400,27 +400,20 @@
     }
 }</code></pre>
 <p class="docs-technical-explanation">This encoder exposes the nominal 1-through-127 ID range and raw-Y fallback. The current consumers add a stricter signed-value condition, making sixty-three the actual end-to-end ceiling. Present IDs stop at fifty-three, so current data remains inside both envelopes.</p></article>
-<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js paints ordinary block icons from the same baked material system</h3>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Chunk.js reconstructs ordinary block icons from the canonical world preview mesh</h3>
 <span class="docs-code-language">JavaScript</span>
 <code class="docs-code-source">chunk.js/renderer/item-preview.js</code></div>
-<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  if (blockId !== null &amp;&amp; blockId &gt; BLOCK_ID.air) {
-    const bakedFaces = createBakedVoxelCubeFaces(blockId, {
-      textureSeed: options.textureSeed,
-      textureTileSize: options.textureTileSize,
-    });
-    const renderVoxelYaw = (yaw = 0) =&gt; {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, size, size);
-      drawBakedVoxelCube(ctx, size, bakedFaces, yaw);
-    };
-    renderVoxelYaw(options.yaw);
-    Object.defineProperty(canvas, "renderVoxelYaw", {
-      value: renderVoxelYaw,
-      configurable: true,
-    });
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">  const blockId = Number.isFinite(item.blockId) ? item.blockId : null;
+  const resourceId = Number.isFinite(item.resourceId) ? item.resourceId : blockId !== null ? blockDef(blockId).resourceId : RESOURCE_ID.stone;
+  const previewBlockId = blockId ?? resourcePreviewBlockId(resourceId);
+  if (previewBlockId !== null &amp;&amp; hasWorldBlockPreviewModel(previewBlockId)) {
+    const mesh = createWorldBlockPreviewMesh({ blockId: previewBlockId });
+    bindVoxelPreviewMesh(canvas, ctx, size, mesh, options);
+    canvas.dataset.worldBlockModelBlockId = String(previewBlockId);
+    if (blockId === null) canvas.dataset.worldBlockModelSource = "resource";
     return canvas;
   }</code></pre>
-<p class="docs-technical-explanation">Once the account decoder recovers a block ID, the icon path asks the registry for its face materials and deterministically bakes their tiles. Special resource drops, surface decorations, smelted materials, and forged items take model-specific reconstruction branches instead of storing raster images in the PDA.</p></article></div></section>
+<p class="docs-technical-explanation">After the account decoder recovers a block or resource ID, the current icon path resolves a canonical preview block, rebuilds the same world-preview mesh, and hands that mesh to the shared texture-array rasterizer. Surface decorations, smelted materials, equipment, and forged items use their own reconstruction branches; the PDA still stores identities and properties rather than a raster image.</p></article></div></section>
 <section class="docs-evidence" id="evidence"><p class="docs-eyebrow">IMPLEMENTATION EVIDENCE</p>
 <h2>Where these claims come from</h2>
 <p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>

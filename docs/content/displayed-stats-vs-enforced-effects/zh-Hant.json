@@ -3,8 +3,8 @@
     "language": "zh-Hant",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-displayed-stats-vs-enforced-effects-zh-Hant-67900f71821c30ac",
-    "contentHash": "67900f71821c30ac"
+    "version": "docs-document-displayed-stats-vs-enforced-effects-zh-Hant-7d4c7fc59c1b80c3",
+    "contentHash": "7d4c7fc59c1b80c3"
   },
   "slug": "displayed-stats-vs-enforced-effects",
   "kind": "topic",
@@ -635,7 +635,7 @@
     },
     {
       "title": "The six visible Profile cards",
-      "expression": "Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(100,70+3M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)",
+      "expression": "Gathering=min(100,10+10P)%; Carry=30+10B kg; Smelting=min(60,10+5M)%; Speed=100+3W%; Strength=8+4S kg; Crafting=1+floor(C/2)",
       "ariaLabel": "The six Profile cards derive Gathering, Carry, Smelting, Speed, Strength, and Crafting from six browser skill levels.",
       "explanation": "P, B, M, W, S, and C are effective browser levels for Precision Gathering, Burden, Smelting, Swiftness, Strength, and Craftsmanship. These formulas do not decode the six base Profile attributes.",
       "terms": [
@@ -823,7 +823,7 @@
       "title": "The six Profile cards are skill formulas",
       "language": "JavaScript",
       "source": "play/play-profile-ui.js",
-      "code": "    const levels = effectiveSkillLevels(skillState);\n    const stats = [\n      { id: \"gathering\", label: ui(\"main.profile.statGathering\", \"Gathering\"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },\n      { id: \"carry\", label: ui(\"main.profile.statCarry\", \"Carry\"), value: `${30 + levels.burden * 10} kg` },\n      { id: \"smelting\", label: ui(\"main.profile.statSmelting\", \"Smelting\"), value: `${Math.min(100, 70 + levels.smelting * 3)}%` },\n      { id: \"speed\", label: ui(\"main.profile.statSpeed\", \"Speed\"), value: `${100 + levels.swiftness * 3}%` },\n      { id: \"strength\", label: ui(\"main.profile.statStrength\", \"Strength\"), value: `${8 + levels.strength * 4} kg` },\n      { id: \"crafting\", label: ui(\"main.profile.statCrafting\", \"Crafting\"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },\n    ];",
+      "code": "    const levels = effectiveSkillLevels(skillState);\n    const stats = [\n      { id: \"gathering\", label: ui(\"main.profile.statGathering\", \"Gathering\"), value: `${Math.min(100, 10 + levels.precisionGathering * 10)}%` },\n      { id: \"carry\", label: ui(\"main.profile.statCarry\", \"Carry\"), value: `${30 + levels.burden * 10} kg` },\n      { id: \"smelting\", label: ui(\"main.profile.statSmelting\", \"Smelting\"), value: `${Math.min(60, 10 + levels.smelting * 5)}%` },\n      { id: \"speed\", label: ui(\"main.profile.statSpeed\", \"Speed\"), value: `${100 + levels.swiftness * 3}%` },\n      { id: \"strength\", label: ui(\"main.profile.statStrength\", \"Strength\"), value: `${8 + levels.strength * 4} kg` },\n      { id: \"crafting\", label: ui(\"main.profile.statCrafting\", \"Crafting\"), value: `T${1 + Math.floor(levels.craftsmanship / 2)}` },\n    ];",
       "explanation": "Every visible card is derived from a browser skill level. The similarly named Strength and Smelting cards are not direct decodes of PlayerProfile base attributes.",
       "walkthrough": [
         {

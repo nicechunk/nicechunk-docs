@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "translated",
-    "version": "docs-document-catalog-zh-Hans-f8bed9fbceb38290",
-    "contentHash": "f8bed9fbceb38290"
+    "version": "docs-document-catalog-zh-Hans-a2aac632c93150b0",
+    "contentHash": "a2aac632c93150b0"
   },
   "kind": "catalog",
   "slug": "catalog",
@@ -239,6 +239,15 @@
           "readingTime": "54 分钟",
           "title": "会话注资与到期：目标不是余额，浏览器时间也不是链上时间",
           "summary": "把浏览器中的 0.1 SOL 目标值，与 owner、sessionAuthority 以及 PlayerSession 租金余额分开；再对照浏览器策略时间窗口和 Solana Clock，判断何时应补款、复用、刷新、更换或恢复密钥。"
+        },
+        {
+          "slug": "transaction-fees-rent-and-recovery",
+          "href": "/docs/transaction-fees-rent-and-recovery/",
+          "status": "ready",
+          "step": "2.13",
+          "readingTime": "62 分钟",
+          "title": "交易手续费、账户租金与恢复：谁来支付，哪些资金可以返还",
+          "summary": "逐项核对交易手续费付款方、账户租金付款方、关闭指令、退款、滞留余额与恢复前提，不把每一笔 lamport 都当成同一种成本。"
         }
       ]
     },

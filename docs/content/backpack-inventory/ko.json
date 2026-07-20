@@ -3,8 +3,8 @@
     "language": "ko",
     "sourceLanguage": "en",
     "translationStatus": "fallback-en",
-    "version": "docs-document-backpack-inventory-ko-8651cb50e50be162",
-    "contentHash": "8651cb50e50be162"
+    "version": "docs-document-backpack-inventory-ko-840cf2af02c4e48d",
+    "contentHash": "840cf2af02c4e48d"
   },
   "kind": "topic",
   "slug": "backpack-inventory",
@@ -171,11 +171,11 @@
       "explanation": "This encoder exposes the nominal 1-through-127 ID range and raw-Y fallback. The current consumers add a stricter signed-value condition, making sixty-three the actual end-to-end ceiling. Present IDs stop at fifty-three, so current data remains inside both envelopes."
     },
     {
-      "title": "Chunk.js paints ordinary block icons from the same baked material system",
+      "title": "Chunk.js reconstructs ordinary block icons from the canonical world preview mesh",
       "language": "JavaScript",
       "source": "chunk.js/renderer/item-preview.js",
-      "code": "  if (blockId !== null && blockId > BLOCK_ID.air) {\n    const bakedFaces = createBakedVoxelCubeFaces(blockId, {\n      textureSeed: options.textureSeed,\n      textureTileSize: options.textureTileSize,\n    });\n    const renderVoxelYaw = (yaw = 0) => {\n      ctx.setTransform(1, 0, 0, 1, 0, 0);\n      ctx.clearRect(0, 0, size, size);\n      drawBakedVoxelCube(ctx, size, bakedFaces, yaw);\n    };\n    renderVoxelYaw(options.yaw);\n    Object.defineProperty(canvas, \"renderVoxelYaw\", {\n      value: renderVoxelYaw,\n      configurable: true,\n    });\n    return canvas;\n  }",
-      "explanation": "Once the account decoder recovers a block ID, the icon path asks the registry for its face materials and deterministically bakes their tiles. Special resource drops, surface decorations, smelted materials, and forged items take model-specific reconstruction branches instead of storing raster images in the PDA."
+      "code": "  const blockId = Number.isFinite(item.blockId) ? item.blockId : null;\n  const resourceId = Number.isFinite(item.resourceId) ? item.resourceId : blockId !== null ? blockDef(blockId).resourceId : RESOURCE_ID.stone;\n  const previewBlockId = blockId ?? resourcePreviewBlockId(resourceId);\n  if (previewBlockId !== null && hasWorldBlockPreviewModel(previewBlockId)) {\n    const mesh = createWorldBlockPreviewMesh({ blockId: previewBlockId });\n    bindVoxelPreviewMesh(canvas, ctx, size, mesh, options);\n    canvas.dataset.worldBlockModelBlockId = String(previewBlockId);\n    if (blockId === null) canvas.dataset.worldBlockModelSource = \"resource\";\n    return canvas;\n  }",
+      "explanation": "After the account decoder recovers a block or resource ID, the current icon path resolves a canonical preview block, rebuilds the same world-preview mesh, and hands that mesh to the shared texture-array rasterizer. Surface decorations, smelted materials, equipment, and forged items use their own reconstruction branches; the PDA still stores identities and properties rather than a raster image."
     }
   ],
   "sections": [

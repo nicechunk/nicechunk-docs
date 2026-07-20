@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "translated",
-    "version": "docs-document-session-funding-and-expiry-zh-Hans-304eaf01ba942a02",
-    "contentHash": "304eaf01ba942a02"
+    "version": "docs-document-session-funding-and-expiry-zh-Hans-01d7ba9c36f25f3b",
+    "contentHash": "01d7ba9c36f25f3b"
   },
   "slug": "session-funding-and-expiry",
   "kind": "topic",
@@ -1254,8 +1254,8 @@
       "title": "经审核的 Player 分发器支持创建或刷新，却没有终止 Session 的指令标签",
       "language": "Rust",
       "source": "programs/nicechunk_player/src/lib.rs",
-      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
-      "explanation": "标签 4 创建或刷新 PlayerSession。当前标签 13 和 14 用于转移或交换装备槽位，不会关闭 Session。在这份完整审核过的分发表中，仍没有用于关闭、撤销、停用或退还 PlayerSession 的标签；标签 9 关闭的是 Appearance。",
+      "code": "    match tag {\n        0 => initialize_player(program_id, accounts, payload),\n        1 => update_position(program_id, accounts, payload),\n        2 => set_equipment_slot(program_id, accounts, payload),\n        3 => set_backpack_style(program_id, accounts, payload),\n        4 => create_or_refresh_player_session(program_id, accounts, payload),\n        5 => set_equipped_backpack(program_id, accounts),\n        6 => add_forging_xp(program_id, accounts, payload),\n        7 => set_player_name(program_id, accounts, payload),\n        8 => upsert_player_appearance(program_id, accounts, payload),\n        9 => close_player_appearance(program_id, accounts),\n        10 => initialize_invite_index_page(program_id, accounts, payload),\n        11 => append_invite_registration(program_id, accounts, payload),\n        12 => set_equipment_slot_v2(program_id, accounts, payload),\n        13 => transfer_equipment_slot(program_id, accounts, payload),\n        14 => swap_equipment_slots(program_id, accounts, payload),\n        15 => consume_equipment_durability(program_id, accounts, payload),\n        _ => Err(NicechunkPlayerError::InvalidInstruction.into()),\n    }",
+      "explanation": "标签 4 创建或刷新 PlayerSession。标签 13 和 14 用于转移或交换装备槽位，标签 15 用于消耗装备耐久度；它们都不会关闭 Session。在这份完整审核过的分发表中，仍没有用于关闭、撤销、停用或退还 PlayerSession 的标签；标签 9 关闭的是 Appearance。",
       "walkthrough": [
         {
           "lines": "第 1–6 行",
@@ -1266,11 +1266,11 @@
           "meaning": "分发锻造、名称、Appearance、邀请和 v2 装备操作；关闭 Appearance 不等于关闭 Session。"
         },
         {
-          "lines": "第 15–16 行",
-          "meaning": "分发当前的装备转移与交换指令；两者都不会改变 PlayerSession 生命周期。"
+          "lines": "第 15–17 行",
+          "meaning": "分发装备转移、交换与耐久度消耗操作；它们都不会改变 PlayerSession 的生命周期。"
         },
         {
-          "lines": "第 17–18 行",
+          "lines": "第 18–19 行",
           "meaning": "拒绝所有未声明标签，而不是暴露未列出的 Session 关闭、撤销、停用或退款操作。"
         }
       ]
