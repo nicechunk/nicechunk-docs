@@ -3,8 +3,8 @@
     "language": "zh-Hans",
     "sourceLanguage": "en",
     "translationStatus": "translated",
-    "version": "docs-document-local-game-wallet-backup-and-risk-zh-Hans-7ae699140dd3888a",
-    "contentHash": "7ae699140dd3888a"
+    "version": "docs-document-local-game-wallet-backup-and-risk-zh-Hans-fc3a685468e86543",
+    "contentHash": "fc3a685468e86543"
   },
   "kind": "topic",
   "slug": "local-game-wallet-backup-and-risk",
@@ -44,7 +44,7 @@
       },
       {
         "label": "已审核",
-        "value": "2026 年 7 月 15 日 · 当前工作树、9 项聚焦密钥测试，以及构建后浏览器登录流程"
+        "value": "2026 年 7 月 20 日 · 当前工作树、15 项聚焦密钥测试、构建后的钱包流程审计，以及独立的登录导入审计"
       }
     ],
     "terms": [
@@ -82,7 +82,7 @@
       },
       {
         "term": "32 字节种子",
-        "meaning": "一种可接受的原始字节导入形式。它不是由 12 个或 24 个单词组成的助记词。解析器把这些字节交给 Keypair.fromSeed，然后保存由此得到的完整 64 字节私钥。"
+        "meaning": "一种较底层的密钥来源，只允许放在明确标注类型的 NiceChunk 种子记录中导入。单独输入的 32 字节 Base58 值或 JSON 数组会被拒绝，因为它与公开地址无法区分；它也不是由 12 个或 24 个单词组成的恢复短语。"
       },
       {
         "term": "64 字节秘密密钥",
@@ -94,7 +94,7 @@
       },
       {
         "term": "JSON 秘密密钥数组",
-        "meaning": "粘贴后由当前解析器使用 Uint8Array.from 转换的数组。结果长度必须为 32 或 64，但代码不会严格检查每个元素是否为 0 到 255 的整数。"
+        "meaning": "一种恰好包含 64 个整数的粘贴数组，每个整数都必须在 0 到 255 之间。导入器会在转换前逐项验证；也接受由 JSON 引号包裹的 Base58 文本，但会拒绝通用的 secretKey 对象，以免把所有者密钥与临时会话密钥或加密密钥混淆。"
       },
       {
         "term": "localStorage（浏览器本地存储）",
@@ -162,17 +162,17 @@
       "eyebrow": "存储与导入边界",
       "title": "创建与导入最终都会变成一份由浏览器持有的 Base58 私钥",
       "paragraphs": [
-        "Create 会生成一组 Solana Keypair。Import 接受去除首尾空白后的 Base58 文本，或以左方括号开头的 JSON 数组文本。解码后 32 字节会被当作种子，64 字节会被当作完整秘密密钥。无论哪条路径成功，NiceChunk 都会把推导出的公开地址、编码为 Base58 的完整 64 字节秘密、当前毫秒时间戳，以及 created 或 imported 来源标签分别写入四个 localStorage 项。",
+        "Create 会生成一组 Solana Keypair。Import 接受三种形式：完整 64 字节秘密的 Base58 文本、由 JSON 字符串包裹的同一段文本，或严格包含 64 个字节整数的 JSON 数组。高级兼容路径只接受形如 {\"type\":\"nicechunk-game-wallet-seed\",\"version\":1,\"seed\":\"<Base58 编码的 32 字节种子>\"} 的 32 字节种子；NiceChunk 备份不会生成这种记录。单独输入的 32 字节值会被拒绝，因为 Solana 公开地址解码后也是相同长度。无论哪条路径成功，NiceChunk 都会把推导出的公开地址、编码为 Base58 的完整 64 字节秘密、当前毫秒时间戳，以及 created 或 imported 来源标签分别写入四个 localStorage 项。",
         "这些项目只是当前源的普通存储，并不是加密钱包文件。Base58 改变的是字符表，不会改变谁能够读取该值。同源脚本可以请求包含私钥的记录，清除本站点数据则可能删掉浏览器中的唯一副本。source 标签是可编辑、用于控制界面行为的浏览器数据，不是密码学来源证明。对于导入的钱包，createdAt 表示本浏览器何时保存它，而不是这把密钥最初何时产生。",
         "这把密钥没有仅限 NiceChunk 或仅限 Devnet 的标记。在 Devnet 与 Mainnet 上，Solana 都会根据同一私钥推导出同一地址。因此，把主钱包私钥导入这个以 Devnet 为目标的页面，会同时暴露该密钥对其 Mainnet 地址、代币、账户与其他权限的控制能力。请只使用新建的专用 Game Wallet 与 Devnet SOL；不要向这个流程发送 Mainnet SOL。",
-        "JSON 分支比较宽松。它会对 JSON.parse 返回的内容调用 Uint8Array.from，之后只检查结果的字节长度。像 256 这样的值会回绕为 0，数字字符串也会被强制转换；代码并不要求输入必须是一维的 0 到 255 整数数组。Base58 与 JSON 路径同样不接受助记词、十六进制字符串或 Base64 值。",
+        "导入器现在会在解析前拒绝超过 8,192 个字符的输入，并在转换为 Uint8Array 之前验证 JSON 字节数组：每一项都必须是 0 到 255 之间的整数，而且完整秘密必须恰好包含 64 个字节。它接受由 JSON 引号包裹的 Base58 密钥，但会拒绝通用的 secretKey 或 privateKey 对象，因为 NiceChunk 的其他浏览器记录也会用这些名称保存临时会话或加密材料。恢复短语、十六进制、Base64、标签文字、内部空白、零宽字符、OCR 误识别和其他不支持的字符都会被拒绝，而不是被悄悄修复。另一把完整且内部一致的私钥在结构上仍然有效，因此导入器无法知道它是否被误粘贴；玩家必须把显示地址与备份地址进行核对。",
         "Create 与 Import 会调用同一个存储流程，不检查是否已有记录，也不会在替换前征求许可。四个键按顺序逐个写入，并非原子提交。第二次操作可能静默覆盖尚未备份的钱包，写入中途发生存储失败还可能留下残缺或不匹配的记录。读取记录时虽然要求地址和私钥同时存在，却不会根据私钥推导地址再进行比对。之后构造 Provider 时会根据私钥推导公钥，因此损坏的已存地址与已存私钥可能描述两个不同钱包。"
       ],
       "facts": [
         {
           "label": "已保存的秘密",
           "value": "完整 64 字节 Keypair 秘密的 Base58 文本",
-          "detail": "导入 32 字节种子时会先把它展开为 Keypair，因此最终写入存储的仍是所得 64 字节秘密。"
+          "detail": "明确标注类型的 32 字节种子记录会先展开为 Keypair，因此最终写入存储的仍是所得 64 字节秘密。单独输入的 32 字节值会被拒绝。"
         },
         {
           "label": "已保存的元数据",
@@ -181,8 +181,8 @@
         },
         {
           "label": "JSON 校验",
-          "value": "类型转换加长度检查",
-          "detail": "当前解析器不会在 Uint8Array 转换前拒绝所有非整数、越界值、字符串、嵌套值或其他会被强制转换的元素。"
+          "value": "严格的 64 字节整数数组",
+          "detail": "解析器会在构造 Keypair 前拒绝非整数、超出 0 到 255 范围的值、嵌套对象或通用对象，以及长度不是 64 字节的任何单独输入。"
         },
         {
           "label": "替换行为",
@@ -347,7 +347,7 @@
         "本地钱包模块确实导出了 clearLocalGameWallet，它会删除地址、私钥、时间戳与 source 字段。但当前仓库搜索没有发现已审核运行时或产品控件调用它，两个钱包面板也都没有 Delete 或 Forget Game Wallet 按钮。玩家可以先断开，之后再看到或复用同一条已存本地记录。清除浏览器站点数据可以把它删掉，但这项范围更广的浏览器操作也可能移除 NiceChunk 的其他本地状态。",
         "删除不等于撤销、转移、退款，也不保证安全擦除。断开连接、清除站点数据或删除本地记录，都不会转出 SOL、代币或其他资产，不会撤销已完成交易、抹去公开历史、关闭程序账户、移除其他地方的浏览器或剪贴板副本，也不一定能移除仍被活动 JavaScript 内存持有的 Keypair。如果被删记录是最后一份有效私钥，链上余额与资产仍会留在该地址，却可能永久无法访问。",
         "如果私钥已经暴露，任何持有副本的人仍可能签名。应在可信环境中创建新钱包并迁移剩余资产与权限，而不是依赖 Disconnect 或本地删除。移除一个浏览器副本，无法让别人持有的副本重新变得私密。",
-        "恢复是确定性地重建密钥，不是重置账户。以受支持的 Base58 或 JSON 数组形式提供正确的 32 字节种子或 64 字节秘密，就能重建对应 Keypair，存储流程随后会保存其完整的 64 字节 Base58 私钥。错误格式会被拒绝，但宽松的 JSON 强制转换可能静默改变异常值。在认定钱包恢复前，务必核对恢复出的公开地址。如果清除站点数据或静默覆盖后所有有效副本都已丢失，已审核客户端没有提供服务器支持的恢复路径；玩家不应假设 NiceChunk 客服能够恢复私钥。"
+        "恢复是确定性地重建密钥，不是重置账户。以受支持的 Base58、JSON 字符串或严格 JSON 数组形式提供正确、完整的 64 字节秘密，就能重建对应的 Keypair；明确标注类型的 NiceChunk 种子记录也可以展开一份有意提供的 32 字节种子。单独输入的 32 字节值会被拒绝，避免把公开地址悄悄变成另一个钱包的种子。在认定钱包已经恢复前，务必核对恢复出的公开地址。如果清除站点数据或静默覆盖后所有有效副本都已丢失，已审核客户端没有提供服务器支持的恢复路径；玩家不应假设 NiceChunk 客服能够恢复私钥。"
       ],
       "steps": [
         {
@@ -410,7 +410,7 @@
   "technicalHeading": {
     "eyebrow": "追踪这把密钥",
     "title": "十一段源码追踪私钥从存储到签名与清理的全过程",
-    "summary": "两个公式把登录页的一项门槛与密钥更广泛的权限区分开来。逐字源码展示创建、导入、清除、宽松字节转换、Provider 直接签名、created 与 imported 的界面差异、备份与余额门槛、Play 绕过路径、剪贴板复制、会话清理、所有者等于会话权限、达到 confirmed 的提交，以及已存地址完整性检查。"
+    "summary": "两个公式把登录页的一项门槛与密钥更广泛的权限区分开来。逐字源码展示创建、严格的导入分流、清除、Provider 直接签名、created 与 imported 的界面差异、备份与余额门槛、Play 绕过路径、剪贴板复制、会话清理、所有者等于会话权限、达到 confirmed 的提交，以及已存地址完整性检查。"
   },
   "formulas": [
     {
@@ -522,31 +522,27 @@
       ]
     },
     {
-      "title": "存储会规范化私钥，而 JSON 元素会被强制转换",
+      "title": "导入解析会在构造 Keypair 前拒绝含义不明的种子",
       "language": "JavaScript",
       "source": "src/localGameWallet.js",
-      "code": "function storeLocalGameWalletKeypair(keypair, source = \"created\") {\n  const address = keypair.publicKey.toBase58();\n  const secretKey = bs58.encode(keypair.secretKey);\n  const createdAt = String(Date.now());\n  if (!hasLocalStorage()) throw new Error(\"Browser local storage is unavailable.\");\n  localStorage.setItem(localGameWalletKeys.address, address);\n  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);\n  localStorage.setItem(localGameWalletKeys.createdAt, createdAt);\n  localStorage.setItem(localGameWalletKeys.source, source === \"imported\" ? \"imported\" : \"created\");\n  return { address, secretKey, createdAt, source: source === \"imported\" ? \"imported\" : \"created\" };\n}\n\nfunction loadLocalGameWalletKeypair() {\n  try {\n    const record = getLocalGameWalletRecord({ includeSecret: true });\n    if (!record?.secretKey) return null;\n    return keypairFromSecretInput(record.secretKey);\n  } catch {\n    return null;\n  }\n}\n\nfunction keypairFromSecretInput(value) {\n  const raw = String(value || \"\").trim();\n  if (!raw) throw new Error(\"Missing private key.\");\n  const bytes = raw.startsWith(\"[\") ? Uint8Array.from(JSON.parse(raw)) : bs58.decode(raw);\n  if (bytes.length === 64) return Keypair.fromSecretKey(bytes);\n  if (bytes.length === 32) return Keypair.fromSeed(bytes);\n  throw new Error(\"Private key must be a Solana 64-byte secret key or 32-byte seed.\");\n}",
-      "explanation": "存储流程会推导地址、编码完整 Keypair 私钥，并写入四个独立值。加载流程会忽略单独保存的地址，只根据 secretKey 重建。解析器通过开头的左方括号选择 JSON，再用 Uint8Array.from 转换，之后检查长度。它能接受有效的 32 与 64 字节形式，但不会在强制转换前严格校验每个 JSON 元素。",
+      "code": "function keypairFromSecretInput(value) {\n  const raw = String(value || \"\").trim();\n  if (!raw) throw importError(localGameWalletImportErrorCodes.missing, \"Missing private key.\");\n\n  const material = startsWithJsonToken(raw)\n    ? parseJsonSecretMaterial(raw)\n    : parseBase58SecretMaterial(raw);\n\n  if (material.kind === \"seed\") return Keypair.fromSeed(material.bytes);\n  try {\n    return Keypair.fromSecretKey(material.bytes);\n  } catch (cause) {\n    throw importError(\n      localGameWalletImportErrorCodes.invalidSecret,\n      \"The supplied 64-byte value is not a valid Solana secret key.\",\n      cause,\n    );\n  }\n}",
+      "explanation": "入口只会去掉首尾空白：看起来像 JSON 的输入会进入严格的结构化解析，其他文本则进入 Base58 验证。辅助函数要求每个字节都是整数；会拒绝与公开地址含义不明的单独 32 字节值；只允许通过明确标注类型的 NiceChunk 种子记录导入种子；并把格式错误映射为稳定的本地错误代码。完整的 64 字节值在存储前仍须通过 Solana 对秘密部分与公开部分一致性的内部检查。",
       "walkthrough": [
         {
-          "lines": "1-5",
-          "meaning": "推导公开地址，把完整 Keypair 私钥编码为 Base58，记录当前时间，并要求浏览器存储可用。"
+          "lines": "1-3",
+          "meaning": "只规范化首尾空白，并以稳定的导入错误代码拒绝空值。"
         },
         {
-          "lines": "6-10",
-          "meaning": "依次写入四个独立 localStorage 项，并把同一组地址、私钥、时间戳与规范化 source 返回调用方。"
+          "lines": "5-7",
+          "meaning": "把 JSON 数组或一段由引号包裹的 Base58 值交给结构化解析，把普通文本交给 Base58 解析。两条路径都不会悄悄移除或替换不支持的字符；如果输入了另一把有效私钥，只能通过对比推导地址与备份地址来发现。"
         },
         {
-          "lines": "13-21",
-          "meaning": "读取包含私钥的记录并重建 Keypair；任何加载或解析失败都会变成 null。这里不会比较已存地址。"
+          "lines": "9-9",
+          "meaning": "只有在辅助函数已确认输入是明确标注类型的种子记录时，才会用 32 字节种子构造密钥；单独输入的 32 字节值不会到达这一行。"
         },
         {
-          "lines": "23-26",
-          "meaning": "去除所给文本的首尾空白，拒绝空输入，然后选择宽松的 JSON 到 Uint8Array 转换或 Base58 解码。"
-        },
-        {
-          "lines": "27-30",
-          "meaning": "把 64 字节视为完整私钥、32 字节视为种子，并拒绝其他结果长度。"
+          "lines": "10-19",
+          "meaning": "构造完整的 64 字节 Keypair，保留 Solana 的内部一致性验证；如果失败，则转换为不包含私钥内容的导入错误。"
         }
       ]
     },
@@ -730,7 +726,7 @@
   "evidence": [
     {
       "path": "src/localGameWallet.js",
-      "claim": "定义四个 localStorage 键、生成与导入 Keypair 的路径、Base58 规范化、宽松 JSON 转换、直接签名 Provider、无操作的 disconnect，以及一个没有已审核运行时或产品调用方的导出 clear 函数。"
+      "claim": "定义四个 localStorage 键、生成与导入 Keypair 的路径、严格的 Base58 与 JSON 验证、对含义不明的 32 字节输入的拒绝、明确类型种子的处理、直接签名 Provider、无操作的 disconnect，以及一个没有已审核运行时或产品调用方的导出 clear 函数。"
     },
     {
       "path": "login/login.js",
@@ -765,6 +761,10 @@
       "claim": "使用确定性的模拟 RPC 响应，检查构建后的本地 Game Wallet 创建流程、临时备份复选框、99,999,999 与 100,000,000 lamports 边界、会话清理、保留的四字段记录，以及重新显示的 created 私钥；它不测试导入、覆盖、不匹配、真实充值、交易签名或删除。"
     },
     {
+      "path": "scripts/audit-login-game-wallet-import.mjs",
+      "claim": "使用确定性的临时测试材料检查构建后的登录页：拒绝含义不明的地址和非法字符，成功导入由 JSON 引号包裹的 Base58 密钥，不在页面中渲染私钥或通过请求泄露私钥，预期输入错误不会产生控制台警告，并检查 390 像素宽度下是否溢出。"
+    },
+    {
       "path": "docs/wallet-flow-audit.md",
       "claim": "说明浏览器审计只创建短期隔离的测试密钥、从不记录其私钥，并使用模拟 RPC 数据；它不能证明真实余额、备份安全、交易签名、提交、确认、恢复或存储隔离。"
     },
@@ -774,7 +774,7 @@
     },
     {
       "path": "play/tests/local-game-wallet.test.mjs",
-      "claim": "直接检查生成与导入的密钥材料、Base58 规范化、默认省略私钥、单笔与批量交易 partial-sign、无操作 disconnect 后记录仍保留，以及精确删除四个钱包字段；它不会把已知的宽松 JSON 或静默覆盖行为固化为预期。"
+      "claim": "直接检查生成与导入的密钥材料、Base58 规范化、带引号形式与严格数组形式、明确标注类型的种子、对含义不明的公开地址的拒绝、严格字节验证、无效输入时保留原有存储、默认省略私钥、签名、disconnect 后保留记录，以及精确删除四个钱包字段。"
     },
     {
       "path": "play/tests/session-funding-boundary-copy.test.mjs",

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="local-game-wallet-backup-and-risk" data-docs-static-source="9ced3cde0cb772eb8731f9f398ceb10532b3f4e68980329b4d0f13f66c808da9">
+<html lang="en" data-i18n-scope="docs" data-i18n-build-version="docs-static-en-v1" data-doc-slug="local-game-wallet-backup-and-risk" data-docs-static-source="a9e7a5cf2d513a04623235a18bb32daa5022a0a6e7fdcc62a508e08298760ad1">
   <head>
     <meta charset="UTF-8" />
     <script>
@@ -26,7 +26,7 @@
     <meta name="robots" content="index,follow" />
     <meta name="generator" content="NiceChunk Docs Static Generator v1" />
     <meta name="nicechunk:source-path" content="docs/content/en/local-game-wallet-backup-and-risk.json" />
-    <meta name="nicechunk:source-sha256" content="9ced3cde0cb772eb8731f9f398ceb10532b3f4e68980329b4d0f13f66c808da9" />
+    <meta name="nicechunk:source-sha256" content="a9e7a5cf2d513a04623235a18bb32daa5022a0a6e7fdcc62a508e08298760ad1" />
     <meta name="nicechunk:locale-sha256" content="2c866f228c1d7de4be9f6a0dd0eddecc2fa249a2dcad5c9e35f5e01fe272cae9" />
     <link rel="canonical" href="https://nicechunk.com/docs/local-game-wallet-backup-and-risk/" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -138,7 +138,7 @@
 <div class="docs-guide-context-item"><dt>Current network</dt>
 <dd>Client target: Solana Devnet · the secret key itself is not cluster-specific</dd></div>
 <div class="docs-guide-context-item"><dt>Reviewed</dt>
-<dd>15 July 2026 · current working tree, 9 focused key tests, and a built-browser login flow</dd></div></dl>
+<dd>20 July 2026 · current working tree, 15 focused key tests, a built-browser wallet-flow audit, and a dedicated login import audit</dd></div></dl>
 <dl class="docs-guide-terms"><div class="docs-guide-term"><dt>Built-in Game Wallet</dt>
 <dd>A Solana keypair created or imported by NiceChunk and held by this browser origin. It is separate from an external wallet extension.</dd></div>
 <div class="docs-guide-term"><dt>Keypair</dt>
@@ -156,13 +156,13 @@
 <div class="docs-guide-term"><dt>Private or secret key</dt>
 <dd>The secret bytes that let software sign as this wallet. NiceChunk stores the complete 64-byte keypair secret under a localStorage key named secretKey.</dd></div>
 <div class="docs-guide-term"><dt>32-byte seed</dt>
-<dd>One accepted raw-byte import form. It is not a 12-word or 24-word recovery phrase. The parser passes these bytes to Keypair.fromSeed and then stores the resulting complete 64-byte secret.</dd></div>
+<dd>A lower-level key source that is allowed only inside an explicitly typed NiceChunk seed record. A bare 32-byte Base58 value or JSON array is rejected because it is indistinguishable from a public address; it is not a 12-word or 24-word recovery phrase.</dd></div>
 <div class="docs-guide-term"><dt>64-byte secret key</dt>
 <dd>The other accepted import form and the form emitted by a Solana Keypair. The current code Base58-encodes these 64 bytes for storage and backup.</dd></div>
 <div class="docs-guide-term"><dt>Base58</dt>
 <dd>A text encoding that avoids visually confusing characters. It is not encryption, a password, or protection from scripts that can read the text.</dd></div>
 <div class="docs-guide-term"><dt>JSON secret-key array</dt>
-<dd>A pasted array that the current parser converts with Uint8Array.from. Length 32 or 64 is required, but each element is not strictly checked as an integer from 0 through 255.</dd></div>
+<dd>A pasted array of exactly 64 integers, each from 0 through 255. The importer validates every element before conversion; JSON-quoted Base58 text is accepted too, while generic secretKey objects are rejected to avoid confusing owner keys with temporary session or encryption keys.</dd></div>
 <div class="docs-guide-term"><dt>localStorage</dt>
 <dd>Persistent key-value storage for one browser origin. Same-origin JavaScript can read it, and clearing site data can erase it.</dd></div>
 <div class="docs-guide-term"><dt>Browser origin</dt>
@@ -201,20 +201,20 @@
 <li><a href="#evidence">Where these claims come from</a></li></ol></nav></aside>
 <div class="docs-article-content"><section class="docs-content-section" id="browser-held-secret"><p class="docs-eyebrow">STORAGE AND IMPORT BOUNDARY</p>
 <h2>Creation and import both end as one browser-held Base58 secret</h2>
-<p class="docs-prose">Create generates a Solana Keypair. Import accepts trimmed Base58 text or text beginning with an opening bracket for a JSON array. Thirty-two decoded bytes are treated as a seed; sixty-four are treated as a complete secret key. Whichever route succeeds, NiceChunk writes the derived public address, the complete 64-byte secret encoded as Base58, the current millisecond timestamp, and a created-or-imported source label into four separate localStorage entries.</p>
+<p class="docs-prose">Create generates a Solana Keypair. Import accepts a complete 64-byte secret as Base58 text, the same text wrapped as a JSON string, or a strict JSON array of exactly 64 byte integers. An advanced compatibility path accepts a 32-byte seed only as {"type":"nicechunk-game-wallet-seed","version":1,"seed":"&lt;Base58-encoded 32-byte seed&gt;"}; NiceChunk backups do not emit this record. Bare 32-byte values are rejected because a Solana public address has the same decoded length. Whichever route succeeds, NiceChunk writes the derived public address, the complete 64-byte secret encoded as Base58, the current millisecond timestamp, and a created-or-imported source label into four separate localStorage entries.</p>
 <p class="docs-prose">Those entries are plain origin storage, not an encrypted wallet file. Base58 changes the alphabet, not who can read the value. A same-origin script can request the secret record, and clearing this site's data can remove the only browser copy. The source label is editable browser data used for interface behavior, not cryptographic provenance. For an imported wallet, createdAt means when this browser stored it, not when that key first existed.</p>
 <p class="docs-prose">The key has no NiceChunk-only or Devnet-only flag. Solana derives the same address from the same secret on Devnet and Mainnet. Importing a main-wallet secret into this Devnet-targeted page therefore exposes the authority that same key has over its Mainnet address, tokens, accounts, and other permissions. Use a newly created dedicated Game Wallet and Devnet SOL only; do not send Mainnet SOL to this flow.</p>
-<p class="docs-prose">The JSON branch is permissive. It calls Uint8Array.from on whatever JSON.parse returns and then checks only the resulting byte length. Values such as 256 wrap to zero and numeric strings are coerced; the code does not require a flat array of integers from 0 through 255. The Base58 and JSON error paths also do not accept a recovery phrase, hexadecimal string, or Base64 value.</p>
+<p class="docs-prose">The importer now rejects input longer than 8,192 characters before parsing and validates JSON byte arrays before Uint8Array conversion: every item must be an integer from 0 through 255 and the complete secret must contain exactly 64 bytes. It accepts a JSON-quoted Base58 key but rejects generic secretKey or privateKey objects because other NiceChunk browser records use those names for temporary session or encryption material. Recovery phrases, hexadecimal, Base64, labels, internal whitespace, zero-width characters, OCR substitutions, and other unsupported characters are rejected rather than silently repaired. A different complete and internally consistent private key remains structurally valid, so the importer cannot know it was pasted by mistake; the displayed address must be compared with the backup address.</p>
 <p class="docs-prose">Create and Import call the same storage routine without checking for an existing record or asking permission to replace it. Four keys are written one after another rather than atomically. A second action can silently overwrite an unbacked wallet, and a storage failure between writes can leave a partial or mismatched record. Reading the record requires an address and secret but does not derive the address from the secret and compare them. Later provider construction derives its public key from the secret, so a corrupted stored address and stored secret can describe different wallets.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Stored secret</span>
 <strong>Base58 of the complete 64-byte Keypair secret</strong>
-<p>A 32-byte seed import is expanded to a Keypair first, so storage still receives the resulting 64-byte secret.</p></article>
+<p>An explicitly typed 32-byte seed record is expanded to a Keypair first, so storage still receives the resulting 64-byte secret. Bare 32-byte values are rejected.</p></article>
 <article class="docs-fact"><span>Stored metadata</span>
 <strong>Address, timestamp, and created/imported label</strong>
 <p>They are four independent localStorage values with no schema version, atomic commit, or authenticated relationship.</p></article>
 <article class="docs-fact"><span>JSON validation</span>
-<strong>Conversion plus length check</strong>
-<p>The current parser does not reject every non-integer, out-of-range, string, nested, or otherwise coerced element before Uint8Array conversion.</p></article>
+<strong>Strict 64-byte integer array</strong>
+<p>The parser rejects non-integers, values outside 0 through 255, nested or generic objects, and every bare length other than 64 before Keypair construction.</p></article>
 <article class="docs-fact"><span>Replacement behavior</span>
 <strong>Last successful Create or Import wins</strong>
 <p>There is no overwrite confirmation or automatic export of the previous secret.</p></article>
@@ -300,7 +300,7 @@
 <p class="docs-prose">The local wallet module does export clearLocalGameWallet, which removes the address, secret, timestamp, and source fields. Current repository search finds no reviewed runtime or product control that calls it, and neither wallet panel presents a Delete or Forget Game Wallet button. A player can disconnect and later see or reuse the same saved local record. Clearing browser site data can delete it, but that broad browser action may remove other local NiceChunk state too.</p>
 <p class="docs-prose">Deletion is not revocation, transfer, refund, or guaranteed secure erasure. Disconnecting, clearing site data, or deleting the local record does not move out SOL, tokens, or other assets; undo completed transactions; erase public history; close program accounts; remove browser or clipboard copies elsewhere; or necessarily remove a Keypair already held in live JavaScript memory. If the deleted record was the last valid secret, the on-chain balance and assets remain at the address but may become permanently inaccessible.</p>
 <p class="docs-prose">If the secret was exposed, anyone with a copy may still sign. From a trusted environment, create a fresh wallet and move remaining value and authority rather than relying on Disconnect or local deletion. Removing one browser copy cannot make another person's copy private again.</p>
-<p class="docs-prose">Recovery is deterministic key reconstruction, not an account reset. A correct 32-byte seed or 64-byte secret in accepted Base58 or JSON-array form recreates the corresponding Keypair, and the storage routine saves its complete 64-byte Base58 secret. A wrong format is rejected, but permissive JSON coercion can silently change unusual values. Always verify the recovered public address before treating the wallet as restored. If every valid copy is lost after site data is cleared or a silent overwrite, the reviewed client exposes no server-backed recovery path; players should not assume NiceChunk support can restore the secret.</p>
+<p class="docs-prose">Recovery is deterministic key reconstruction, not an account reset. A correct complete 64-byte secret in accepted Base58, JSON-string, or strict JSON-array form recreates the corresponding Keypair, and an explicitly typed NiceChunk seed record can expand a deliberate 32-byte seed. Bare 32-byte values are rejected so a public address cannot silently become a different wallet seed. Always verify the recovered public address before treating the wallet as restored. If every valid copy is lost after site data is cleared or a silent overwrite, the reviewed client exposes no server-backed recovery path; players should not assume NiceChunk support can restore the secret.</p>
 <div class="docs-fact-grid"><article class="docs-fact"><span>Disconnect removes</span>
 <strong>Selected connection and session fields</strong>
 <p>Exact cleanup differs between login and Play, but neither path invokes the local Game Wallet clear function.</p></article>
@@ -330,7 +330,7 @@
 <p>If browser storage is cleared or silently replaced and no valid secret copy remains, the key cannot be reconstructed from its public address. The reviewed client exposes no server-backed recovery path, so remaining assets may stay on chain but become permanently inaccessible.</p></aside></section>
 <section class="docs-technical" id="technical-details"><div class="docs-section-heading"><p class="docs-eyebrow">FOLLOW THE KEY</p>
 <h2>Eleven excerpts follow the secret from storage to signing and cleanup</h2>
-<p>The formulas separate one login-page gate from the key's much wider authority. The verbatim excerpts show creation, import, clearing, permissive byte conversion, direct provider signing, created-versus-imported presentation, the backup and balance gate, the Play bypass, clipboard copying, session cleanup, owner-equals-session authority, confirmed submission, and the stored-address integrity check.</p></div>
+<p>The formulas separate one login-page gate from the key's much wider authority. The verbatim excerpts show creation, strict import routing, clearing, direct provider signing, created-versus-imported presentation, the backup and balance gate, the Play bypass, clipboard copying, session cleanup, owner-equals-session authority, confirmed submission, and the stored-address integrity check.</p></div>
 <div class="docs-formula-grid"><article class="docs-formula"><h3>Current full-login Continue gate</h3>
 <div aria-label="The full login page continues only when a stored address exists, either the source is imported or the backup checkbox is checked, and the confirmed balance of the stored address is at least one hundred million lamports." class="docs-formula-expression" role="math"><code>continueLogin = has(record.address) AND (source = imported OR backupBox = checked) AND confirmedBalance(record.address) &gt;= 100,000,000 lamports</code></div>
 <p class="docs-technical-explanation">This is browser-interface policy, not a Solana program rule. The checkbox does not prove a backup, imported records bypass it, and the expression does not verify that record.address matches the public key derived from the stored secret. The threshold is a minimum rather than a cap or reserved budget. The Play wallet panel applies a local session without evaluating this formula.</p>
@@ -421,50 +421,37 @@ export function clearLocalGameWallet() {
 <p>Apply this Keypair directly to one transaction or each transaction in a list and return the signed object or list.</p></li>
 <li><strong>22-23</strong>
 <p>Finish the provider object and function; no message-signing, event, or delete method is added.</p></li></ol></article>
-<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Storage normalizes secrets while JSON elements are coerced</h3>
+<article class="docs-code-snippet"><div class="docs-code-heading"><h3>Import routing rejects ambiguous seeds before Keypair construction</h3>
 <span class="docs-code-language">JavaScript</span>
 <code class="docs-code-source">src/localGameWallet.js</code></div>
-<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function storeLocalGameWalletKeypair(keypair, source = "created") {
-  const address = keypair.publicKey.toBase58();
-  const secretKey = bs58.encode(keypair.secretKey);
-  const createdAt = String(Date.now());
-  if (!hasLocalStorage()) throw new Error("Browser local storage is unavailable.");
-  localStorage.setItem(localGameWalletKeys.address, address);
-  localStorage.setItem(localGameWalletKeys.secretKey, secretKey);
-  localStorage.setItem(localGameWalletKeys.createdAt, createdAt);
-  localStorage.setItem(localGameWalletKeys.source, source === "imported" ? "imported" : "created");
-  return { address, secretKey, createdAt, source: source === "imported" ? "imported" : "created" };
-}
-
-function loadLocalGameWalletKeypair() {
-  try {
-    const record = getLocalGameWalletRecord({ includeSecret: true });
-    if (!record?.secretKey) return null;
-    return keypairFromSecretInput(record.secretKey);
-  } catch {
-    return null;
-  }
-}
-
-function keypairFromSecretInput(value) {
+<pre class="docs-code-block" tabindex="0"><code data-language="JavaScript">function keypairFromSecretInput(value) {
   const raw = String(value || "").trim();
-  if (!raw) throw new Error("Missing private key.");
-  const bytes = raw.startsWith("[") ? Uint8Array.from(JSON.parse(raw)) : bs58.decode(raw);
-  if (bytes.length === 64) return Keypair.fromSecretKey(bytes);
-  if (bytes.length === 32) return Keypair.fromSeed(bytes);
-  throw new Error("Private key must be a Solana 64-byte secret key or 32-byte seed.");
+  if (!raw) throw importError(localGameWalletImportErrorCodes.missing, "Missing private key.");
+
+  const material = startsWithJsonToken(raw)
+    ? parseJsonSecretMaterial(raw)
+    : parseBase58SecretMaterial(raw);
+
+  if (material.kind === "seed") return Keypair.fromSeed(material.bytes);
+  try {
+    return Keypair.fromSecretKey(material.bytes);
+  } catch (cause) {
+    throw importError(
+      localGameWalletImportErrorCodes.invalidSecret,
+      "The supplied 64-byte value is not a valid Solana secret key.",
+      cause,
+    );
+  }
 }</code></pre>
-<p class="docs-technical-explanation">Storage derives the address, encodes the complete Keypair secret, and writes four independent values. Loading ignores the separately stored address and reconstructs from secretKey. The parser chooses JSON by the opening bracket, converts with Uint8Array.from, and then checks length. That accepts valid 32- and 64-byte forms but does not strictly validate every JSON element before coercion.</p>
-<ol class="docs-code-walkthrough"><li><strong>1-5</strong>
-<p>Derive the public address, Base58-encode the complete Keypair secret, stamp the current time, and require browser storage.</p></li>
-<li><strong>6-10</strong>
-<p>Write four separate localStorage entries in sequence and return the same address, secret, timestamp, and normalized source to the caller.</p></li>
-<li><strong>13-21</strong>
-<p>Read a record including its secret and reconstruct a Keypair; any load or parse failure becomes null. The stored address is not compared here.</p></li>
-<li><strong>23-26</strong>
-<p>Trim the supplied text, reject empty input, then choose permissive JSON-to-Uint8Array conversion or Base58 decoding.</p></li>
-<li><strong>27-30</strong>
-<p>Treat 64 bytes as a complete secret, 32 bytes as a seed, and reject every other resulting length.</p></li></ol></article>
+<p class="docs-technical-explanation">The entry point trims only outer whitespace, routes JSON-looking input to strict structured parsing, and routes other text to Base58 validation. Its helpers require byte integers, reject bare 32-byte values as ambiguous with public addresses, allow a seed only through an explicitly typed NiceChunk seed record, and map malformed input to stable local error codes. A complete 64-byte value still passes through Solana's internal secret/public consistency check before storage.</p>
+<ol class="docs-code-walkthrough"><li><strong>1-3</strong>
+<p>Normalize only outer whitespace and reject an empty value with a stable import error code.</p></li>
+<li><strong>5-7</strong>
+<p>Route JSON arrays or one quoted Base58 value to structured parsing and plain text to Base58 parsing. Neither branch silently removes or substitutes unsupported characters; a different valid key must be caught by comparing the derived address with the backup address.</p></li>
+<li><strong>9-9</strong>
+<p>Construct from a 32-byte seed only when the helper marked an explicitly typed seed record; bare 32-byte values never reach this line.</p></li>
+<li><strong>10-19</strong>
+<p>Construct the complete 64-byte Keypair, preserve Solana's internal consistency validation, and convert a failure into a non-secret-bearing import error.</p></li></ol></article>
 <article class="docs-code-snippet"><div class="docs-code-heading"><h3>The full login vault treats created and imported records differently</h3>
 <span class="docs-code-language">JavaScript</span>
 <code class="docs-code-source">login/login.js</code></div>
@@ -698,7 +685,7 @@ export function clearWalletSession() {
 <h2>Where these claims come from</h2>
 <p class="docs-prose">Each claim is intentionally scoped to a concrete implementation path. These references are for verification, not decoration.</p>
 <div class="docs-evidence-list"><article class="docs-evidence-item"><code>src/localGameWallet.js</code>
-<p>Defines the four localStorage keys, generated and imported Keypair paths, Base58 normalization, permissive JSON conversion, direct signing provider, no-op disconnect, and an exported clear function with no reviewed runtime or product caller.</p></article>
+<p>Defines the four localStorage keys, generated and imported Keypair paths, strict Base58 and JSON validation, ambiguous 32-byte rejection, explicitly typed seed handling, direct signing provider, no-op disconnect, and an exported clear function with no reviewed runtime or product caller.</p></article>
 <article class="docs-evidence-item"><code>login/login.js</code>
 <p>Shows created secrets, hides imported secrets, resets the backup checkbox, enforces the full-login 100,000,000-lamport confirmed minimum, binds the stored address, and disconnects without clearing the Game Wallet record.</p></article>
 <article class="docs-evidence-item"><code>login/index.html</code>
@@ -715,12 +702,14 @@ export function clearWalletSession() {
 <p>Provides Create, Use local wallet, Disconnect, address, and private-key copy controls in Play, with no wallet-only Delete control.</p></article>
 <article class="docs-evidence-item"><code>scripts/audit-wallet-flows.mjs</code>
 <p>Checks a built local Game Wallet creation flow, the temporary backup checkbox, 99,999,999-versus-100,000,000-lamport boundary, session cleanup, retained four-field record, and redisplayed created secret with deterministic mocked RPC responses; it does not test import, overwrite, mismatch, live funding, transaction signing, or deletion.</p></article>
+<article class="docs-evidence-item"><code>scripts/audit-login-game-wallet-import.mjs</code>
+<p>Checks the built login page with deterministic throwaway material: ambiguous-address and invalid-character rejection, successful JSON-quoted Base58 import, no secret rendering or request leakage, no expected console warning, and 390-pixel overflow.</p></article>
 <article class="docs-evidence-item"><code>docs/wallet-flow-audit.md</code>
 <p>Documents that the browser audit creates only an ephemeral isolated test key, never records its secret, uses mocked RPC data, and does not prove live balances, safe backup, transaction signing, submission, confirmation, recovery, or storage isolation.</p></article>
 <article class="docs-evidence-item"><code>play/tests/play-auth-session.test.mjs</code>
 <p>Tests selected identity and runtime-cache cleanup while preserving unrelated storage, but does not directly exercise the local Game Wallet module or its four keys.</p></article>
 <article class="docs-evidence-item"><code>play/tests/local-game-wallet.test.mjs</code>
-<p>Directly checks generated and imported key material, Base58 normalization, default secret omission, single and batch transaction partial-signing, no-op disconnect retention, and exact removal of the four wallet fields without freezing the known permissive JSON or silent-overwrite behavior.</p></article>
+<p>Directly checks generated and imported key material, Base58 normalization, quoted and strict-array forms, explicitly typed seeds, ambiguous public-address rejection, strict byte validation, invalid-input storage preservation, default secret omission, signing, disconnect retention, and exact removal of the four wallet fields.</p></article>
 <article class="docs-evidence-item"><code>play/tests/session-funding-boundary-copy.test.mjs</code>
 <p>Prevents the Play funding target from being described as escrow, a transaction spending boundary, or an authorization cap, and requires local-wallet copy to name the unencrypted origin-storage boundary.</p></article>
 <article class="docs-evidence-item"><code>package.json</code>
